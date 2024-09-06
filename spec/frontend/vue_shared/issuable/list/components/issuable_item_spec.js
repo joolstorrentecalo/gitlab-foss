@@ -1,7 +1,6 @@
 import { GlBadge, GlLink, GlLabel, GlIcon, GlFormCheckbox, GlSprintf } from '@gitlab/ui';
 import { nextTick } from 'vue';
 import { useFakeDate } from 'helpers/fake_date';
-import { TEST_HOST } from 'helpers/test_constants';
 import { shallowMountExtended as shallowMount } from 'helpers/vue_test_utils_helper';
 import IssuableItem from '~/vue_shared/issuable/list/components/issuable_item.vue';
 import WorkItemTypeIcon from '~/work_items/components/work_item_type_icon.vue';
@@ -37,7 +36,7 @@ const createComponent = ({
     },
   });
 
-const MOCK_GITLAB_URL = TEST_HOST;
+const MOCK_GITLAB_URL = 'http://0.0.0.0:3000';
 
 describe('IssuableItem', () => {
   // The mock data is dependent that this is after our default date
@@ -51,8 +50,11 @@ describe('IssuableItem', () => {
   const findWorkItemTypeIcon = () => wrapper.findComponent(WorkItemTypeIcon);
   const findIssuableTitleLink = () => wrapper.findComponentByTestId('issuable-title-link');
   const findIssuableItemWrapper = () => wrapper.findByTestId('issuable-item-wrapper');
-  const findIssuablePrefetchTrigger = () => wrapper.findByTestId('issuable-prefetch-trigger');
   const findStatusEl = () => wrapper.findByTestId('issuable-status');
+
+  beforeEach(() => {
+    gon.gitlab_url = MOCK_GITLAB_URL;
+  });
 
   describe('computed', () => {
     describe('author', () => {
@@ -160,7 +162,7 @@ describe('IssuableItem', () => {
       it('returns `issuable.assignees` reference when it is available', () => {
         wrapper = createComponent();
 
-        expect(wrapper.vm.assignees).toStrictEqual(mockIssuable.assignees);
+        expect(wrapper.vm.assignees).toBe(mockIssuable.assignees);
       });
     });
 
@@ -225,7 +227,7 @@ describe('IssuableItem', () => {
     describe('showDiscussions', () => {
       it.each`
         userDiscussionsCount | returnValue
-        ${0}                 | ${false}
+        ${0}                 | ${true}
         ${1}                 | ${true}
         ${undefined}         | ${false}
         ${null}              | ${false}
@@ -398,12 +400,6 @@ describe('IssuableItem', () => {
       expect(referenceEl.text()).toBe(`#${mockIssuable.iid}`);
     });
 
-    it('does not enable item prefetching by default', () => {
-      wrapper = createComponent();
-
-      expect(findIssuablePrefetchTrigger().exists()).toBe(false);
-    });
-
     it('renders issuable reference via slot', () => {
       wrapper = createComponent({
         issuableSymbol: '#',
@@ -502,6 +498,7 @@ describe('IssuableItem', () => {
         description: mockLabels[0].description,
         scoped: false,
         target: wrapper.vm.labelTarget(mockLabels[0]),
+        size: 'sm',
       });
     });
 
@@ -559,9 +556,12 @@ describe('IssuableItem', () => {
       const discussionsEl = wrapper.findByTestId('issuable-comments');
 
       expect(discussionsEl.exists()).toBe(true);
-
+      expect(discussionsEl.findComponent(GlLink).attributes()).toMatchObject({
+        title: 'Comments',
+        href: `${mockIssuable.webUrl}#notes`,
+      });
       expect(discussionsEl.findComponent(GlIcon).props('name')).toBe('comments');
-      expect(discussionsEl.text()).toBe('2');
+      expect(discussionsEl.findComponent(GlLink).text()).toContain('2');
     });
 
     it('renders issuable-assignees component', () => {
@@ -642,20 +642,6 @@ describe('IssuableItem', () => {
       expect(wrapper.emitted('select-issuable')).toEqual([[{ iid, webUrl }]]);
     });
 
-    it('includes fullPath in emitted event for work items', () => {
-      const { iid, webUrl } = mockIssuable;
-      const fullPath = 'gitlab-org/gitlab';
-
-      wrapper = createComponent({
-        preventRedirect: true,
-        issuable: { ...mockIssuable, namespace: { fullPath } },
-      });
-
-      findIssuableTitleLink().vm.$emit('click', new MouseEvent('click'));
-
-      expect(wrapper.emitted('select-issuable')).toEqual([[{ iid, webUrl, fullPath }]]);
-    });
-
     it('does not apply highlighted class when item is not active', () => {
       wrapper = createComponent({
         preventRedirect: true,
@@ -671,14 +657,6 @@ describe('IssuableItem', () => {
       });
 
       expect(findIssuableItemWrapper().classes('gl-bg-blue-50')).toBe(true);
-    });
-
-    it('enables item prefetching', () => {
-      wrapper = createComponent({
-        preventRedirect: true,
-      });
-
-      expect(findIssuablePrefetchTrigger().exists()).toBe(true);
     });
   });
 });

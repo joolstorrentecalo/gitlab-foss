@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module QA
-  RSpec.describe 'Plan', :orchestrated, :smtp, product_group: :project_management do
+  RSpec.describe 'Plan', :orchestrated, :smtp, :reliable, product_group: :project_management do
     describe 'Email Notification' do
       include Support::API
 
@@ -15,7 +15,7 @@ module QA
         Flow::Login.sign_in
       end
 
-      it 'is received by a user for project invitation', :blocking, testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/347961' do
+      it 'is received by a user for project invitation', testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/347961' do
         project.visit!
 
         Page::Project::Menu.perform(&:go_to_members)
@@ -27,7 +27,7 @@ module QA
 
         mailhog_items = mailhog_json.dig('items')
 
-        expect(mailhog_items).to include(an_object_satisfying { |o| mailhog_item_subject(o)&.include?('project was granted') })
+        expect(mailhog_items).to include(an_object_satisfying { |o| /project was granted/ === mailhog_item_subject(o) })
       end
 
       private

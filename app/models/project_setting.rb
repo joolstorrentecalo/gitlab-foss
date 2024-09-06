@@ -40,7 +40,7 @@ class ProjectSetting < ApplicationRecord
   validates :issue_branch_template, length: { maximum: Issue::MAX_BRANCH_TEMPLATE }
   validates :target_platforms, inclusion: { in: ALLOWED_TARGET_PLATFORMS }
   validates :suggested_reviewers_enabled, inclusion: { in: [true, false] }
-  ignore_column :code_suggestions, remove_with: '17.0', remove_after: '2024-03-21'
+  ignore_column :code_suggestions, remove_with: '16.11', remove_after: '2024-03-21'
 
   validates :pages_unique_domain,
     uniqueness: { if: -> { pages_unique_domain.present? } },
@@ -52,11 +52,6 @@ class ProjectSetting < ApplicationRecord
 
   attribute :legacy_open_source_license_available, default: -> do
     Feature.enabled?(:legacy_open_source_license_available, type: :ops)
-  end
-
-  # Checks if a given domain is already assigned to any existing project
-  def self.unique_domain_exists?(domain)
-    where(pages_unique_domain: domain).exists?
   end
 
   def squash_enabled_by_default?

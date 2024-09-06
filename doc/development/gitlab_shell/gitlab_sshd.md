@@ -12,7 +12,6 @@ and eventually other cloud-native environments. Instead of running an `sshd` pro
 we run a `gitlab-sshd` process that does the same job, in a more focused manner:
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 sequenceDiagram
     participant Git on client
     participant GitLab SSHD

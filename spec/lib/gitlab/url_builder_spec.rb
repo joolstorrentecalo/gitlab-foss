@@ -61,9 +61,8 @@ RSpec.describe Gitlab::UrlBuilder do
       :discussion_note_on_project_snippet  | ->(note) { "/#{note.project.full_path}/-/snippets/#{note.noteable_id}#note_#{note.id}" }
       :discussion_note_on_personal_snippet | ->(note) { "/-/snippets/#{note.noteable_id}#note_#{note.id}" }
       :note_on_personal_snippet            | ->(note) { "/-/snippets/#{note.noteable_id}#note_#{note.id}" }
-      :package                             | ->(package) { "/#{package.project.full_path}/-/packages/#{package.id}" }
-      :user_namespace                      | ->(user_namespace) { "/#{user_namespace.owner.full_path}" }
-      :project_namespace                   | ->(project_namespace) { "/#{project_namespace.project.full_path}" }
+      :note_on_abuse_report | ->(note) { "/admin/abuse_reports/#{note.noteable_id}#note_#{note.id}" }
+      :package | ->(package) { "/#{package.project.full_path}/-/packages/#{package.id}" }
     end
 
     with_them do
@@ -195,11 +194,11 @@ RSpec.describe Gitlab::UrlBuilder do
     context 'when passing Packages::Package' do
       let(:package) { build_stubbed(:terraform_module_package) }
 
-      context 'with terraform module package' do
-        it 'returns the url for terraform module registry' do
+      context 'with infrastructure package' do
+        it 'returns the url for infrastucture registry' do
           url = subject.build(package)
 
-          expect(url).to eq "#{Gitlab.config.gitlab.url}/#{package.project.full_path}/-/terraform_module_registry/#{package.id}"
+          expect(url).to eq "#{Gitlab.config.gitlab.url}/#{package.project.full_path}/-/infrastructure_registry/#{package.id}"
         end
       end
     end

@@ -23,7 +23,7 @@ func TestNewSmartHTTPClient(t *testing.T) {
 		serverFixture(),
 	)
 	require.NoError(t, err)
-	testOutgoingMetadata(ctx, t)
+	testOutgoingMetadata(t, ctx)
 	require.NotNil(t, client.sidechannelRegistry)
 }
 
@@ -33,7 +33,7 @@ func TestNewBlobClient(t *testing.T) {
 		serverFixture(),
 	)
 	require.NoError(t, err)
-	testOutgoingMetadata(ctx, t)
+	testOutgoingMetadata(t, ctx)
 }
 
 func TestNewRepositoryClient(t *testing.T) {
@@ -43,7 +43,7 @@ func TestNewRepositoryClient(t *testing.T) {
 	)
 
 	require.NoError(t, err)
-	testOutgoingMetadata(ctx, t)
+	testOutgoingMetadata(t, ctx)
 }
 
 func TestNewDiffClient(t *testing.T) {
@@ -52,30 +52,10 @@ func TestNewDiffClient(t *testing.T) {
 		serverFixture(),
 	)
 	require.NoError(t, err)
-	testOutgoingMetadata(ctx, t)
+	testOutgoingMetadata(t, ctx)
 }
 
-func TestNewConnection(t *testing.T) {
-	conn, err := NewConnection(serverFixture())
-	require.NotNil(t, conn)
-	require.NoError(t, err)
-}
-
-func TestSidechannel(t *testing.T) {
-	sidechannel, err := Sidechannel()
-	require.Equal(t, sidechannelRegistry, sidechannel)
-	require.NoError(t, err)
-}
-
-func TestSidechannelNotInitialized(t *testing.T) {
-	sidechannelRegistry = nil
-
-	sidechannel, err := Sidechannel()
-	require.Nil(t, sidechannel)
-	require.ErrorContains(t, err, "sidechannel is not initialized")
-}
-
-func testOutgoingMetadata(ctx context.Context, t *testing.T) {
+func testOutgoingMetadata(t *testing.T, ctx context.Context) {
 	t.Helper()
 	md, ok := metadata.FromOutgoingContext(ctx)
 	require.True(t, ok, "get metadata from context")

@@ -32,9 +32,7 @@ module Gitlab
                   project: project, sha: @pipeline.sha,
                   custom_content: @command.content,
                   pipeline_source: @command.source, pipeline_source_bridge: @command.bridge,
-                  triggered_for_branch: @pipeline.branch?,
-                  ref: @pipeline.ref,
-                  pipeline_policy_context: @command.pipeline_policy_context
+                  triggered_for_branch: @pipeline.branch?
                 )
               end
             end
@@ -44,5 +42,3 @@ module Gitlab
     end
   end
 end
-
-Gitlab::Ci::Pipeline::Chain::Config::Content.prepend_mod

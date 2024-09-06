@@ -1,7 +1,7 @@
 import VueApollo from 'vue-apollo';
 import Vue from 'vue';
 import { GlForm } from '@gitlab/ui';
-import { mountExtended, extendedWrapper } from 'helpers/vue_test_utils_helper';
+import { mountExtended } from 'helpers/vue_test_utils_helper';
 import createMockApollo from 'helpers/mock_apollo_helper';
 import waitForPromises from 'helpers/wait_for_promises';
 import ContainerProtectionRuleForm from '~/packages_and_registries/settings/project/components/container_protection_rule_form.vue';
@@ -25,10 +25,10 @@ describe('container Protection Rule Form', () => {
   const findForm = () => wrapper.findComponent(GlForm);
   const findRepositoryPathPatternInput = () =>
     wrapper.findByRole('textbox', { name: /repository path pattern/i });
-  const findMinimumAccessLevelForPushSelect = () =>
-    wrapper.findByRole('combobox', { name: /minimum access level for push/i });
-  const findMinimumAccessLevelForDeleteSelect = () =>
-    wrapper.findByRole('combobox', { name: /minimum access level for delete/i });
+  const findPushProtectedUpToAccessLevelSelect = () =>
+    wrapper.findByRole('combobox', { name: /maximum access level prevented from pushing/i });
+  const findDeleteProtectedUpToAccessLevelSelect = () =>
+    wrapper.findByRole('combobox', { name: /maximum access level prevented from deleting/i });
   const findSubmitButton = () => wrapper.findByRole('button', { name: /add rule/i });
 
   const mountComponent = ({ config, provide = defaultProvidedValues } = {}) => {
@@ -52,19 +52,19 @@ describe('container Protection Rule Form', () => {
   };
 
   describe('form fields', () => {
-    describe('form field "minimumAccessLevelForPush"', () => {
-      const minimumAccessLevelForPushOptions = () =>
-        findMinimumAccessLevelForPushSelect()
+    describe('form field "pushProtectedUpToAccessLevelSelect"', () => {
+      const pushProtectedUpToAccessLevelSelectOptions = () =>
+        findPushProtectedUpToAccessLevelSelect()
           .findAll('option')
           .wrappers.map((option) => option.element.value);
 
-      it.each(['', 'MAINTAINER', 'OWNER', 'ADMIN'])(
-        'includes the access level "%s" as an option',
+      it.each(['DEVELOPER', 'MAINTAINER', 'OWNER'])(
+        'includes the %s access level',
         (accessLevel) => {
           mountComponent();
 
-          expect(findMinimumAccessLevelForPushSelect().exists()).toBe(true);
-          expect(minimumAccessLevelForPushOptions()).toContain(accessLevel);
+          expect(findPushProtectedUpToAccessLevelSelect().exists()).toBe(true);
+          expect(pushProtectedUpToAccessLevelSelectOptions()).toContain(accessLevel);
         },
       );
     });
@@ -79,8 +79,8 @@ describe('container Protection Rule Form', () => {
       it('disables all form fields', () => {
         expect(findSubmitButton().props('disabled')).toBe(true);
         expect(findRepositoryPathPatternInput().attributes('disabled')).toBe('disabled');
-        expect(findMinimumAccessLevelForPushSelect().attributes('disabled')).toBe('disabled');
-        expect(findMinimumAccessLevelForDeleteSelect().attributes('disabled')).toBe('disabled');
+        expect(findPushProtectedUpToAccessLevelSelect().attributes('disabled')).toBe('disabled');
+        expect(findDeleteProtectedUpToAccessLevelSelect().attributes('disabled')).toBe('disabled');
       });
 
       it('displays a loading spinner', () => {
@@ -90,7 +90,7 @@ describe('container Protection Rule Form', () => {
   });
 
   describe('form actions', () => {
-    describe('button "Add rule"', () => {
+    describe('button "Protect"', () => {
       it.each`
         repositoryPathPattern                                               | submitButtonDisabled
         ${''}                                                               | ${true}
@@ -140,7 +140,7 @@ describe('container Protection Rule Form', () => {
     });
 
     describe('submit', () => {
-      const findAlert = () => extendedWrapper(wrapper.findByRole('alert'));
+      const findAlert = () => wrapper.findByRole('alert');
 
       const submitForm = () => {
         findForm().trigger('submit');
@@ -165,29 +165,6 @@ describe('container Protection Rule Form', () => {
         });
       });
 
-      it('dispatches correct apollo mutation when no minimumAccessLevelForPush is selected', async () => {
-        const mutationResolver = jest
-          .fn()
-          .mockResolvedValue(createContainerProtectionRuleMutationPayload());
-
-        mountComponentWithApollo({ mutationResolver });
-
-        await findRepositoryPathPatternInput().setValue(
-          createContainerProtectionRuleMutationInput.repositoryPathPattern,
-        );
-        await findMinimumAccessLevelForPushSelect().setValue('');
-
-        await submitForm();
-
-        expect(mutationResolver).toHaveBeenCalledWith({
-          input: {
-            projectPath: 'path',
-            ...createContainerProtectionRuleMutationInput,
-            minimumAccessLevelForPush: null,
-          },
-        });
-      });
-
       it('emits event "submit" when apollo mutation successful', async () => {
         const mutationResolver = jest
           .fn()
@@ -198,9 +175,8 @@ describe('container Protection Rule Form', () => {
         await submitForm();
 
         expect(wrapper.emitted('submit')).toBeDefined();
-        const expectedEventSubmitPayload =
-          createContainerProtectionRuleMutationPayload().data.createContainerRegistryProtectionRule
-            .containerRegistryProtectionRule;
+        const expectedEventSubmitPayload = createContainerProtectionRuleMutationPayload().data
+          .createContainerRegistryProtectionRule.containerRegistryProtectionRule;
         expect(wrapper.emitted('submit')[0]).toEqual([expectedEventSubmitPayload]);
 
         expect(wrapper.emitted()).not.toHaveProperty('cancel');
@@ -218,13 +194,7 @@ describe('container Protection Rule Form', () => {
         await submitForm();
 
         expect(findAlert().isVisible()).toBe(true);
-
-        expect(
-          findAlert().findByText(createContainerProtectionRuleMutationPayloadErrors[0]).exists(),
-        ).toBe(true);
-        expect(
-          findAlert().findByText(createContainerProtectionRuleMutationPayloadErrors[1]).exists(),
-        ).toBe(true);
+        expect(findAlert().text()).toBe(createContainerProtectionRuleMutationPayloadErrors[0]);
       });
 
       it('shows error alert with general message when apollo mutation request fails', async () => {

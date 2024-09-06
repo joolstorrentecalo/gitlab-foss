@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# This module is used to define quick actions for issues and merge requests.
-#
-
 module Gitlab
   module QuickActions
     module IssueAndMergeRequestActions
@@ -10,10 +7,7 @@ module Gitlab
       include Gitlab::QuickActions::Dsl
 
       included do
-        ########################################################################
-        #
-        # /assign
-        #
+        # Issue, MergeRequest: quick actions definitions
         desc { _('Assign') }
         explanation do |users|
           _('Assigns %{assignee_users_sentence}.') % { assignee_users_sentence: assignee_users_sentence(users) }
@@ -48,10 +42,6 @@ module Gitlab
           end
         end
 
-        ########################################################################
-        #
-        # /unassign
-        #
         desc do
           if quick_action_target.allows_multiple_assignees?
             _('Remove all or specific assignees')
@@ -91,10 +81,6 @@ module Gitlab
           end
         end
 
-        ########################################################################
-        #
-        # /milestone
-        #
         desc { _('Set milestone') }
         explanation do |milestone|
           _("Sets the milestone to %{milestone_reference}.") % { milestone_reference: milestone.to_reference(full: true, absolute_path: true) } if milestone
@@ -117,10 +103,6 @@ module Gitlab
           @updates[:milestone_id] = milestone.id if milestone
         end
 
-        ########################################################################
-        #
-        # /remove_milestone
-        #
         desc { _('Remove milestone') }
         explanation do
           _("Removes %{milestone_reference} milestone.") % { milestone_reference: quick_action_target.milestone.to_reference(full: true, absolute_path: true) }
@@ -139,10 +121,6 @@ module Gitlab
           @updates[:milestone_id] = nil
         end
 
-        ########################################################################
-        #
-        # /copy_metadata
-        #
         desc { _('Copy labels and milestone from other issue or merge request in this project') }
         explanation do |source_issuable|
           _("Copy labels and milestone from %{source_issuable_reference}.") % { source_issuable_reference: source_issuable.to_reference }
@@ -154,8 +132,7 @@ module Gitlab
         end
         parse_params do |issuable_param|
           extract_references(issuable_param, :issue).first ||
-            extract_references(issuable_param, :merge_request).first ||
-            failed_parse(_("Failed to find issue or merge request"))
+            extract_references(issuable_param, :merge_request).first
         end
         command :copy_metadata do |source_issuable|
           if can_copy_metadata?(source_issuable)
@@ -166,10 +143,6 @@ module Gitlab
           end
         end
 
-        ########################################################################
-        #
-        # /estimate
-        #
         desc { _('Set time estimate') }
         explanation do |time_estimate|
           next unless time_estimate
@@ -200,10 +173,6 @@ module Gitlab
           @updates[:time_estimate] = time_estimate
         end
 
-        ########################################################################
-        #
-        # /spend, /spent, /spend_time
-        #
         desc { _('Add or subtract spent time') }
         explanation do |time_spent, time_spent_date|
           spend_time_message(time_spent, time_spent_date, false)
@@ -239,41 +208,6 @@ module Gitlab
           end
         end
 
-        ########################################################################
-        #
-        # /remind_me
-        #
-        types Issue, MergeRequest
-        desc do
-          _('Set to-do reminder')
-        end
-        explanation do
-          _('Creates a reminder to-do item after the specified time period.')
-        end
-        params '<1w 3d 2h 14m>'
-        parse_params do |raw_delay|
-          ChronicDuration.parse(raw_delay)
-        end
-        condition do
-          Feature.enabled?(:remind_me_quick_action, quick_action_target.project)
-        end
-        command :remind_me do |parsed_delay|
-          # Schedule a CreateReminderWorker for the specified delay
-          #
-          ::Issuable::CreateReminderWorker.perform_in(
-            parsed_delay,
-            quick_action_target.id,
-            quick_action_target.class.to_s,
-            current_user.id
-          )
-
-          @execution_message[:remind_me] = _('Reminder set.')
-        end
-
-        ########################################################################
-        #
-        # /remove_estimate, /remove_time_estimate
-        #
         desc { _('Remove time estimate') }
         explanation { _('Removes time estimate.') }
         execution_message { _('Removed time estimate.') }
@@ -286,10 +220,6 @@ module Gitlab
           @updates[:time_estimate] = 0
         end
 
-        ########################################################################
-        #
-        # /remove_time_spent
-        #
         desc { _('Remove spent time') }
         explanation { _('Removes spent time.') }
         execution_message { _('Removed spent time.') }
@@ -302,10 +232,6 @@ module Gitlab
           @updates[:spend_time] = { duration: :reset, user_id: current_user.id }
         end
 
-        ########################################################################
-        #
-        # /lock
-        #
         desc { _("Lock the discussion") }
         explanation { _("Locks the discussion.") }
         execution_message { _("Locked the discussion.") }
@@ -319,10 +245,6 @@ module Gitlab
           @updates[:discussion_locked] = true
         end
 
-        ########################################################################
-        #
-        # /unlock
-        #
         desc { _("Unlock the discussion") }
         explanation { _("Unlocks the discussion.") }
         execution_message { _("Unlocked the discussion.") }

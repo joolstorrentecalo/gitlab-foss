@@ -18,15 +18,16 @@ RSpec.describe Gitlab::SidekiqMiddleware::ConcurrencyLimit::WorkersConcurrency, 
   end
 
   let(:current_concurrency) { 10 }
-  let(:work) do
-    instance_double(Sidekiq::Work, payload: { 'class' => 'TestConcurrencyLimitWorker' }.to_json, queue: 'default')
-  end
-
   let(:sidekiq_worker) do
     [
       'process_id',
       'thread_id',
-      work
+      {
+        'queue' => 'default',
+        'payload' => {
+          'class' => 'TestConcurrencyLimitWorker'
+        }.to_json
+      }
     ]
   end
 
@@ -41,7 +42,7 @@ RSpec.describe Gitlab::SidekiqMiddleware::ConcurrencyLimit::WorkersConcurrency, 
     context 'without cache' do
       let(:skip_cache) { true }
 
-      it 'returns the current concurrency', quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/451677' do
+      it 'returns the current concurrency' do
         expect(described_class).to receive(:workers_uncached).and_call_original
         expect(current_for).to eq(current_concurrency)
       end
@@ -69,7 +70,7 @@ RSpec.describe Gitlab::SidekiqMiddleware::ConcurrencyLimit::WorkersConcurrency, 
     context 'without cache' do
       let(:skip_cache) { true }
 
-      it 'returns current_workers', quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/463861' do
+      it 'returns current_workers' do
         expect(workers).to eq('TestConcurrencyLimitWorker' => 10)
       end
 

@@ -67,7 +67,7 @@ There is an [issue where support is being discussed](https://gitlab.com/gitlab-o
 
 #### Step 1. Configure the **primary** site
 
-1. SSH into your GitLab **primary** site and sign in as root:
+1. SSH into your GitLab **primary** site and log in as root:
 
    ```shell
    sudo -i
@@ -292,8 +292,7 @@ There is an [issue where support is being discussed](https://gitlab.com/gitlab-o
 1. A certificate was automatically generated when GitLab was reconfigured. This
    is used automatically to protect your PostgreSQL traffic from
    eavesdroppers. To protect against active ("man-in-the-middle") attackers,
-   the **secondary** site needs a copy of the CA that signed the certificate. In
-   the case of this self-signed certificate, make a copy of the PostgreSQL
+   the **secondary** site needs a copy of the certificate. Make a copy of the PostgreSQL
    `server.crt` file on the **primary** site by running this command:
 
    ```shell
@@ -322,11 +321,9 @@ There is an [issue where support is being discussed](https://gitlab.com/gitlab-o
    of the certificate from the point above going forward. This allows you to use `verify-full`
    without replication errors if the CN matches.
 
-   On your primary database, open `/etc/gitlab/gitlab.rb` and search for `postgresql['ssl_ca_file']` (the CA certificate). Copy its value to your clipboard that you'll later paste into `server.crt`.
-
 #### Step 2. Configure the **secondary** server
 
-1. SSH into your GitLab **secondary** site and sign in as root:
+1. SSH into your GitLab **secondary** site and log in as root:
 
    ```shell
    sudo -i
@@ -468,7 +465,7 @@ WARNING:
 Make sure to run this on the **secondary** site as it removes all PostgreSQL's
 data before running `pg_basebackup`.
 
-1. SSH into your GitLab **secondary** site and sign in as root:
+1. SSH into your GitLab **secondary** site and log in as root:
 
    ```shell
    sudo -i
@@ -619,6 +616,19 @@ On all GitLab Geo **secondary** sites:
 
 ## Multi-node database replication
 
+In GitLab 14.0, Patroni replaced `repmgr` as the supported
+[highly available PostgreSQL solution](../../postgresql/replication_and_failover.md).
+
+NOTE:
+If you still haven't [migrated from repmgr to Patroni](#migrating-from-repmgr-to-patroni) you're highly advised to do so.
+
+### Migrating from repmgr to Patroni
+
+1. Before migrating, you should ensure there is no replication lag between the **primary** and **secondary** sites and that replication is paused. In GitLab 13.2 and later, you can pause and resume replication with `gitlab-ctl geo-replication-pause` and `gitlab-ctl geo-replication-resume` on a Geo secondary database node.
+1. Follow the [instructions to migrate repmgr to Patroni](../../postgresql/replication_and_failover.md#switching-from-repmgr-to-patroni). When configuring Patroni on each **primary** site database node, add `patroni['replication_slots'] = { '<slot_name>' => 'physical' }`
+   to `gitlab.rb` where `<slot_name>` is the name of the replication slot for your **secondary** site. This ensures that Patroni recognizes the replication slot as permanent and doesn't drop it upon restarting.
+1. If database replication to the **secondary** site was paused before migration, resume replication after Patroni is confirmed as working on the **primary** site.
+
 ### Migrating a single PostgreSQL node to Patroni
 
 Before the introduction of Patroni, Geo had no support for Linux package installations for HA setups on the **secondary** site.
@@ -648,6 +658,9 @@ For instructions on how to set up Patroni on the primary site, see the
 
 In a Geo secondary site, the main PostgreSQL database is a read-only replica of the primary site's PostgreSQL database.
 
+If you are using `repmgr` on your Geo primary site, see [these instructions](#migrating-from-repmgr-to-patroni)
+for migrating from `repmgr` to Patroni.
+
 A production-ready and secure setup requires at least:
 
 - 3 Consul nodes _(primary and secondary sites)_
@@ -663,13 +676,6 @@ and other database best practices.
 
 ##### Step 1. Configure Patroni permanent replication slot on the primary site
 
-Set up a persistent replication slot on the primary database to ensure continuous data replication from the primary
-database to the Patroni cluster on the secondary node.
-
-::Tabs
-
-:::TabTitle Primary with Patroni cluster
-
 To set up database replication with Patroni on a secondary site, you must
 configure a _permanent replication slot_ on the primary site's Patroni cluster,
 and ensure password authentication is used.
@@ -677,7 +683,7 @@ and ensure password authentication is used.
 On each node running a Patroni instance on the primary site **starting on the Patroni
 Leader instance**:
 
-1. SSH into your Patroni instance and sign in as root:
+1. SSH into your Patroni instance and log in as root:
 
    ```shell
    sudo -i
@@ -733,51 +739,6 @@ Leader instance**:
    gitlab-ctl reconfigure
    ```
 
-:::TabTitle Primary with single PostgreSQL instance
-
-1. SSH into your single node instance and sign in as root:
-
-   ```shell
-   sudo -i
-   ```
-
-1. Start a Database console
-
-   ```shell
-   gitlab-psql
-   ```
-
-1. Configure permanent replication slot on the primary site
-
-   ```sql
-   select pg_create_physical_replication_slot('geo_secondary')
-   ```
-
-1. Optional: If primary does not have PgBouncer, but secondary does:
-
-   Configure the `pgbouncer` user on the primary site and add the necessary `pg_shadow_lookup` function for PgBouncer included with the Linux package. PgBouncer on the secondary server should still be able to connect to PostgreSQL nodes on the secondary site.
-
-   ```sql
-   --- Create a new user 'pgbouncer'
-   CREATE USER pgbouncer;
-
-   --- Set/change a password and grants replication privilege
-   ALTER USER pgbouncer WITH REPLICATION ENCRYPTED PASSWORD '<pgbouncer_password_from_secondary>';
-
-   CREATE OR REPLACE FUNCTION public.pg_shadow_lookup(in i_username text, out username text, out password text) RETURNS record AS $$
-   BEGIN
-       SELECT usename, passwd FROM pg_catalog.pg_shadow
-       WHERE usename = i_username INTO username, password;
-       RETURN;
-   END;
-   $$ LANGUAGE plpgsql SECURITY DEFINER;
-
-   REVOKE ALL ON FUNCTION public.pg_shadow_lookup(text) FROM public, pgbouncer;
-   GRANT EXECUTE ON FUNCTION public.pg_shadow_lookup(text) TO pgbouncer;
-   ```
-
-::EndTabs
-
 ##### Step 2. Configure the internal load balancer on the primary site
 
 To avoid reconfiguring the Standby Leader on the secondary site whenever a new
@@ -812,7 +773,6 @@ frontend internal-postgresql-tcp-in
     default_backend postgresql
 
 backend postgresql
-    mode tcp
     option httpchk
     http-check expect status 200
 
@@ -834,7 +794,7 @@ see [the relevant documentation](../../postgresql/replication_and_failover.md).
 
 On each node running a PgBouncer instance on the **secondary** site:
 
-1. SSH into your PgBouncer node and sign in as root:
+1. SSH into your PgBouncer node and log in as root:
 
    ```shell
    sudo -i
@@ -893,7 +853,7 @@ and then you can switch over to another replica if you need to.
 
 For each node running a Patroni instance on the secondary site:
 
-1. SSH into your Patroni node and sign in as root:
+1. SSH into your Patroni node and log in as root:
 
    ```shell
    sudo -i

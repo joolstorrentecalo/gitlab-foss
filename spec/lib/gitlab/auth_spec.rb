@@ -12,7 +12,7 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
 
   describe 'constants' do
     it 'API_SCOPES contains all scopes for API access' do
-      expect(subject::API_SCOPES).to match_array %i[api read_user read_api create_runner manage_runner k8s_proxy]
+      expect(subject::API_SCOPES).to match_array %i[api read_user read_api create_runner k8s_proxy]
     end
 
     it 'ADMIN_SCOPES contains all scopes for ADMIN access' do
@@ -42,44 +42,29 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
     end
 
     it 'contains all non-default scopes' do
-      expect(subject.all_available_scopes).to match_array %i[
-        api read_user read_api read_repository read_service_ping write_repository read_registry write_registry
-        sudo admin_mode read_observability write_observability create_runner manage_runner k8s_proxy ai_features
-      ]
+      expect(subject.all_available_scopes).to match_array %i[api read_user read_api read_repository read_service_ping write_repository read_registry write_registry sudo admin_mode read_observability write_observability create_runner k8s_proxy ai_features]
     end
 
     it 'contains for non-admin user all non-default scopes without ADMIN access and without observability scopes' do
       user = build_stubbed(:user, admin: false)
 
-      expect(subject.available_scopes_for(user)).to match_array %i[
-        api read_user read_api read_repository write_repository read_registry write_registry
-        create_runner manage_runner k8s_proxy ai_features
-      ]
+      expect(subject.available_scopes_for(user)).to match_array %i[api read_user read_api read_repository write_repository read_registry write_registry create_runner k8s_proxy ai_features]
     end
 
     it 'contains for admin user all non-default scopes with ADMIN access and without observability scopes' do
       user = build_stubbed(:user, admin: true)
 
-      expect(subject.available_scopes_for(user)).to match_array %i[
-        api read_user read_api read_repository read_service_ping write_repository read_registry write_registry
-        sudo admin_mode create_runner manage_runner k8s_proxy ai_features
-      ]
+      expect(subject.available_scopes_for(user)).to match_array %i[api read_user read_api read_repository read_service_ping write_repository read_registry write_registry sudo admin_mode create_runner k8s_proxy ai_features]
     end
 
     it 'contains for project all resource bot scopes' do
-      expect(subject.available_scopes_for(project)).to match_array %i[
-        api read_api read_repository write_repository read_registry write_registry
-        read_observability write_observability create_runner manage_runner k8s_proxy ai_features
-      ]
+      expect(subject.available_scopes_for(project)).to match_array %i[api read_api read_repository write_repository read_registry write_registry read_observability write_observability create_runner k8s_proxy ai_features]
     end
 
     it 'contains for group all resource bot scopes' do
       group = build_stubbed(:group).tap { |g| g.namespace_settings = build_stubbed(:namespace_settings, namespace: g) }
 
-      expect(subject.available_scopes_for(group)).to match_array %i[
-        api read_api read_repository write_repository read_registry write_registry
-        read_observability write_observability create_runner manage_runner k8s_proxy ai_features
-      ]
+      expect(subject.available_scopes_for(group)).to match_array %i[api read_api read_repository write_repository read_registry write_registry read_observability write_observability create_runner k8s_proxy ai_features]
     end
 
     it 'contains for unsupported type no scopes' do
@@ -87,33 +72,15 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
     end
 
     it 'optional_scopes contains all non-default scopes' do
-      expect(subject.optional_scopes).to match_array %i[
-        admin_mode
-        ai_features
-        ai_workflows
-        create_runner
-        email
-        k8s_proxy
-        manage_runner
-        openid
-        profile
-        read_api
-        read_observability
-        read_registry
-        read_repository
-        read_service_ping
-        read_user
-        sudo
-        write_observability
-        write_registry
-        write_repository
-      ]
+      expect(subject.optional_scopes).to match_array %i[read_user read_api read_repository write_repository read_registry read_service_ping write_registry sudo admin_mode openid profile email read_observability write_observability create_runner k8s_proxy ai_features]
     end
 
     context 'with observability feature flags' do
+      feature_flags = [:observability_tracing, :observability_metrics, :observability_logs]
+
       context 'when all disabled' do
         before do
-          stub_feature_flags(observability_features: false)
+          stub_feature_flags(feature_flags.index_with { false })
         end
 
         it 'contains for group all resource bot scopes without observability scopes' do
@@ -121,10 +88,7 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
             g.namespace_settings = build_stubbed(:namespace_settings, namespace: g)
           end
 
-          expect(subject.available_scopes_for(group)).to match_array %i[
-            api read_api read_repository write_repository read_registry write_registry create_runner manage_runner
-            k8s_proxy ai_features
-          ]
+          expect(subject.available_scopes_for(group)).to match_array %i[api read_api read_repository write_repository read_registry write_registry create_runner k8s_proxy ai_features]
         end
 
         it 'contains for project all resource bot scopes without observability scopes' do
@@ -133,71 +97,59 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
           end
           project = build_stubbed(:project, namespace: group)
 
-          expect(subject.available_scopes_for(project)).to match_array %i[
-            api read_api read_repository write_repository read_registry write_registry create_runner manage_runner
-            k8s_proxy ai_features
-          ]
+          expect(subject.available_scopes_for(project)).to match_array %i[api read_api read_repository write_repository read_registry write_registry create_runner k8s_proxy ai_features]
         end
       end
 
-      context "with feature flag enabled for specific root group" do
-        let(:parent) { build_stubbed(:group) }
-        let(:group) do
-          build_stubbed(:group, parent: parent).tap { |g| g.namespace_settings = build_stubbed(:namespace_settings, namespace: g) }
-        end
+      flag_states = [true, false].repeated_permutation(feature_flags.length)
+      flag_tests = flag_states.filter(&:any?).map { |flags| Hash[feature_flags.zip(flags)] }
 
-        let(:project) { build_stubbed(:project, namespace: group) }
-
-        before do
-          stub_feature_flags(observability_features: parent)
-        end
-
-        it 'contains for group all resource bot scopes including observability scopes' do
-          expect(subject.available_scopes_for(group)).to match_array %i[
-            api read_api read_repository write_repository read_registry write_registry
-            read_observability write_observability create_runner manage_runner k8s_proxy ai_features
-          ]
-        end
-
-        it 'contains for admin user all non-default scopes with ADMIN access and without observability scopes' do
-          user = build_stubbed(:user, admin: true)
-
-          expect(subject.available_scopes_for(user)).to match_array %i[
-            api read_user read_api read_repository write_repository read_registry write_registry read_service_ping
-            sudo admin_mode create_runner manage_runner k8s_proxy ai_features
-          ]
-        end
-
-        it 'contains for project all resource bot scopes including observability scopes' do
-          expect(subject.available_scopes_for(project)).to match_array %i[
-            api read_api read_repository write_repository read_registry write_registry
-            read_observability write_observability create_runner manage_runner k8s_proxy ai_features
-          ]
-        end
-
-        it 'contains for other group all resource bot scopes without observability scopes' do
-          other_parent = build_stubbed(:group)
-          other_group = build_stubbed(:group, parent: other_parent).tap do |g|
-            g.namespace_settings = build_stubbed(:namespace_settings, namespace: g)
+      flag_tests.each do |flags|
+        context "with flags #{flags} enabled for specific root group" do
+          let(:parent) { build_stubbed(:group) }
+          let(:group) do
+            build_stubbed(:group, parent: parent).tap { |g| g.namespace_settings = build_stubbed(:namespace_settings, namespace: g) }
           end
 
-          expect(subject.available_scopes_for(other_group)).to match_array %i[
-            api read_api read_repository write_repository read_registry write_registry
-            create_runner manage_runner k8s_proxy ai_features
-          ]
-        end
+          let(:project) { build_stubbed(:project, namespace: group) }
 
-        it 'contains for other project all resource bot scopes without observability scopes' do
-          other_parent = build_stubbed(:group)
-          other_group = build_stubbed(:group, parent: other_parent).tap do |g|
-            g.namespace_settings = build_stubbed(:namespace_settings, namespace: g)
+          before do
+            flags.transform_values! { |v| v ? parent : false }
+            stub_feature_flags(flags)
           end
-          other_project = build_stubbed(:project, namespace: other_group)
 
-          expect(subject.available_scopes_for(other_project)).to match_array %i[
-            api read_api read_repository write_repository read_registry write_registry
-            create_runner manage_runner k8s_proxy ai_features
-          ]
+          it 'contains for group all resource bot scopes including observability scopes' do
+            expect(subject.available_scopes_for(group)).to match_array %i[api read_api read_repository write_repository read_registry write_registry read_observability write_observability create_runner k8s_proxy ai_features]
+          end
+
+          it 'contains for admin user all non-default scopes with ADMIN access and without observability scopes' do
+            user = build_stubbed(:user, admin: true)
+
+            expect(subject.available_scopes_for(user)).to match_array %i[api read_user read_api read_repository write_repository read_registry write_registry read_service_ping sudo admin_mode create_runner k8s_proxy ai_features]
+          end
+
+          it 'contains for project all resource bot scopes including observability scopes' do
+            expect(subject.available_scopes_for(project)).to match_array %i[api read_api read_repository write_repository read_registry write_registry read_observability write_observability create_runner k8s_proxy ai_features]
+          end
+
+          it 'contains for other group all resource bot scopes without observability scopes' do
+            other_parent = build_stubbed(:group)
+            other_group = build_stubbed(:group, parent: other_parent).tap do |g|
+              g.namespace_settings = build_stubbed(:namespace_settings, namespace: g)
+            end
+
+            expect(subject.available_scopes_for(other_group)).to match_array %i[api read_api read_repository write_repository read_registry write_registry create_runner k8s_proxy ai_features]
+          end
+
+          it 'contains for other project all resource bot scopes without observability scopes' do
+            other_parent = build_stubbed(:group)
+            other_group = build_stubbed(:group, parent: other_parent).tap do |g|
+              g.namespace_settings = build_stubbed(:namespace_settings, namespace: g)
+            end
+            other_project = build_stubbed(:project, namespace: other_group)
+
+            expect(subject.available_scopes_for(other_project)).to match_array %i[api read_api read_repository write_repository read_registry write_registry create_runner k8s_proxy ai_features]
+          end
         end
       end
     end
@@ -359,6 +311,13 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
           expect(subject).to have_attributes(actor: build.user, project: build.project, type: :build, authentication_abilities: described_class.build_authentication_abilities)
         end
 
+        it 'recognises group level security_policy_bot access token' do
+          build.update!(user: create(:user, :security_policy_bot))
+          group.add_guest(build.user)
+
+          expect(subject).to have_attributes(actor: build.user, project: build.project, type: :build, authentication_abilities: described_class.build_authentication_abilities)
+        end
+
         it 'fails with blocked user token' do
           build.update!(user: create(:user, :blocked))
 
@@ -410,21 +369,21 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
     context 'while using LFS authenticate' do
       it 'recognizes user lfs tokens' do
         user = create(:user)
-        token = Gitlab::LfsToken.new(user, project).token
+        token = Gitlab::LfsToken.new(user).token
 
         expect(gl_auth.find_for_git_client(user.username, token, project: nil, request: request)).to have_attributes(actor: user, project: nil, type: :lfs_token, authentication_abilities: described_class.read_write_project_authentication_abilities)
       end
 
       it 'recognizes deploy key lfs tokens' do
         key = create(:deploy_key)
-        token = Gitlab::LfsToken.new(key, project).token
+        token = Gitlab::LfsToken.new(key).token
 
         expect(gl_auth.find_for_git_client("lfs+deploy-key-#{key.id}", token, project: nil, request: request)).to have_attributes(actor: key, project: nil, type: :lfs_deploy_token, authentication_abilities: described_class.read_only_authentication_abilities)
       end
 
       it 'does not try password auth before oauth' do
         user = create(:user)
-        token = Gitlab::LfsToken.new(user, project).token
+        token = Gitlab::LfsToken.new(user).token
 
         expect(gl_auth).not_to receive(:find_with_user_password)
 
@@ -434,41 +393,16 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
       it 'grants deploy key write permissions' do
         key = create(:deploy_key)
         create(:deploy_keys_project, :write_access, deploy_key: key, project: project)
-        token = Gitlab::LfsToken.new(key, project).token
+        token = Gitlab::LfsToken.new(key).token
 
         expect(gl_auth.find_for_git_client("lfs+deploy-key-#{key.id}", token, project: project, request: request)).to have_attributes(actor: key, project: nil, type: :lfs_deploy_token, authentication_abilities: described_class.read_write_authentication_abilities)
       end
 
       it 'does not grant deploy key write permissions' do
         key = create(:deploy_key)
-        token = Gitlab::LfsToken.new(key, project).token
+        token = Gitlab::LfsToken.new(key).token
 
         expect(gl_auth.find_for_git_client("lfs+deploy-key-#{key.id}", token, project: project, request: request)).to have_attributes(actor: key, project: nil, type: :lfs_deploy_token, authentication_abilities: described_class.read_only_authentication_abilities)
-      end
-
-      it 'does fail if the user and token are nil' do
-        expect(gl_auth.find_for_git_client(nil, nil, project: project, request: request)).to have_attributes(auth_failure)
-      end
-
-      context 'when lfs token belongs to a different project' do
-        let_it_be(:actor) { create(:user) }
-        let_it_be(:another_project) { create(:project) }
-
-        context 'when project is provided' do
-          it 'returns an auth failure' do
-            token = Gitlab::LfsToken.new(actor, another_project).token
-
-            expect(gl_auth.find_for_git_client(actor.username, token, project: project, request: request)).to have_attributes(auth_failure)
-          end
-        end
-
-        context 'without project' do
-          it 'grants permissions' do
-            token = Gitlab::LfsToken.new(actor, another_project).token
-
-            expect(gl_auth.find_for_git_client(actor.username, token, project: nil, request: request)).to have_attributes(actor: actor, project: nil, type: :lfs_token, authentication_abilities: described_class.read_write_project_authentication_abilities)
-          end
-        end
       end
     end
 
@@ -491,10 +425,9 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
         where(:scopes, :abilities) do
           'api'                 | described_class.full_authentication_abilities
           'read_api'            | described_class.read_only_authentication_abilities
-          'read_repository'     | %i[download_code]
-          'write_repository'    | %i[download_code push_code]
-          'create_runner'       | %i[create_instance_runner create_runner]
-          'manage_runner'       | %i[assign_runner update_runner delete_runner]
+          'read_repository'     | [:download_code]
+          'write_repository'    | [:download_code, :push_code]
+          'create_runner'       | [:create_instance_runner, :create_runner]
           'read_user'           | []
           'sudo'                | []
           'openid'              | []
@@ -509,13 +442,6 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
             access_token = Doorkeeper::AccessToken.create!(application_id: application.id, resource_owner_id: user.id, scopes: scopes)
 
             expect(gl_auth.find_for_git_client("oauth2", access_token.token, project: nil, request: request))
-              .to have_attributes(actor: user, project: nil, type: :oauth, authentication_abilities: abilities)
-          end
-
-          it 'authenticates with correct abilities without special username' do
-            access_token = Doorkeeper::AccessToken.create!(application_id: application.id, resource_owner_id: user.id, scopes: scopes)
-
-            expect(gl_auth.find_for_git_client(user.username, access_token.token, project: nil, request: request))
               .to have_attributes(actor: user, project: nil, type: :oauth, authentication_abilities: abilities)
           end
         end
@@ -566,13 +492,7 @@ RSpec.describe Gitlab::Auth, :use_clean_rails_memory_store_caching, feature_cate
       it 'succeeds for personal access tokens with the `create_runner` scope' do
         personal_access_token = create(:personal_access_token, scopes: ['create_runner'])
 
-        expect_results_with_abilities(personal_access_token, %i[create_instance_runner create_runner])
-      end
-
-      it 'succeeds for personal access tokens with the `manage_runner` scope' do
-        personal_access_token = create(:personal_access_token, scopes: ['manage_runner'])
-
-        expect_results_with_abilities(personal_access_token, %i[assign_runner update_runner delete_runner])
+        expect_results_with_abilities(personal_access_token, [:create_instance_runner, :create_runner])
       end
 
       context 'when registry is enabled' do

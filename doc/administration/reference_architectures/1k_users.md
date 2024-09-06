@@ -4,13 +4,13 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
-# Reference architecture: Up to 20 RPS or 1,000 users
+# Reference architecture: 20 RPS or up to 1,000 users 
 
 DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
-This page describes the GitLab reference architecture designed to target a peak load of 20 requests per second (RPS), the typical peak load of up to 1,000 users, both manual and automated, based on real data.
+This page describes the GitLab reference architecture designed to target a peak load of 20 requests per second (RPS), the typical peak load of up to 1,000 users, both manual and automated, based on real data with headroom added.
 
 For a full list of reference architectures, see
 [Available reference architectures](index.md#available-reference-architectures).
@@ -18,21 +18,14 @@ For a full list of reference architectures, see
 > - **Target Load:** API: 20 RPS, Web: 2 RPS, Git (Pull): 2 RPS, Git (Push): 1 RPS
 > - **High Availability:** No. For a highly-available environment, you can
 >   follow a modified [3K reference architecture](3k_users.md#supported-modifications-for-lower-user-counts-ha).
-> - **Cost calculator template:** [See cost calculator templates section](index.md#cost-calculator-templates)
+> - **Estimated Costs:** [See cost table](index.md#cost-to-run)
 > - **Cloud Native Hybrid:** No. For a cloud native hybrid environment, you
->   can follow a [modified hybrid reference architecture](#cloud-native-hybrid-reference-architecture-with-helm-charts).
-> - **Unsure which Reference Architecture to use?** [Go to this guide for more info](index.md#deciding-which-architecture-to-start-with).
+>  can follow a [modified hybrid reference architecture](#cloud-native-hybrid-reference-architecture-with-helm-charts).
+> - **Unsure which Reference Architecture to use?** [Go to this guide for more info](index.md#deciding-which-architecture-to-use).
 
-| Users        | Configuration        | GCP            | AWS          | Azure    |
-|--------------|----------------------|----------------|--------------|----------|
-| Up to 1,000 or 20 RPS | 8 vCPU, 16 GB memory | `n1-standard-8`<sup>1</sup> | `c5.2xlarge` | `F8s v2` |
-
-**Footnotes:**
-
-<!-- Disable ordered list rule https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#md029---ordered-list-item-prefix -->
-<!-- markdownlint-disable MD029 -->
-1. For GCP, the closest and equivalent standard machine type has been selected that matches the recommended requirement of 8 vCPU and 16 GB of RAM. A [custom machine type](https://cloud.google.com/compute/docs/instances/creating-instance-with-custom-machine-type) can also be used if desired.
-<!-- markdownlint-enable MD029 -->
+| Users        | Configuration           | GCP            | AWS          | Azure    |
+|--------------|-------------------------|----------------|--------------|----------|
+| Up to 1,000 or 20 RPS | 8 vCPU, 7.2 GB memory   | `n1-highcpu-8` | `c5.2xlarge` | `F8s v2` |
 
 ```plantuml
 @startuml 1k
@@ -89,7 +82,7 @@ against the following endpoint throughput targets:
 - Git (Push): 1 RPS
 
 The above targets were selected based on real customer data of total environmental loads corresponding to the user count,
-including CI and other workloads.
+including CI and other workloads along with additional substantial headroom added.
 
 If you have metrics to suggest that you have regularly higher throughput against the above endpoint targets, [large monorepos](index.md#large-monorepos)
 or notable [additional workloads](index.md#additional-workloads) these can notably impact the performance environment and [further adjustments may be required](index.md#scaling-an-environment).
@@ -129,12 +122,3 @@ and _stateful_ components are deployed in compute VMs with the Linux package.
 
 The [2k or 40 RPS GitLab Cloud Native Hybrid](2k_users.md#cloud-native-hybrid-reference-architecture-with-helm-charts-alternative) (non HA) and [3k or 60 RPS GitLab Cloud Native Hybrid](3k_users.md#cloud-native-hybrid-reference-architecture-with-helm-charts-alternative) (HA) reference architectures are the smallest we recommend in Kubernetes.
 For environments that serve fewer users or a lower RPS, you can lower the node specs. Depending on your user count, you can lower all suggested node specs as desired. However, it's recommended that you don't go lower than the [general requirements](../../install/requirements.md).
-
-## Next steps
-
-After following this guide you should now have a fresh GitLab environment with core functionality configured accordingly.
-
-You may want to configure additional optional features of GitLab depending on your requirements. See [Steps after installing GitLab](../../install/next_steps.md) for more information.
-
-NOTE:
-Depending on your environment and requirements, additional hardware requirements or adjustments may be required to set up additional features as desired. Refer to the individual pages for more information.

@@ -20,7 +20,6 @@ module Backup
         @storages = storages
         @paths = paths
         @skip_paths = skip_paths
-        @logger = Gitlab::BackupLogger.new(progress)
       end
 
       override :dump
@@ -50,7 +49,7 @@ module Backup
 
       private
 
-      attr_reader :strategy, :storages, :paths, :skip_paths, :logger
+      attr_reader :strategy, :storages, :paths, :skip_paths
 
       def remove_all_repositories
         return if paths.present?
@@ -126,10 +125,10 @@ module Backup
 
       def restore_object_pools
         PoolRepository.includes(:source_project).find_each do |pool|
-          logger.info " - Object pool #{pool.disk_path}..."
+          progress.puts " - Object pool #{pool.disk_path}..."
 
           unless pool.source_project
-            logger.info " - Object pool #{pool.disk_path}... [SKIPPED]"
+            progress.puts " - Object pool #{pool.disk_path}... " + "[SKIPPED]".color(:cyan)
             next
           end
 

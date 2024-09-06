@@ -3,12 +3,9 @@
 module API
   class Notes < ::API::Base
     include PaginationParams
-    include APIGuard
     helpers ::API::Helpers::NotesHelpers
 
     before { authenticate! }
-
-    allow_access_with_scope :ai_workflows
 
     urgency :low, [
       '/projects/:id/merge_requests/:noteable_id/notes',
@@ -29,11 +26,11 @@ module API
         params do
           requires :noteable_id, type: Integer, desc: 'The ID of the noteable'
           optional :order_by, type: String, values: %w[created_at updated_at], default: 'created_at',
-            desc: 'Return notes ordered by `created_at` or `updated_at` fields.'
+                              desc: 'Return notes ordered by `created_at` or `updated_at` fields.'
           optional :sort, type: String, values: %w[asc desc], default: 'desc',
-            desc: 'Return notes sorted in `asc` or `desc` order.'
+                          desc: 'Return notes sorted in `asc` or `desc` order.'
           optional :activity_filter, type: String, values: UserPreference::NOTES_FILTERS.stringify_keys.keys, default: 'all_notes',
-            desc: 'The type of notables which are returned.'
+                                     desc: 'The type of notables which are returned.'
           use :pagination
         end
         # rubocop: disable CodeReuse/ActiveRecord
@@ -54,7 +51,7 @@ module API
           notes = paginate(raw_notes)
           notes = prepare_notes_for_rendering(notes)
           notes = notes.select { |note| note.readable_by?(current_user) }
-          present notes, with: Entities::Note, current_user: current_user
+          present notes, with: Entities::Note
         end
         # rubocop: enable CodeReuse/ActiveRecord
 

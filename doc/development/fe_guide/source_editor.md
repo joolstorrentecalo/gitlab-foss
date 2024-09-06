@@ -114,8 +114,8 @@ with additional functions on the instance level:
 
    Even though Source Editor itself is extremely slim, it still depends on Monaco editor,
    which adds weight. Every time you add Source Editor to a view, the JavaScript bundle's
-   size significantly increases, affecting your view's loading performance. You should
-   import the editor on demand if either:
+   size significantly increases, affecting your view's loading performance. We recommend
+   you import the editor on demand if either:
 
    - You're uncertain if the view needs the editor.
    - The editor is a secondary element of the view.
@@ -150,7 +150,6 @@ the size of Source Editor's core at bay by importing dependencies only when need
 Structurally, the complete implementation of Source Editor can be presented as this diagram:
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph TD;
     B[Extension 1]---A[Source Editor]
     C[Extension 2]---A[Source Editor]

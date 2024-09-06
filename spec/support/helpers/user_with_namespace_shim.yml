@@ -122,6 +122,7 @@
 - ee/spec/finders/security/approval_groups_finder_spec.rb
 - ee/spec/frontend/fixtures/search.rb
 - ee/spec/graphql/ee/resolvers/board_lists_resolver_spec.rb
+- ee/spec/graphql/mutations/namespaces/increase_storage_temporarily_spec.rb
 - ee/spec/graphql/mutations/security_policy/assign_security_policy_project_spec.rb
 - ee/spec/graphql/mutations/security_policy/commit_scan_execution_policy_spec.rb
 - ee/spec/graphql/mutations/security_policy/create_security_policy_project_spec.rb
@@ -131,6 +132,7 @@
 - ee/spec/helpers/subscriptions_helper_spec.rb
 - ee/spec/lib/ee/api/entities/user_with_admin_spec.rb
 - ee/spec/lib/ee/gitlab/background_migration/migrate_approver_to_approval_rules_spec.rb
+- ee/spec/lib/ee/gitlab/background_migration/migrate_vulnerabilities_feedback_to_vulnerabilities_state_transition_spec.rb
 - ee/spec/lib/ee/gitlab/ci/pipeline/chain/validate/external_spec.rb
 - ee/spec/lib/ee/gitlab/import_export/project/tree_restorer_spec.rb
 - ee/spec/lib/ee/gitlab/issuable_metadata_spec.rb
@@ -140,7 +142,7 @@
 - ee/spec/lib/gitlab/geo_spec.rb
 - ee/spec/lib/gitlab/graphql/aggregations/security_orchestration_policies/lazy_dast_profile_aggregate_spec.rb
 - ee/spec/lib/gitlab/llm/stage_check_spec.rb
-- ee/spec/lib/gitlab/llm/chain/tools/embeddings_completion_spec.rb
+- ee/spec/lib/gitlab/llm/tanuki_bot_spec.rb
 - ee/spec/lib/gitlab/search/zoekt/client_spec.rb
 - ee/spec/lib/gitlab/subscription_portal/clients/graphql_spec.rb
 - ee/spec/lib/sidebars/groups/menus/analytics_menu_spec.rb
@@ -170,8 +172,10 @@
 - ee/spec/models/ee/pages_domain_spec.rb
 - ee/spec/models/ee/project_member_spec.rb
 - ee/spec/models/ee/project_spec.rb
+- ee/spec/models/ee/project_wiki_spec.rb
 - ee/spec/models/elastic/migration_record_spec.rb
 - ee/spec/models/epic_spec.rb
+- ee/spec/models/factories_spec.rb
 - ee/spec/models/gitlab_subscription_spec.rb
 - ee/spec/models/iteration_spec.rb
 - ee/spec/models/member_spec.rb
@@ -328,6 +332,7 @@
 - spec/features/calendar_spec.rb
 - spec/features/canonical_link_spec.rb
 - spec/features/commits_spec.rb
+- spec/features/contextual_sidebar_spec.rb
 - spec/features/dashboard/datetime_on_tooltips_spec.rb
 - spec/features/dashboard/issuables_counter_spec.rb
 - spec/features/dashboard/issues_filter_spec.rb
@@ -429,6 +434,7 @@
 - spec/features/merge_request/user_views_open_merge_request_spec.rb
 - spec/features/merge_requests/user_sees_empty_state_spec.rb
 - spec/features/monitor_sidebar_link_spec.rb
+- spec/features/nav/new_nav_for_everyone_callout_spec.rb
 - spec/features/nav/new_nav_invite_members_spec.rb
 - spec/features/nav/pinned_nav_items_spec.rb
 - spec/features/oauth_provider_authorize_spec.rb
@@ -650,6 +656,7 @@
 - spec/lib/feature_spec.rb
 - spec/lib/generators/gitlab/partitioning/foreign_keys_generator_spec.rb
 - spec/lib/gitlab/analytics/usage_trends/workers_argument_builder_spec.rb
+- spec/lib/gitlab/background_migration/backfill_environment_tiers_spec.rb
 - spec/lib/gitlab/background_migration/backfill_root_storage_statistics_fork_storage_sizes_spec.rb
 - spec/lib/gitlab/background_migration/backfill_user_details_fields_spec.rb
 - spec/lib/gitlab/background_migration/job_coordinator_spec.rb
@@ -760,6 +767,7 @@
 - spec/migrations/add_namespaces_emails_enabled_column_data_spec.rb
 - spec/migrations/add_okr_hierarchy_restrictions_spec.rb
 - spec/migrations/add_projects_emails_enabled_column_data_spec.rb
+- spec/migrations/cleanup_bigint_conversion_for_merge_request_metrics_for_self_hosts_spec.rb
 - spec/migrations/cleanup_vulnerability_state_transitions_with_same_from_state_to_state_spec.rb
 - spec/migrations/delete_migrate_shared_vulnerability_scanners_spec.rb
 - spec/migrations/ensure_commit_user_mentions_note_id_bigint_backfill_is_finished_for_gitlab_dot_com_spec.rb
@@ -870,6 +878,8 @@
 - spec/requests/api/maven_packages_spec.rb
 - spec/requests/api/merge_request_approvals_spec.rb
 - spec/requests/api/merge_requests_spec.rb
+- spec/requests/api/metrics/dashboard/annotations_spec.rb
+- spec/requests/api/metrics/user_starred_dashboards_spec.rb
 - spec/requests/api/namespaces_spec.rb
 - spec/requests/api/notes_spec.rb
 - spec/requests/api/project_events_spec.rb
@@ -967,6 +977,7 @@
 - spec/services/work_items/update_service_spec.rb
 - spec/tasks/gitlab/backup_rake_spec.rb
 - spec/tasks/gitlab/check_rake_spec.rb
+- spec/tasks/import_rake_spec.rb
 - spec/views/layouts/header/_new_dropdown.haml_spec.rb
 - spec/views/layouts/profile.html.haml_spec.rb
 - spec/views/profiles/preferences/show.html.haml_spec.rb

@@ -7,10 +7,7 @@ module API
     project_hooks_tags = %w[project_hooks]
 
     before { authenticate! }
-    before do
-      ability = route.request_method == 'GET' ? :read_web_hook : :admin_web_hook
-      authorize! ability, user_project
-    end
+    before { authorize_admin_project }
 
     feature_category :webhooks
 
@@ -22,8 +19,6 @@ module API
       end
 
       params :common_hook_parameters do
-        optional :name, type: String, desc: 'Name of the hook'
-        optional :description, type: String, desc: 'Description of the hook'
         optional :push_events, type: Boolean, desc: "Trigger hook on push events"
         optional :issues_events, type: Boolean, desc: "Trigger hook on issues events"
         optional :confidential_issues_events, type: Boolean, desc: "Trigger hook on confidential issues events"
@@ -42,10 +37,7 @@ module API
         optional :token, type: String, desc: "Secret token to validate received payloads; this will not be returned in the response"
         optional :push_events_branch_filter, type: String, desc: "Trigger hook on specified branch only"
         optional :custom_webhook_template, type: String, desc: "Custom template for the request payload"
-        optional :branch_filter_strategy, type: String, values: WebHook.branch_filter_strategies.keys,
-          desc: "Filter push events by branch. Possible values are `wildcard` (default), `regex`, and `all_branches`"
         use :url_variables
-        use :custom_headers
       end
     end
 
@@ -55,7 +47,6 @@ module API
     resource :projects, requirements: API::NAMESPACE_OR_PROJECT_REQUIREMENTS do
       namespace ':id/hooks' do
         mount ::API::Hooks::UrlVariables
-        mount ::API::Hooks::CustomHeaders
       end
 
       desc 'List project hooks' do
@@ -68,65 +59,23 @@ module API
         use :pagination
       end
       get ":id/hooks" do
-        present paginate(user_project.hooks), with: Entities::ProjectHook, with_url_variables: false, with_custom_headers: false
+        present paginate(user_project.hooks), with: Entities::ProjectHook, with_url_variables: false
       end
 
-      namespace ":id/hooks/:hook_id/" do
-        desc 'Get project hook' do
-          detail 'Get a specific hook for a project'
-          success Entities::ProjectHook
-          failure [
-            { code: 404, message: 'Not found' }
-          ]
-          tags project_hooks_tags
-        end
-        params do
-          requires :hook_id, type: Integer, desc: 'The ID of a project hook'
-        end
-        get do
-          hook = user_project.hooks.find(params[:hook_id])
-          present hook, with: Entities::ProjectHook
-        end
-
-        desc 'Edit project hook' do
-          detail 'Edits a hook for a specified project.'
-          success Entities::ProjectHook
-          failure [
-            { code: 400, message: 'Validation error' },
-            { code: 404, message: 'Not found' },
-            { code: 422, message: 'Unprocessable entity' }
-          ]
-          tags project_hooks_tags
-        end
-        params do
-          requires :hook_id, type: Integer, desc: 'The ID of the project hook'
-          use :optional_url
-          use :common_hook_parameters
-        end
-        put do
-          update_hook(entity: Entities::ProjectHook)
-        end
-
-        desc 'Delete a project hook' do
-          detail 'Removes a hook from a project. This is an idempotent method and can be called multiple times. Either the hook is available or not.'
-          success Entities::ProjectHook
-          failure [
-            { code: 404, message: 'Not found' }
-          ]
-          tags project_hooks_tags
-        end
-        params do
-          requires :hook_id, type: Integer, desc: 'The ID of the project hook'
-        end
-        delete do
-          hook = find_hook
-
-          destroy_conditionally!(hook) do
-            WebHooks::DestroyService.new(current_user).execute(hook)
-          end
-        end
-
-        mount ::API::Hooks::Events
+      desc 'Get project hook' do
+        detail 'Get a specific hook for a project'
+        success Entities::ProjectHook
+        failure [
+          { code: 404, message: 'Not found' }
+        ]
+        tags project_hooks_tags
+      end
+      params do
+        requires :hook_id, type: Integer, desc: 'The ID of a project hook'
+      end
+      get ":id/hooks/:hook_id" do
+        hook = user_project.hooks.find(params[:hook_id])
+        present hook, with: Entities::ProjectHook
       end
 
       desc 'Add project hook' do
@@ -145,21 +94,73 @@ module API
       end
       post ":id/hooks" do
         hook_params = create_hook_params
+        hook = user_project.hooks.new(hook_params)
 
-        result = WebHooks::CreateService.new(current_user).execute(hook_params, hook_scope)
+        save_hook(hook, Entities::ProjectHook)
+      end
 
-        if result[:status] == :success
-          present result[:hook], with: Entities::ProjectHook
-        else
-          error!(result.message, result.http_status || 422)
+      desc 'Edit project hook' do
+        detail 'Edits a hook for a specified project.'
+        success Entities::ProjectHook
+        failure [
+          { code: 400, message: 'Validation error' },
+          { code: 404, message: 'Not found' },
+          { code: 422, message: 'Unprocessable entity' }
+        ]
+        tags project_hooks_tags
+      end
+      params do
+        requires :hook_id, type: Integer, desc: 'The ID of the project hook'
+        use :optional_url
+        use :common_hook_parameters
+      end
+      put ":id/hooks/:hook_id" do
+        update_hook(entity: Entities::ProjectHook)
+      end
+
+      desc 'Delete a project hook' do
+        detail 'Removes a hook from a project. This is an idempotent method and can be called multiple times. Either the hook is available or not.'
+        success Entities::ProjectHook
+        failure [
+          { code: 404, message: 'Not found' }
+        ]
+        tags project_hooks_tags
+      end
+      params do
+        requires :hook_id, type: Integer, desc: 'The ID of the project hook'
+      end
+      delete ":id/hooks/:hook_id" do
+        hook = find_hook
+
+        destroy_conditionally!(hook) do
+          WebHooks::DestroyService.new(current_user).execute(hook)
         end
       end
 
-      namespace ':id/hooks/' do
-        mount ::API::Hooks::TriggerTest, with: {
-          entity: ProjectHook
-        }
-        mount ::API::Hooks::ResendHook
+      desc 'Triggers a project hook test' do
+        detail 'Triggers a project hook test'
+        success code: 201
+        failure [
+          { code: 400, message: 'Bad request' },
+          { code: 404, message: 'Not found' },
+          { code: 422, message: 'Unprocessable entity' }
+        ]
+      end
+      params do
+        requires :trigger,
+          type: String,
+          desc: 'The type of trigger hook',
+          values: ProjectHook.triggers.values.map(&:to_s)
+      end
+      post ":id/hooks/:hook_id/test/:trigger" do
+        hook = find_hook
+        result = TestHooks::ProjectService.new(hook, current_user, params[:trigger]).execute
+        success = (200..299).cover?(result.payload[:http_status])
+        if success
+          created!
+        else
+          render_api_error!(result.message, 422)
+        end
       end
     end
   end

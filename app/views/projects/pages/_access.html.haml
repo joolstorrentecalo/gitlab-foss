@@ -4,20 +4,16 @@
   - if Gitlab.config.pages.namespace_in_path
     - pages_url_text = "#{pages_url} (Beta)"
 
-  = render ::Layouts::CrudComponent.new(s_('GitLabPages|Access pages'),
-    icon: 'doc-text',
-    count: @project.pages_domains.size + (pages_url ? 1 : 0),
-    options: { class: 'gl-mt-5', data: { testid: 'access-page-container' } },
-    footer_options: { class: 'gl-bg-red-50' }) do |c|
+  = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-5', data: { testid: 'access-page-container' } }, footer_options: { class: 'gl-alert-warning' }) do |c|
+    - c.with_header do
+      = s_('GitLabPages|Access pages')
     - c.with_body do
-      %ul.content-list
-        %li
-          = external_link(pages_url_text, pages_url)
+      %p
+        = external_link(pages_url_text, pages_url)
 
-        - @project.pages_domains.each do |domain|
-          %li
-            = external_link(domain.url, domain.url)
-
+      - @project.pages_domains.each do |domain|
+        %p
+          = external_link(domain.url, domain.url)
     - unless @project.public_pages?
       - c.with_footer do
         - help_page = help_page_path('user/project/pages/pages_access_control')

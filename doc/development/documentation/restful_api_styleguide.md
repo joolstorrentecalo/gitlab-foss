@@ -97,7 +97,7 @@ Example response:
 
 ## History
 
-Add [history](../documentation/styleguide/availability_details.md#history)
+Add [history](versions.md#documenting-version-specific-features)
 to describe new or updated API calls.
 
 To add history for an individual attribute, include it in the history
@@ -106,7 +106,7 @@ for the section. For example:
 ```markdown
 ### Edit a widget
 
-> - `widget_message` [introduced](https://link-to-issue) in GitLab 14.3.
+> - `widget_message` [introduced](<link-to-issue>) in GitLab 14.3.
 ```
 
 If the API or attribute is deployed behind a feature flag,
@@ -115,14 +115,14 @@ If the API or attribute is deployed behind a feature flag,
 ## Deprecations
 
 To document the deprecation of an API endpoint, follow the steps to
-[deprecate a page or topic](../documentation/styleguide/deprecations_and_removals.md).
+[deprecate a page or topic](versions.md#deprecate-a-page-or-topic).
 
 To deprecate an attribute:
 
 1. Add a history note.
 
    ```markdown
-   > - `widget_name` [deprecated](https://link-to-issue) in GitLab 14.7.
+   > - `widget_name` [deprecated](<link-to-issue>) in GitLab 14.7.
    ```
 
 1. Add inline deprecation text to the description.
@@ -130,7 +130,7 @@ To deprecate an attribute:
    ```markdown
    | Attribute     | Type   | Required | Description |
    |---------------|--------|----------|-------------|
-   | `widget_name` | string | No       | [Deprecated](https://link-to-issue) in GitLab 14.7 and is planned for removal in 15.4. Use `widget_id` instead. The name of the widget. |
+   | `widget_name` | string | No       | [Deprecated](<link-to-issue>) in GitLab 14.7 and is planned for removal in 15.4. Use `widget_id` instead. The name of the widget. |
    ```
 
 To widely announce a deprecation, or if it's a breaking change,

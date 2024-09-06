@@ -46,18 +46,10 @@ RSpec.describe Gitlab::Issuable::Clone::CopyResourceEventsService do
       expect(new_issue_milestone_events.count).to eq(3)
 
       expect_milestone_event(
-        new_issue_milestone_events.first,
-        milestone: milestone1_project2,
-        action: 'add',
-        state: 'opened',
-        imported_from: 'bitbucket'
+        new_issue_milestone_events.first, milestone: milestone1_project2, action: 'add', state: 'opened'
       )
       expect_milestone_event(
-        new_issue_milestone_events.second,
-        milestone: milestone2_project2,
-        action: 'add',
-        state: 'opened',
-        imported_from: 'github'
+        new_issue_milestone_events.second, milestone: milestone2_project2, action: 'add', state: 'opened'
       )
       expect_milestone_event(
         new_issue_milestone_events.third, milestone: nil, action: 'remove', state: 'opened'
@@ -72,7 +64,6 @@ RSpec.describe Gitlab::Issuable::Clone::CopyResourceEventsService do
       expect(event.milestone_id).to eq(expected_attrs[:milestone]&.id)
       expect(event.action).to eq(expected_attrs[:action])
       expect(event.state).to eq(expected_attrs[:state])
-      expect(event.imported_from).to eq('none')
     end
   end
 

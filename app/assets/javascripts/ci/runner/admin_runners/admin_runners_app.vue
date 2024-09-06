@@ -221,15 +221,23 @@ export default {
           :allow-registration-token="allowRegistrationToken"
           :registration-token="registrationToken"
           :type="$options.INSTANCE_TYPE"
+          placement="right"
         />
       </template>
     </runner-list-header>
 
-    <runner-type-tabs
-      v-model="search"
-      :count-scope="$options.INSTANCE_TYPE"
-      :count-variables="countVariables"
-    />
+    <div
+      class="gl-display-flex gl-align-items-center gl-flex-direction-column-reverse gl-md-flex-direction-row gl-mt-3 gl-md-mt-0"
+    >
+      <runner-type-tabs
+        v-model="search"
+        :count-scope="$options.INSTANCE_TYPE"
+        :count-variables="countVariables"
+        class="gl-w-full"
+        content-class="gl-display-none"
+        nav-class="gl-border-none!"
+      />
+    </div>
 
     <runner-filtered-search-bar
       v-model="search"

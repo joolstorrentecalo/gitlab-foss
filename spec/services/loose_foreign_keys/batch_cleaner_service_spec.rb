@@ -91,8 +91,7 @@ RSpec.describe LooseForeignKeys::BatchCleanerService, feature_category: :databas
       described_class.new(
         parent_table: '_test_loose_fk_parent_table',
         loose_foreign_key_definitions: loose_foreign_key_definitions,
-        deleted_parent_records: LooseForeignKeys::DeletedRecord.load_batch_for_table('public._test_loose_fk_parent_table', 100),
-        connection: ::ApplicationRecord.connection
+        deleted_parent_records: LooseForeignKeys::DeletedRecord.load_batch_for_table('public._test_loose_fk_parent_table', 100)
       ).execute
     end
 
@@ -118,71 +117,6 @@ RSpec.describe LooseForeignKeys::BatchCleanerService, feature_category: :databas
     end
   end
 
-  context 'when the child table is partitioned' do
-    let(:parent_child_table) { table(:_test_p_loose_fk_parent_table) }
-    let(:partitioned_child_table1) { table("gitlab_partitions_dynamic._test_p_loose_fk_parent_table_100") }
-    let(:partitioned_child_table2) { table("gitlab_partitions_dynamic._test_p_loose_fk_parent_table_101") }
-
-    let(:loose_foreign_key_definitions) do
-      [
-        ActiveRecord::ConnectionAdapters::ForeignKeyDefinition.new(
-          '_test_p_loose_fk_parent_table',
-          '_test_loose_fk_parent_table',
-          {
-            column: 'parent_id',
-            on_delete: :async_delete,
-            gitlab_schema: :gitlab_main
-          }
-        )
-      ]
-    end
-
-    before do
-      ApplicationRecord.connection.execute(<<~SQL)
-        CREATE TABLE _test_p_loose_fk_parent_table (
-            parent_id bigint NOT NULL,
-            created_at timestamptz NOT NULL,
-            PRIMARY KEY (created_at)
-          ) PARTITION BY RANGE(created_at);
-
-        CREATE TABLE gitlab_partitions_dynamic._test_p_loose_fk_parent_table_100 PARTITION OF _test_p_loose_fk_parent_table
-        FOR VALUES FROM ('2020-01-01') TO ('2020-02-01');
-
-        CREATE TABLE gitlab_partitions_dynamic._test_p_loose_fk_parent_table_101 PARTITION OF _test_p_loose_fk_parent_table
-        FOR VALUES FROM ('2020-02-01') TO ('2020-03-01');
-      SQL
-
-      partitioned_child_table1.create!(parent_id: parent_record_1.id, created_at: '2020-01-02 02:00')
-      partitioned_child_table2.create!(parent_id: parent_record_1.id, created_at: '2020-02-02 02:00')
-      partitioned_child_table2.create!(parent_id: other_parent_record.id, created_at: '2020-02-02 03:00')
-    end
-
-    context 'when parent records are deleted' do
-      it 'cleans up the child partitioned records' do
-        expect(parent_child_table.count).to eq(3)
-        expect(partitioned_child_table1.count).to eq(1)
-        expect(partitioned_child_table2.count).to eq(2)
-
-        parent_record_1.delete
-
-        expect_next_instance_of(LooseForeignKeys::PartitionCleanerService) do |service|
-          expect(service).to receive(:execute).at_least(:once).and_call_original
-        end.at_least(:once)
-
-        described_class.new(
-          parent_table: '_test_loose_fk_parent_table',
-          loose_foreign_key_definitions: loose_foreign_key_definitions,
-          deleted_parent_records: LooseForeignKeys::DeletedRecord.load_batch_for_table('public._test_loose_fk_parent_table', 100),
-          connection: ::ApplicationRecord.connection
-        ).execute
-
-        expect(parent_child_table.count).to eq(1)
-        expect(partitioned_child_table1.count).to eq(0)
-        expect(partitioned_child_table2.count).to eq(1)
-      end
-    end
-  end
-
   describe 'fair queueing' do
     context 'when the execution is over the limit' do
       let(:modification_tracker) { instance_double(LooseForeignKeys::ModificationTracker) }
@@ -196,7 +130,6 @@ RSpec.describe LooseForeignKeys::BatchCleanerService, feature_category: :databas
           parent_table: '_test_loose_fk_parent_table',
           loose_foreign_key_definitions: loose_foreign_key_definitions,
           deleted_parent_records: LooseForeignKeys::DeletedRecord.load_batch_for_table('public._test_loose_fk_parent_table', 100),
-          connection: ::ApplicationRecord.connection,
           modification_tracker: modification_tracker
         )
       end
@@ -250,50 +183,6 @@ RSpec.describe LooseForeignKeys::BatchCleanerService, feature_category: :databas
           end
         end
       end
-    end
-  end
-
-  describe 'when the definition is invalid' do
-    let(:loose_foreign_key_definitions) do
-      [
-        ActiveRecord::ConnectionAdapters::ForeignKeyDefinition.new(
-          '_test_loose_fk_child_table_1',
-          '_test_loose_fk_parent_table',
-          {
-            column: 'parent_id',
-            on_delete: :async_delete,
-            gitlab_schema: :gitlab_main
-          }
-        ),
-        ActiveRecord::ConnectionAdapters::ForeignKeyDefinition.new(
-          '_test_loose_fk_child_table_2',
-          '_test_loose_fk_parent_table',
-          {
-            column: 'parent_id_with_different_column',
-            on_delete: :not_valid,
-            gitlab_schema: :gitlab_main
-          }
-        )
-      ]
-    end
-
-    before do
-      parent_record_1.delete
-    end
-
-    it 'logs error and skips the definition' do
-      expect(Sidekiq.logger).to receive(:error).with("Invalid on_delete argument: not_valid").twice
-      expect(Sidekiq.logger).to receive(:error).with("Invalid on_delete argument for definition: _test_loose_fk_child_table_2").twice
-
-      described_class.new(
-        parent_table: '_test_loose_fk_parent_table',
-        loose_foreign_key_definitions: loose_foreign_key_definitions,
-        deleted_parent_records: LooseForeignKeys::DeletedRecord.load_batch_for_table('public._test_loose_fk_parent_table', 100),
-        connection: ::ApplicationRecord.connection
-      ).execute
-
-      expect(loose_fk_child_table_1.where(parent_id: parent_record_1.id)).to be_empty
-      expect(loose_fk_child_table_2.where(parent_id_with_different_column: parent_record_1.id).count).to eq(2)
     end
   end
 end

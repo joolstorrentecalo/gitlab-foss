@@ -11,6 +11,8 @@ DETAILS:
 **Offering:** Self-managed
 **Status:** Experiment
 
+> - Debian API [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/42670) in GitLab 13.5.
+> - Debian group API [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/66188) in GitLab 14.2.
 > - [Deployed behind a feature flag](../../feature_flags.md), disabled by default.
 
 WARNING:
@@ -118,7 +120,7 @@ group level, Debian packages are aggregated from the projects in the group provi
 To create a project-level distribution using a personal access token:
 
 ```shell
-curl --fail-with-body --request POST --header "PRIVATE-TOKEN: <personal_access_token>" \
+curl --request POST --header "PRIVATE-TOKEN: <personal_access_token>" \
   "https://gitlab.example.com/api/v4/projects/<project_id>/debian_distributions?codename=<codename>"
 ```
 
@@ -186,8 +188,9 @@ your [credentials](#authenticate-to-the-debian-package-repositories).
 For example, to upload to component `main` of distribution `sid` using a personal access token:
 
 ```shell
-curl --fail-with-body --request PUT --user "<username>:<personal_access_token>" \
-  "https://gitlab.example.com/api/v4/projects/<project_id>/packages/debian/your.deb?distribution=sid&component=main" \
+curl --request PUT --user "<username>:<personal_access_token>" \
+  --get --data "distribution=sid" --data "component=main" \
+  "https://gitlab.example.com/api/v4/projects/<project_id>/packages/debian/" \
   --upload-file  /path/to/your.deb
 ```
 
@@ -208,7 +211,7 @@ To install a package:
 
    ```shell
    sudo mkdir -p /usr/local/share/keyrings
-   curl --fail-with-body --header "PRIVATE-TOKEN: <your_access_token>" \
+   curl --header "PRIVATE-TOKEN: <your_access_token>" \
         "https://gitlab.example.com/api/v4/projects/<project_id>/debian_distributions/<codename>/key.asc" \
         | \
         gpg --dearmor \
@@ -248,7 +251,7 @@ To download a source package:
 
    ```shell
    sudo mkdir -p /usr/local/share/keyrings
-   curl --fail-with-body --header "PRIVATE-TOKEN: <your_access_token>" \
+   curl --header "PRIVATE-TOKEN: <your_access_token>" \
         "https://gitlab.example.com/api/v4/projects/<project_id>/debian_distributions/<codename>/key.asc" \
         | \
         gpg --dearmor \

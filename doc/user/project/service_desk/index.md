@@ -1,6 +1,6 @@
 ---
-stage: Plan
-group: Project Management
+stage: Service Management
+group: Respond
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
@@ -51,10 +51,9 @@ Meanwhile:
 
 - [Configure Service Desk](configure.md)
   - [Improve your project's security](configure.md#improve-your-projects-security)
-  - [Customize emails sent to external participants](configure.md#customize-emails-sent-to-external-participants)
+  - [Customize emails sent to the requester](configure.md#customize-emails-sent-to-the-requester)
   - [Use a custom template for Service Desk tickets](configure.md#use-a-custom-template-for-service-desk-tickets)
   - [Support Bot user](configure.md#support-bot-user)
-  - [Default ticket visibility](configure.md#default-ticket-visibility)
   - [Reopen issues when an external participant comments](configure.md#reopen-issues-when-an-external-participant-comments)
   - [Custom email address](configure.md#custom-email-address)
   - [Use an additional Service Desk alias email](configure.md#use-an-additional-service-desk-alias-email)
@@ -65,10 +64,6 @@ Meanwhile:
   - [Email contents and formatting](using_service_desk.md#email-contents-and-formatting)
   - [Convert a regular issue to a Service Desk ticket](using_service_desk.md#convert-a-regular-issue-to-a-service-desk-ticket)
   - [Privacy considerations](using_service_desk.md#privacy-considerations)
-- [External Participants](external_participants.md)
-  - [Service Desk tickets](external_participants.md#service-desk-tickets)
-  - [As an external participant](external_participants.md#as-an-external-participant)
-  - [As a GitLab user](external_participants.md#as-a-gitlab-user)
 
 ## Troubleshooting Service Desk
 

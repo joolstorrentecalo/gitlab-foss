@@ -1,7 +1,6 @@
-import { GlBadge } from '@gitlab/ui';
 import $ from 'jquery';
 import '~/lib/utils/jquery_at_who';
-import { escape as lodashEscape, sortBy, template, escapeRegExp, memoize } from 'lodash';
+import { escape as lodashEscape, sortBy, template, escapeRegExp } from 'lodash';
 import * as Emoji from '~/emoji';
 import axios from '~/lib/utils/axios_utils';
 import { DEFAULT_DEBOUNCE_AND_THROTTLE_MS } from '~/lib/utils/constants';
@@ -10,16 +9,10 @@ import { s__, __, sprintf } from '~/locale';
 import { isUserBusy } from '~/set_status_modal/utils';
 import SidebarMediator from '~/sidebar/sidebar_mediator';
 import { state } from '~/sidebar/components/reviewers/sidebar_reviewers.vue';
-import {
-  ISSUABLE_EPIC,
-  WORK_ITEMS_TYPE_MAP,
-  WORK_ITEM_TYPE_ENUM_EPIC,
-} from '~/work_items/constants';
 import AjaxCache from './lib/utils/ajax_cache';
 import { spriteIcon } from './lib/utils/common_utils';
 import { parsePikadayDate } from './lib/utils/datetime_utility';
 import { unicodeLetters } from './lib/utils/regexp';
-import { renderVueComponentForLegacyJS } from './render_vue_component_for_legacy_js';
 
 const USERS_ALIAS = 'users';
 const ISSUES_ALIAS = 'issues';
@@ -38,20 +31,7 @@ export const CONTACT_STATE_ACTIVE = 'active';
 export const CONTACTS_ADD_COMMAND = '/add_contacts';
 export const CONTACTS_REMOVE_COMMAND = '/remove_contacts';
 
-const busyBadge = memoize(
-  () =>
-    renderVueComponentForLegacyJS(
-      GlBadge,
-      {
-        class: 'gl-ml-2',
-        props: {
-          variant: 'warning',
-          size: 'sm',
-        },
-      },
-      s__('UserProfile|Busy'),
-    ).outerHTML,
-);
+const useMentionsBackendFiltering = window.gon.features?.mentionAutocompleteBackendFiltering;
 
 /**
  * Escapes user input before we pass it to at.js, which
@@ -136,7 +116,6 @@ export const highlighter = (li, query) => {
   }
   const escapedQuery = escapeRegExp(query);
   const regexp = new RegExp(`>\\s*([^<]*?)(${escapedQuery})([^<]*)\\s*<`, 'ig');
-  // eslint-disable-next-line max-params
   return li.replace(regexp, (str, $1, $2, $3) => `> ${$1}<strong>${$2}</strong>${$3} <`);
 };
 
@@ -161,7 +140,6 @@ class GfmAutoComplete {
     this.cachedData = {};
     this.isLoadingData = {};
     this.previousQuery = undefined;
-    this.currentBackendFilterRequestController = null;
   }
 
   setup(input, enableMap = defaultAutocompleteConfig) {
@@ -220,7 +198,7 @@ class GfmAutoComplete {
           tpl += ' <small class="params"><%- params.join(" ") %></small>';
         }
         if (value.warning && value.icon && value.icon === 'confidential') {
-          tpl += `<small class="description gl-flex gl-items-center">${spriteIcon(
+          tpl += `<small class="description gl-display-flex gl-align-items-center">${spriteIcon(
             'eye-slash',
             's16 gl-mr-2',
           )}<em><%- warning %></em></small>`;
@@ -245,7 +223,7 @@ class GfmAutoComplete {
         let tpl = '/${name} ';
         let referencePrefix = null;
         if (value.params.length > 0) {
-          const regexp = /^\[[a-z]+:/;
+          const regexp = /^<\[[a-z]+:/;
           const match = regexp.exec(value.params);
           if (match) {
             [referencePrefix] = match;
@@ -327,7 +305,7 @@ class GfmAutoComplete {
       displayTpl({ name }) {
         const reviewState = REVIEW_STATES[name];
 
-        return `<li><span class="name gl-font-bold">${reviewState.header}</span><small class="description"><em>${reviewState.description}</em></small></li>`;
+        return `<li><span class="name gl-font-weight-bold">${reviewState.header}</span><small class="description"><em>${reviewState.description}</em></small></li>`;
       },
     });
   }
@@ -411,7 +389,12 @@ class GfmAutoComplete {
             username,
             title,
             icon,
-            availabilityStatus: availability && isUserBusy(availability) ? busyBadge() : '',
+            availabilityStatus:
+              availability && isUserBusy(availability)
+                ? `<span class="badge badge-warning badge-pill gl-badge sm gl-ml-2"> ${s__(
+                    'UserProfile|Busy',
+                  )}</span>`
+                : '',
           });
         }
         return tmpl;
@@ -419,7 +402,7 @@ class GfmAutoComplete {
       // eslint-disable-next-line no-template-curly-in-string
       insertTpl: '${atwho-at}${username}',
       limit: 10,
-      delay: DEFAULT_DEBOUNCE_AND_THROTTLE_MS,
+      delay: useMentionsBackendFiltering ? DEFAULT_DEBOUNCE_AND_THROTTLE_MS : null,
       searchKey: 'search',
       alwaysHighlightFirst: true,
       skipSpecialCharacterTest: true,
@@ -447,10 +430,15 @@ class GfmAutoComplete {
           return match && match.length ? match[1] : null;
         },
         filter(query, data) {
-          if (GfmAutoComplete.isLoading(data) || instance.previousQuery !== query) {
-            instance.previousQuery = query;
+          if (useMentionsBackendFiltering) {
+            if (GfmAutoComplete.isLoading(data) || instance.previousQuery !== query) {
+              instance.previousQuery = query;
 
-            fetchData(this.$inputor, this.at, query);
+              fetchData(this.$inputor, this.at, query);
+              return data;
+            }
+          } else if (GfmAutoComplete.isLoading(data)) {
+            fetchData(this.$inputor, this.at);
             return data;
           }
 
@@ -520,7 +508,6 @@ class GfmAutoComplete {
               title: i.title,
               reference: i.reference,
               search: `${i.iid} ${i.title}`,
-              iconName: i.icon_name,
             };
           });
         },
@@ -938,7 +925,7 @@ class GfmAutoComplete {
   }
 
   fetchData($input, at, search) {
-    if (this.isLoadingData[at] && !GfmAutoComplete.isTypeWithBackendFiltering(at)) return;
+    if (this.isLoadingData[at]) return;
 
     this.isLoadingData[at] = true;
     const dataSource = this.dataSources[GfmAutoComplete.atTypeMap[at]];
@@ -947,25 +934,13 @@ class GfmAutoComplete {
       if (this.cachedData[at]?.[search]) {
         this.loadData($input, at, this.cachedData[at][search], { search });
       } else {
-        if (this.currentBackendFilterRequestController) {
-          this.currentBackendFilterRequestController.abort();
-        }
-
-        this.currentBackendFilterRequestController = new AbortController();
-
         axios
-          .get(dataSource, {
-            params: { search },
-            signal: this.currentBackendFilterRequestController.signal,
-          })
+          .get(dataSource, { params: { search } })
           .then(({ data }) => {
             this.loadData($input, at, data, { search });
           })
           .catch(() => {
             this.isLoadingData[at] = false;
-          })
-          .finally(() => {
-            this.currentBackendFilterRequestController = null;
           });
       }
     } else if (this.cachedData[at]) {
@@ -988,7 +963,6 @@ class GfmAutoComplete {
     }
   }
 
-  // eslint-disable-next-line max-params
   loadData($input, at, data, { search } = {}) {
     this.isLoadingData[at] = false;
 
@@ -1014,11 +988,6 @@ class GfmAutoComplete {
     this.loadData($input, at, ['loaded']);
 
     GfmAutoComplete.glEmojiTag = Emoji.glEmojiTag;
-  }
-
-  updateDataSources(newDataSources) {
-    this.dataSources = { ...this.dataSources, ...newDataSources };
-    this.clearCache();
   }
 
   clearCache() {
@@ -1089,7 +1058,11 @@ GfmAutoComplete.atTypeMap = {
   '[[': 'wikis',
 };
 
-GfmAutoComplete.typesWithBackendFiltering = ['vulnerabilities', 'members'];
+GfmAutoComplete.typesWithBackendFiltering = ['vulnerabilities'];
+
+if (useMentionsBackendFiltering) {
+  GfmAutoComplete.typesWithBackendFiltering.push('members');
+}
 
 GfmAutoComplete.isTypeWithBackendFiltering = (type) =>
   GfmAutoComplete.typesWithBackendFiltering.includes(GfmAutoComplete.atTypeMap[type]);
@@ -1168,11 +1141,8 @@ GfmAutoComplete.Issues = {
     // eslint-disable-next-line no-template-curly-in-string
     return value.reference || '${atwho-at}${id}';
   },
-  templateFunction({ id, title, reference, iconName }) {
-    const mappedIconName =
-      iconName === ISSUABLE_EPIC ? WORK_ITEMS_TYPE_MAP[WORK_ITEM_TYPE_ENUM_EPIC].icon : iconName;
-    const icon = mappedIconName ? spriteIcon(mappedIconName, 'gl-text-secondary s16 gl-mr-2') : '';
-    return `<li>${icon}<small>${escape(reference || id)}</small> ${escape(title)}</li>`;
+  templateFunction({ id, title, reference }) {
+    return `<li><small>${escape(reference || id)}</small> ${escape(title)}</li>`;
   },
 };
 // Milestones

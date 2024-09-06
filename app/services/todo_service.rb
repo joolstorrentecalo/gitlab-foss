@@ -288,7 +288,7 @@ class TodoService
       ).distinct_user_ids
     end
 
-    if users_multiple_todos.present? && Todo::ACTIONS_MULTIPLE_ALLOWED.exclude?(attributes.fetch(:action))
+    if users_multiple_todos.present? && !Todo::ACTIONS_MULTIPLE_ALLOWED.include?(attributes.fetch(:action))
       excluded_user_ids += pending_todos(
         users_multiple_todos,
         attributes.slice(:project_id, :target_id, :target_type, :commit_id, :discussion, :action)
@@ -331,16 +331,10 @@ class TodoService
     return unless note.can_create_todo?
 
     project = note.project
-    noteable = note.noteable
-    discussion = note.discussion
-
-    # Only update todos associated with the discussion if note is part of a thread
-    # Otherwise, update all todos associated with the noteable
-    #
-    target = discussion.individual_note? ? noteable : discussion
+    target = note.noteable
 
     resolve_todos_for_target(target, author)
-    create_mention_todos(project, noteable, author, note, skip_users)
+    create_mention_todos(project, target, author, note, skip_users)
   end
 
   def create_assignment_todo(target, author, old_assignees = [])
@@ -397,8 +391,6 @@ class TodoService
     when Issue
       attributes[:issue_type] = target.issue_type
       attributes[:group] = target.namespace if target.project.blank?
-    when DiscussionNote
-      attributes.merge!(target_type: nil, target_id: nil, discussion: target.discussion)
     when Discussion
       attributes.merge!(target_type: nil, target_id: nil, discussion: target)
     end

@@ -2,77 +2,66 @@
 import {
   GlAlert,
   GlButton,
-  GlForm,
-  GlFormGroup,
+  GlCard,
+  GlFormInput,
   GlLink,
   GlIcon,
   GlLoadingIcon,
   GlSprintf,
-  GlTooltipDirective,
-  GlFormRadioGroup,
+  GlToggle,
 } from '@gitlab/ui';
 import { createAlert } from '~/alert';
-import { __, s__, n__, sprintf } from '~/locale';
+import { __, s__ } from '~/locale';
 import { helpPagePath } from '~/helpers/help_page_helper';
-import { TYPENAME_GROUP } from '~/graphql_shared/constants';
-import CrudComponent from '~/vue_shared/components/crud_component.vue';
-import inboundAddGroupOrProjectCIJobTokenScope from '../graphql/mutations/inbound_add_group_or_project_ci_job_token_scope.mutation.graphql';
+import inboundAddProjectCIJobTokenScopeMutation from '../graphql/mutations/inbound_add_project_ci_job_token_scope.mutation.graphql';
 import inboundRemoveProjectCIJobTokenScopeMutation from '../graphql/mutations/inbound_remove_project_ci_job_token_scope.mutation.graphql';
-import inboundRemoveGroupCIJobTokenScopeMutation from '../graphql/mutations/inbound_remove_group_ci_job_token_scope.mutation.graphql';
 import inboundUpdateCIJobTokenScopeMutation from '../graphql/mutations/inbound_update_ci_job_token_scope.mutation.graphql';
 import inboundGetCIJobTokenScopeQuery from '../graphql/queries/inbound_get_ci_job_token_scope.query.graphql';
-import inboundGetGroupsAndProjectsWithCIJobTokenScopeQuery from '../graphql/queries/inbound_get_groups_and_projects_with_ci_job_token_scope.query.graphql';
-import GroupsAndProjectsListbox from './groups_and_projects_listbox.vue';
-import TokenAccessTable from './token_access_table.vue';
+import inboundGetProjectsWithCIJobTokenScopeQuery from '../graphql/queries/inbound_get_projects_with_ci_job_token_scope.query.graphql';
+import TokenProjectsTable from './token_projects_table.vue';
 
 export default {
   i18n: {
-    radioGroupTitle: s__('CICD|Authorized groups and projects'),
-    radioGroupDescription: s__(
-      `CICD|Select the groups and projects authorized to use a CI/CD job token to authenticate requests to this project. %{linkStart}Learn more%{linkEnd}.`,
+    toggleLabelTitle: s__('CICD|Limit access %{italicStart}to%{italicEnd} this project'),
+    toggleHelpText: s__(
+      `CICD|Prevent access to this project from other project CI/CD job tokens, unless the other project is added to the allowlist. It is a security risk to disable this feature, because unauthorized projects might attempt to retrieve an active token and access the API. %{linkStart}Learn more.%{linkEnd}`,
     ),
-    cardHeaderTitle: s__('CICD|CI/CD job token allowlist'),
-    cardHeaderDescription: s__(
-      `CICD|Ensure only groups and projects with members authorized to access sensitive project data are added to the allowlist.`,
+    cardHeaderTitle: s__(
+      'CICD|Allow CI job tokens from the following projects to access this project',
     ),
     settingDisabledMessage: s__(
-      'CICD|Access unrestricted, so users with sufficient permissions in this project can authenticate with a job token generated in any other project.',
+      'CICD|Enable feature to limit job token access, so only the projects in this list can access this project with a CI/CD job token.',
     ),
-    addGroupOrProject: __('Add group or project'),
-    add: __('Add'),
+    addProject: __('Add project'),
     cancel: __('Cancel'),
-    addProjectPlaceholder: __('Pick a group or project'),
+    addProjectPlaceholder: __('Paste project path (i.e. gitlab-org/gitlab)'),
     projectsFetchError: __('There was a problem fetching the projects'),
     scopeFetchError: __('There was a problem fetching the job token scope value'),
-    projectInScopeError: s__('CICD|Target project is already in the job token scope.'),
-    saveButtonTitle: __('Save Changes'),
   },
-  inboundJobTokenScopeOptions: [
+  fields: [
     {
-      value: false,
-      text: s__('CICD|All groups and projects'),
+      key: 'project',
+      label: __('Project with access'),
+      thClass: 'gl-border-t-none!',
     },
     {
-      value: true,
-      text: s__('CICD|Only this project and any groups and projects in the allowlist'),
+      key: 'actions',
+      label: '',
+      tdClass: 'gl-text-right',
+      thClass: 'gl-border-t-none!',
     },
   ],
   components: {
     GlAlert,
     GlButton,
-    GlForm,
-    GlFormGroup,
+    GlCard,
+    GlFormInput,
     GlLink,
     GlIcon,
     GlLoadingIcon,
     GlSprintf,
-    CrudComponent,
-    GroupsAndProjectsListbox,
-    TokenAccessTable,
-    GlFormRadioGroup,
-  },
-  directives: {
-    GlTooltip: GlTooltipDirective,
+    GlToggle,
+    TokenProjectsTable,
   },
   inject: {
     fullPath: {
@@ -90,28 +79,19 @@ export default {
       update({ project }) {
         return project.ciCdSettings.inboundJobTokenScopeEnabled;
       },
-      result({ data }) {
-        this.projectName = data?.project?.name;
-      },
       error() {
         createAlert({ message: this.$options.i18n.scopeFetchError });
       },
     },
-    groupsAndProjectsWithAccess: {
-      query: inboundGetGroupsAndProjectsWithCIJobTokenScopeQuery,
+    projects: {
+      query: inboundGetProjectsWithCIJobTokenScopeQuery,
       variables() {
         return {
           fullPath: this.fullPath,
         };
       },
       update({ project }) {
-        const projects = project?.ciJobTokenScope?.inboundAllowlist?.nodes ?? [];
-        const groups = project?.ciJobTokenScope?.groupsAllowlist?.nodes ?? [];
-
-        this.projectCount = projects.length;
-        this.groupCount = groups.length;
-
-        return [...groups, ...projects];
+        return project?.ciJobTokenScope?.inboundAllowlist?.nodes ?? [];
       },
       error() {
         createAlert({ message: this.$options.i18n.projectsFetchError });
@@ -121,47 +101,21 @@ export default {
   data() {
     return {
       inboundJobTokenScopeEnabled: null,
-      isUpdating: false,
-      groupsAndProjectsWithAccess: [],
-      groupOrProjectPath: '',
-      projectCount: 0,
-      projectName: '',
-      groupCount: 0,
+      targetProjectPath: '',
+      projects: [],
+      isAddFormVisible: false,
     };
   },
   computed: {
-    isGroupOrProjectPathEmpty() {
-      return this.groupOrProjectPath === '';
-    },
-    isGroupOrProjectPathInScope() {
-      return this.groupsAndProjectsWithAccess.some(
-        (item) => item.fullPath === this.groupOrProjectPath,
-      );
+    isProjectPathEmpty() {
+      return this.targetProjectPath === '';
     },
     ciJobTokenHelpPage() {
-      return helpPagePath('ci/jobs/ci_job_token#control-job-token-access-to-your-project');
-    },
-    groupCountTooltip() {
-      return sprintf(
-        n__('%{count} group has access', '%{count} groups have access', this.groupCount),
-        {
-          count: this.groupCount,
-        },
-      );
-    },
-    projectCountTooltip() {
-      return sprintf(
-        n__('%{count} project has access', '%{count} projects have access', this.projectCount),
-        {
-          count: this.projectCount,
-        },
-      );
+      return helpPagePath('ci/jobs/ci_job_token#allow-access-to-your-project-with-a-job-token');
     },
   },
   methods: {
     async updateCIJobTokenScope() {
-      this.isUpdating = true;
-
       try {
         const {
           data: {
@@ -180,30 +134,22 @@ export default {
         if (errors.length) {
           throw new Error(errors[0]);
         }
-
-        const toastMessage = sprintf(
-          __("CI/CD job token permissions for '%{projectName}' were successfully updated."),
-          { projectName: this.projectName },
-        );
-        this.$toast.show(toastMessage);
       } catch (error) {
         this.inboundJobTokenScopeEnabled = !this.inboundJobTokenScopeEnabled;
         createAlert({ message: error.message });
-      } finally {
-        this.isUpdating = false;
       }
     },
-    async addGroupOrProject() {
+    async addProject() {
       try {
         const {
           data: {
-            ciJobTokenScopeAddGroupOrProject: { errors },
+            ciJobTokenScopeAddProject: { errors },
           },
         } = await this.$apollo.mutate({
-          mutation: inboundAddGroupOrProjectCIJobTokenScope,
+          mutation: inboundAddProjectCIJobTokenScopeMutation,
           variables: {
             projectPath: this.fullPath,
-            targetPath: this.groupOrProjectPath,
+            targetProjectPath: this.targetProjectPath,
           },
         });
 
@@ -213,38 +159,23 @@ export default {
       } catch (error) {
         createAlert({ message: error.message });
       } finally {
-        this.clearGroupOrProjectPath();
-        this.getGroupsAndProjects();
+        this.clearTargetProjectPath();
+        this.getProjects();
       }
     },
-    async removeItem(item) {
+    async removeProject(removeTargetPath) {
       try {
-        let errors;
-
-        // eslint-disable-next-line no-underscore-dangle
-        if (item.__typename === TYPENAME_GROUP) {
-          const {
-            data: { ciJobTokenScopeRemoveGroup },
-          } = await this.$apollo.mutate({
-            mutation: inboundRemoveGroupCIJobTokenScopeMutation,
-            variables: {
-              projectPath: this.fullPath,
-              targetGroupPath: item.fullPath,
-            },
-          });
-          errors = ciJobTokenScopeRemoveGroup.errors;
-        } else {
-          const {
-            data: { ciJobTokenScopeRemoveProject },
-          } = await this.$apollo.mutate({
-            mutation: inboundRemoveProjectCIJobTokenScopeMutation,
-            variables: {
-              projectPath: this.fullPath,
-              targetProjectPath: item.fullPath,
-            },
-          });
-          errors = ciJobTokenScopeRemoveProject.errors;
-        }
+        const {
+          data: {
+            ciJobTokenScopeRemoveProject: { errors },
+          },
+        } = await this.$apollo.mutate({
+          mutation: inboundRemoveProjectCIJobTokenScopeMutation,
+          variables: {
+            projectPath: this.fullPath,
+            targetProjectPath: removeTargetPath,
+          },
+        });
 
         if (errors.length) {
           throw new Error(errors[0]);
@@ -252,137 +183,109 @@ export default {
       } catch (error) {
         createAlert({ message: error.message });
       } finally {
-        this.getGroupsAndProjects();
+        this.getProjects();
       }
     },
-    setGroupOrProjectPath(path) {
-      this.groupOrProjectPath = path;
+    clearTargetProjectPath() {
+      this.targetProjectPath = '';
+      this.isAddFormVisible = false;
     },
-    clearGroupOrProjectPath() {
-      this.groupOrProjectPath = '';
-      this.$refs.jobTokenCrud.hideForm();
-    },
-    getGroupsAndProjects() {
-      this.$apollo.queries.groupsAndProjectsWithAccess.refetch();
+    getProjects() {
+      this.$apollo.queries.projects.refetch();
     },
     showAddForm() {
-      this.$refs.jobTokenCrud.showForm();
+      this.isAddFormVisible = true;
     },
   },
 };
 </script>
 <template>
-  <div class="gl-mt-5">
-    <gl-loading-icon v-if="$apollo.loading" size="md" />
+  <div>
+    <gl-loading-icon v-if="$apollo.loading" size="lg" class="gl-mt-5" />
     <template v-else>
-      <gl-form-radio-group
+      <gl-toggle
         v-model="inboundJobTokenScopeEnabled"
-        :options="$options.inboundJobTokenScopeOptions"
-        stacked
+        :label="$options.i18n.toggleLabelTitle"
+        @change="updateCIJobTokenScope"
       >
-        <template #first>
-          <div class="gl-mb-2 gl-font-bold">
-            {{ $options.i18n.radioGroupTitle }}
-          </div>
-          <div class="gl-mb-3">
-            <gl-sprintf :message="$options.i18n.radioGroupDescription">
-              <template #link="{ content }">
-                <gl-link :href="ciJobTokenHelpPage" class="inline-link" target="_blank">{{
-                  content
-                }}</gl-link>
-              </template>
-            </gl-sprintf>
-          </div>
+        <template #label>
+          <gl-sprintf :message="$options.i18n.toggleLabelTitle">
+            <template #italic="{ content }">
+              <i>{{ content }}</i>
+            </template>
+          </gl-sprintf>
         </template>
-      </gl-form-radio-group>
-
-      <gl-alert
-        v-if="!inboundJobTokenScopeEnabled"
-        variant="warning"
-        class="gl-my-3"
-        :dismissible="false"
-        :show-icon="false"
-      >
-        {{ $options.i18n.settingDisabledMessage }}
-      </gl-alert>
-
-      <gl-button
-        variant="confirm"
-        class="gl-mt-3"
-        data-testid="save-ci-job-token-scope-changes-btn"
-        :loading="isUpdating"
-        @click="updateCIJobTokenScope"
-      >
-        {{ $options.i18n.saveButtonTitle }}
-      </gl-button>
+        <template #help>
+          <gl-sprintf :message="$options.i18n.toggleHelpText">
+            <template #link="{ content }">
+              <gl-link :href="ciJobTokenHelpPage" class="inline-link" target="_blank">
+                {{ content }}
+              </gl-link>
+            </template>
+          </gl-sprintf>
+        </template>
+      </gl-toggle>
 
       <div>
-        <crud-component
-          ref="jobTokenCrud"
-          :title="$options.i18n.cardHeaderTitle"
-          :description="$options.i18n.cardHeaderDescription"
-          class="gl-mt-5"
+        <gl-card
+          class="gl-new-card"
+          header-class="gl-new-card-header"
+          body-class="gl-new-card-body gl-px-0"
         >
-          <template #count>
-            <span class="gl-inline-flex gl-gap-3">
-              <span
-                v-gl-tooltip
-                :title="groupCountTooltip"
-                class="gl-inline-flex gl-items-center gl-gap-2 gl-text-sm gl-text-subtle"
-                data-testid="group-count"
-              >
-                <gl-icon name="group" />
-                {{ groupCount }}
+          <template #header>
+            <div class="gl-new-card-title-wrapper">
+              <h5 class="gl-new-card-title">{{ $options.i18n.cardHeaderTitle }}</h5>
+              <span class="gl-new-card-count">
+                <gl-icon name="project" class="gl-mr-2" />
+                {{ projects.length }}
               </span>
-              <span
-                v-gl-tooltip
-                :title="projectCountTooltip"
-                class="gl-inline-flex gl-items-center gl-gap-2 gl-text-sm gl-text-subtle"
-                data-testid="project-count"
+            </div>
+            <div class="gl-new-card-actions">
+              <gl-button
+                v-if="!isAddFormVisible"
+                size="small"
+                data-testid="toggle-form-btn"
+                @click="showAddForm"
+                >{{ $options.i18n.addProject }}</gl-button
               >
-                <gl-icon name="project" />
-                {{ projectCount }}
-              </span>
-            </span>
+            </div>
           </template>
 
-          <template #actions>
-            <gl-button size="small" data-testid="toggle-form-btn" @click="showAddForm">{{
-              $options.i18n.addGroupOrProject
-            }}</gl-button>
-          </template>
-
-          <template #form>
-            <strong>{{ $options.i18n.addGroupOrProject }}</strong>
-            <gl-form @submit.prevent="addGroupOrProject">
-              <gl-form-group
-                :state="!isGroupOrProjectPathInScope"
-                :invalid-feedback="$options.projectInScopeError"
-                data-testid="group-or-project-form-group"
+          <div v-if="isAddFormVisible" class="gl-new-card-add-form gl-m-3">
+            <h4 class="gl-mt-0">{{ $options.i18n.addProject }}</h4>
+            <gl-form-input
+              v-model="targetProjectPath"
+              :placeholder="$options.i18n.addProjectPlaceholder"
+            />
+            <div class="gl-display-flex gl-mt-5">
+              <gl-button
+                variant="confirm"
+                :disabled="isProjectPathEmpty"
+                class="gl-mr-3"
+                data-testid="add-project-btn"
+                @click="addProject"
               >
-                <groups-and-projects-listbox
-                  :placeholder="$options.i18n.addProjectPlaceholder"
-                  :is-valid="!isGroupOrProjectPathInScope"
-                  :value="groupOrProjectPath"
-                  @select="setGroupOrProjectPath"
-                />
-              </gl-form-group>
-              <div class="gl-mt-5 gl-flex gl-gap-3">
-                <gl-button
-                  variant="confirm"
-                  :disabled="isGroupOrProjectPathEmpty || isGroupOrProjectPathInScope"
-                  data-testid="add-project-btn"
-                  @click="addGroupOrProject"
-                >
-                  {{ $options.i18n.add }}
-                </gl-button>
-                <gl-button @click="clearGroupOrProjectPath">{{ $options.i18n.cancel }}</gl-button>
-              </div>
-            </gl-form>
-          </template>
+                {{ $options.i18n.addProject }}
+              </gl-button>
+              <gl-button @click="clearTargetProjectPath">{{ $options.i18n.cancel }}</gl-button>
+            </div>
+          </div>
 
-          <token-access-table :items="groupsAndProjectsWithAccess" @removeItem="removeItem" />
-        </crud-component>
+          <token-projects-table
+            :projects="projects"
+            :table-fields="$options.fields"
+            @removeProject="removeProject"
+          />
+        </gl-card>
+        <gl-alert
+          v-if="!inboundJobTokenScopeEnabled"
+          class="gl-mb-3"
+          variant="warning"
+          :dismissible="false"
+          :show-icon="false"
+        >
+          {{ $options.i18n.settingDisabledMessage }}
+        </gl-alert>
       </div>
     </template>
   </div>

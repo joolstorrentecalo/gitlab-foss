@@ -56,7 +56,7 @@ RSpec.describe Gitlab::Ci::Config::Entry::Processable, feature_category: :pipeli
       end
 
       context 'when job name is empty' do
-        let(:entry) { node_class.new(config, name: :"") }
+        let(:entry) { node_class.new(config, name: ''.to_sym) }
 
         it 'reports error' do
           expect(entry.errors).to include "job name can't be blank"
@@ -133,26 +133,12 @@ RSpec.describe Gitlab::Ci::Config::Entry::Processable, feature_category: :pipeli
       end
     end
 
-    context 'when run: and trigger: are used together' do
-      let(:config) do
-        {
-          run: [{ name: 'step1', step: 'some reference' }],
-          trigger: 'test-group/test-project'
-        }
-      end
-
-      it 'is invalid' do
-        expect(entry).not_to be_valid
-        expect(entry.errors).to include(/these keys cannot be used together: run, trigger/)
-      end
-    end
-
     context 'when only: is used with rules:' do
       let(:config) { { only: ['merge_requests'], rules: [{ if: '$THIS' }] } }
 
       it 'returns error about mixing only: with rules:' do
         expect(entry).not_to be_valid
-        expect(entry.errors).to include(/may not be used with `rules`: only/)
+        expect(entry.errors).to include /may not be used with `rules`: only/
       end
 
       context 'and only: is blank' do
@@ -177,7 +163,7 @@ RSpec.describe Gitlab::Ci::Config::Entry::Processable, feature_category: :pipeli
 
       it 'returns error about mixing except: with rules:' do
         expect(entry).not_to be_valid
-        expect(entry.errors).to include(/may not be used with `rules`: except/)
+        expect(entry.errors).to include /may not be used with `rules`: except/
       end
 
       context 'and except: is blank' do
@@ -208,7 +194,7 @@ RSpec.describe Gitlab::Ci::Config::Entry::Processable, feature_category: :pipeli
 
       it 'returns errors about mixing both only: and except: with rules:' do
         expect(entry).not_to be_valid
-        expect(entry.errors).to include(/may not be used with `rules`: only, except/)
+        expect(entry.errors).to include /may not be used with `rules`: only, except/
       end
 
       context 'when only: and except: as both blank' do

@@ -48,7 +48,7 @@ static-verification-with-database:
 generate-apollo-graphql-schema:
   extends:
     - .static-analysis-base
-    - .frontend:rules:default-frontend-jobs-with-docs-changes
+    - .frontend:rules:default-frontend-jobs
   image:
     name: ${REGISTRY_HOST}/${REGISTRY_GROUP}/gitlab-build-images:apollo
     entrypoint: [""]
@@ -67,7 +67,7 @@ eslint:
   extends:
     - .static-analysis-base
     - .yarn-cache
-    - .frontend:rules:default-frontend-jobs-with-docs-changes
+    - .frontend:rules:default-frontend-jobs
   needs: ['generate-apollo-graphql-schema']
   variables:
     USE_BUNDLE_INSTALL: "false"
@@ -124,6 +124,32 @@ rubocop:
         fi
       fi
 
+qa:metadata-lint:
+  extends:
+    - .static-analysis-base
+    - .static-analysis:rules:qa:metadata-lint
+  before_script:
+    - !reference [.default-before_script, before_script]
+    - cd qa/
+    - bundle_install_script
+  script:
+    - run_timed_command "bundle exec bin/qa Test::Instance::All http://localhost:3000 --test-metadata-only"
+    - cd ..
+    - run_timed_command "./scripts/qa/testcases-check qa/tmp/test-metadata.json"
+    - run_timed_command "./scripts/qa/quarantine-types-check qa/tmp/test-metadata.json"
+  variables:
+    USE_BUNDLE_INSTALL: "false"
+    SETUP_DB: "false"
+    QA_EXPORT_TEST_METRICS: "false"
+    # Disable warnings in browserslist which can break on backports
+    # https://github.com/browserslist/browserslist/blob/a287ec6/node.js#L367-L384
+    BROWSERSLIST_IGNORE_OLD_DATA: "true"
+  artifacts:
+    expire_in: 31d
+    when: always
+    paths:
+      - qa/tmp/
+
 feature-flags-usage:
   extends:
     - .static-analysis-base
@@ -146,22 +172,20 @@ semgrep-appsec-custom-rules:
   image: returntocorp/semgrep
   needs: []
   script:
+    # Required to avoid a timeout https://github.com/returntocorp/semgrep/issues/5395
     - git fetch origin master
     - git clone $CUSTOM_RULES_REPOSITORY "${CI_BUILDS_DIR}/sast-custom-rules"
     # Include/exclude list isn't ideal https://github.com/returntocorp/semgrep/issues/5399
     - |
-      rm "${CI_BUILDS_DIR}/sast-custom-rules/.gitlab-ci.yml" # semgrep fails when there are yaml files that are not rules
-      semgrep ci --metrics off --config "${CI_BUILDS_DIR}/sast-custom-rules" \
+      semgrep ci --gitlab-sast --metrics off --config "${CI_BUILDS_DIR}/sast-custom-rules" \
         --include app --include lib --include workhorse \
-        --exclude '*_test.go' --exclude spec --exclude qa --exclude tooling --json --verbose > gl-sast-report.json || true
-
+        --exclude '*_test.go' --exclude spec --exclude qa --exclude tooling > gl-sast-report.json || true
   variables:
-    CUSTOM_RULES_REPOSITORY: https://gitlab.com/gitlab-com/gl-security/product-security/appsec/sast-custom-rules.git
+    CUSTOM_RULES_REPOSITORY: https://gitlab.com/gitlab-com/gl-security/appsec/sast-custom-rules.git
   artifacts:
     expire_in: 30 days
     paths:
       - gl-sast-report.json
-    access: 'developer'
 
 audit-event-types-verify:
   variables:
@@ -208,14 +232,23 @@ ping-appsec-for-sast-findings:
   extends:
     - .ping-appsec-for-sast-findings:rules
   variables:
-    # Project Access Token bot ID for /gitlab-com/gl-security/product-security/appsec/sast-custom-rules
-    BOT_USER_ID: 19650678
+    # Project Access Token bot ID for /gitlab-com/gl-security/appsec/sast-custom-rules
+    BOT_USER_ID: 14406065
   needs:
     - semgrep-appsec-custom-rules
   script:
-    - apk update
-    - apk add ruby
-    - ruby scripts/semgrep_result_processor.rb
+    - apk add jq curl
+    - scripts/process_custom_semgrep_results.sh
+
+trigger-depsaster:
+  extends: .static-analysis:rules:trigger-depsaster
+  stage: lint
+  variables:
+    MERGE_REQUEST_PROJECT_ID: $CI_MERGE_REQUEST_PROJECT_ID
+    MERGE_REQUEST_IID: $CI_MERGE_REQUEST_IID
+  trigger:
+    project: "gitlab-com/gl-security/appsec/tooling/depsaster"
+  allow_failure: true
 
 ping-appsec-for-dependency-review:
   stage: lint
@@ -225,7 +258,7 @@ ping-appsec-for-dependency-review:
     DISABLE_MENTIONS: "false"
     DISABLE_SCORING: "true"
     DISABLE_COMMENTING: "false"
-    DEPENDENCY_REVIEW_BOT_CI_REG: "${CI_REGISTRY}/gitlab-com/gl-security/product-security/appsec/tooling/depscore/master"
+    DEPENDENCY_REVIEW_BOT_CI_REG: "${CI_REGISTRY}/gitlab-com/gl-security/appsec/tooling/depscore/master"
   extends: [".ping-appsec-for-dependency-review:rules", ".use-docker-in-docker"]
   before_script:
     - apk add jq curl

@@ -8,7 +8,7 @@ describe('New project push tip popover', () => {
   let wrapper;
   const targetId = 'target';
   const pushToCreateProjectCommand = 'command';
-  const projectHelpPath = 'path';
+  const workingWithProjectsHelpPath = 'path';
 
   const findPopover = () => wrapper.findComponent(GlPopover);
   const findClipboardButton = () => wrapper.findComponent(ClipboardButton);
@@ -26,7 +26,7 @@ describe('New project push tip popover', () => {
       },
       provide: {
         pushToCreateProjectCommand,
-        projectHelpPath,
+        workingWithProjectsHelpPath,
       },
     });
   };
@@ -41,10 +41,8 @@ describe('New project push tip popover', () => {
   });
 
   it('renders popover that targets the specified target', () => {
-    // jest29 bug with recursive objects in toMatchObject https://github.com/jestjs/jest/issues/14734
-    expect(findPopover().props('target')).toEqual(findTarget());
-
     expect(findPopover().props()).toMatchObject({
+      target: findTarget(),
       triggers: 'click blur',
       placement: 'top',
       title: 'Push to create a project',
@@ -72,7 +70,7 @@ describe('New project push tip popover', () => {
 
   it('displays a link to open the push command help page reference', () => {
     expect(findHelpLink().attributes().href).toBe(
-      `${projectHelpPath}#create-a-new-project-with-git-push`,
+      `${workingWithProjectsHelpPath}#create-a-new-project-with-git-push`,
     );
   });
 });

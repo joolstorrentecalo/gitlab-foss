@@ -31,7 +31,7 @@ module Members
       return if can_admin_members? || private_invited_group_members.nil?
 
       private_invited_group_members.each do |member|
-        member.is_source_accessible_to_current_user = authorized_groups.include?(member.source)
+        member.is_source_accessible_to_current_user = authorized_group_ids.include?(member.source_id)
       end
     end
 
@@ -39,13 +39,13 @@ module Members
 
     attr_reader :members, :source, :current_user
 
-    def authorized_groups
+    def authorized_group_ids
       return [] if current_user.nil?
 
-      private_invited_groups = private_invited_group_members.map(&:source).uniq
-      Group.groups_user_can(private_invited_groups, current_user, :read_group)
+      private_invited_group_ids = private_invited_group_members.map(&:source_id).uniq
+      current_user.authorized_groups.id_in(private_invited_group_ids).map(&:id)
     end
-    strong_memoize_attr(:authorized_groups)
+    strong_memoize_attr(:authorized_group_ids)
 
     def private_invited_group_members
       members.select do |member|
@@ -55,19 +55,10 @@ module Members
         member.is_a?(GroupMember) &&
           member.source.visibility_level != Gitlab::VisibilityLevel::PUBLIC &&
           member.source_id != source.id && # Exclude direct member
-          source_traversal_ids.exclude?(member.source_id) # Exclude inherited member
+          member.source.traversal_ids.exclude?(source.id) # Exclude inherited member
       end
     end
     strong_memoize_attr(:private_invited_group_members)
-
-    def source_traversal_ids
-      if source.is_a?(Project)
-        source.namespace.traversal_ids
-      else
-        source.traversal_ids
-      end
-    end
-    strong_memoize_attr(:source_traversal_ids)
 
     def can_admin_members?
       return can?(current_user, :admin_project_member, source) if source.is_a?(Project)

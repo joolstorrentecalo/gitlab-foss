@@ -4,10 +4,9 @@ require 'spec_helper'
 
 RSpec.describe ServiceHook, feature_category: :webhooks do
   it_behaves_like 'a hook that does not get automatically disabled on failure' do
-    let(:integration) { build(:integration) }
-    let(:hook) { build(:service_hook) }
+    let(:hook) { create(:service_hook) }
     let(:hook_factory) { :service_hook }
-    let(:default_factory_arguments) { { integration: integration } }
+    let(:default_factory_arguments) { {} }
 
     def find_hooks
       described_class.all
@@ -15,7 +14,7 @@ RSpec.describe ServiceHook, feature_category: :webhooks do
   end
 
   describe 'associations' do
-    it { is_expected.to belong_to(:integration) }
+    it { is_expected.to belong_to :integration }
   end
 
   describe 'validations' do
@@ -27,8 +26,7 @@ RSpec.describe ServiceHook, feature_category: :webhooks do
     let(:data) { { key: 'value' } }
 
     it '#execute' do
-      expect(WebHookService).to receive(:new).with(hook, data, 'service_hook', idempotency_key: anything,
-        force: false).and_call_original
+      expect(WebHookService).to receive(:new).with(hook, data, 'service_hook', force: false).and_call_original
       expect_any_instance_of(WebHookService).to receive(:execute)
 
       hook.execute(data)

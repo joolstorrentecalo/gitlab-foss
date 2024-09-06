@@ -26,16 +26,9 @@ RSpec.describe 'admin issues labels', feature_category: :team_planning do
       end
     end
 
-    it 'deletes label', :js do
+    it 'deletes label' do
       page.within "#label_#{bug_label.id}" do
-        find_by_testid('label-actions-dropdown-toggle').click
-        click_button 'Delete'
-      end
-
-      within_modal do
-        expect(page).to have_content("#{bug_label.title} will be permanently deleted. This cannot be undone.")
-
-        click_link 'Delete label'
+        click_link 'Delete'
       end
 
       page.within '.manage-labels-list' do
@@ -44,11 +37,10 @@ RSpec.describe 'admin issues labels', feature_category: :team_planning do
     end
 
     it 'deletes all labels', :js do
-      page.all('.labels [data-testid="label-actions-dropdown-toggle"]').each do |actions_toggle|
-        actions_toggle.click
-        click_button 'Delete'
-        within_modal do
-          click_link 'Delete label'
+      page.all('.labels .label-actions-list').each do |label|
+        label.click
+        accept_gl_confirm(button_text: 'Delete label') do
+          click_link 'Delete'
         end
         wait_for_requests
       end

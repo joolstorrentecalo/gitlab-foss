@@ -2,7 +2,6 @@ package gitaly
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 
@@ -120,22 +119,6 @@ func NewDiffClient(ctx context.Context, server api.GitalyServer) (context.Contex
 	}
 	grpcClient := gitalypb.NewDiffServiceClient(conn)
 	return withOutgoingMetadata(ctx, server), &DiffClient{grpcClient}, nil
-}
-
-// NewConnection returns a Gitaly connection
-func NewConnection(server api.GitalyServer) (*grpc.ClientConn, error) {
-	conn, err := getOrCreateConnection(server)
-
-	return conn, err
-}
-
-// Sidechannel returns a Gitaly sidechannel
-func Sidechannel() (*gitalyclient.SidechannelRegistry, error) {
-	if sidechannelRegistry == nil {
-		return nil, fmt.Errorf("sidechannel is not initialized")
-	}
-
-	return sidechannelRegistry, nil
 }
 
 func getOrCreateConnection(server api.GitalyServer) (*grpc.ClientConn, error) {

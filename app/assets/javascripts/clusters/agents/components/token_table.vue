@@ -44,7 +44,7 @@ export default {
   },
   computed: {
     fields() {
-      const tdClass = '!gl-align-middle';
+      const tdClass = 'gl-vertical-align-middle!';
       return [
         {
           key: 'name',
@@ -96,7 +96,7 @@ export default {
 <template>
   <div>
     <div v-if="tokens.length">
-      <create-token-button class="gl-my-5 gl-text-right" />
+      <create-token-button class="gl-text-right gl-my-5" />
 
       <gl-table
         :items="tokens"

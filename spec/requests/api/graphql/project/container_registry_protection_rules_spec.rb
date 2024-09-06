@@ -38,8 +38,8 @@ RSpec.describe 'getting the containers protection rules linked to a project', :a
         expect(protection_rules).to include(
           hash_including(
             'repositoryPathPattern' => container_protection_rule.repository_path_pattern,
-            'minimumAccessLevelForDelete' => 'MAINTAINER',
-            'minimumAccessLevelForPush' => 'MAINTAINER'
+            'pushProtectedUpToAccessLevel' => 'DEVELOPER',
+            'deleteProtectedUpToAccessLevel' => 'DEVELOPER'
           )
         )
       end

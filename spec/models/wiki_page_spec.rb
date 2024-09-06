@@ -33,6 +33,14 @@ RSpec.describe WikiPage, feature_category: :wiki do
     build(:wiki_page, wiki_page_attrs)
   end
 
+  def disable_front_matter
+    stub_feature_flags(Gitlab::WikiPages::FrontMatterParser::FEATURE_FLAG => false)
+  end
+
+  def enable_front_matter_for(thing)
+    stub_feature_flags(Gitlab::WikiPages::FrontMatterParser::FEATURE_FLAG => thing)
+  end
+
   def force_wiki_change_branch
     old_default_branch = wiki.default_branch
     wiki.repository.add_branch(user, 'another_branch', old_default_branch)
@@ -83,6 +91,22 @@ RSpec.describe WikiPage, feature_category: :wiki do
 
       it 'strips the front matter from the content' do
         expect(wiki_page.content.strip).to eq('My actual content')
+      end
+
+      context 'the feature flag is off' do
+        before do
+          disable_front_matter
+        end
+
+        it_behaves_like 'a page without front-matter'
+
+        context 'but enabled for the container' do
+          before do
+            enable_front_matter_for(container)
+          end
+
+          it_behaves_like 'a page with front-matter'
+        end
       end
     end
 
@@ -499,6 +523,29 @@ RSpec.describe WikiPage, feature_category: :wiki do
 
           it 'raises an error' do
             expect { subject.update(front_matter: new_front_matter) }.to raise_error(described_class::FrontMatterTooLong)
+          end
+        end
+
+        context 'the front-matter feature flag is not enabled' do
+          before do
+            disable_front_matter
+          end
+
+          it 'does not update the front-matter' do
+            content = subject.content
+            subject.update(front_matter: { slugs: ['x'] })
+
+            page = wiki.find_page(subject.title)
+
+            expect([subject, page]).to all(have_attributes(front_matter: be_empty, content: content))
+          end
+
+          context 'but it is enabled for the container' do
+            before do
+              enable_front_matter_for(container)
+            end
+
+            it_behaves_like 'able to update front-matter'
           end
         end
 
@@ -1018,6 +1065,19 @@ RSpec.describe WikiPage, feature_category: :wiki do
   describe '#hook_attrs' do
     subject { build_wiki_page(container) }
 
+    context 'when `wiki_content_background_job` flag disabled' do
+      before do
+        stub_feature_flags(wiki_content_background_job: false)
+      end
+
+      it 'adds absolute urls for images in the content' do
+        subject.attributes[:content] = 'test![WikiPage_Image](uploads/abc/WikiPage_Image.png)'
+
+        expected_path = "#{Settings.gitlab.url}/#{container.full_path}/-/wikis/uploads/abc/WikiPage_Image.png)"
+        expect(subject.hook_attrs['content']).to eq("test![WikiPage_Image](#{expected_path}")
+      end
+    end
+
     it 'includes specific attributes' do
       keys = subject.hook_attrs.keys
       expect(keys).not_to include(:content)
@@ -1065,8 +1125,20 @@ RSpec.describe WikiPage, feature_category: :wiki do
       let(:content_with_front_matter_title) { "---\ntitle: #{front_matter_title}\n---\nHome Page" }
       let(:wiki_page) { create(:wiki_page, container: container, content: content_with_front_matter_title) }
 
-      it 'returns the front matter title' do
-        expect(wiki_page.human_title).to eq front_matter_title
+      context "when wiki_front_matter_title enabled" do
+        it 'returns the front matter title' do
+          expect(wiki_page.human_title).to eq front_matter_title
+        end
+      end
+
+      context "when wiki_front_matter_title disabled" do
+        before do
+          stub_feature_flags(wiki_front_matter_title: false)
+        end
+
+        it 'returns the page title' do
+          expect(wiki_page.human_title).to eq wiki_page.title
+        end
       end
     end
   end

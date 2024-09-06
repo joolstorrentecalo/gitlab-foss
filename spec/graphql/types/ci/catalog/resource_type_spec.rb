@@ -18,7 +18,8 @@ RSpec.describe Types::Ci::Catalog::ResourceType, feature_category: :pipeline_com
       verification_level
       star_count
       starrers_path
-      last_30_day_usage_count
+      open_issues_count
+      open_merge_requests_count
     ]
 
     expect(described_class).to have_graphql_fields(*expected_fields)

@@ -27,34 +27,11 @@ RSpec.describe Projects::CommitsController, feature_category: :source_code_manag
     end
 
     describe "GET show" do
-      let(:params) { { namespace_id: project.namespace, project_id: project, id: id, ref_type: ref_type } }
-      let(:ref_type) { nil }
-      let(:request) do
-        get(:show, params: params)
-      end
-
       render_views
 
       context 'with file path' do
-        include_context 'with ambiguous refs for controllers'
-
         before do
-          request
-        end
-
-        context 'when the ref is ambiguous' do
-          let(:ref) { 'ambiguous_ref' }
-          let(:ref_type) { 'tags' }
-          let(:path) { 'README.md' }
-          let(:id) { "#{ref}/#{path}" }
-
-          it_behaves_like '#set_is_ambiguous_ref when ref is ambiguous'
-        end
-
-        describe '#set_is_ambiguous_ref with no ambiguous ref' do
-          let(:id) { 'master/README.md' }
-
-          it_behaves_like '#set_is_ambiguous_ref when ref is not ambiguous'
+          get :show, params: { namespace_id: project.namespace, project_id: project, id: id }
         end
 
         context "valid branch, valid file" do
@@ -196,16 +173,14 @@ RSpec.describe Projects::CommitsController, feature_category: :source_code_manag
         end
       end
 
-      describe 'loading tags' do
-        it 'loads tags for commits' do
-          expect_next_instance_of(CommitCollection) do |collection|
-            expect(collection).to receive(:load_tags)
-          end
-
-          get :show, params: { namespace_id: project.namespace, project_id: project, id: 'master/README.md' }
-
-          expect(response).to have_gitlab_http_status(:ok)
+      it 'loads tags for commits' do
+        expect_next_instance_of(CommitCollection) do |collection|
+          expect(collection).to receive(:load_tags)
         end
+
+        get :show, params: { namespace_id: project.namespace, project_id: project, id: 'master/README.md' }
+
+        expect(response).to have_gitlab_http_status(:ok)
       end
 
       context 'when tag has a non-ASCII encoding' do
@@ -283,7 +258,9 @@ RSpec.describe Projects::CommitsController, feature_category: :source_code_manag
     describe "GET /commits/:id/signatures" do
       render_views
 
-      let(:send_request) do
+      before do
+        expect(::Gitlab::GitalyClient).to receive(:allow_ref_name_caching).and_call_original unless id.include?(' ')
+
         get :signatures, params: {
           namespace_id: project.namespace,
           project_id: project,
@@ -291,59 +268,16 @@ RSpec.describe Projects::CommitsController, feature_category: :source_code_manag
         }, format: :json
       end
 
-      before do
-        expect(::Gitlab::GitalyClient).to receive(:allow_ref_name_caching).and_call_original unless id.include?(' ')
-      end
-
       context "valid branch" do
         let(:id) { 'master' }
 
-        it 'returns a successful response' do
-          send_request
-
-          is_expected.to respond_with(:success)
-        end
+        it { is_expected.to respond_with(:success) }
       end
 
       context "invalid branch format" do
         let(:id) { 'some branch' }
 
-        it 'returns a not found response' do
-          send_request
-
-          is_expected.to respond_with(:not_found)
-        end
-      end
-
-      context 'with signature message' do
-        let(:id) { 'master' }
-        let(:commit) { repository.commit('5937ac0a7beb003549fc5fd26fc247adbce4a52e') }
-        let(:signature) { json_response['signatures'].find { |s| s['commit_sha'] == commit.id } }
-
-        it 'returns a signature message' do
-          send_request
-
-          expect(signature).to be_present
-
-          expect(signature['html']).to include('GPG Key ID')
-          expect(signature['html']).to include('This commit was signed with an unverified signature')
-        end
-
-        context 'when commit has an unsupported signature type' do
-          before do
-            allow(Gitlab::Gpg::Commit).to receive(:new).and_call_original
-            expect_next_instance_of(Gitlab::Gpg::Commit, commit) do |gpg_commit|
-              expect(gpg_commit).to receive(:signature).and_return(nil)
-            end
-          end
-
-          it 'returns a unsupported signature message' do
-            send_request
-
-            expect(signature).to be_present
-            expect(signature['html']).to include('Unsupported signature')
-          end
-        end
+        it { is_expected.to respond_with(:not_found) }
       end
     end
   end

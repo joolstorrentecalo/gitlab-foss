@@ -6,7 +6,7 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
   let(:group) { create(:group, maintainers: importer_user) }
   let(:project) { create(:project, :repository, group: group) }
   let(:members_mapper) { double('members_mapper').as_null_object }
-  let(:admin) { create(:admin) }
+  let(:admin) { create(:admin, :without_default_org) }
   let(:importer_user) { admin }
   let(:excluded_keys) { [] }
   let(:additional_relation_attributes) { {} }
@@ -19,9 +19,7 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
       members_mapper: members_mapper,
       user: importer_user,
       importable: project,
-      import_source: ::Import::SOURCE_PROJECT_EXPORT_IMPORT,
-      excluded_keys: excluded_keys,
-      rewrite_mentions: true
+      excluded_keys: excluded_keys
     )
   end
 
@@ -78,6 +76,10 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
 
     it 'does not have the original integration_id' do
       expect(created_object.integration_id).not_to eq(integration_id)
+    end
+
+    it 'does not have the original project_id' do
+      expect(created_object.project_id).not_to eq(original_project_id)
     end
 
     it 'has the new project_id' do
@@ -148,7 +150,7 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
         'updated_at' => "2016-06-14T15:02:56.815Z",
         'state' => "opened",
         'merge_status' => "unchecked",
-        'description' => "I said to @sam the code should follow @bob's advice. @alice?",
+        'description' => "Description",
         'position' => 0,
         'source_branch_sha' => "ABCD",
         'target_branch_sha' => "DCBA",
@@ -174,10 +176,6 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
 
     it 'has MWPS set to false' do
       expect(created_object.merge_when_pipeline_succeeds).to eq(false)
-    end
-
-    it 'inserts backticks around username mentions' do
-      expect(created_object.description).to eq("I said to `@sam` the code should follow `@bob`'s advice. `@alice`?")
     end
   end
 
@@ -222,7 +220,7 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
         'created_at' => "2016-06-14T15:02:36.568Z",
         'updated_at' => "2016-06-14T15:02:56.815Z",
         'state' => "opened",
-        'description' => "I said to @sam the code should follow @bob's advice. @alice?",
+        'description' => "Description",
         "relative_position" => 25111 # just a random position
       }
     end
@@ -255,14 +253,6 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
       it 'sets the correct work_item_type' do
         expect(created_object.work_item_type).to eq(WorkItems::Type.default_by_type(:task))
       end
-
-      context 'when the provided issue_type is invalid' do
-        let(:additional_relation_attributes) { { 'issue_type' => 'invalid_type' } }
-
-        it 'does not set a work item type, lets the model default to issue' do
-          expect(created_object.work_item_type).to be_nil
-        end
-      end
     end
 
     context 'when work_item_type is provided in the hash' do
@@ -284,26 +274,22 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
         expect(created_object.work_item_type).to eq(incident_type)
       end
     end
-
-    it 'inserts backticks around username mentions' do
-      expect(created_object.description).to eq("I said to `@sam` the code should follow `@bob`'s advice. `@alice`?")
-    end
   end
 
   context 'label object' do
     let(:relation_sym) { :labels }
     let(:relation_hash) do
       {
-        id: 3,
-        title: "test3",
-        color: "#428bca",
-        group_id: project.group.id,
-        created_at: "2016-07-22T08:55:44.161Z",
-        updated_at: "2016-07-22T08:55:44.161Z",
-        template: false,
-        description: "",
-        project_id: project.id,
-        type: "GroupLabel"
+        "id": 3,
+        "title": "test3",
+        "color": "#428bca",
+        "group_id": project.group.id,
+        "created_at": "2016-07-22T08:55:44.161Z",
+        "updated_at": "2016-07-22T08:55:44.161Z",
+        "template": false,
+        "description": "",
+        "project_id": project.id,
+        "type": "GroupLabel"
       }
     end
 
@@ -647,25 +633,6 @@ RSpec.describe Gitlab::ImportExport::Project::RelationFactory, :use_clean_rails_
 
     it 'sets diff to diff_export value' do
       expect(created_object.diff).to eq('diff_export')
-    end
-
-    context 'when diff_export contains null bytes' do
-      let(:relation_hash) do
-        {
-          'new_file' => true,
-          'renamed_file' => false,
-          'deleted_file' => false,
-          'a_mode' => '100644',
-          'b_mode' => '100644',
-          'new_path' => 'new_path',
-          'old_path' => 'old_path',
-          'diff_export' => "diff_export\x00"
-        }
-      end
-
-      it 'removes the null bytes' do
-        expect(created_object.diff).to eq('diff_export')
-      end
     end
   end
 end

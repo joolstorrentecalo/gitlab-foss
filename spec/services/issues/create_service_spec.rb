@@ -73,7 +73,7 @@ RSpec.describe Issues::CreateService, feature_category: :team_planning do
       end
 
       describe 'authorization' do
-        let_it_be(:project) { create(:project, :private, group: group, guests: user) }
+        let_it_be(:project) { create(:project, :private, group: group).tap { |project| project.add_guest(user) } }
 
         let(:opts) { { title: 'private issue', description: 'please fix' } }
 
@@ -96,22 +96,12 @@ RSpec.describe Issues::CreateService, feature_category: :team_planning do
         end
       end
 
-      it 'raises an error if work item types have not been created yet' do
+      it 'works if base work item types were not created yet' do
         WorkItems::Type.delete_all
 
         expect do
           issue
-        end.to raise_error(
-          WorkItems::Type::DEFAULT_TYPES_NOT_SEEDED,
-          <<~STRING
-            Default work item types have not been created yet. Make sure the DB has been seeded successfully.
-            See related documentation in
-            https://docs.gitlab.com/omnibus/settings/database.html#seed-the-database-fresh-installs-only
-
-            If you have additional questions, you can ask in
-            https://gitlab.com/gitlab-org/gitlab/-/issues/423483
-          STRING
-        )
+        end.to change(Issue, :count).by(1)
       end
 
       it 'creates the issue with the given params' do
@@ -180,7 +170,7 @@ RSpec.describe Issues::CreateService, feature_category: :team_planning do
 
       context 'when issue template is provided' do
         let_it_be(:files) { { '.gitlab/issue_templates/Default.md' => 'Default template contents' } }
-        let_it_be_with_reload(:project) { create(:project, :custom_repo, group: group, files: files, guests: user) }
+        let_it_be_with_reload(:project) { create(:project, :custom_repo, group: group, files: files).tap { |project| project.add_guest(user) } }
 
         context 'when description is blank' do
           it 'sets template contents as description when description is blank' do
@@ -472,7 +462,8 @@ RSpec.describe Issues::CreateService, feature_category: :team_planning do
               iid: { current: kind_of(Integer), previous: nil },
               project_id: { current: project.id, previous: nil },
               title: { current: opts[:title], previous: nil },
-              updated_at: { current: kind_of(Time), previous: nil }
+              updated_at: { current: kind_of(Time), previous: nil },
+              time_estimate: { current: 0, previous: nil }
             },
             object_attributes: include(
               opts.merge(
@@ -834,8 +825,7 @@ RSpec.describe Issues::CreateService, feature_category: :team_planning do
     end
 
     context 'add related issue' do
-      let_it_be(:private_project) { create(:project) }
-      let_it_be(:related_issue) { create(:issue, project: private_project) }
+      let_it_be(:related_issue) { create(:issue, project: project) }
 
       let(:opts) do
         { title: 'A new issue', add_related_issue: related_issue }
@@ -849,7 +839,7 @@ RSpec.describe Issues::CreateService, feature_category: :team_planning do
 
       context 'when user has access to the related issue' do
         before do
-          private_project.add_guest(user)
+          project.add_developer(user)
         end
 
         it 'adds a link to the issue' do

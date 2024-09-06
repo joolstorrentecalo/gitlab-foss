@@ -1,5 +1,6 @@
 // Copied to ee/spec/frontend/notes/mock_data.js
 import { HTTP_STATUS_OK } from '~/lib/utils/http_status';
+import { __ } from '~/locale';
 
 export const notesDataMock = {
   discussionsPath: '/gitlab-org/gitlab-foss/issues/26/discussions.json',
@@ -137,7 +138,6 @@ export const note = {
   created_at: '2017-08-10T15:24:03.087Z',
   updated_at: '2017-08-10T15:24:03.087Z',
   system: false,
-  imported: true,
   noteable_id: 67,
   noteable_type: 'Issue',
   noteable_iid: 7,
@@ -694,7 +694,8 @@ export const notesWithDescriptionChanges = [
         noteable_type: 'Issue',
         resolvable: false,
         noteable_iid: 12,
-        note: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+        note:
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
         note_html:
           '<p dir="auto">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>',
         current_user: { can_edit: true, can_award_emoji: true },
@@ -740,7 +741,8 @@ export const notesWithDescriptionChanges = [
         noteable_type: 'Issue',
         resolvable: false,
         noteable_iid: 12,
-        note: 'Varius vel pharetra vel turpis nunc eget lorem. Ipsum dolor sit amet consectetur adipiscing.',
+        note:
+          'Varius vel pharetra vel turpis nunc eget lorem. Ipsum dolor sit amet consectetur adipiscing.',
         note_html:
           '<p dir="auto">Varius vel pharetra vel turpis nunc eget lorem. Ipsum dolor sit amet consectetur adipiscing.</p>',
         current_user: { can_edit: true, can_award_emoji: true },
@@ -966,7 +968,8 @@ export const collapsedSystemNotes = [
         noteable_type: 'Issue',
         resolvable: false,
         noteable_iid: 12,
-        note: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+        note:
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
         note_html:
           '<p dir="auto">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>',
         current_user: { can_edit: true, can_award_emoji: true },
@@ -1012,7 +1015,8 @@ export const collapsedSystemNotes = [
         noteable_type: 'Issue',
         resolvable: false,
         noteable_iid: 12,
-        note: 'Varius vel pharetra vel turpis nunc eget lorem. Ipsum dolor sit amet consectetur adipiscing.',
+        note:
+          'Varius vel pharetra vel turpis nunc eget lorem. Ipsum dolor sit amet consectetur adipiscing.',
         note_html:
           '<p dir="auto">Varius vel pharetra vel turpis nunc eget lorem. Ipsum dolor sit amet consectetur adipiscing.</p>',
         current_user: { can_edit: true, can_award_emoji: true },
@@ -1299,15 +1303,15 @@ export const draftDiffDiscussion = {
 
 export const notesFilters = [
   {
-    title: 'Show all activity',
+    title: __('Show all activity'),
     value: 0,
   },
   {
-    title: 'Show comments only',
+    title: __('Show comments only'),
     value: 1,
   },
   {
-    title: 'Show history only',
+    title: __('Show history only'),
     value: 2,
   },
 ];

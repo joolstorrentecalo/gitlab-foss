@@ -25,7 +25,6 @@ class Issue < ApplicationRecord
   include EachBatch
   include PgFullTextSearchable
   include IgnorableColumns
-  include Gitlab::DueAtFilterable
 
   extend ::Gitlab::Utils::Override
 
@@ -76,7 +75,6 @@ class Issue < ApplicationRecord
 
   has_many :merge_requests_closing_issues,
     class_name: 'MergeRequestsClosingIssues',
-    inverse_of: :issue,
     dependent: :delete_all # rubocop:disable Cop/ActiveRecordDependent
 
   has_many :issue_assignees
@@ -98,7 +96,9 @@ class Issue < ApplicationRecord
   has_one :sentry_issue
   has_one :alert_management_alert, class_name: 'AlertManagement::Alert'
   has_one :incident_management_issuable_escalation_status, class_name: 'IncidentManagement::IssuableEscalationStatus'
+  has_and_belongs_to_many :prometheus_alert_events, join_table: :issues_prometheus_alert_events # rubocop: disable Rails/HasAndBelongsToMany
   has_many :alert_management_alerts, class_name: 'AlertManagement::Alert', inverse_of: :issue, validate: false
+  has_many :prometheus_alerts, through: :prometheus_alert_events
   has_many :issue_customer_relations_contacts, class_name: 'CustomerRelations::IssueContact', inverse_of: :issue
   has_many :customer_relations_contacts, through: :issue_customer_relations_contacts, source: :contact, class_name: 'CustomerRelations::Contact', inverse_of: :issues
   has_many :incident_management_timeline_events, class_name: 'IncidentManagement::TimelineEvent', foreign_key: :issue_id, inverse_of: :incident
@@ -116,15 +116,12 @@ class Issue < ApplicationRecord
   validates :confidential, inclusion: { in: [true, false], message: 'must be a boolean' }
 
   validate :allowed_work_item_type_change, on: :update, if: :work_item_type_id_changed?
-  validate :due_date_after_start_date, if: :validate_due_date?
+  validate :due_date_after_start_date
   validate :parent_link_confidentiality
 
   alias_attribute :external_author, :service_desk_reply_to
 
   pg_full_text_searchable columns: [{ name: 'title', weight: 'A' }, { name: 'description', weight: 'B' }]
-
-  scope :project_level, -> { where.not(project_id: nil) }
-  scope :group_level, -> { where(project_id: nil) }
 
   scope :in_namespaces, ->(namespaces) { where(namespace: namespaces) }
   scope :in_projects, ->(project_ids) { where(project_id: project_ids) }
@@ -170,14 +167,12 @@ class Issue < ApplicationRecord
 
   scope :preload_associated_models, -> { preload(:assignees, :labels, project: :namespace) }
   scope :with_web_entity_associations, -> do
-    preload(:author, :namespace, :labels, project: [:project_feature, :route, { namespace: :route }])
+    preload(:author, :namespace, :labels, project: [:project_feature, :route, namespace: :route])
   end
 
   scope :preload_awardable, -> { preload(:award_emoji) }
-  scope :preload_namespace, -> { preload(:namespace) }
-  scope :preload_routables, -> { preload(project: [:route, { namespace: :route }]) }
-
   scope :with_alert_management_alerts, -> { joins(:alert_management_alert) }
+  scope :with_prometheus_alert_events, -> { joins(:issues_prometheus_alert_events) }
   scope :with_api_entity_associations, -> {
     preload(:work_item_type, :timelogs, :closed_by, :assignees, :author, :labels, :issuable_severity,
       namespace: [{ parent: :route }, :route], milestone: { project: [:route, { namespace: :route }] },
@@ -225,7 +220,7 @@ class Issue < ApplicationRecord
   # e.g:
   #
   #   .by_project_id_and_iid({project_id: 1, iid: 2})
-  #   .by_project_id_and_iid([]) # returns Issue.none
+  #   .by_project_id_and_iid([]) # returns ActiveRecord::NullRelation
   #   .by_project_id_and_iid([
   #     {project_id: 1, iid: 1},
   #     {project_id: 2, iid: 1},
@@ -238,8 +233,6 @@ class Issue < ApplicationRecord
   scope :with_null_relative_position, -> { where(relative_position: nil) }
   scope :with_non_null_relative_position, -> { where.not(relative_position: nil) }
   scope :with_projects_matching_search_data, -> { where('issue_search_data.project_id = issues.project_id') }
-
-  scope :with_work_item_type, -> { joins(:work_item_type) }
 
   before_validation :ensure_namespace_id, :ensure_work_item_type
 
@@ -285,12 +278,6 @@ class Issue < ApplicationRecord
   class << self
     extend ::Gitlab::Utils::Override
 
-    def in_namespaces_with_cte(namespaces)
-      cte = Gitlab::SQL::CTE.new(:namespace_ids, namespaces.select(:id))
-
-      where('issues.namespace_id IN (SELECT id FROM namespace_ids)').with(cte.to_arel)
-    end
-
     override :order_upvotes_desc
     def order_upvotes_desc
       reorder(upvotes_count: :desc)
@@ -321,7 +308,7 @@ class Issue < ApplicationRecord
   end
 
   def next_object_by_relative_position(ignoring: nil, order: :asc)
-    array_mapping_scope = ->(id_expression) do
+    array_mapping_scope = -> (id_expression) do
       relation = Issue.where(Issue.arel_table[:project_id].eq(id_expression))
 
       if order == :asc
@@ -335,7 +322,7 @@ class Issue < ApplicationRecord
       scope: Issue.order(relative_position: order, id: order),
       array_scope: relative_positioning_parent_projects,
       array_mapping_scope: array_mapping_scope,
-      finder_query: ->(_, id_expression) { Issue.where(Issue.arel_table[:id].eq(id_expression)) }
+      finder_query: -> (_, id_expression) { Issue.where(Issue.arel_table[:id].eq(id_expression)) }
     ).execute
 
     relation = exclude_self(relation, excluded: ignoring) if ignoring.present?
@@ -430,7 +417,8 @@ class Issue < ApplicationRecord
       attribute_name: 'relative_position',
       column_expression: arel_table[:relative_position],
       order_expression: Issue.arel_table[:relative_position].asc.nulls_last,
-      nullable: :nulls_last
+      nullable: :nulls_last,
+      distinct: false
     )
   end
 
@@ -491,7 +479,7 @@ class Issue < ApplicationRecord
 
     start_counting_from = 2
 
-    branch_name_generator = ->(counter) do
+    branch_name_generator = -> (counter) do
       suffix = counter > 5 ? SecureRandom.hex(8) : counter
       "#{to_branch_name}-#{suffix}"
     end
@@ -552,7 +540,7 @@ class Issue < ApplicationRecord
     related_issues = yield related_issues if block_given?
     return related_issues unless authorize
 
-    cross_project_filter = ->(issues) { issues.where(project: project) }
+    cross_project_filter = -> (issues) { issues.where(project: project) }
     Ability.issues_readable_by_user(related_issues,
       current_user,
       filters: { read_cross_project: cross_project_filter })
@@ -563,7 +551,7 @@ class Issue < ApplicationRecord
   end
 
   def can_be_worked_on?
-    !self.closed? && !self.project.forked?
+    !self.closed?
   end
 
   # Returns `true` if the current issue can be viewed by either a logged in User
@@ -627,10 +615,7 @@ class Issue < ApplicationRecord
   end
 
   def banzai_render_context(field)
-    additional_attributes = { label_url_method: :project_issues_url }
-    additional_attributes[:group] = namespace if namespace.is_a?(Group)
-
-    super.merge(additional_attributes)
+    super.merge(label_url_method: :project_issues_url)
   end
 
   def design_collection
@@ -743,6 +728,12 @@ class Issue < ApplicationRecord
     work_item_type_with_default.base_type
   end
 
+  def unsubscribe_email_participant(email)
+    return if email.blank?
+
+    issue_email_participants.find_by_email(email)&.destroy
+  end
+
   def hook_attrs
     Gitlab::HookData::IssueBuilder.new(self).build
   end
@@ -759,17 +750,7 @@ class Issue < ApplicationRecord
   def has_widget?(widget)
     widget_class = WorkItems::Widgets.const_get(widget.to_s.camelize, false)
 
-    work_item_type.widget_classes(resource_parent).include?(widget_class)
-  end
-
-  def group_level?
-    project_id.blank?
-  end
-
-  def autoclose_by_merged_closing_merge_request?
-    return false if group_level?
-
-    project.autoclose_referenced_issues
+    work_item_type.widgets(resource_parent).include?(widget_class)
   end
 
   private
@@ -884,14 +865,10 @@ class Issue < ApplicationRecord
 
   def linked_issues_select
     self.class.select(['issues.*', 'issue_links.id AS issue_link_id',
-      'issue_links.link_type as issue_link_type_value',
-      'issue_links.target_id as issue_link_source_id',
-      'issue_links.created_at as issue_link_created_at',
-      'issue_links.updated_at as issue_link_updated_at'])
-  end
-
-  def validate_due_date?
-    true
+                       'issue_links.link_type as issue_link_type_value',
+                       'issue_links.target_id as issue_link_source_id',
+                       'issue_links.created_at as issue_link_created_at',
+                       'issue_links.updated_at as issue_link_updated_at'])
   end
 end
 

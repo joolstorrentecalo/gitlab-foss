@@ -209,6 +209,10 @@ RSpec.describe Issues::CloseService, feature_category: :team_planning do
         close_issue
       end
 
+      it_behaves_like 'records an onboarding progress action', :issue_auto_closed do
+        let(:namespace) { project.namespace }
+      end
+
       context 'updating `metrics.first_mentioned_in_commit_at`' do
         context 'when `metrics.first_mentioned_in_commit_at` is not set' do
           it 'uses the first commit authored timestamp' do
@@ -261,7 +265,7 @@ RSpec.describe Issues::CloseService, feature_category: :team_planning do
 
       it 'verifies the number of queries' do
         recorded = ActiveRecord::QueryRecorder.new { close_issue }
-        expected_queries = 31
+        expected_queries = 30
 
         expect(recorded.count).to be <= expected_queries
         expect(recorded.cached_count).to eq(0)
@@ -371,6 +375,8 @@ RSpec.describe Issues::CloseService, feature_category: :team_planning do
 
         close_issue
       end
+
+      it_behaves_like 'does not record an onboarding progress action'
     end
 
     context 'when issue is not confidential' do

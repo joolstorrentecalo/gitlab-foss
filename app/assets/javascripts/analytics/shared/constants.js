@@ -2,6 +2,8 @@ import dateFormat, { masks } from '~/lib/dateformat';
 import {
   nDaysBefore,
   getStartOfDay,
+  dayAfter,
+  getDateInPast,
   getCurrentUtcDate,
   nWeeksBefore,
   nYearsBefore,
@@ -10,6 +12,7 @@ import { s__, __, sprintf, n__ } from '~/locale';
 import { helpPagePath } from '~/helpers/help_page_helper';
 
 export const DATE_RANGE_LIMIT = 180;
+export const DEFAULT_DATE_RANGE = 29; // 30 including current date
 export const PROJECTS_PER_PAGE = 50;
 
 const { isoDate } = masks;
@@ -21,23 +24,21 @@ export const dateFormats = {
 };
 
 const TODAY = getCurrentUtcDate();
-const SAME_DAY_OFFSET = 1;
+const TOMORROW = dayAfter(TODAY, { utc: true });
+export const LAST_30_DAYS = getDateInPast(TOMORROW, 30, { utc: true });
 
 const startOfToday = getStartOfDay(new Date(), { utc: true });
-
-export const LAST_30_DAYS = nDaysBefore(TODAY, 30 - SAME_DAY_OFFSET, { utc: true });
-
 const lastXDays = __('Last %{days} days');
-const lastWeek = nWeeksBefore(TODAY, 1, { utc: true });
-const last90Days = nDaysBefore(TODAY, 90 - SAME_DAY_OFFSET, { utc: true });
-const last180Days = nDaysBefore(TODAY, 180 - SAME_DAY_OFFSET, { utc: true });
+const lastWeek = nWeeksBefore(TOMORROW, 1, { utc: true });
+const last90Days = getDateInPast(TOMORROW, 90, { utc: true });
+const last180Days = getDateInPast(TOMORROW, DATE_RANGE_LIMIT, { utc: true });
 const mrThroughputStartDate = nDaysBefore(startOfToday, DATE_RANGE_LIMIT, { utc: true });
 const formatDateParam = (d) => dateFormat(d, dateFormats.isoDate, true);
 
 export const DATE_RANGE_CUSTOM_VALUE = 'custom';
 export const DATE_RANGE_LAST_30_DAYS_VALUE = 'last_30_days';
 
-export const DEFAULT_DROPDOWN_DATE_RANGES = [
+export const DEFAULT_DATE_RANGE_OPTIONS = [
   {
     text: __('Last week'),
     value: 'last_week',
@@ -90,7 +91,6 @@ export const FLOW_METRICS = {
   ISSUES_COMPLETED: ISSUES_COMPLETED_TYPE,
   COMMITS: 'commits',
   DEPLOYS: 'deploys',
-  MEDIAN_TIME_TO_MERGE: 'median_time_to_merge',
 };
 
 export const DORA_METRICS = {
@@ -130,8 +130,6 @@ export const CONTRIBUTOR_METRICS = {
 
 export const AI_METRICS = {
   CODE_SUGGESTIONS_USAGE_RATE: 'code_suggestions_usage_rate',
-  CODE_SUGGESTIONS_ACCEPTANCE_RATE: 'code_suggestions_acceptance_rate',
-  DUO_PRO_USAGE_RATE: 'duo_pro_usage_rate',
 };
 
 export const METRIC_TOOLTIPS = {
@@ -171,8 +169,8 @@ export const METRIC_TOOLTIPS = {
     description: s__('ValueStreamAnalytics|Median time from issue created to issue closed.'),
     groupLink: '-/analytics/value_stream_analytics',
     projectLink: '-/value_stream_analytics',
-    docsLink: helpPagePath('user/group/value_stream_analytics/index', {
-      anchor: 'lifecycle-metrics',
+    docsLink: helpPagePath('user/analytics/value_stream_analytics', {
+      anchor: 'view-the-lead-time-and-cycle-time-for-issues',
     }),
   },
   [FLOW_METRICS.CYCLE_TIME]: {
@@ -181,21 +179,21 @@ export const METRIC_TOOLTIPS = {
     ),
     groupLink: '-/analytics/value_stream_analytics',
     projectLink: '-/value_stream_analytics',
-    docsLink: helpPagePath('user/group/value_stream_analytics/index', {
-      anchor: 'lifecycle-metrics',
+    docsLink: helpPagePath('user/analytics/value_stream_analytics', {
+      anchor: 'view-the-lead-time-and-cycle-time-for-issues',
     }),
   },
   [FLOW_METRICS.ISSUES]: {
     description: s__('ValueStreamAnalytics|Number of new issues created.'),
     groupLink: '-/issues_analytics',
     projectLink: '-/analytics/issues_analytics',
-    docsLink: helpPagePath('user/group/issues_analytics/index'),
+    docsLink: helpPagePath('user/analytics/issue_analytics'),
   },
   [FLOW_METRICS.ISSUES_COMPLETED]: {
     description: s__('ValueStreamAnalytics|Number of issues closed by month.'),
     groupLink: '-/issues_analytics',
     projectLink: '-/analytics/issues_analytics',
-    docsLink: helpPagePath('user/group/issues_analytics/index'),
+    docsLink: helpPagePath('user/analytics/issue_analytics'),
   },
   [FLOW_METRICS.DEPLOYS]: {
     description: s__('ValueStreamAnalytics|Total number of deploys to production.'),
@@ -213,9 +211,7 @@ export const METRIC_TOOLTIPS = {
     }),
   },
   [VULNERABILITY_METRICS.CRITICAL]: {
-    description: s__(
-      'ValueStreamAnalytics|Number of critical vulnerabilities identified per month.',
-    ),
+    description: s__('ValueStreamAnalytics|Critical vulnerabilities over time.'),
     groupLink: '-/security/vulnerabilities?severity=CRITICAL',
     projectLink: '-/security/vulnerability_report?severity=CRITICAL',
     docsLink: helpPagePath('user/application_security/vulnerabilities/severities.html'),
@@ -227,7 +223,7 @@ export const METRIC_TOOLTIPS = {
     docsLink: helpPagePath('user/application_security/vulnerabilities/severities.html'),
   },
   [MERGE_REQUEST_METRICS.THROUGHPUT]: {
-    description: s__('ValueStreamAnalytics|Number of merge requests merged by month.'),
+    description: s__('ValueStreamAnalytics|The number of merge requests merged by month.'),
     groupLink: '-/analytics/productivity_analytics',
     projectLink: `-/analytics/merge_request_analytics?start_date=${formatDateParam(
       mrThroughputStartDate,
@@ -236,21 +232,13 @@ export const METRIC_TOOLTIPS = {
       anchor: 'view-the-number-of-merge-requests-in-a-date-range',
     }),
   },
-  [FLOW_METRICS.MEDIAN_TIME_TO_MERGE]: {
-    description: s__(
-      'ValueStreamAnalytics|Median time between merge request created and merge request merged.',
-    ),
-    groupLink: '-/analytics/productivity_analytics',
-    projectLink: '-/analytics/merge_request_analytics',
-    docsLink: helpPagePath('user/analytics/merge_request_analytics'),
-  },
   [AI_METRICS.CODE_SUGGESTIONS_USAGE_RATE]: {
     description: s__(
-      'AiImpactAnalytics|Monthly user engagement with AI Code Suggestions. Percentage ratio calculated as monthly unique Code Suggestions users / total monthly unique code contributors.',
+      'ValueStreamAnalytics|Monthly user engagement with AI Code Suggestions. Percentage ratio calculated as monthly unique Code Suggestions users / total monthly unique code contributors.',
     ),
     groupLink: '',
     projectLink: '',
-    docsLink: helpPagePath('user/project/repository/code_suggestions/index'),
+    docsLink: helpPagePath('user/analytics'),
   },
 };
 

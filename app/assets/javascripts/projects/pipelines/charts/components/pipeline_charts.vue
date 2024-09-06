@@ -158,26 +158,21 @@ export default {
       };
     },
     successRatio() {
-      const { successfulPipelines, totalPipelines } = this.counts;
+      const { successfulPipelines, failedPipelines } = this.counts;
       const successfulCount = successfulPipelines?.count;
-      const totalCount = totalPipelines?.count || 0;
-
-      return totalCount === 0 ? 100 : (successfulCount / totalCount) * 100;
-    },
-    failureRatio() {
-      const { failedPipelines, totalPipelines } = this.counts;
       const failedCount = failedPipelines?.count;
-      const totalCount = totalPipelines?.count || 0;
+      const ratio = (successfulCount / (successfulCount + failedCount)) * 100;
 
-      return totalCount === 0 ? 0 : (failedCount / totalCount) * 100;
+      return failedCount === 0 ? 100 : ratio;
     },
     formattedCounts() {
-      const { totalPipelines } = this.counts;
+      const { totalPipelines, successfulPipelines, failedPipelines } = this.counts;
 
       return {
         total: totalPipelines?.count,
+        success: successfulPipelines?.count,
+        failed: failedPipelines?.count,
         successRatio: this.successRatio,
-        failureRatio: this.failureRatio,
       };
     },
     areaCharts() {
@@ -344,12 +339,12 @@ export default {
         <div
           v-for="{ key, name, color, value } in tooltipContent"
           :key="key"
-          class="gl-flex gl-justify-between"
+          class="gl-display-flex gl-justify-content-space-between"
         >
-          <gl-chart-series-label class="gl-mr-7 gl-text-sm" :color="color">
+          <gl-chart-series-label class="gl-font-sm gl-mr-7" :color="color">
             {{ name }}
           </gl-chart-series-label>
-          <div class="gl-font-bold">{{ value }}</div>
+          <div class="gl-font-weight-bold">{{ value }}</div>
         </div>
       </template>
     </ci-cd-analytics-charts>

@@ -1,4 +1,3 @@
-// Package upload contains tests for artifact storage functionality.
 package upload
 
 import (
@@ -15,16 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/gitlab-org/gitlab/workhorse/internal/api"
 	"gitlab.com/gitlab-org/gitlab/workhorse/internal/testhelper"
 	"gitlab.com/gitlab-org/gitlab/workhorse/internal/upload/destination/objectstore/test"
-)
-
-const (
-	putURL = "/url/put"
 )
 
 func createTestZipArchive(t *testing.T) (data []byte, md5Hash string) {
@@ -73,12 +67,12 @@ func TestUploadHandlerSendingToExternalStorage(t *testing.T) {
 
 	storeServerCalled := 0
 	storeServerMux := http.NewServeMux()
-	storeServerMux.HandleFunc(putURL, func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PUT", r.Method)
+	storeServerMux.HandleFunc("/url/put", func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "PUT", r.Method)
 
 		receivedData, err := io.ReadAll(r.Body)
-		assert.NoError(t, err)
-		assert.Equal(t, archiveData, receivedData)
+		require.NoError(t, err)
+		require.Equal(t, archiveData, receivedData)
 
 		storeServerCalled++
 		w.Header().Set("ETag", md5)
@@ -90,8 +84,8 @@ func TestUploadHandlerSendingToExternalStorage(t *testing.T) {
 
 	responseProcessorCalled := 0
 	responseProcessor := func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "store-id", r.FormValue("file.remote_id"))
-		assert.NotEmpty(t, r.FormValue("file.remote_url"))
+		require.Equal(t, "store-id", r.FormValue("file.remote_id"))
+		require.NotEmpty(t, r.FormValue("file.remote_url"))
 		w.WriteHeader(200)
 		responseProcessorCalled++
 	}
@@ -109,7 +103,7 @@ func TestUploadHandlerSendingToExternalStorage(t *testing.T) {
 			name: "ObjectStore Upload",
 			preauth: &api.Response{
 				RemoteObject: api.RemoteObject{
-					StoreURL: storeServer.URL + putURL + qs,
+					StoreURL: storeServer.URL + "/url/put" + qs,
 					ID:       "store-id",
 					GetURL:   storeServer.URL + "/store-id",
 				},
@@ -138,7 +132,7 @@ func TestUploadHandlerSendingToExternalStorage(t *testing.T) {
 func TestUploadHandlerSendingToExternalStorageAndStorageServerUnreachable(t *testing.T) {
 	tempPath := t.TempDir()
 
-	responseProcessor := func(_ http.ResponseWriter, _ *http.Request) {
+	responseProcessor := func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("it should not be called")
 	}
 
@@ -160,7 +154,7 @@ func TestUploadHandlerSendingToExternalStorageAndStorageServerUnreachable(t *tes
 func TestUploadHandlerSendingToExternalStorageAndInvalidURLIsUsed(t *testing.T) {
 	tempPath := t.TempDir()
 
-	responseProcessor := func(_ http.ResponseWriter, _ *http.Request) {
+	responseProcessor := func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("it should not be called")
 	}
 
@@ -183,13 +177,13 @@ func TestUploadHandlerSendingToExternalStorageAndItReturnsAnError(t *testing.T) 
 	putCalledTimes := 0
 
 	storeServerMux := http.NewServeMux()
-	storeServerMux.HandleFunc(putURL, func(w http.ResponseWriter, r *http.Request) {
+	storeServerMux.HandleFunc("/url/put", func(w http.ResponseWriter, r *http.Request) {
 		putCalledTimes++
-		assert.Equal(t, "PUT", r.Method)
+		require.Equal(t, "PUT", r.Method)
 		w.WriteHeader(510)
 	})
 
-	responseProcessor := func(_ http.ResponseWriter, _ *http.Request) {
+	responseProcessor := func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("it should not be called")
 	}
 
@@ -198,7 +192,7 @@ func TestUploadHandlerSendingToExternalStorageAndItReturnsAnError(t *testing.T) 
 
 	authResponse := &api.Response{
 		RemoteObject: api.RemoteObject{
-			StoreURL: storeServer.URL + putURL,
+			StoreURL: storeServer.URL + "/url/put",
 			ID:       "store-id",
 		},
 	}
@@ -214,11 +208,11 @@ func TestUploadHandlerSendingToExternalStorageAndItReturnsAnError(t *testing.T) 
 func TestUploadHandlerSendingToExternalStorageAndSupportRequestTimeout(t *testing.T) {
 	shutdown := make(chan struct{})
 	storeServerMux := http.NewServeMux()
-	storeServerMux.HandleFunc(putURL, func(_ http.ResponseWriter, _ *http.Request) {
+	storeServerMux.HandleFunc("/url/put", func(w http.ResponseWriter, r *http.Request) {
 		<-shutdown
 	})
 
-	responseProcessor := func(_ http.ResponseWriter, _ *http.Request) {
+	responseProcessor := func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("it should not be called")
 	}
 
@@ -230,7 +224,7 @@ func TestUploadHandlerSendingToExternalStorageAndSupportRequestTimeout(t *testin
 
 	authResponse := &api.Response{
 		RemoteObject: api.RemoteObject{
-			StoreURL: storeServer.URL + putURL,
+			StoreURL: storeServer.URL + "/url/put",
 			ID:       "store-id",
 			Timeout:  0.1,
 		},
@@ -266,7 +260,7 @@ func TestUploadHandlerMultipartUploadSizeLimit(t *testing.T) {
 		},
 	}
 
-	responseProcessor := func(_ http.ResponseWriter, _ *http.Request) {
+	responseProcessor := func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("it should not be called")
 	}
 
@@ -306,7 +300,7 @@ func TestUploadHandlerMultipartUploadMaximumSizeFromApi(t *testing.T) {
 		},
 	}
 
-	responseProcessor := func(_ http.ResponseWriter, _ *http.Request) {
+	responseProcessor := func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("it should not be called")
 	}
 

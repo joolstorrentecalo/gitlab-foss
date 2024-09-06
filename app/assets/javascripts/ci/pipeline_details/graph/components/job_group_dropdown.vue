@@ -1,13 +1,5 @@
 <script>
-import {
-  GlBadge,
-  GlDisclosureDropdown,
-  GlDisclosureDropdownItem,
-  GlTooltipDirective,
-  GlResizeObserverDirective,
-} from '@gitlab/ui';
-import { GlBreakpointInstance } from '@gitlab/ui/dist/utils';
-import { sprintf } from '~/locale';
+import { GlDisclosureDropdown, GlDisclosureDropdownItem } from '@gitlab/ui';
 import { reportToSentry } from '~/ci/utils';
 import { JOB_DROPDOWN, SINGLE_JOB } from '../constants';
 import JobItem from './job_item.vue';
@@ -21,13 +13,8 @@ import JobItem from './job_item.vue';
 export default {
   components: {
     JobItem,
-    GlBadge,
     GlDisclosureDropdown,
     GlDisclosureDropdownItem,
-  },
-  directives: {
-    GlTooltip: GlTooltipDirective,
-    GlResizeObserver: GlResizeObserverDirective,
   },
   props: {
     group: {
@@ -54,29 +41,16 @@ export default {
     jobDropdown: JOB_DROPDOWN,
     singleJob: SINGLE_JOB,
   },
-  data() {
-    return {
-      isMobile: false,
-      showTooltip: false,
-    };
-  },
   computed: {
     computedJobId() {
       return this.pipelineId > -1 ? `${this.group.name}-${this.pipelineId}` : '';
     },
-    jobStatusText() {
-      return this.jobItemTooltip(this.group);
+    tooltipText() {
+      const { name, status } = this.group;
+      return `${name} - ${status.label}`;
     },
-    placement() {
-      // MR !49053:
-      // We change the placement of the dropdown based on the breakpoint.
-      // This is not an ideal solution, but rather a temporary solution
-      // until we find a better solution in
-      // https://gitlab.com/gitlab-org/gitlab-ui/-/issues/2615
-      return this.isMobile ? 'bottom-start' : 'right-start';
-    },
-    moreActionsTooltip() {
-      return !this.showTooltip ? this.jobStatusText : '';
+    jobGroupClasses() {
+      return [this.cssClassJobName, `job-${this.group.status.group}`];
     },
   },
   errorCaptured(err, _vm, info) {
@@ -92,76 +66,41 @@ export default {
         href: job.status?.detailsPath,
       };
     },
-    jobItemTooltip(job) {
-      const { tooltip: statusTooltip } = job.status;
-      const { text: statusText } = job.status;
-
-      if (statusTooltip) {
-        if (this.isDelayedJob) {
-          return sprintf(statusTooltip, { remainingTime: job.remainingTime });
-        }
-        return statusTooltip;
-      }
-      return statusText;
-    },
-    handleResize() {
-      this.isMobile = GlBreakpointInstance.getBreakpointSize() === 'xs';
-    },
-    showDropdown() {
-      this.showTooltip = true;
-    },
-    hideDropdown() {
-      this.showTooltip = false;
-    },
   },
 };
 </script>
 <template>
   <gl-disclosure-dropdown
     :id="computedJobId"
-    v-gl-resize-observer="handleResize"
-    v-gl-tooltip.viewport.left="{ customClass: 'ci-job-component-tooltip' }"
-    :title="moreActionsTooltip"
     class="ci-job-group-dropdown"
     block
-    fluid-width
-    :placement="placement"
+    placement="right-start"
     data-testid="job-dropdown-container"
-    @shown="showDropdown"
-    @hidden="hideDropdown"
   >
     <template #toggle>
-      <button type="button" :class="cssClassJobName" class="gl-w-full gl-bg-transparent gl-pr-4">
-        <div class="gl-flex gl-items-stretch gl-justify-between">
+      <button type="button" :class="jobGroupClasses" class="gl-w-full gl-pr-4">
+        <div class="gl-display-flex gl-align-items-stretch gl-justify-content-space-between">
           <job-item
             :type="$options.jobItemTypes.jobDropdown"
+            :group-tooltip="tooltipText"
             :job="group"
             :stage-name="stageName"
-            hide-tooltip
           />
-          <gl-badge variant="muted" class="-gl-ml-5 -gl-mr-2 gl-self-center">
+
+          <div class="gl-font-weight-100 gl-font-size-lg gl-ml-n4 gl-align-self-center">
             {{ group.size }}
-          </gl-badge>
+          </div>
         </div>
       </button>
     </template>
 
-    <gl-disclosure-dropdown-item
-      v-for="job in group.jobs"
-      :key="job.id"
-      v-gl-tooltip.viewport.left="{
-        title: jobItemTooltip(job),
-        customClass: 'ci-job-component-tooltip',
-      }"
-      :item="jobItem(job)"
-    >
+    <gl-disclosure-dropdown-item v-for="job in group.jobs" :key="job.id" :item="jobItem(job)">
       <template #list-item>
         <job-item
           :is-link="false"
           :job="job"
           :type="$options.jobItemTypes.singleJob"
           css-class-job-name="gl-p-3"
-          hide-tooltip
           @pipelineActionRequestComplete="pipelineActionRequestComplete"
         />
       </template>

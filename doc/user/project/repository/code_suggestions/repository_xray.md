@@ -2,20 +2,19 @@
 stage: Create
 group: Code Creation
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
-description: "Repository X-Ray gives Code Suggestions more insight into your project's codebase and dependencies."
 ---
 
 # Repository X-Ray
 
 DETAILS:
-**Tier:** Premium with GitLab Duo Pro or Ultimate with [GitLab Duo Pro or Enterprise](../../../../subscriptions/subscription-add-ons.md)
+**Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed
 
 > - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/12060) in GitLab 16.7.
 
 Repository X-Ray enhances [GitLab Duo Code Suggestions](index.md) by providing additional context to improve the accuracy and relevance of code recommendations.
 
-Repository X-Ray gives the code assistant more insight into the project's codebase and dependencies to generate better suggestions. It does this by analyzing key project configuration files such as `Gemfile.lock`, `package.json`, and `go.mod` to build additional context.
+Repository X-Ray gives the code assistant more insight into the project's codebase and dependencies to generate better code suggestions. It does this by analyzing key project configuration files such as `Gemfile.lock`, `package.json`, and `go.mod` to build additional context.
 
 By understanding the frameworks, libraries and other dependencies in use, Repository X-Ray helps the code assistant tailor suggestions to match the coding patterns, styles and technologies used in the project. This results in code recommendations that integrate more seamlessly and follow best practices for that stack.
 
@@ -66,24 +65,10 @@ xray:
 - The `$OUTPUT_DIR` environment variable defines the:
   - Output directory for reports.
   - Path that artifacts are uploaded from.
-- The added rules restrict the job to the default branch only. Restricting the job this way ensures development changes do not impact the baseline X-Ray data used for production Code Suggestions.
+- The added rules restrict the job to the default branch only. Restricting the job this way ensures development changes do not impact the baseline X-Ray data used for production code suggestions.
 
 After the initial x-ray job completes and uploads the repository analysis reports, no further action is required. Repository X-Ray automatically enriches all code generation requests from that point forward.
 
 The X-Ray data for your project updates each time a CI/CD pipeline containing the `xray`
 job is run. To learn more about pipeline configuration and triggers, see the
 [pipelines documentation](../../../../ci/pipelines/merge_request_pipelines.md).
-
-## Troubleshooting
-
-### `401: Unauthorized` when running Repository X-Ray
-
-When running Repository X-Ray, you might get an error that states `401: Unauthorized`.
-
-A Duo Pro add-on is linked to a group when you buy that add-on. To solve the error, ensure
-that your current project is part of a group with the Duo Pro add-on.
-
-This link can be either of the following:
-
-- Direct, that is, the project is in a group that has the Duo Pro add-on.
-- Indirect, for example, the parent group of the current project's group has the Duo Pro add-on.

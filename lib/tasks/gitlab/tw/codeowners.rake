@@ -18,47 +18,46 @@ namespace :tw do
       end
     end
 
-    # For groups without an assigned TW, comment out the line.
     CODE_OWNER_RULES = [
       # CodeOwnerRule.new('Activation', ''),
       # CodeOwnerRule.new('Acquisition', ''),
-      CodeOwnerRule.new('AI Framework', '@sselhorn @jglassman1 @fneill'),
-      CodeOwnerRule.new('AI Model Validation', '@sselhorn @jglassman1 @fneill'),
+      CodeOwnerRule.new('AI Framework', '@sselhorn'),
+      CodeOwnerRule.new('AI Model Validation', '@sselhorn'),
       # CodeOwnerRule.new('Analytics Instrumentation', ''),
-      # CodeOwnerRule.new('Anti-Abuse', ''),
+      CodeOwnerRule.new('Anti-Abuse', '@phillipwells'),
       CodeOwnerRule.new('Authentication', '@jglassman1'),
-      # CodeOwnerRule.new('Authorization', ''),
+      CodeOwnerRule.new('Authorization', '@jglassman1'),
       # CodeOwnerRule.new('Billing and Subscription Management', ''),
       CodeOwnerRule.new('Cloud Connector', '@jglassman1'),
       CodeOwnerRule.new('Code Creation', '@jglassman1'),
       CodeOwnerRule.new('Code Review', '@aqualls'),
       CodeOwnerRule.new('Compliance', '@eread'),
-      CodeOwnerRule.new('Composition Analysis', '@rdickenson @phillipwells'),
+      CodeOwnerRule.new('Composition Analysis', '@rdickenson'),
       CodeOwnerRule.new('Container Registry', '@marcel.amirault'),
       CodeOwnerRule.new('Contributor Experience', '@eread'),
-      CodeOwnerRule.new('Custom Models', '@sselhorn @jglassman1 @fneill'),
+      CodeOwnerRule.new('Custom Models', '@sselhorn'),
       # CodeOwnerRule.new('Database', ''),
-      CodeOwnerRule.new('DataOps', '@sselhorn @jglassman1 @fneill'),
+      CodeOwnerRule.new('DataOps', '@sselhorn'),
       # CodeOwnerRule.new('Delivery', ''),
       CodeOwnerRule.new('Distribution', '@axil'),
       CodeOwnerRule.new('Distribution (Charts)', '@axil'),
       CodeOwnerRule.new('Distribution (Omnibus)', '@eread'),
-      CodeOwnerRule.new('Duo Chat', '@sselhorn @jglassman1 @fneill'),
-      CodeOwnerRule.new('Dynamic Analysis', '@rdickenson @phillipwells'),
+      CodeOwnerRule.new('Duo Chat', '@sselhorn'),
+      CodeOwnerRule.new('Dynamic Analysis', '@rdickenson'),
       CodeOwnerRule.new('Editor Extensions', '@aqualls'),
       CodeOwnerRule.new('Environments', '@phillipwells'),
-      CodeOwnerRule.new('Personal Productivity', '@sselhorn'),
+      CodeOwnerRule.new('Foundations', '@sselhorn'),
       # CodeOwnerRule.new('Fulfillment Platform', ''),
       CodeOwnerRule.new('Fuzz Testing', '@rdickenson'),
       CodeOwnerRule.new('Geo', '@axil'),
       CodeOwnerRule.new('Gitaly', '@eread'),
       CodeOwnerRule.new('GitLab Dedicated', '@lyspin'),
       CodeOwnerRule.new('Global Search', '@ashrafkhamis'),
-      CodeOwnerRule.new('Remote Development', '@ashrafkhamis'),
-      CodeOwnerRule.new('Import and Integrate', '@eread'),
+      CodeOwnerRule.new('IDE', '@ashrafkhamis'),
+      CodeOwnerRule.new('Import and Integrate', '@eread @ashrafkhamis'),
       CodeOwnerRule.new('Infrastructure', '@sselhorn'),
-      CodeOwnerRule.new('Knowledge', '@msedlakjakubowski'),
-      CodeOwnerRule.new('MLOps', '@sselhorn @jglassman1 @fneill'),
+      # CodeOwnerRule.new('Knowledge', ''),
+      CodeOwnerRule.new('MLOps', '@sselhorn'),
       # CodeOwnerRule.new('Observability', ''),
       CodeOwnerRule.new('Optimize', '@lciutacu'),
       CodeOwnerRule.new('Organization', '@lciutacu'),
@@ -72,13 +71,12 @@ namespace :tw do
       CodeOwnerRule.new('Provision', '@fneill'),
       CodeOwnerRule.new('Redirect', 'Redirect'),
       # CodeOwnerRule.new('Respond', ''),
-      CodeOwnerRule.new('Runner', '@ashrafkhamis'),
-      CodeOwnerRule.new('Hosted Runners', '@ashrafkhamis'),
+      CodeOwnerRule.new('Runner', '@fneill'),
+      CodeOwnerRule.new('Hosted Runners', '@fneill'),
       CodeOwnerRule.new('Security Policies', '@rdickenson'),
-      CodeOwnerRule.new('Secret Detection', '@rdickenson'),
       CodeOwnerRule.new('Solutions Architecture', '@jfullam @brianwald @Darwinjs'),
-      CodeOwnerRule.new('Source Code', '@brendan777'),
-      CodeOwnerRule.new('Static Analysis', '@rdickenson @phillipwells'),
+      CodeOwnerRule.new('Source Code', '@msedlakjakubowski'),
+      CodeOwnerRule.new('Static Analysis', '@rdickenson'),
       # CodeOwnerRule.new('Subscription Management', ''),
       CodeOwnerRule.new('Tenant Scale', '@lciutacu'),
       CodeOwnerRule.new('Testing', '@eread'),
@@ -91,7 +89,6 @@ namespace :tw do
 
     CONTRIBUTOR_DOCS_PATH = '/doc/development/'
     CONTRIBUTOR_DOCS_CODE_OWNER_RULES = [
-      CodeOwnerRule.new('AI Framework', '@gitlab-org/ai-powered'),
       CodeOwnerRule.new('Analytics Instrumentation',
         '@gitlab-org/analytics-section/product-analytics/engineers/frontend ' \
         '@gitlab-org/analytics-section/analytics-instrumentation/engineers'),
@@ -105,10 +102,10 @@ namespace :tw do
       CodeOwnerRule.new('Distribution', '@gitlab-org/distribution'),
       CodeOwnerRule.new('Documentation Guidelines', '@sselhorn'),
       CodeOwnerRule.new('Engineering Productivity', '@gl-quality/eng-prod'),
-      CodeOwnerRule.new('Personal Productivity', '@gitlab-org/foundations/engineering'),
+      CodeOwnerRule.new('Foundations', '@gitlab-org/manage/foundations/engineering'),
       CodeOwnerRule.new('Gitaly', '@proglottis @toon'),
       CodeOwnerRule.new('Global Search', '@gitlab-org/search-team/migration-maintainers'),
-      CodeOwnerRule.new('Remote Development',
+      CodeOwnerRule.new('IDE',
         '@gitlab-org/maintainers/remote-development/backend @gitlab-org/maintainers/remote-development/frontend'),
       CodeOwnerRule.new('Pipeline Authoring', '@gitlab-org/maintainers/cicd-verify'),
       CodeOwnerRule.new('Pipeline Execution', '@gitlab-org/maintainers/cicd-verify'),
@@ -192,14 +189,14 @@ namespace :tw do
     File.write(codeowners_path, new_codeowners_content)
 
     if current_codeowners_content == new_codeowners_content
-      puts Rainbow("~ CODEOWNERS already up to date").yellow
+      puts "~ CODEOWNERS already up to date".color(:yellow)
     else
-      puts Rainbow("✓ CODEOWNERS updated").green
+      puts "✓ CODEOWNERS updated".color(:green)
     end
 
     if errors.present?
       puts ""
-      puts Rainbow("✘ Files with missing metadata found:").red
+      puts "✘ Files with missing metadata found:".color(:red)
       errors.map { |file| puts file }
     end
   end

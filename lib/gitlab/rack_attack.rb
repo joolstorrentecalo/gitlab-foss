@@ -12,7 +12,7 @@ module Gitlab
       rack_attack::Request.include(Gitlab::RackAttack::Request)
 
       # This is Rack::Attack::DEFAULT_THROTTLED_RESPONSE, modified to allow a custom response
-      rack_attack.throttled_responder = ->(request) do
+      rack_attack.throttled_responder = lambda do |request|
         throttled_headers = Gitlab::RackAttack.throttled_response_headers(
           request.env['rack.attack.matched'], request.env['rack.attack.match_data']
         )
@@ -126,16 +126,6 @@ module Gitlab
         'throttle_authenticated_git_lfs' => ThrottleDefinition.new(
           Gitlab::Throttle.throttle_authenticated_git_lfs_options,
           ->(req) { req.throttled_identifer([:api]) if req.throttle_authenticated_git_lfs? }
-        ),
-        **throttle_definitions_unauthenticated_git_http
-      }
-    end
-
-    def self.throttle_definitions_unauthenticated_git_http
-      {
-        'throttle_unauthenticated_git_http' => ThrottleDefinition.new(
-          Gitlab::Throttle.throttle_unauthenticated_git_http_options,
-          ->(req) { req.ip if req.throttle_unauthenticated_git_http? }
         )
       }
     end

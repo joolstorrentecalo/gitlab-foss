@@ -14,7 +14,7 @@ exports[`NpmInstallation renders all the messages 1`] = `
     trackinglabel="code_instruction"
   />
   <h3
-    class="gl-text-lg"
+    class="gl-font-lg"
   >
     Registry setup
   </h3>
@@ -33,17 +33,13 @@ exports[`NpmInstallation renders all the messages 1`] = `
     trackingaction="copy_npm_setup_command"
     trackinglabel="code_instruction"
   />
-  <span
-    class="gl-text-secondary"
+  You may also need to setup authentication using an auth token.
+  <gl-link-stub
+    href="/help/user/packages/npm_registry/index"
+    target="_blank"
   >
-    You may also need to setup authentication using an auth token.
-    <gl-link-stub
-      href="/help/user/packages/npm_registry/index"
-      target="_blank"
-    >
-      See the documentation
-    </gl-link-stub>
-    to find out more.
-  </span>
+    See the documentation
+  </gl-link-stub>
+  to find out more.
 </div>
 `;

@@ -45,9 +45,7 @@ module Gitlab
         # start_date  - The start date of the time range.
         # end_date  - The end date of the time range.
         def unique_events(event_names:, start_date:, end_date:, property_name: nil)
-          used_in_aggregate_metric = event_names.is_a?(Array) && event_names.size > 1
-
-          count_unique_events(event_names: event_names, property_name: property_name, start_date: start_date, end_date: end_date, used_in_aggregate_metric: used_in_aggregate_metric)
+          count_unique_events(event_names: event_names, property_name: property_name, start_date: start_date, end_date: end_date)
         end
 
         def known_event?(event_name)
@@ -58,8 +56,10 @@ module Gitlab
           @known_events ||= load_events
         end
 
-        def legacy_event?(event_name)
-          legacy_events.include?(event_name)
+        def calculate_events_union(event_names:, property_name:, start_date:, end_date:)
+          # :used_in_aggregate_metric is needed because this method is
+          # used by AggregatedMetrics, which sends :property_name even for legacy events
+          count_unique_events(event_names: event_names, property_name: property_name, start_date: start_date, end_date: end_date, used_in_aggregate_metric: true)
         end
 
         private

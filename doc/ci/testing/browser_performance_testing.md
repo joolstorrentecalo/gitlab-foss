@@ -23,7 +23,7 @@ GitLab uses [Sitespeed.io](https://www.sitespeed.io), a free and open source
 tool, for measuring the rendering performance of web sites. The
 [Sitespeed plugin](https://gitlab.com/gitlab-org/gl-performance) that GitLab built outputs
 the performance score for each page analyzed in a file called `browser-performance.json`
-this data can be shown on merge requests.
+this data can be shown on Merge Requests.
 
 ## Use cases
 
@@ -132,7 +132,7 @@ browser_performance:
 
 The `Total Score` metric is based on sitespeed.io's [coach performance score](https://www.sitespeed.io/documentation/sitespeed.io/metrics/#performance-score). There is more information in [the coach documentation](https://www.sitespeed.io/documentation/coach/how-to/#what-do-the-coach-do).
 
-### Performance testing on review apps
+### Performance testing on Review Apps
 
 The above CI YAML configuration is great for testing against static environments, and it can
 be extended for dynamic environments, but a few extra steps are required:

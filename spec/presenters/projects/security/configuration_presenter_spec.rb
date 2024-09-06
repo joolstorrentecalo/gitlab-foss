@@ -12,7 +12,6 @@ RSpec.describe Projects::Security::ConfigurationPresenter, feature_category: :so
 
   before do
     stub_licensed_features(licensed_scan_types.index_with { true })
-    stub_licensed_features(pre_receive_secret_detection: true)
   end
 
   describe '#to_html_data_attribute' do
@@ -95,7 +94,6 @@ RSpec.describe Projects::Security::ConfigurationPresenter, feature_category: :so
           :dast | true
           :dast_profiles | true
           :sast | true
-          :sast_advanced | false
           :sast_iac | false
           :container_scanning | false
           :cluster_image_scanning | false
@@ -301,35 +299,6 @@ RSpec.describe Projects::Security::ConfigurationPresenter, feature_category: :so
 
             expect(feature['configured']).to eq(configured)
           end
-        end
-      end
-    end
-
-    describe 'pre_receive_secret_detection' do
-      let_it_be(:project) { create(:project, :repository) }
-      let(:features) { Gitlab::Json.parse(html_data[:features]) }
-
-      context 'when the feature flag is enabled' do
-        before do
-          stub_feature_flags(pre_receive_secret_detection_push_check: true)
-        end
-
-        it 'feature includes pre_receive_secret_detection' do
-          skip unless Gitlab.ee?
-
-          feature = features.find { |scan| scan["type"] == 'pre_receive_secret_detection' }
-          expect(feature).not_to be_nil
-        end
-      end
-
-      context 'when it is a dedicated instance' do
-        before do
-          stub_application_setting(gitlab_dedicated_instance: true)
-        end
-
-        it 'feature includes pre_receive_secret_detection' do
-          feature = features.find { |scan| scan["type"] == 'pre_receive_secret_detection' }
-          expect(feature).not_to be_nil
         end
       end
     end

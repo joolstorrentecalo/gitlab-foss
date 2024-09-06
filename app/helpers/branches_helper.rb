@@ -12,12 +12,11 @@ module BranchesHelper
   def access_levels_data(access_levels)
     return [] unless access_levels
 
-    access_levels.filter_map do |level|
-      case level.type
-      when :role
-        { id: level.id, type: :role, access_level: level.access_level }
-      when :deploy_key
+    access_levels.map do |level|
+      if level.type == :deploy_key
         { id: level.id, type: level.type, deploy_key_id: level.deploy_key_id }
+      else
+        { id: level.id, type: :role, access_level: level.access_level }
       end
     end
   end
@@ -30,7 +29,7 @@ module BranchesHelper
       variant = :success
       variant = :warning if merge_request.draft?
 
-      mr_icon = 'merge-request'
+      mr_icon = 'merge-request-open'
       mr_status = _('Open')
     elsif merge_request.merged?
       variant = :info

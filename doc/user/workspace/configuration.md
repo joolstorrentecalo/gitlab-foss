@@ -1,8 +1,7 @@
 ---
 stage: Create
-group: Remote Development
+group: IDE
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
-description: "Configure your GitLab workspaces to manage your GitLab development environments."
 ---
 
 # Workspace configuration
@@ -19,44 +18,44 @@ You can use [workspaces](index.md) to create and manage isolated development env
 Each workspace includes its own set of dependencies, libraries, and tools,
 which you can customize to meet the specific needs of each project.
 
-## Set up workspace infrastructure
-
-Before you [create a workspace](#create-a-workspace), you must set up your infrastructure only once.
-To set up infrastructure for workspaces:
-
-1. Set up a Kubernetes cluster that the GitLab agent supports.
-   See the [supported Kubernetes versions](../clusters/agent/index.md#supported-kubernetes-versions-for-gitlab-features).
-1. Ensure autoscaling for the Kubernetes cluster is enabled.
-1. In the Kubernetes cluster:
-   1. Verify that a [default storage class](https://kubernetes.io/docs/concepts/storage/storage-classes/)
-      is defined so that volumes can be dynamically provisioned for each workspace.
-   1. Install an Ingress controller of your choice (for example, `ingress-nginx`).
-   1. [Install](../clusters/agent/install/index.md) and [configure](gitlab_agent_configuration.md) the GitLab agent.
-   1. Point [`dns_zone`](gitlab_agent_configuration.md#dns_zone) and `*.<dns_zone>`
-      to the load balancer exposed by the Ingress controller.
-   1. [Set up the GitLab workspaces proxy](set_up_workspaces_proxy.md).
-
-## Create a workspace
+## Set up a workspace
 
 > - Support for private projects [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/124273) in GitLab 16.4.
-> - **Git reference** and **Devfile location** [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/392382) in GitLab 16.10.
-> - **Time before automatic termination** [renamed](https://gitlab.com/gitlab-org/gitlab/-/issues/392382) to **Workspace automatically terminates after** in GitLab 16.10.
-> - **Variables** [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/463514) in GitLab 17.1.
 
-Prerequisites:
+### Prerequisites
 
-- Ensure your [workspace infrastructure](#set-up-workspace-infrastructure) is already set up.
-- You must have at least the Developer role for the workspace or agent project.
-- In each project where you want to create a workspace, create a [devfile](index.md#devfile):
+- Set up a Kubernetes cluster that the GitLab agent supports.
+  See the [supported Kubernetes versions](../clusters/agent/index.md#supported-kubernetes-versions-for-gitlab-features).
+- Ensure autoscaling for the Kubernetes cluster is enabled.
+- In the Kubernetes cluster:
+  - Verify that a [default storage class](https://kubernetes.io/docs/concepts/storage/storage-classes/)
+    is defined so that volumes can be dynamically provisioned for each workspace.
+  - Install an Ingress controller of your choice (for example, `ingress-nginx`) and make
+    that controller accessible over a domain.
+    - In development environments, add an entry to the `/etc/hosts` file or update your DNS records.
+    - In production environments, point `*.<workspaces.example.dev>` and `<workspaces.example.dev>`
+      to the load balancer exposed by the Ingress controller.
+  - [Install `gitlab-workspaces-proxy`](https://gitlab.com/gitlab-org/remote-development/gitlab-workspaces-proxy#installation-instructions).
+  - [Install](../clusters/agent/install/index.md) and [configure](gitlab_agent_configuration.md) the GitLab agent.
+- You must have at least the Developer role in the root group.
+- In each project you want to use this feature for, create a [devfile](index.md#devfile):
   1. On the left sidebar, select **Search or go to** and find your project.
-  1. In the root directory of your project, create a file named `devfile`.
+  1. In the root directory of your project, create a file named `.devfile.yaml`.
      You can use one of the [example configurations](index.md#example-configurations).
 - Ensure the container images used in the devfile support [arbitrary user IDs](index.md#arbitrary-user-ids).
 
+### Create a workspace
+
+> - **Git reference** and **Devfile location** [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/392382) in GitLab 16.10.
+> - **Time before automatic termination** [renamed](https://gitlab.com/gitlab-org/gitlab/-/issues/392382) to **Workspace automatically terminates after** in GitLab 16.10.
+
 To create a workspace:
 
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Edit > New workspace**.
+1. On the left sidebar, select **Search or go to**.
+1. Select **Your work**.
+1. Select **Workspaces**.
+1. Select **New workspace**.
+1. From the **Project** dropdown list, [select a project with a `.devfile.yaml` file](#prerequisites).
 1. From the **Cluster agent** dropdown list, select a cluster agent owned by the group the project belongs to.
 1. From the **Git reference** dropdown list, select the branch, tag, or commit hash
    GitLab uses to create the workspace.
@@ -64,8 +63,6 @@ To create a workspace:
    If your devfile is not in the root directory of your project, specify a relative path.
 1. In **Workspace automatically terminates after**, enter the number of hours until the workspace automatically terminates.
    This timeout is a safety measure to prevent a workspace from consuming excessive resources or running indefinitely.
-1. In **Variables**, enter the keys and values of the environment variables you want to inject into the workspace.
-   To add a new variable, select **Add variable**.
 1. Select **Create workspace**.
 
 The workspace might take a few minutes to start.
@@ -79,16 +76,9 @@ You also have access to the terminal and can install any necessary dependencies.
 Prerequisites:
 
 - SSH must be enabled for the workspace.
-- You must have a TCP load balancer that points to the [GitLab workspaces proxy](set_up_workspaces_proxy.md).
+- You must have a TCP load balancer that points to [`gitlab-workspaces-proxy`](https://gitlab.com/gitlab-org/remote-development/gitlab-workspaces-proxy).
 
 To connect to a workspace with an SSH client:
-
-1. Get the name of the workspace:
-
-   1. On the left sidebar, select **Search or go to**.
-   1. Select **Your work**.
-   1. Select **Workspaces**.
-   1. Copy the name of the workspace you want to connect to.
 
 1. Run this command:
 
@@ -104,7 +94,46 @@ When you connect to `gitlab-workspaces-proxy` through the TCP load balancer,
 - The personal access token
 - User access to the workspace
 
-### Update your workspace container image
+### Set up `gitlab-workspaces-proxy` for SSH connections
+
+Prerequisites:
+
+- You must have an SSH host key for client verification.
+
+SSH is now enabled by default in [`gitlab-workspaces-proxy`](https://gitlab.com/gitlab-org/remote-development/gitlab-workspaces-proxy).
+To set up `gitlab-workspaces-proxy` with the GitLab Helm chart:
+
+1. Run this command:
+
+   ```shell
+   ssh-keygen -f ssh-host-key -N '' -t rsa
+   export SSH_HOST_KEY=$(pwd)/ssh-host-key
+   ```
+
+1. Install `gitlab-workspaces-proxy` with the generated SSH host key:
+
+   ```shell
+   helm upgrade --install gitlab-workspaces-proxy \
+         gitlab-workspaces-proxy/gitlab-workspaces-proxy \
+         --version 0.1.8 \
+         --namespace=gitlab-workspaces \
+         --create-namespace \
+         --set="auth.client_id=${CLIENT_ID}" \
+         --set="auth.client_secret=${CLIENT_SECRET}" \
+         --set="auth.host=${GITLAB_URL}" \
+         --set="auth.redirect_uri=${REDIRECT_URI}" \
+         --set="auth.signing_key=${SIGNING_KEY}" \
+         --set="ingress.host.workspaceDomain=${GITLAB_WORKSPACES_PROXY_DOMAIN}" \
+         --set="ingress.host.wildcardDomain=${GITLAB_WORKSPACES_WILDCARD_DOMAIN}" \
+         --set="ingress.tls.workspaceDomainCert=$(cat ${WORKSPACES_DOMAIN_CERT})" \
+         --set="ingress.tls.workspaceDomainKey=$(cat ${WORKSPACES_DOMAIN_KEY})" \
+         --set="ingress.tls.wildcardDomainCert=$(cat ${WILDCARD_DOMAIN_CERT})" \
+         --set="ingress.tls.wildcardDomainKey=$(cat ${WILDCARD_DOMAIN_KEY})" \
+         --set="ssh.host_key=$(cat ${SSH_HOST_KEY})" \
+         --set="ingress.className=nginx"
+   ```
+
+### Update your runtime images
 
 To update your runtime images for SSH connections:
 
@@ -150,8 +179,6 @@ USER gitlab-workspaces
 
 ## Troubleshooting
 
-When working with workspaces, you might encounter the following issues.
-
 ### `Failed to renew lease` when creating a workspace
 
 You might not be able to create a workspace due to a known issue in the GitLab agent for Kubernetes.
@@ -164,19 +191,3 @@ The following error message might appear in the agent's log:
 This issue occurs when an agent instance cannot renew its leadership lease, which results
 in the shutdown of leader-only modules including the `remote_development` module.
 To resolve this issue, restart the agent instance.
-
-### Error: `No agents available to create workspaces`
-
-When you create a workspace in a project, you might get the following error:
-
-```plaintext
-No agents available to create workspaces. Please consult Workspaces documentation for troubleshooting.
-```
-
-To resolve this issue:
-
-- If you do not have at least the Developer role for the workspace or agent project, contact your administrator.
-- If the ancestor groups of the project do not have an allowed agent,
-  [allow an agent](gitlab_agent_configuration.md#allow-a-cluster-agent-for-workspaces-in-a-group) for any of these groups.
-- If the `remote_development` module is disabled for the GitLab agent,
-  set [`enabled`](gitlab_agent_configuration.md#enabled) to `true`.

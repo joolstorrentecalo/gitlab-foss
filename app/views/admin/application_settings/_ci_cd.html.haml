@@ -1,4 +1,4 @@
-.settings-content{ data: { event_tracking_load: 'true', event_tracking: 'view_admin_application_settings_ci_cd_pageload' } }
+.settings-content
   = gitlab_ui_form_for @application_setting, url: ci_cd_admin_application_settings_path(anchor: 'js-ci-cd-settings'), html: { class: 'fieldset-form' } do |f|
     = form_errors(@application_setting)
 
@@ -67,8 +67,6 @@
       .form-group
         = f.gitlab_ui_checkbox_component :enable_artifact_external_redirect_warning_page, s_('AdminSettings|Enable the external redirect warning page for job artifacts'), help_text: s_('AdminSettings|Show a redirect page that warns you about user-generated content in GitLab Pages.')
 
-      = render_if_exists 'admin/application_settings/security_policy_scheduled_scans_max_concurrency', form: f
-
     = f.submit _('Save changes'), pajamas_button: true
 
   .gl-mt-7
@@ -91,15 +89,6 @@
               %fieldset
                 = f.hidden_field(:plan_id, value: plan.id)
                 .form-group
-                  = f.label :ci_instance_level_variables, plan_limit_setting_description(:ci_instance_level_variables)
-                  = f.number_field :ci_instance_level_variables, class: 'form-control gl-form-input'
-                .form-group
-                  = f.label :dotenv_size, plan_limit_setting_description(:dotenv_size)
-                  = f.number_field :dotenv_size, class: 'form-control gl-form-input'
-                .form-group
-                  = f.label :dotenv_variables, plan_limit_setting_description(:dotenv_variables)
-                  = f.number_field :dotenv_variables, class: 'form-control gl-form-input'
-                .form-group
                   = f.label :ci_pipeline_size, plan_limit_setting_description(:ci_pipeline_size)
                   = f.number_field :ci_pipeline_size, class: 'form-control gl-form-input'
                 .form-group
@@ -114,7 +103,7 @@
                 .form-group
                   = f.label :ci_needs_size_limit, plan_limit_setting_description(:ci_needs_size_limit)
                   = f.number_field :ci_needs_size_limit, class: 'form-control gl-form-input'
-                  .form-text.text-muted= s_('AdminSettings|This limit cannot be disabled. Set to 0 to block all job (needs) dependencies.')
+                  .form-text.text-muted= s_('AdminSettings|This limit cannot be disabled. Set to 0 to block all DAG dependencies.')
                 .form-group
                   = f.label :ci_registered_group_runners, plan_limit_setting_description(:ci_registered_group_runners)
                   = f.number_field :ci_registered_group_runners, class: 'form-control gl-form-input'

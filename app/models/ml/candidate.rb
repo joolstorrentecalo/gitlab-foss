@@ -46,7 +46,8 @@ module Ml
               Gitlab::Pagination::Keyset::ColumnOrderDefinition.new(
                 attribute_name: 'metric_value',
                 order_expression: metric_order_expression,
-                nullable: :nulls_last
+                nullable: :nulls_last,
+                distinct: false
               ),
               Gitlab::Pagination::Keyset::ColumnOrderDefinition.new(
                 attribute_name: 'id',
@@ -66,17 +67,11 @@ module Ml
     end
 
     def package_version
-      return "candidate_#{iid}" if for_model?
-
       iid
     end
 
     def from_ci?
       ci_build_id.present?
-    end
-
-    def for_model?
-      experiment.for_model? && !model_version_id.present?
     end
 
     class << self

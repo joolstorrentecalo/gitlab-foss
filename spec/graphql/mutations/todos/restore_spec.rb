@@ -7,7 +7,7 @@ RSpec.describe Mutations::Todos::Restore do
 
   let_it_be(:project) { create(:project) }
   let_it_be(:issue) { create(:issue, project: project) }
-  let_it_be(:current_user) { create(:user, developer_of: project) }
+  let_it_be(:current_user) { create(:user) }
   let_it_be(:author) { create(:user) }
   let_it_be(:other_user) { create(:user) }
 
@@ -16,7 +16,11 @@ RSpec.describe Mutations::Todos::Restore do
 
   let_it_be(:other_user_todo) { create(:todo, user: other_user, author: author, state: :done) }
 
-  let(:mutation) { described_class.new(object: nil, context: query_context, field: nil) }
+  let(:mutation) { described_class.new(object: nil, context: { current_user: current_user }, field: nil) }
+
+  before_all do
+    project.add_developer(current_user)
+  end
 
   specify { expect(described_class).to require_graphql_authorizations(:update_todo) }
 

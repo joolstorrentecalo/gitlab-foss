@@ -29,7 +29,6 @@ module Gitlab
             @user = User.find_by_username(username)
             @registration_prefix = options[:registration_prefix] || DEFAULT_PREFIX
             @runner_count = options[:runner_count] || DEFAULT_RUNNER_COUNT
-            @organization = nil
             @groups = {}
             @projects = {}
           end
@@ -45,7 +44,6 @@ module Gitlab
               runner_count: @runner_count
             )
 
-            @organization = create_organization
             groups_and_projects = create_groups_and_projects
             runner_ids = create_runners(groups_and_projects)
 
@@ -86,23 +84,9 @@ module Gitlab
             true
           end
 
-          def create_organization
-            args = {
-              name: 'GitLab',
-              path: 'gitlab'
-            }
-
-            organization = ::Organizations::Organization.find_by_path(args[:path])
-
-            return organization if organization
-
-            logger.info(message: 'Creating organization', **args)
-            execute_service!(::Organizations::CreateService.new(current_user: @user, params: args), :organization)
-          end
-
           def create_groups_and_projects
-            root_group_1 = ensure_group(name: 'top-level group 1', organization_id: @organization.id)
-            root_group_2 = ensure_group(name: 'top-level group 2', organization_id: @organization.id)
+            root_group_1 = ensure_group(name: 'top-level group 1')
+            root_group_2 = ensure_group(name: 'top-level group 2')
             group_1_1 = ensure_group(name: 'group 1.1', parent_id: root_group_1.id)
             group_1_1_1 = ensure_group(name: 'group 1.1.1', parent_id: group_1_1.id)
             group_1_1_2 = ensure_group(name: 'group 1.1.2', parent_id: group_1_1.id)
@@ -114,13 +98,10 @@ module Gitlab
               group_1_1: group_1_1,
               group_1_1_1: group_1_1_1,
               group_1_1_2: group_1_1_2,
-              project_1_1_1_1: ensure_project(
-                name: 'project 1.1.1.1', namespace_id: group_1_1_1.id, organization_id: @organization.id),
-              project_1_1_2_1: ensure_project(
-                name: 'project 1.1.2.1', namespace_id: group_1_1_2.id, organization_id: @organization.id),
+              project_1_1_1_1: ensure_project(name: 'project 1.1.1.1', namespace_id: group_1_1_1.id),
+              project_1_1_2_1: ensure_project(name: 'project 1.1.2.1', namespace_id: group_1_1_2.id),
               group_2_1: group_2_1,
-              project_2_1_1: ensure_project(
-                name: 'project 2.1.1', namespace_id: group_2_1.id, organization_id: @organization.id)
+              project_2_1_1: ensure_project(name: 'project 2.1.1', namespace_id: group_2_1.id)
             }
           end
 
@@ -181,7 +162,7 @@ module Gitlab
           def create_group(**args)
             logger.info(message: 'Creating group', **args)
 
-            execute_service!(::Groups::CreateService.new(@user, **args), :group)
+            ensure_success(::Groups::CreateService.new(@user, **args).execute[:group])
           end
 
           def ensure_project(name:, namespace_id:, **args)
@@ -197,7 +178,7 @@ module Gitlab
           def create_project(**args)
             logger.info(message: 'Creating project', **args)
 
-            execute_service!(::Projects::CreateService.new(@user, **args))
+            ensure_success(::Projects::CreateService.new(@user, **args).execute)
           end
 
           def register_record(record, records)
@@ -213,63 +194,47 @@ module Gitlab
             raise RuntimeError
           end
 
-          def execute_service!(service, payload_attr = nil)
-            response = service.execute
-            if response.is_a?(ServiceResponse) && response.error?
-              logger.error(response.message)
-              raise RuntimeError
-            end
-
-            record = payload_attr ? response[payload_attr] : response
-            ensure_success(record)
-          end
-
           def create_runner(name:, scope: nil, **args)
             name = generate_name(name)
 
             scope_name = scope.class.name if scope
             logger.info(message: 'Creating runner', scope: scope_name, name: name)
 
-            executor = ::Ci::RunnerManager::EXECUTOR_NAME_TO_TYPES.keys.sample
-            response = ::Ci::Runners::CreateRunnerService.new(
-              user: @user, params: args.merge(additional_runner_args(name, scope, executor))
-            ).execute
+            executor = ::Ci::Runner::EXECUTOR_NAME_TO_TYPES.keys.sample
+            args.merge!(additional_runner_args(name, executor))
+
+            runners_token = if scope.nil?
+                              Gitlab::CurrentSettings.runners_registration_token
+                            else
+                              scope.runners_token
+                            end
+
+            response = ::Ci::Runners::RegisterRunnerService.new(runners_token, name: name, **args).execute
             runner = response.payload[:runner]
 
             ::Ci::Runners::ProcessRunnerVersionUpdateWorker.new.perform(args[:version])
 
             if runner && runner.errors.empty? &&
                 Random.rand(0..100) < 70 # % of runners having contacted GitLab instance
-              system_id = ::API::Ci::Helpers::Runner::LEGACY_SYSTEM_XID
-              runner.heartbeat
-              runner.ensure_manager(system_id).heartbeat(args.merge(executor: executor))
+              runner.heartbeat(args.merge(executor: executor))
               runner.save!
             end
 
             ensure_success(runner)
           end
 
-          def additional_runner_args(name, scope, executor)
+          def additional_runner_args(name, executor)
             base_tags = ['runner-fleet', "#{@registration_prefix}runner", executor]
             tag_limit = ::Ci::Runner::TAG_LIST_MAX_LENGTH - base_tags.length
 
-            runner_type =
-              if scope.is_a?(::Group)
-                'group_type'
-              elsif scope.is_a?(::Project)
-                'project_type'
-              else
-                'instance_type'
-              end
-
             {
-              scope: scope,
-              runner_type: runner_type,
               tag_list: base_tags + TAG_LIST.sample(Random.rand(1..tag_limit)),
               description: "Runner fleet #{name}",
               run_untagged: false,
-              active: Random.rand(1..3) != 1
-            }.compact
+              active: Random.rand(1..3) != 1,
+              version: ::Gitlab::Ci::RunnerReleases.instance.releases.sample.to_s,
+              ip_address: '127.0.0.1'
+            }
           end
 
           def assign_runner(runner, project)

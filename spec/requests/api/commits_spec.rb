@@ -277,29 +277,6 @@ RSpec.describe API::Commits, feature_category: :source_code_management do
             end
           end
 
-          context 'with ref_name + path params' do
-            let(:params) { { ref_name: ref_name, path: 'files/ruby/popen.rb' } }
-            let(:ref_name) { 'master' }
-
-            it 'returns project commits matching provided path parameter' do
-              get api("/projects/#{project_id}/repository/commits", user), params: params
-
-              expect(json_response.size).to eq(3)
-              expect(json_response.first["id"]).to eq("570e7b2abdd848b95f2f578043fc23bd6f6fd24d")
-              expect(response).to include_limited_pagination_headers
-            end
-
-            context 'when ref_name does not exist' do
-              let(:ref_name) { 'does-not-exist' }
-
-              it 'returns an empty response' do
-                get api("/projects/#{project_id}/repository/commits", user), params: params
-
-                expect(json_response).to eq([])
-              end
-            end
-          end
-
           context 'with pagination params' do
             let(:page) { 1 }
             let(:per_page) { 5 }
@@ -314,12 +291,6 @@ RSpec.describe API::Commits, feature_category: :source_code_management do
               expect(response).to include_limited_pagination_headers
               expect(response.headers['Link']).to match(/page=1&per_page=5/)
               expect(response.headers['Link']).to match(/page=2&per_page=5/)
-            end
-
-            it 'does not include the last page link' do
-              request
-
-              expect(response.headers['Link']).not_to include("rel=\"last\"")
             end
 
             context 'viewing the first page' do
@@ -619,6 +590,7 @@ RSpec.describe API::Commits, feature_category: :source_code_management do
 
       context 'when using access token authentication' do
         it 'does not increment the usage counters' do
+          expect(::Gitlab::UsageDataCounters::WebIdeCounter).not_to receive(:increment_commits_count)
           expect(::Gitlab::InternalEvents).not_to receive(:track_event)
 
           post api(url, user), params: valid_c_params
@@ -627,19 +599,32 @@ RSpec.describe API::Commits, feature_category: :source_code_management do
 
       context 'when using warden', :snowplow, :clean_gitlab_redis_sessions do
         before do
-          stub_session(session_data: { 'warden.user.user.key' => [[user.id], user.authenticatable_salt] })
+          stub_session('warden.user.user.key' => [[user.id], user.authenticatable_salt])
         end
 
         subject { post api(url), params: valid_c_params }
 
-        it_behaves_like 'internal event tracking' do
-          let(:event) { 'create_commit_from_web_ide' }
-          let(:namespace) { project.namespace.reload }
+        it 'increments usage counters' do
+          expect(::Gitlab::UsageDataCounters::WebIdeCounter).to receive(:increment_commits_count)
+
+          subject
         end
 
         it_behaves_like 'internal event tracking' do
           let(:event) { 'g_edit_by_web_ide' }
           let(:namespace) { project.namespace.reload }
+        end
+
+        context 'counts.web_ide_commits Snowplow event tracking' do
+          it_behaves_like 'Snowplow event tracking' do
+            let(:action) { :commit }
+            let(:category) { described_class.to_s }
+            let(:namespace) { project.namespace.reload }
+            let(:label) { 'counts.web_ide_commits' }
+            let(:context) do
+              [Gitlab::Usage::MetricDefinition.context_for('counts.web_ide_commits').to_context.to_json]
+            end
+          end
         end
       end
 

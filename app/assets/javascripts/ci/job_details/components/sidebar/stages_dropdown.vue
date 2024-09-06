@@ -94,15 +94,18 @@ export default {
 </script>
 <template>
   <div class="dropdown">
-    <div class="js-pipeline-info gl-block" data-testid="pipeline-info">
+    <div
+      class="gl-display-flex gl-flex-wrap gl-align-items-center gl-gap-2 js-pipeline-info"
+      data-testid="pipeline-info"
+    >
       <gl-sprintf :message="pipelineInfo">
         <template #bold="{ content }">
-          <span class="gl-inline-flex gl-font-bold">{{ content }}</span>
+          <span class="gl-display-flex gl-font-weight-bold">{{ content }}</span>
         </template>
         <template #id>
           <gl-link
             :href="pipeline.path"
-            class="js-pipeline-path link-commit !gl-text-blue-500"
+            class="js-pipeline-path link-commit gl-text-blue-500!"
             data-testid="pipeline-path"
             >#{{ pipeline.id }}</gl-link
           >
@@ -117,7 +120,7 @@ export default {
         <template #mrId>
           <gl-link
             :href="pipeline.merge_request.path"
-            class="link-commit !gl-text-blue-500"
+            class="link-commit gl-text-blue-500!"
             data-testid="mr-link"
             >!{{ pipeline.merge_request.iid }}</gl-link
           >
@@ -125,7 +128,7 @@ export default {
         <template #ref>
           <gl-link
             :href="pipeline.ref.path"
-            class="link-commit ref-name gl-break-all"
+            class="link-commit ref-name"
             data-testid="source-ref-link"
             >{{ pipeline.ref.name }}</gl-link
           ><clipboard-button
@@ -140,7 +143,7 @@ export default {
         <template #source>
           <gl-link
             :href="pipeline.merge_request.source_branch_path"
-            class="link-commit ref-name gl-mt-1 gl-break-all"
+            class="link-commit ref-name gl-mt-1"
             data-testid="source-branch-link"
             >{{ pipeline.merge_request.source_branch }}</gl-link
           ><clipboard-button

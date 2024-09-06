@@ -10,6 +10,10 @@ DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/2703) in GitLab 12.10.
+> - The ability to add and edit a requirement's long description [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/224622) in GitLab 13.5.
+> - [Moved under Issues](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/70748) in 14.4.
+
 With requirements, you can set criteria to check your products against. They can be based on users,
 stakeholders, system, software, or anything else you find important to capture.
 
@@ -27,8 +31,7 @@ Requirements and [test cases](../../../ci/test_cases/index.md) are being
 For more information, see [Product Stage Direction - Plan](https://about.gitlab.com/direction/plan/).
 
 <i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
-For an overview, see [Requirements Management](https://www.youtube.com/watch?v=uSS7oUNSEoU).
-<!-- Video published on 2020-04-09 -->
+For an overview, see [GitLab 12.10 Introduces Requirements Management](https://www.youtube.com/watch?v=uSS7oUNSEoU).
 
 <i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
 For a more in-depth walkthrough see [GitLab Requirements Traceability Walkthrough](https://youtu.be/VIiuTQYFVa0) (Feb 2021).
@@ -114,6 +117,9 @@ As soon as a requirement is reopened, it no longer appears in the **Archived** t
 
 ## Search for a requirement
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/212543) in GitLab 13.1.
+> - Searching by status [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/224614) in GitLab 13.10.
+
 You can search for a requirement from the requirements list page based on the following criteria:
 
 - Title
@@ -133,6 +139,9 @@ You can also sort the requirements list by:
 - Updated date
 
 ## Allow requirements to be satisfied from a CI job
+
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/2859) in GitLab 13.1.
+> - Ability to specify individual requirements and their statuses [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/215514) in GitLab 13.2.
 
 GitLab supports [requirements test reports](../../../ci/yaml/artifacts_reports.md#artifactsreportsrequirements) now.
 You can add a job to your CI pipeline that, when triggered, marks all existing
@@ -213,15 +222,9 @@ requirements_confirmation:
       requirements: tmp/requirements.json
 ```
 
-Because requirements and [test cases](../../../ci/test_cases/index.md) are being
-[migrated to work items](https://gitlab.com/groups/gitlab-org/-/epics/5171), if you have enabled work items
-in a project, you must replace `requirements` in above configs with `requirements_v2`:
-
-```yaml
-      requirements_v2: tmp/requirements.json
-```
-
 ## Import requirements from a CSV file
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/246857) in GitLab 13.7.
 
 You must have at least the Reporter role.
 
@@ -284,6 +287,10 @@ For GitLab.com, it is set to 10 MB.
 
 ## Export requirements to a CSV file
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/290813) in GitLab 13.8.
+> - Revised CSV column headers [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/299247) in GitLab 13.9.
+> - Ability to select which fields to export [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/290823) in GitLab 13.9.
+
 You can export GitLab requirements to a
 [CSV file](https://en.wikipedia.org/wiki/Comma-separated_values) sent to your default notification
 email as an attachment.
@@ -312,20 +319,31 @@ To export requirements:
 
 ### Exported CSV file format
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 You can preview the exported CSV file in a spreadsheet editor, such as Microsoft Excel,
 OpenOffice Calc, or Google Sheets.
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 The exported CSV file contains the following headers:
 
-- Requirement ID
-- Title
-- Description
-- Author
-- Author Username
-- Created At (UTC)
-- State
-- State Updated At (UTC)
+- In GitLab 13.8:
+
+  - Requirement ID
+  - Title
+  - Description
+  - Author Username
+  - Latest Test Report State
+  - Latest Test Report Created At (UTC)
+
+- In GitLab 13.9 and later:
+
+  - Requirement ID
+  - Title
+  - Description
+  - Author
+  - Author Username
+  - Created At (UTC)
+  - State
+  - State Updated At (UTC)

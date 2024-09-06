@@ -104,7 +104,7 @@ In GitLab 15.1, you can optionally allow GitLab to manage replication of Object 
 
 ### Review the configuration of each **secondary** site
 
-Database settings are automatically replicated to the **secondary** site, but the
+Database settings are automatically replicated to the **secondary**  site, but the
 `/etc/gitlab/gitlab.rb` file must be set up manually, and differs between
 sites. If features such as Mattermost, OAuth or LDAP integration are enabled
 on the **primary** site but not the **secondary** site, they are lost during failover.
@@ -151,18 +151,21 @@ ensure these processes are close to 100% as possible during active use.
 
 On the **secondary** site:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Geo > Sites**.
    Replicated objects (shown in green) should be close to 100%,
    and there should be no failures (shown in red). If a large proportion of
    objects aren't yet replicated (shown in gray), consider giving the site more
    time to complete
 
-   ![Geo admin dashboard showing the synchronization status of a secondary site](../replication/img/geo_dashboard_v14_0.png)
+   ![Replication status](../replication/img/geo_dashboard_v14_0.png)
 
 If any objects are failing to replicate, this should be investigated before
 scheduling the maintenance window. Following a planned failover, anything that
 failed to replicate is **lost**.
+
+You can use the [Geo status API](../../../api/geo_nodes.md#retrieve-project-sync-or-verification-failures-that-occurred-on-the-current-node) to review failed objects and
+the reasons for failure.
 
 A common cause of replication failures is the data being missing on the
 **primary** site - you can resolve these failures by restoring the data from backup,
@@ -176,7 +179,7 @@ This [content was moved to another location](background_verification.md).
 
 On the **primary** site:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Messages**.
 1. Add a message notifying users on the maintenance window.
    You can check under **Geo > Sites** to estimate how long it
@@ -185,15 +188,7 @@ On the **primary** site:
 
 ### Runner failover
 
-Depending on how your instance URL is configured, there may be additional steps to keep your runner fleet at 100% after the failover.
-
-The token used to register runners should work on the primary or secondary instances. If you are seeing issues connecting after failover, it is possible that the secrets were not copied over during the [secondary configuration](../setup/two_single_node_sites.md#manually-replicate-secret-gitlab-values). You can [reset runner tokens](../../backup_restore/troubleshooting_backup_gitlab.md#reset-runner-registration-tokens), however, be aware that you may experience other issues unrelated to runners, if secrets are not in sync.
-
-If a runner is repeatedly unable to connect to a GitLab instance, it stops trying to connect for a period of time (default 1 hour). If you would like to avoid this, the runners should be shutdown until the GitLab instance is reachable. See [the `check_interval` documentation](https://docs.gitlab.com/runner/configuration/advanced-configuration.html#how-check_interval-works), and the configuration options `unhealthy_requests_limit` and `unhealthy_interval`.
-
-- If you are using our Location aware URL, after the old primary is removed from the DNS configuration, runners should automatically connect to the next closest instance.
-- If you are using separate URLs, then any runner connected to the current primary needs to be updated to connect to the new primary, once promoted.
-- If you have any runners connected to your current secondary, see [how to handle them](../secondary_proxy/runners.md#handling-a-planned-failover-with-secondary-runners) during the failover.
+If you have any runners connected to your current secondary, see [how to handle them](../secondary_proxy/runners.md#handling-a-planned-failover-with-secondary-runners) during the failover.
 
 ## Prevent updates to the **primary** site
 
@@ -201,17 +196,15 @@ To ensure that all data is replicated to a secondary site, updates (write reques
 be disabled on the **primary** site:
 
 1. Enable [maintenance mode](../../maintenance_mode/index.md) on the **primary** site.
-1. On the left sidebar, at the bottom, select **Admin**.
-1. Select **Monitoring > Background jobs**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
+1. Select **Monitoring > Background Jobs**.
 1. On the Sidekiq dashboard, select **Cron**.
 1. Select `Disable All` to disable non-Geo periodic background jobs.
 1. Select `Enable` for the following cronjobs:
-
    - `geo_metrics_update_worker`
    - `geo_prune_event_log_worker`
    - `geo_verification_cron_worker`
    - `repository_check_worker`
-
    This re-enables several cron jobs that are essential for planned
    failover to complete successfully.
 
@@ -220,8 +213,8 @@ be disabled on the **primary** site:
 1. If you are manually replicating any data not managed by Geo, trigger the
    final replication process now.
 1. On the **primary** site:
-   1. On the left sidebar, at the bottom, select **Admin**.
-   1. On the left sidebar, select **Monitoring > Background jobs**.
+   1. On the left sidebar, at the bottom, select **Admin Area**.
+   1. On the left sidebar, select **Monitoring > Background Jobs**.
    1. On the Sidekiq dashboard, select **Queues**, and wait for all queues except
       those with `geo` in the name to drop to 0.
       These queues contain work that has been submitted by your users; failing over
@@ -235,8 +228,8 @@ be disabled on the **primary** site:
       - The Geo log cursor is up to date (0 events behind).
 
 1. On the **secondary** site:
-   1. On the left sidebar, at the bottom, select **Admin**.
-   1. On the left sidebar, select **Monitoring > Background jobs**.
+   1. On the left sidebar, at the bottom, select **Admin Area**.
+   1. On the left sidebar, select **Monitoring > Background Jobs**.
    1. On the Sidekiq dashboard, select **Queues**, and wait for all the `geo`
       queues to drop to 0 queued and 0 running jobs.
    1. [Run an integrity check](../../raketasks/check.md) to verify the integrity

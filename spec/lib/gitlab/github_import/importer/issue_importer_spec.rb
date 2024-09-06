@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Gitlab::GithubImport::Importer::IssueImporter, :clean_gitlab_redis_shared_state, feature_category: :importers do
+RSpec.describe Gitlab::GithubImport::Importer::IssueImporter, :clean_gitlab_redis_cache, feature_category: :importers do
   let_it_be(:work_item_type_id) { ::WorkItems::Type.default_issue_type.id }
   let_it_be(:project) { create(:project) }
   let_it_be(:user) { create(:user) }
@@ -79,8 +79,7 @@ RSpec.describe Gitlab::GithubImport::Importer::IssueImporter, :clean_gitlab_redi
         state_id: 1,
         created_at: created_at,
         updated_at: updated_at,
-        work_item_type_id: work_item_type_id,
-        imported_from: 'github'
+        work_item_type_id: work_item_type_id
       )
     end
 

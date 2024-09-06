@@ -15,10 +15,8 @@ RSpec.describe 'User promotes milestone', feature_category: :team_planning do
       visit(project_milestones_path(project))
     end
 
-    it "shows milestone promote button", :js do
-      find_by_testid('milestone-more-actions-dropdown-toggle').click
-
-      expect(page).to have_selector('[data-testid="milestone-promote-item"]')
+    it "shows milestone promote button" do
+      expect(page).to have_selector('.js-promote-project-milestone-button')
     end
   end
 
@@ -29,10 +27,8 @@ RSpec.describe 'User promotes milestone', feature_category: :team_planning do
       visit(project_milestones_path(project))
     end
 
-    it "does not show milestone promote button", :js do
-      find_by_testid('milestone-more-actions-dropdown-toggle').click
-
-      expect(page).not_to have_selector('[data-testid="milestone-promote-item"]')
+    it "does not show milestone promote button" do
+      expect(page).not_to have_selector('.js-promote-project-milestone-button')
     end
   end
 end

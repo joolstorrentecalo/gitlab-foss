@@ -1,6 +1,6 @@
 ---
 stage: Create
-group: Remote Development
+group: IDE
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 description: "Use the Web IDE to edit multiple files in the GitLab UI, stage commits, and create merge requests."
 ---
@@ -16,16 +16,13 @@ DETAILS:
 > - [Enabled on self-managed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/115741) in GitLab 15.11.
 
 FLAG:
-The availability of this feature is controlled by a feature flag.
-For more information, see the history.
+On self-managed GitLab, by default this feature is available. To hide the feature, an administrator can [disable the feature flag](../../../administration/feature_flags.md) named `vscode_web_ide`. On GitLab.com and GitLab Dedicated, this feature is available.
 
 The Web IDE is an advanced editor with commit staging.
 You can use the Web IDE to make changes to multiple files directly from the GitLab UI.
 For a more basic implementation, see [Web Editor](../repository/web_editor.md).
 
 To pair the Web IDE with a remote development environment, see [Remote development](../remote_development/index.md).
-
-Support for improvements to Markdown preview when using GitLab Flavored Markdown in the Web IDE is proposed in [issue 645](https://gitlab.com/gitlab-org/gitlab-vscode-extension/-/issues/645).
 
 ## Open the Web IDE
 
@@ -206,10 +203,27 @@ To view any notification you might have missed:
 1. On the bottom status bar, on the right, select the bell icon (**{notifications}**) for a list of notifications.
 1. Select the notification you want to view.
 
+<!-- ## Privacy and data collection for extensions
+
+The Web IDE Extension Marketplace is based on Open VSX. Open VSX does not collect any
+data about you or your activities on the platform.
+
+However, the privacy and data collection practices of extensions available on Open VSX can vary.
+Some extensions might collect data to provide personalized recommendations or to improve the functionality.
+Other extensions might collect data for analytics or advertising purposes.
+
+To protect your privacy and data:
+
+- Carefully review the permissions requested by an extension before you install the extension.
+- Keep your extensions up to date to ensure that any security or privacy vulnerabilities are addressed promptly. -->
+
 ## Interactive web terminals
 
 DETAILS:
 **Status**: Beta
+
+WARNING:
+This feature is in [Beta](../../../policy/experiment-beta-support.md#beta) and subject to change without notice.
 
 When you set up a remote development server in the Web IDE, you can use interactive web terminals to:
 
@@ -221,52 +235,9 @@ However, you can use a terminal to install dependencies and compile and debug co
 
 For more information, see [Remote development](../remote_development/index.md).
 
-## Extension marketplace
-
-DETAILS:
-**Status**: Beta
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/151352) as a [beta](../../../policy/experiment-beta-support.md#beta) in GitLab 17.0 [with flags](../../../administration/feature_flags.md) named `web_ide_oauth` and `web_ide_extensions_marketplace`. Disabled by default.
-
-FLAG:
-The availability of this feature is controlled by feature flags.
-For more information, see the history.
-
-Prerequisites:
-
-- In user preferences, you must
-  [enable the extension marketplace](../../profile/preferences.md#integrate-with-the-extension-marketplace).
-- In group settings, users with the Owner role must
-  [enable the extension marketplace](../../enterprise_user/index.md#enable-the-extension-marketplace-for-the-web-ide-and-workspaces) for enterprise users.
-
-You can use the extension marketplace to download and run VS Code extensions in the Web IDE.
-
-The extension marketplace is preconfigured at the GitLab instance level
-and is hardcoded to [`https://open-vsx.org/`](https://open-vsx.org/).
-[Epic 11770](https://gitlab.com/groups/gitlab-org/-/epics/11770) proposes to change this behavior.
-
-### Install an extension
-
-To install an extension in the Web IDE:
-
-1. On the top menu bar, select **View > Extensions**,
-   or press <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd>.
-1. In the search box, enter the extension name.
-1. Select the extension you want to install.
-1. Select **Install**.
-
-### Uninstall an extension
-
-To uninstall an extension in the Web IDE:
-
-1. On the top menu bar, select **View > Extensions**,
-   or press <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd>.
-1. From the list of installed extensions, select the extension you want to uninstall.
-1. Select **Uninstall**.
-
 ## Related topics
 
-- [GitLab Duo Chat in the Web IDE](../../gitlab_duo_chat/index.md#use-gitlab-duo-chat-in-the-web-ide)
+- [GitLab Duo Chat in the Web IDE](../../gitlab_duo_chat.md#use-gitlab-duo-chat-in-the-web-ide)
 
 ## Troubleshooting
 
@@ -284,15 +255,3 @@ As a workaround:
    or modify the `"editor.fontFamily"` setting.
 
 For more information, see [VS Code issue 80170](https://github.com/microsoft/vscode/issues/80170).
-
-### Report a problem
-
-To report a problem, [create a new issue](https://gitlab.com/gitlab-org/gitlab-web-ide/-/issues/new)
-with the following information:
-
-- The error message
-- The full error details
-- How often the problem occurs
-- Steps to reproduce the problem
-
-If you're on a paid tier, you can also [contact Support](https://about.gitlab.com/support/#contact-support) for help.

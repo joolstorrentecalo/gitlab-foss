@@ -2,17 +2,10 @@
 
 require 'spec_helper'
 
-RSpec.describe EmailsHelper, feature_category: :shared do
+RSpec.describe EmailsHelper do
   include EmailsHelperTestHelper
-  include NotifyHelper
 
   describe 'closure_reason_text' do
-    let(:issue) { create(:issue) }
-
-    before do
-      self.instance_variable_set(:@issue, issue)
-    end
-
     context 'when given a MergeRequest' do
       let(:merge_request) { create(:merge_request) }
       let(:merge_request_presenter) { merge_request.present }
@@ -28,26 +21,26 @@ RSpec.describe EmailsHelper, feature_category: :shared do
 
         context "and format is text" do
           it "returns plain text" do
-            expect(helper.closure_reason_text(merge_request, format: :text, name: user.name)).to include("with merge request #{merge_request.to_reference} (#{merge_request_presenter.web_url})")
+            expect(helper.closure_reason_text(merge_request, format: :text)).to eq("via merge request #{merge_request.to_reference} (#{merge_request_presenter.web_url})")
           end
         end
 
         context "and format is HTML" do
           it "returns HTML" do
-            expect(helper.closure_reason_text(merge_request, format: :html, name: user.name)).to include("with merge request #{link_to(merge_request.to_reference, merge_request_presenter.web_url)}")
+            expect(helper.closure_reason_text(merge_request, format: :html)).to eq("via merge request #{link_to(merge_request.to_reference, merge_request_presenter.web_url)}")
           end
         end
 
         context "and format is unknown" do
           it "returns plain text" do
-            expect(helper.closure_reason_text(merge_request, format: 'unknown', name: user.name)).to include("with merge request #{merge_request.to_reference} (#{merge_request_presenter.web_url})")
+            expect(helper.closure_reason_text(merge_request, format: 'unknown')).to eq("via merge request #{merge_request.to_reference} (#{merge_request_presenter.web_url})")
           end
         end
       end
 
       context 'when user cannot read merge request' do
         it "does not have link to merge request" do
-          expect(helper.closure_reason_text(merge_request, format: nil, name: nil)).to be_empty
+          expect(helper.closure_reason_text(merge_request)).to be_empty
         end
       end
     end
@@ -65,28 +58,20 @@ RSpec.describe EmailsHelper, feature_category: :shared do
         end
 
         it "returns plain text" do
-          expect(closure_reason_text(closed_via, format: nil, name: nil)).to include("with #{closed_via}")
+          expect(closure_reason_text(closed_via)).to eq("via #{closed_via}")
         end
       end
 
       context 'when user cannot read commits' do
         it "returns plain text" do
-          expect(closure_reason_text(closed_via, format: nil, name: nil)).to be_empty
+          expect(closure_reason_text(closed_via)).to be_empty
         end
       end
     end
 
     context 'when not given anything' do
       it "returns empty string" do
-        expect(closure_reason_text(nil, format: nil, name: nil)).to eq("")
-      end
-    end
-
-    context 'when only given a name' do
-      let(:user) { build_stubbed(:user) }
-
-      it "returns plain text" do
-        expect(closure_reason_text(nil, format: nil, name: user.name)).to eq("Issue was closed by #{user.name}")
+        expect(closure_reason_text(nil)).to eq("")
       end
     end
   end

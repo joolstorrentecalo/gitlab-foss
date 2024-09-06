@@ -105,18 +105,18 @@ RSpec.describe 'Milestone', feature_category: :team_planning do
     end
   end
 
-  describe 'Deleting a milestone', :js do
+  describe 'Deleting a milestone' do
     it "the delete milestone button does not show for unauthorized users" do
       create(:milestone, project: project, title: 8.7)
       sign_out(user)
 
       visit group_milestones_path(group)
 
-      expect(page).to have_selector('[data-testid="milestone-delete-item"]', count: 0)
+      expect(page).to have_selector('.js-delete-milestone-button', count: 0)
     end
   end
 
-  describe 'reopen closed milestones', :js do
+  describe 'reopen closed milestones' do
     before do
       create(:milestone, :closed, project: project)
     end
@@ -125,7 +125,6 @@ RSpec.describe 'Milestone', feature_category: :team_planning do
       it 'reopens the milestone' do
         visit group_milestones_path(group, { state: 'closed' })
 
-        find_by_testid('milestone-more-actions-dropdown-toggle').click
         click_link 'Reopen'
 
         expect(page).not_to have_selector('.badge-danger')
@@ -133,11 +132,10 @@ RSpec.describe 'Milestone', feature_category: :team_planning do
       end
     end
 
-    describe 'project milestones page', :js do
+    describe 'project milestones page' do
       it 'reopens the milestone' do
         visit project_milestones_path(project, { state: 'closed' })
 
-        find_by_testid('milestone-more-actions-dropdown-toggle').click
         click_link 'Reopen'
 
         expect(page).not_to have_selector('.badge-danger')

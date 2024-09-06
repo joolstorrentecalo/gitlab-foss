@@ -28,7 +28,7 @@ An achievement consists of a name, a description, and an avatar.
 
 Achievements are considered to be owned by the user. They are visible regardless of the visibility setting of the namespace that created the Achievement.
 
-This feature is an experiment.
+This feature is an Experiment.
 For more information about planned work, see [epic 9429](https://gitlab.com/groups/gitlab-org/-/epics/9429).
 Tell us about your use cases by leaving comments in the epic.
 
@@ -41,14 +41,6 @@ Practically, you can differentiate between achievements that are awarded:
 - Once and irrevocable. For example, a "First contribution merged" achievement.
 - Once and revocable. For example, a "Core team member" achievement.
 - Multiple times. For example, a "Contributor of the month" achievement.
-
-## View group achievements
-
-To view all available and awarded achievements for a group:
-
-- Go to `https://gitlab.com/groups/<group-path>/-/achievements`.
-
-The page displays a list of achievements and the members who were awarded the achievement.
 
 ## View a user's achievements
 
@@ -100,52 +92,44 @@ Prerequisites:
 
 - You must have the Maintainer or Owner role for the namespace.
 
-To create an achievement:
+To create an achievement, call the [`achievementsCreate` GraphQL mutation](../../api/graphql/reference/index.md#mutationachievementscreate).
 
-- In the UI:
-  1. On the [Achievements page](#view-group-achievements), select **New achievement**.
-  1. Enter a name for the achievement.
-  1. Optional. Enter a description and upload an avatar for the achievement.
-  1. Select **Save changes**.
-
-- With the GraphQL API, call the [`achievementsCreate` GraphQL mutation](../../api/graphql/reference/index.md#mutationachievementscreate):
-
-  ```graphql
-  mutation achievementsCreate($file: Upload!) {
-    achievementsCreate(
-      input: {
-        namespaceId: "gid://gitlab/Namespace/<namespace id>",
-        name: "<name>",
-        description: "<description>",
-        avatar: $file}
-    ) {
-      errors
-      achievement {
-        id
-        name
-        description
-        avatarUrl
-      }
+```graphql
+mutation achievementsCreate($file: Upload!) {
+  achievementsCreate(
+    input: {
+      namespaceId: "gid://gitlab/Namespace/<namespace id>",
+      name: "<name>",
+      description: "<description>",
+      avatar: $file}
+  ) {
+    errors
+    achievement {
+      id
+      name
+      description
+      avatarUrl
     }
   }
-  ```
+}
+```
 
-  To supply the avatar file, call the mutation using `curl`:
+To supply the avatar file, call the mutation using `curl`:
 
-  ```shell
-  curl "https://gitlab.com/api/graphql" \
-    -H "Authorization: Bearer <your-pat-token>" \
-    -H "Content-Type: multipart/form-data" \
-    -F operations='{ "query": "mutation ($file: Upload!) { achievementsCreate(input: { namespaceId: \"gid://gitlab/Namespace/<namespace-id>\", name: \"<name>\", description: \"<description>\", avatar: $file }) { achievement { id name description avatarUrl } } }", "variables": { "file": null } }' \
-    -F map='{ "0": ["variables.file"] }' \
-    -F 0='@/path/to/your/file.jpg'
-  ```
+```shell
+curl "https://gitlab.com/api/graphql" \
+  -H "Authorization: Bearer <your-pat-token>" \
+  -H "Content-Type: multipart/form-data" \
+  -F operations='{ "query": "mutation ($file: Upload!) { achievementsCreate(input: { namespaceId: \"gid://gitlab/Namespace/<namespace-id>\", name: \"<name>\", description: \"<description>\", avatar: $file }) { achievement { id name description avatarUrl } } }", "variables": { "file": null } }' \
+  -F map='{ "0": ["variables.file"] }' \
+  -F 0='@/path/to/your/file.jpg'
+```
 
-  When successful, the response returns the achievement ID:
+When successful, the response returns the achievement ID:
 
-  ```shell
-  {"data":{"achievementsCreate":{"achievement":{"id":"gid://gitlab/Achievements::Achievement/1","name":"<name>","description":"<description>","avatarUrl":"https://gitlab.com/uploads/-/system/achievements/achievement/avatar/1/file.jpg"}}}}
-  ```
+```shell
+{"data":{"achievementsCreate":{"achievement":{"id":"gid://gitlab/Achievements::Achievement/1","name":"<name>","description":"<description>","avatarUrl":"https://gitlab.com/uploads/-/system/achievements/achievement/avatar/1/file.jpg"}}}}
+```
 
 ## Update an achievement
 
@@ -302,31 +286,6 @@ If you don't want to display achievements on your profile, you can opt out. To d
 1. Select **Edit profile**.
 1. In the **Main settings** section, clear the **Display achievements on your profile** checkbox.
 1. Select **Update profile settings**.
-
-## Change visibility of specific achievements
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/161225) in GitLab 17.3.
-
-If you don't want to display all achievements on your profile, you can change the visibility of specific achievements.
-
-To hide one of your achievements, call the [`userAchievementsUpdate` GraphQL mutation](../../api/graphql/reference/index.md#mutationuserachievementsupdate).
-
-```graphql
-mutation {
-  userAchievementsUpdate(input: {
-    userAchievementId: "gid://gitlab/Achievements::UserAchievement/<user achievement id>"
-    showOnProfile: false
-  }) {
-    userAchievement {
-      id
-      showOnProfile
-    }
-    errors
-  }
-}
-```
-
-To show one of your achievements again, call the same mutation with the value `true` for the `showOnProfile` argument.
 
 ## Reorder achievements
 

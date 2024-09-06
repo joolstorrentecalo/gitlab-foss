@@ -3,7 +3,7 @@ import { GlSprintf, GlModal } from '@gitlab/ui';
 import { createAlert } from '~/alert';
 import axios from '~/lib/utils/axios_utils';
 import { HTTP_STATUS_NOT_FOUND } from '~/lib/utils/http_status';
-import { visitUrl } from '~/lib/utils/url_utility';
+import { redirectTo } from '~/lib/utils/url_utility'; // eslint-disable-line import/no-deprecated
 import { __, n__, s__, sprintf } from '~/locale';
 import eventHub from '../event_hub';
 
@@ -13,11 +13,6 @@ export default {
     GlSprintf,
   },
   props: {
-    visible: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
     issueCount: {
       type: Number,
       required: true,
@@ -80,8 +75,8 @@ Once deleted, it cannot be undone or recovered.`),
             successful: true,
           });
 
-          // follow the redirect to milestones overview page
-          visitUrl(response.request.responseURL);
+          // follow the rediect to milestones overview page
+          redirectTo(response.request.responseURL); // eslint-disable-line import/no-deprecated
         })
         .catch((error) => {
           eventHub.$emit('deleteMilestoneModal.requestFinished', {
@@ -103,13 +98,7 @@ Once deleted, it cannot be undone or recovered.`),
             });
           }
           throw error;
-        })
-        .finally(() => {
-          this.onClose();
         });
-    },
-    onClose() {
-      this.$emit('deleteModalVisible', false);
     },
   },
   primaryProps: {
@@ -124,13 +113,11 @@ Once deleted, it cannot be undone or recovered.`),
 
 <template>
   <gl-modal
-    :visible="visible"
     modal-id="delete-milestone-modal"
     :title="title"
     :action-primary="$options.primaryProps"
     :action-cancel="$options.cancelProps"
     @primary="onSubmit"
-    @hide="onClose"
   >
     <gl-sprintf :message="text">
       <template #milestoneTitle>

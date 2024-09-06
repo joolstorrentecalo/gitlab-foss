@@ -3,8 +3,6 @@
 class ResourceStateEvent < ResourceEvent
   include MergeRequestResourceEvent
   include Importable
-  include Import::HasImportSource
-  include FromUnion
 
   validate :exactly_one_issuable, unless: :importing?
 

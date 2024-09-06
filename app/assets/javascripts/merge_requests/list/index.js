@@ -4,7 +4,6 @@ import VueRouter from 'vue-router';
 import { parseBoolean } from '~/lib/utils/common_utils';
 import { defaultClient } from '~/graphql_shared/issuable_client';
 import MergeRequestsListApp from './components/merge_requests_list_app.vue';
-import MoreactionsDropdown from './components/more_actions_dropdown.vue';
 
 export async function mountMergeRequestListsApp() {
   const el = document.querySelector('.js-merge-request-list-root');
@@ -17,21 +16,11 @@ export async function mountMergeRequestListsApp() {
   Vue.use(VueRouter);
 
   const {
-    autocompleteAwardEmojisPath,
     fullPath,
     hasAnyMergeRequests,
-    hasScopedLabelsFeature,
     initialSort,
     isPublicVisibilityRestricted,
     isSignedIn,
-    newMergeRequestPath,
-    showExportButton,
-    issuableType,
-    issuableCount,
-    email,
-    exportCsvPath,
-    rssUrl,
-    releasesEndpoint,
   } = el.dataset;
 
   return new Vue({
@@ -47,54 +36,11 @@ export async function mountMergeRequestListsApp() {
     }),
     provide: {
       fullPath,
-      autocompleteAwardEmojisPath,
       hasAnyMergeRequests: parseBoolean(hasAnyMergeRequests),
-      hasScopedLabelsFeature: parseBoolean(hasScopedLabelsFeature),
       initialSort,
       isPublicVisibilityRestricted: parseBoolean(isPublicVisibilityRestricted),
       isSignedIn: parseBoolean(isSignedIn),
-      newMergeRequestPath,
-      showExportButton: parseBoolean(showExportButton),
-      issuableType,
-      issuableCount: Number(issuableCount),
-      email,
-      exportCsvPath,
-      rssUrl,
-      releasesEndpoint,
     },
     render: (createComponent) => createComponent(MergeRequestsListApp),
-  });
-}
-
-export async function mountMoreActionsDropdown() {
-  const el = document.querySelector('#js-vue-mr-list-more-actions');
-
-  if (!el) {
-    return null;
-  }
-
-  const {
-    isSignedIn,
-    showExportButton,
-    issuableType,
-    issuableCount,
-    email,
-    exportCsvPath,
-    rssUrl,
-  } = el.dataset;
-
-  return new Vue({
-    el,
-    name: 'MergeRequestsListMoreActions',
-    provide: {
-      isSignedIn: parseBoolean(isSignedIn),
-      showExportButton: parseBoolean(showExportButton),
-      issuableType,
-      issuableCount: Number(issuableCount),
-      email,
-      exportCsvPath,
-      rssUrl,
-    },
-    render: (createComponent) => createComponent(MoreactionsDropdown),
   });
 }

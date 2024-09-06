@@ -10,6 +10,10 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/1283) in [GitLab Premium](https://about.gitlab.com/pricing/) 9.0.
+> - [Moved](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/60894) from GitLab Premium to GitLab Free in 14.0.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/334494) for Sidekiq in GitLab 14.1.
+
 With Database Load Balancing, read-only queries can be distributed across
 multiple PostgreSQL nodes to increase performance.
 
@@ -104,6 +108,8 @@ The primary will be used for write queries whether or not it is present in this 
 
 ### Service Discovery
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/5883) in GitLab 11.0.
+
 Service discovery allows GitLab to automatically retrieve a list of PostgreSQL
 hosts to use. It periodically
 checks a DNS `A` record, using the IPs returned by this record as the addresses
@@ -116,17 +122,17 @@ record. For example:
 
 1. On each GitLab Rails / Sidekiq node, edit `/etc/gitlab/gitlab.rb` and add the following:
 
-   ```ruby
-   gitlab_rails['db_load_balancing'] = { 'discover' => {
-       'nameserver' => 'localhost'
-       'record' => 'postgresql-ha.service.consul'
-       'record_type' => 'A'
-       'port' => '8600'
-       'interval' => '60'
-       'disconnect_timeout' => '120'
-     }
-   }
-   ```
+  ```ruby
+  gitlab_rails['db_load_balancing'] = { 'discover' => {
+      'nameserver' => 'localhost'
+      'record' => 'postgresql-ha.service.consul'
+      'record_type' => 'A'
+      'port' => '8600'
+      'interval' => '60'
+      'disconnect_timeout' => '120'
+    }
+  }
+  ```
 
 1. Save the file and [reconfigure GitLab](../restart_gitlab.md#reconfigure-a-linux-package-installation) for the changes to take effect.
 
@@ -134,12 +140,12 @@ record. For example:
 |----------------------|---------------------------------------------------------------------------------------------------|-----------|
 | `nameserver`         | The nameserver to use for looking up the DNS record.                                              | localhost |
 | `record`             | The record to look up. This option is required for service discovery to work.                     |           |
-| `record_type`        | Optional record type to look up. Can be either `A` or `SRV`.                                      | `A`       |
+| `record_type`        | Optional record type to look up, this can be either `A` or `SRV` (GitLab 12.3 and later)          | `A`       |
 | `port`               | The port of the nameserver.                                                                       | 8600      |
 | `interval`           | The minimum time in seconds between checking the DNS record.                                      | 60        |
 | `disconnect_timeout` | The time in seconds after which an old connection is closed, after the list of hosts was updated. | 120       |
 | `use_tcp`            | Lookup DNS resources using TCP instead of UDP                                                     | false     |
-| `max_replica_pools`  | The maximum number of replicas each Rails process connects to. This is useful if you run a lot of Postgres replicas and a lot of Rails processes because without this limit every Rails process connects to every replica by default. The default behavior is unlimited if not set. | nil     |
+| `max_replica_pools`  | The maximum number of replicas each Rails process connects to. This is useful if you run a lot of Postgres replicas and a lot of Rails processes because without this limit every Rails process connects to every replica by default. The default behavior is unlimited if not set.                                            | nil     |
 
 If `record_type` is set to `SRV`, then GitLab continues to use round-robin algorithm
 and ignores the `weight` and `priority` in the record. Since `SRV` records usually

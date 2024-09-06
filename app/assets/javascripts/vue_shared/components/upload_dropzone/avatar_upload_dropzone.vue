@@ -7,7 +7,7 @@ import { AVATAR_SHAPE_OPTION_RECT } from '~/vue_shared/constants';
 export default {
   i18n: {
     uploadText: __('Drop or %{linkStart}upload%{linkEnd} an avatar.'),
-    maxFileSize: s__('Profiles|The maximum file size allowed is 200 KiB.'),
+    maxFileSize: s__('Profiles|The maximum file size allowed is 200KB.'),
     imageDimensions: s__('Profiles|The ideal image size is 192 x 192 pixels.'),
     removeAvatar: __('Remove avatar'),
   },
@@ -77,7 +77,7 @@ export default {
 </script>
 
 <template>
-  <div class="gl-flex gl-gap-x-5">
+  <div class="gl-display-flex gl-column-gap-5">
     <gl-avatar
       :entity-id="entity.id || null"
       :entity-name="entity.name || 'organization'"
@@ -86,14 +86,14 @@ export default {
       :src="avatarSrc"
     />
     <div class="gl-min-w-0">
-      <p class="gl-mb-3 gl-font-bold gl-leading-1">
+      <p class="gl-font-weight-bold gl-line-height-1 gl-mb-3">
         {{ label }}
       </p>
-      <div v-if="value" class="gl-flex gl-items-center gl-gap-x-3">
+      <div v-if="value" class="gl-display-flex gl-align-items-center gl-column-gap-3">
         <gl-button @click="$emit('input', null)">{{ $options.i18n.removeAvatar }}</gl-button>
         <gl-truncate
           v-if="isValueAFile"
-          class="gl-min-w-0 gl-max-w-48 gl-text-secondary"
+          class="gl-text-secondary gl-max-w-48 gl-min-w-0"
           position="middle"
           :text="value.name"
         />
@@ -102,7 +102,7 @@ export default {
         <template #upload-text>
           <gl-sprintf :message="$options.i18n.uploadText">
             <template #link="{ content }">
-              <span class="gl-link hover:gl-underline">{{ content }}</span>
+              <span class="gl-link gl-hover-text-decoration-underline">{{ content }}</span>
             </template>
           </gl-sprintf>
         </template>

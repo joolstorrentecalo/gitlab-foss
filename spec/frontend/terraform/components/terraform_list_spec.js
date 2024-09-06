@@ -1,8 +1,7 @@
-import { GlAlert, GlKeysetPagination, GlLoadingIcon } from '@gitlab/ui';
+import { GlAlert, GlBadge, GlKeysetPagination, GlLoadingIcon, GlTab } from '@gitlab/ui';
 import { shallowMount } from '@vue/test-utils';
 import Vue from 'vue';
 import VueApollo from 'vue-apollo';
-import CrudComponent from '~/vue_shared/components/crud_component.vue';
 import createMockApollo from 'helpers/mock_apollo_helper';
 import waitForPromises from 'helpers/wait_for_promises';
 import EmptyState from '~/terraform/components/empty_state.vue';
@@ -53,15 +52,16 @@ describe('TerraformList', () => {
       propsData,
       provide,
       stubs: {
-        CrudComponent,
+        GlTab,
       },
     });
   };
 
+  const findBadge = () => wrapper.findComponent(GlBadge);
   const findEmptyState = () => wrapper.findComponent(EmptyState);
   const findPaginationButtons = () => wrapper.findComponent(GlKeysetPagination);
   const findStatesTable = () => wrapper.findComponent(StatesTable);
-  const findCrudComponent = () => wrapper.findComponent(CrudComponent);
+  const findTab = () => wrapper.findComponent(GlTab);
 
   describe('when the terraform query has succeeded', () => {
     describe('when there is a list of terraform states', () => {
@@ -110,9 +110,9 @@ describe('TerraformList', () => {
         return waitForPromises();
       });
 
-      it('displays a terraform states card and count', () => {
-        expect(findCrudComponent().props('title')).toBe('Terraform states');
-        expect(findCrudComponent().props('count')).toBe(2);
+      it('displays a terraform states tab and count', () => {
+        expect(findTab().text()).toContain('Terraform states');
+        expect(findBadge().text()).toBe('2');
       });
 
       it('renders the states table and pagination buttons', () => {
@@ -158,9 +158,9 @@ describe('TerraformList', () => {
         return waitForPromises();
       });
 
-      it('displays a terraform states card with no count', () => {
-        expect(findCrudComponent().props('title')).toBe('Terraform states');
-        expect(findCrudComponent().props('count')).toBe(0);
+      it('displays a terraform states tab with no count', () => {
+        expect(findTab().text()).toContain('Terraform states');
+        expect(findBadge().exists()).toBe(false);
       });
 
       it('renders the empty state', () => {

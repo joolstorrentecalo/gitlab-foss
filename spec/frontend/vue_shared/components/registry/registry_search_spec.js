@@ -20,9 +20,9 @@ describe('Registry Search', () => {
   };
 
   const defaultQueryChangedPayload = {
-    foo: null,
+    foo: '',
     orderBy: 'name',
-    search: null,
+    search: [],
     sort: 'asc',
     after: null,
     before: null,
@@ -47,9 +47,7 @@ describe('Registry Search', () => {
       expect(findFilteredSearch().props()).toMatchObject({
         value: [],
         placeholder: 'Filter results',
-        termsAsTokens: true,
-        searchTextOptionLabel: 'Search for this text',
-        availableTokens: defaultProps.tokens,
+        availableTokens: wrapper.vm.tokens,
       });
     });
 
@@ -77,6 +75,12 @@ describe('Registry Search', () => {
       expect(wrapper.emitted('filter:changed')).toEqual([[[]]]);
       expect(wrapper.emitted('filter:submit')).toEqual([[]]);
       expect(wrapper.emitted('query:changed')).toEqual([[defaultQueryChangedPayload]]);
+    });
+
+    it('binds tokens prop', () => {
+      mountComponent();
+
+      expect(findFilteredSearch().props('availableTokens')).toEqual(defaultProps.tokens);
     });
   });
 

@@ -46,18 +46,17 @@ RSpec.describe 'Login', :clean_gitlab_redis_sessions, feature_category: :system_
       user = create(:admin, password_automatically_set: true)
 
       visit root_path
-      expect(page).to have_current_path new_admin_initial_setup_path, ignore_query: true
-      expect(page).to have_content('Administrator Account Setup')
+      expect(page).to have_current_path edit_user_password_path, ignore_query: true
+      expect(page).to have_content('Please create a password for your new account.')
 
-      fill_in 'user_email',                 with: 'admin_specs@example.com'
       fill_in 'user_password',              with: user.password
       fill_in 'user_password_confirmation', with: user.password
-      click_button 'Set up root account'
+      click_button 'Change your password'
 
       expect(page).to have_current_path new_user_session_path, ignore_query: true
-      expect(page).to have_content('Initial account configured! Please sign in.')
+      expect(page).to have_content(I18n.t('devise.passwords.updated_not_active'))
 
-      gitlab_sign_in(user.reload)
+      gitlab_sign_in(user)
 
       expect_single_session_with_authenticated_ttl
       expect(page).to have_current_path root_path, ignore_query: true
@@ -1045,7 +1044,7 @@ RSpec.describe 'Login', :clean_gitlab_redis_sessions, feature_category: :system_
         fill_in 'user_password', with: user.password
         fill_in 'user_new_password', with: new_password
         fill_in 'user_password_confirmation', with: new_password
-        click_button 'Update password'
+        click_button 'Set new password'
 
         expect(page).to have_content('Password successfully changed')
       end

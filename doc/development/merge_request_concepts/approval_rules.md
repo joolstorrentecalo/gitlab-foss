@@ -2,7 +2,6 @@
 stage: Create
 group: Code Review
 info: Any user with at least the Maintainer role can merge updates to this content. For details, see https://docs.gitlab.com/ee/development/development_processes.html#development-guidelines-review.
-description: "Developer documentation explaining the design and workflow of merge request approval rules."
 ---
 
 # Approval rules development guidelines
@@ -27,11 +26,7 @@ are added.
 ## Data Model
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
-
 erDiagram
-  accTitle: Approval rules data model
-  accDescr: Entity relationship diagram of approval rules
   Project ||--o{ MergeRequest: " "
   Project ||--o{ ApprovalProjectRule: " "
   ApprovalProjectRule }o--o{ User: " "
@@ -56,11 +51,7 @@ merge request approvals are defined here.
 ### `ApprovalState`
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
-
 erDiagram
-  accTitle: ApprovalState
-  accDescr: Entity relationship diagram between MergeRequest and ApprovalState
   MergeRequest ||--|| ApprovalState: " "
 ```
 
@@ -81,10 +72,7 @@ merge request (`ApprovalMergeRequestRule`) and wraps it as `ApprovalWrappedRule`
 ### `ApprovalProjectRule`
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 erDiagram
-  accTitle: ApprovalProjectRule diagram
-  accDescr: Entity relationship diagram between projects and ApprovalProjectRule
   Project ||--o{ ApprovalProjectRule: " "
   ApprovalProjectRule }o--o{ User: " "
   ApprovalProjectRule }o--o{ Group: " "
@@ -105,10 +93,7 @@ for more information about the feature.
 ### `ApprovalMergeRequestRule`
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 erDiagram
-  accTitle: ApprovalMergeRequestRule diagram
-  accDescr: Entity relationship diagram between MergeRequest and ApprovalMergeRequestRule
   MergeRequest ||--o{ ApprovalMergeRequestRule: " "
   ApprovalMergeRequestRule }o--o{ User: " "
   ApprovalMergeRequestRule }o--o{ Group: " "
@@ -128,10 +113,7 @@ them from the `approval_project_rule` if not overridden.
 ### `ApprovalWrappedRule`
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 erDiagram
-  accTitle: ApprovalWrappedRule diagram
-  accDescr: Entity relationship diagram between ApprovalState and ApprovalWrappedRule
   ApprovalState ||--o{ ApprovalWrappedRule: " "
 ```
 
@@ -155,10 +137,7 @@ the merge request.
 ### `Approval`
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 erDiagram
-  accTitle: Approval diagram
-  accDescr: Entity relationship diagram between MergeRequest and Approval
   MergeRequest ||--o{ Approval: " "
 ```
 
@@ -270,10 +249,7 @@ straightforward.
 ### Creating a merge request with approval rules via web UI
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph LR
-  accTitle: Merge request creation in the UI
-  accDescr: Flowchart of the creation of a merge request in the web UI, when the merge request contains approval rules
   Projects::MergeRequests::CreationsController --> MergeRequests::CreateService
   MergeRequests::CreateService --> ApprovalRules::ParamsFilteringService
   ApprovalRules::ParamsFilteringService --> MergeRequests::CreateService
@@ -293,10 +269,7 @@ and executes `MergeRequests::UpdateService` instead.
 ### Viewing the merge request approval rules on an MR page
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph LR
-  accTitle: Viewing approval rules on a merge request
-  accDescr: Flowchart of how the frontend retrieves, then displays, approval rule information on a merge request page
   API::MergeRequestApprovals --> MergeRequest
   MergeRequest --> ApprovalState
   ApprovalState --> id1{approval rules are overridden}
@@ -312,10 +285,7 @@ used to display information on the MR widget.
 ### Approving a merge request
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph LR
-  accTitle: Approval data flowchart
-  accDescr: Flowchart of how an approval call to the API reaches the database
   API::MergeRequestApprovals --> MergeRequests::ApprovalService
   MergeRequests::ApprovalService --> Approval
   Approval --> db[(Database)]

@@ -4,7 +4,6 @@ import { STATUS_CLOSED } from '~/issues/constants';
 import {
   dateInWords,
   getTimeRemainingInWords,
-  humanTimeframe,
   isInFuture,
   isInPast,
   isToday,
@@ -48,25 +47,13 @@ export default {
       return this.issue.dueDate || this.issue.widgets?.find(isStartAndDueDateWidget)?.dueDate;
     },
     dueDateText() {
-      if (this.startDate) {
-        return humanTimeframe(this.startDate, this.dueDate);
-      }
-      if (this.dueDate) {
-        return dateInWords(newDateAsLocaleTime(this.dueDate), true);
-      }
-      return null;
+      return this.dueDate && dateInWords(newDateAsLocaleTime(this.dueDate), true);
     },
     isClosed() {
       return this.issue.state === STATUS_CLOSED || this.issue.state === STATE_CLOSED;
     },
     showDueDateInRed() {
-      if (!this.dueDate) {
-        return false;
-      }
       return isInPast(newDateAsLocaleTime(this.dueDate)) && !this.isClosed;
-    },
-    startDate() {
-      return this.issue.widgets?.find(isStartAndDueDateWidget)?.startDate;
     },
     timeEstimate() {
       return this.issue.humanTimeEstimate || this.issue.timeStats?.humanTimeEstimate;
@@ -97,19 +84,23 @@ export default {
 
 <template>
   <span>
-    <span v-if="milestone" class="issuable-milestone gl-mr-3" data-testid="issuable-milestone">
+    <span
+      v-if="milestone"
+      class="issuable-milestone gl-mr-3 gl-text-truncate gl-max-w-26 gl-display-inline-block gl-vertical-align-bottom"
+      data-testid="issuable-milestone"
+    >
       <gl-link
         v-gl-tooltip
         :href="milestoneLink"
         :title="milestoneDate"
-        class="gl-text-sm !gl-text-gray-500"
+        class="gl-font-sm gl-text-gray-500!"
       >
         <gl-icon name="milestone" :size="12" />
         {{ milestone.title }}
       </gl-link>
     </span>
     <span
-      v-if="dueDateText"
+      v-if="dueDate"
       v-gl-tooltip
       class="issuable-due-date gl-mr-3"
       :class="{ 'gl-text-red-500': showDueDateInRed }"

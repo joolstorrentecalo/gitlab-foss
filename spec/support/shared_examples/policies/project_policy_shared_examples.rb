@@ -57,7 +57,7 @@ RSpec.shared_examples 'project policies as anonymous' do
     context 'when a project has pending invites' do
       let(:group) { create(:group, :public) }
       let(:project) { create(:project, :public, namespace: group) }
-      let(:user_permissions) { [:create_merge_request_in, :create_project, :create_issue, :create_note, :upload_file, :award_emoji, :create_incident, :admin_issue_link] }
+      let(:user_permissions) { [:create_merge_request_in, :create_project, :create_issue, :create_note, :upload_file, :award_emoji, :create_incident] }
       let(:anonymous_permissions) { base_guest_permissions - user_permissions }
       let(:current_user) { anonymous }
 
@@ -103,7 +103,6 @@ RSpec.shared_examples 'deploy token does not get confused with user' do
     expect_disallowed(*developer_permissions)
     expect_disallowed(*maintainer_permissions)
     expect_disallowed(*owner_permissions)
-    expect_disallowed(*admin_permissions)
   end
 end
 
@@ -323,37 +322,6 @@ RSpec.shared_examples 'project policies as owner' do
   end
 end
 
-RSpec.shared_examples 'project policies as organization owner' do
-  context 'abilities for non-public projects' do
-    let(:project) { private_project }
-    let(:current_user) { organization_owner }
-
-    it do
-      expect_allowed(*guest_permissions)
-      expect_allowed(*reporter_permissions)
-      expect_disallowed(*team_member_reporter_permissions)
-      expect_allowed(*developer_permissions)
-      expect_allowed(*maintainer_permissions)
-      expect_allowed(*owner_permissions)
-      expect_allowed(*organization_owner_permissions)
-    end
-
-    it_behaves_like 'deploy token does not get confused with user' do
-      let(:user_id) { organization_owner.id }
-    end
-
-    it_behaves_like 'archived project policies' do
-      let(:regular_abilities) { owner_permissions }
-    end
-  end
-
-  context 'abilities for all project visibility' do
-    it_behaves_like 'project private features with read_all_resources ability' do
-      let(:user) { organization_owner }
-    end
-  end
-end
-
 RSpec.shared_examples 'project policies as admin with admin mode' do
   context 'abilities for non-public projects', :enable_admin_mode do
     let(:project) { private_project }
@@ -369,8 +337,27 @@ RSpec.shared_examples 'project policies as admin with admin mode' do
       expect_allowed(*owner_permissions)
     end
 
-    it_behaves_like 'deploy token does not get confused with user' do
-      let(:user_id) { admin.id }
+    context 'deploy token does not get confused with user' do
+      before do
+        allow(deploy_token).to receive(:id).and_return(admin.id)
+
+        # Project with public builds are available to all
+        project.update!(public_builds: false)
+      end
+
+      let(:deploy_token) { create(:deploy_token) }
+
+      subject { described_class.new(deploy_token, project) }
+
+      it do
+        expect_disallowed(*guest_permissions)
+        expect_disallowed(*reporter_permissions)
+        expect_disallowed(*team_member_reporter_permissions)
+        expect_disallowed(*developer_permissions)
+        expect_disallowed(*maintainer_permissions)
+        expect_disallowed(*admin_permissions)
+        expect_disallowed(*owner_permissions)
+      end
     end
 
     it_behaves_like 'archived project policies' do

@@ -3,8 +3,7 @@
 import { GlAlert, GlButton, GlEmptyState, GlLink, GlSprintf } from '@gitlab/ui';
 import { isEmpty } from 'lodash';
 import { fetchPolicies } from '~/lib/graphql';
-import { s__, __ } from '~/locale';
-import { helpPagePath } from '~/helpers/help_page_helper';
+import { __ } from '~/locale';
 import {
   DEFAULT,
   PARSE_FAILURE,
@@ -20,17 +19,6 @@ import DagGraph from './components/dag_graph.vue';
 export default {
   // eslint-disable-next-line @gitlab/require-i18n-strings
   name: 'Dag',
-  i18n: {
-    deprecationAlert: {
-      title: s__('Pipelines|Upcoming visualization change'),
-      message: s__(
-        'Pipelines|The visualization in this tab will be %{linkStart}removed%{linkEnd}. Instead, view %{codeStart}needs%{codeEnd} relationships with the %{strongStart}Job dependency%{strongEnd} option in the %{strongStart}Pipeline%{strongEnd} tab.',
-      ),
-    },
-  },
-  deprecationInfoLink: helpPagePath('update/deprecations', {
-    anchor: 'removed-needs-tab-from-the-pipeline-view',
-  }),
   components: {
     DagAnnotations,
     DagGraph,
@@ -105,14 +93,13 @@ export default {
       failureType: null,
       graphData: null,
       showFailureAlert: false,
-      showDeprecationAlert: true,
       hasNoDependentJobs: false,
     };
   },
   errorTexts: {
     [LOAD_FAILURE]: __('We are currently unable to fetch data for this graph.'),
     [PARSE_FAILURE]: __('There was an error parsing the data for this graph.'),
-    [UNSUPPORTED_DATA]: __('Needs visualization requires at least 3 dependent jobs.'),
+    [UNSUPPORTED_DATA]: __('DAG visualization requires at least 3 dependent jobs.'),
     [DEFAULT]: __('An unknown error occurred while loading this graph.'),
   },
   emptyStateTexts: {
@@ -121,9 +108,9 @@ export default {
       'Using the %{codeStart}needs%{codeEnd} keyword makes jobs run before their stage is reached. Jobs run as soon as their %{codeStart}needs%{codeEnd} relationships are met, which speeds up your pipelines.',
     ),
     secondDescription: __(
-      "If you add %{codeStart}needs%{codeEnd} to jobs in your pipeline you'll be able to view the %{codeStart}needs%{codeEnd} dependencies between jobs in this tab.",
+      "If you add %{codeStart}needs%{codeEnd} to jobs in your pipeline you'll be able to view the %{codeStart}needs%{codeEnd} relationships between jobs in this tab as a %{linkStart}Directed Acyclic Graph (DAG)%{linkEnd}.",
     ),
-    button: __('Learn more about needs dependencies'),
+    button: __('Learn more about Needs relationships'),
   },
   computed: {
     failure() {
@@ -162,10 +149,7 @@ export default {
   },
   methods: {
     addAnnotationToMap({ uid, source, target }) {
-      this.annotationsMap = {
-        ...this.annotationsMap,
-        [uid]: { source, target },
-      };
+      this.$set(this.annotationsMap, uid, { source, target });
     },
     processGraphData(data) {
       let parsed;
@@ -191,16 +175,11 @@ export default {
 
       return parsed;
     },
-    hideDeprecationAlert() {
-      this.showDeprecationAlert = false;
-    },
-    hideFailureAlert() {
+    hideAlert() {
       this.showFailureAlert = false;
     },
     removeAnnotationFromMap({ uid }) {
-      const copy = { ...this.annotationsMap };
-      delete copy[uid];
-      this.annotationsMap = copy;
+      this.$delete(this.annotationsMap, uid);
     },
     reportFailure(type) {
       this.showFailureAlert = true;
@@ -226,37 +205,7 @@ export default {
 </script>
 <template>
   <div>
-    <gl-alert
-      v-if="showDeprecationAlert"
-      :title="$options.i18n.deprecationAlert.title"
-      variant="warning"
-      data-testid="deprecation-alert"
-      @dismiss="hideDeprecationAlert"
-    >
-      <gl-sprintf :message="$options.i18n.deprecationAlert.message">
-        <template #code="{ content }">
-          <code>{{ content }}</code>
-        </template>
-        <template #strong="{ content }">
-          <strong>{{ content }}</strong>
-        </template>
-        <template #link="{ content }">
-          <gl-link
-            :href="$options.deprecationInfoLink"
-            class="gl-inline-flex !gl-no-underline"
-            target="_blank"
-          >
-            {{ content }}
-          </gl-link>
-        </template>
-      </gl-sprintf>
-    </gl-alert>
-    <gl-alert
-      v-if="showFailureAlert"
-      :variant="failure.variant"
-      data-testid="failure-alert"
-      @dismiss="hideFailureAlert"
-    >
+    <gl-alert v-if="showFailureAlert" :variant="failure.variant" @dismiss="hideAlert">
       {{ failure.text }}
     </gl-alert>
 

@@ -36,23 +36,6 @@ export default function initReadMore(triggerSelector = '.js-read-more-trigger') 
       const readMoreHeight = Number(parentEl.dataset.readMoreHeight);
       const readMoreContent = parentEl.querySelector('.read-more-content');
 
-      // If element exists in readMoreContent expand content automatically
-      // and scroll to element
-      if (window.location.hash) {
-        const targetId = window.location.href.split('#')[1];
-        const hashTargetEl = readMoreContent.querySelector(`#user-content-${targetId}`);
-
-        if (hashTargetEl) {
-          targetEl.classList.add('is-expanded');
-          triggerEl.remove();
-          window.addEventListener('load', () => {
-            // Trigger scrollTo event
-            hashTargetEl.click();
-          });
-          return;
-        }
-      }
-
       if (readMoreContent) {
         parentEl.style.setProperty('--read-more-height', `${readMoreHeight}px`);
       }
@@ -63,7 +46,7 @@ export default function initReadMore(triggerSelector = '.js-read-more-trigger') 
         return;
       }
 
-      triggerEl.classList.remove('gl-hidden');
+      triggerEl.classList.remove('gl-display-none');
     }
 
     triggerEl.addEventListener(

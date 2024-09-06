@@ -10,14 +10,21 @@ RSpec.describe Packages::Protection::CreateRuleService, '#execute', feature_cate
   let(:current_user) { maintainer }
   let(:params) { attributes_for(:package_protection_rule) }
 
-  subject(:service_execute) { service.execute }
+  subject { service.execute }
 
-  shared_examples 'a successful service response with side effect' do
+  shared_examples 'a successful service response' do
     let(:package_protection_rule_count_expected) { 1 }
+    it { is_expected.to be_success }
 
-    it_behaves_like 'returning a success service response' do
-      it { is_expected.to have_attributes(payload: { package_protection_rule: be_a(Packages::Protection::Rule) }) }
+    it do
+      is_expected.to have_attributes(
+        payload: include(
+          package_protection_rule: be_a(Packages::Protection::Rule)
+        )
+      )
     end
+
+    it { expect(subject.payload).to include(package_protection_rule: be_a(Packages::Protection::Rule)) }
 
     it do
       expect { subject }.to change { Packages::Protection::Rule.count }.by(1)
@@ -28,12 +35,10 @@ RSpec.describe Packages::Protection::CreateRuleService, '#execute', feature_cate
     end
   end
 
-  shared_examples 'an erroneous service response with side effect' do |message: nil|
+  shared_examples 'an erroneous service response' do
     let(:package_protection_rule_count_expected) { 0 }
-
-    it_behaves_like 'returning an error service response', message: message do
-      it { is_expected.to have_attributes(payload: include(package_protection_rule: nil)) }
-    end
+    it { is_expected.to be_error }
+    it { is_expected.to have_attributes(payload: include(package_protection_rule: nil)) }
 
     it do
       expect { subject }.to change { Packages::Protection::Rule.count }.by(0)
@@ -46,7 +51,7 @@ RSpec.describe Packages::Protection::CreateRuleService, '#execute', feature_cate
 
   context 'without existing PackageProtectionRules' do
     context 'when fields are valid' do
-      it_behaves_like 'a successful service response with side effect'
+      it_behaves_like 'a successful service response'
     end
 
     context 'when fields are invalid' do
@@ -54,12 +59,11 @@ RSpec.describe Packages::Protection::CreateRuleService, '#execute', feature_cate
         {
           package_name_pattern: '',
           package_type: 'unknown_package_type',
-          minimum_access_level_for_push: 1000
+          push_protected_up_to_access_level: 1000
         }
       end
 
-      it_behaves_like 'an erroneous service response with side effect',
-        message: "'unknown_package_type' is not a valid package_type"
+      it_behaves_like 'an erroneous service response'
     end
   end
 
@@ -73,11 +77,11 @@ RSpec.describe Packages::Protection::CreateRuleService, '#execute', feature_cate
           # The field `package_name_pattern` is unique; this is why we change the value in a minimum way
           package_name_pattern: "#{existing_package_protection_rule.package_name_pattern}-unique",
           package_type: existing_package_protection_rule.package_type,
-          minimum_access_level_for_push: existing_package_protection_rule.minimum_access_level_for_push
+          push_protected_up_to_access_level: existing_package_protection_rule.push_protected_up_to_access_level
         )
       end
 
-      it_behaves_like 'a successful service response with side effect' do
+      it_behaves_like 'a successful service response' do
         let(:package_protection_rule_count_expected) { 2 }
       end
     end
@@ -88,14 +92,14 @@ RSpec.describe Packages::Protection::CreateRuleService, '#execute', feature_cate
           :package_protection_rule,
           package_name_pattern: existing_package_protection_rule.package_name_pattern,
           package_type: existing_package_protection_rule.package_type,
-          minimum_access_level_for_push: existing_package_protection_rule.minimum_access_level_for_push
+          push_protected_up_to_access_level: existing_package_protection_rule.push_protected_up_to_access_level
         )
       end
 
       it { is_expected.to be_error }
 
       it do
-        expect { service_execute }.to change { Packages::Protection::Rule.count }.by(0)
+        expect { subject }.to change { Packages::Protection::Rule.count }.by(0)
 
         expect(Packages::Protection::Rule.where(project: project).count).to eq 1
         expect(
@@ -117,7 +121,7 @@ RSpec.describe Packages::Protection::CreateRuleService, '#execute', feature_cate
         )
     end
 
-    it_behaves_like 'a successful service response with side effect'
+    it_behaves_like 'a successful service response'
   end
 
   context 'with forbidden user access level (project developer role)' do
@@ -128,7 +132,8 @@ RSpec.describe Packages::Protection::CreateRuleService, '#execute', feature_cate
 
     let(:current_user) { developer }
 
-    it_behaves_like 'an erroneous service response with side effect',
-      message: 'Unauthorized to create a package protection rule'
+    it_behaves_like 'an erroneous service response'
+
+    it { is_expected.to have_attributes(message: match(/Unauthorized/)) }
   end
 end

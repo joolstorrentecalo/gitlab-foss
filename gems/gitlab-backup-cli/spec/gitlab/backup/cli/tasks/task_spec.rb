@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'spec_helper'
+
 RSpec.describe Gitlab::Backup::Cli::Tasks::Task do
   let(:options) { nil }
   let(:context) { build_fake_context }
@@ -50,16 +52,6 @@ RSpec.describe Gitlab::Backup::Cli::Tasks::Task do
       expect(task).to receive_message_chain(:target, :dump)
 
       task.backup!(tmpdir, metadata.backup_id)
-    end
-  end
-
-  describe '#restore!' do
-    it 'delegates to target' do
-      archive_directory = context.backup_basedir.join("this-is-a-fake-archive")
-      expect(task).to receive(:destination_path).and_return(tmpdir.join('test_task'))
-      expect(task).to receive_message_chain(:target, :restore)
-
-      task.restore!(archive_directory)
     end
   end
 end

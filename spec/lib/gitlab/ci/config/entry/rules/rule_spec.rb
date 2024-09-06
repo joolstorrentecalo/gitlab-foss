@@ -175,24 +175,6 @@ RSpec.describe Gitlab::Ci::Config::Entry::Rules::Rule, feature_category: :pipeli
 
           it { is_expected.to be_valid }
         end
-
-        context 'when array contains integers' do
-          let(:config) { { exists: [1, 2, 3] } }
-
-          it 'returns an error' do
-            is_expected.not_to be_valid
-            expect(entry.errors).to include(/should be an array of strings/)
-          end
-        end
-
-        context 'when array has more items than MAX_PATHS' do
-          let(:config) { { exists: ['app/*'] * 51 } }
-
-          it 'returns an error' do
-            is_expected.not_to be_valid
-            expect(entry.errors).to include(/has too many entries \(maximum 50\)/)
-          end
-        end
       end
 
       context 'with a hash' do
@@ -217,6 +199,87 @@ RSpec.describe Gitlab::Ci::Config::Entry::Rules::Rule, feature_category: :pipeli
             let(:config) { { exists: { paths: ['this.md'], project: 'path/to/project', ref: 'refs/heads/branch1' } } }
 
             it { is_expected.to be_valid }
+          end
+        end
+      end
+
+      context 'when FF `ci_support_rules_exists_paths_and_project` is disabled' do
+        let(:new_factory) do
+          Gitlab::Config::Entry::Factory.new(described_class).metadata(metadata).value(config)
+        end
+
+        subject(:new_entry) { new_factory.create! }
+
+        before do
+          stub_feature_flags(ci_support_rules_exists_paths_and_project: false)
+          new_entry.compose!
+        end
+
+        context 'when using a exists: clause' do
+          let(:config) { { exists: %w[app/ lib/ spec/ other/* paths/**/*.rb] } }
+
+          it { is_expected.to be_valid }
+        end
+
+        context 'when using a string as an invalid exists: clause' do
+          let(:config) { { exists: 'a regular string' } }
+
+          it { is_expected.not_to be_valid }
+
+          it 'reports an error about invalid policy' do
+            expect(subject.errors).to include(/should be an array of strings/)
+          end
+        end
+
+        context 'when using a hash as an invalid exists: clause' do
+          let(:config) { { exists: { paths: ['abc.md'] } } }
+
+          it { is_expected.not_to be_valid }
+
+          it 'reports an error about invalid policy' do
+            expect(subject.errors).to include(/should be an array of strings/)
+          end
+        end
+
+        context 'when using a list as an invalid exists: clause' do
+          let(:config) { { exists: [1, 2] } }
+
+          it { is_expected.not_to be_valid }
+
+          it 'returns errors' do
+            expect(subject.errors).to include(/exists should be an array of strings/)
+          end
+        end
+
+        context 'when using a long list as an invalid exists: clause' do
+          let(:config) { { exists: ['app/'] * 51 } }
+
+          it { is_expected.not_to be_valid }
+
+          it 'returns errors' do
+            expect(subject.errors).to include(/exists is too long \(maximum is 50 characters\)/)
+          end
+        end
+
+        context 'when exists: clause is nil' do
+          let(:config) { { exists: nil } }
+
+          it { is_expected.to be_valid }
+        end
+
+        context 'when exists: clause is an empty array' do
+          let(:config) { { exists: [] } }
+
+          it { is_expected.to be_valid }
+        end
+
+        context 'when exists: clause is an empty hash' do
+          let(:config) { { exists: {} } }
+
+          it { is_expected.not_to be_valid }
+
+          it 'reports an error about invalid policy' do
+            expect(subject.errors).to include(/should be an array of strings/)
           end
         end
       end
@@ -550,6 +613,30 @@ RSpec.describe Gitlab::Ci::Config::Entry::Rules::Rule, feature_category: :pipeli
 
             it { is_expected.to eq(config) }
           end
+        end
+      end
+
+      context 'when FF `ci_support_rules_exists_paths_and_project` is disabled' do
+        before do
+          stub_feature_flags(ci_support_rules_exists_paths_and_project: false)
+        end
+
+        context 'when using a exists: clause' do
+          let(:config) { { exists: %w[app/ lib/ spec/ other/* paths/**/*.rb] } }
+
+          it { is_expected.to eq(config) }
+        end
+
+        context 'when exists: clause is nil' do
+          let(:config) { { exists: nil } }
+
+          it { is_expected.to eq({}) }
+        end
+
+        context 'when exists: clause is an empty array' do
+          let(:config) { { exists: [] } }
+
+          it { is_expected.to eq(config) }
         end
       end
     end

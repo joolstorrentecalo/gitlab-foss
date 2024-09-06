@@ -19,7 +19,7 @@ class Group < Namespace
   include BulkUsersByEmailLoad
   include ChronicDurationAttribute
   include RunnerTokenExpirationInterval
-  include Importable
+  include Todoable
 
   extend ::Gitlab::Utils::Override
 
@@ -107,7 +107,7 @@ class Group < Namespace
 
   has_many :todos
 
-  has_many :import_export_uploads, dependent: :destroy, inverse_of: :group # rubocop:disable Cop/ActiveRecordDependent -- Previously was has_one association, dependent: :destroy to be removed in a separate issue and cascade FK will be added
+  has_one :import_export_upload
 
   has_many :import_failures, inverse_of: :group
 
@@ -138,7 +138,7 @@ class Group < Namespace
 
   has_one :group_feature, inverse_of: :group, class_name: 'Groups::FeatureSetting'
 
-  delegate :prevent_sharing_groups_outside_hierarchy, :new_user_signups_cap, :setup_for_company, :jobs_to_be_done, :seat_control, to: :namespace_settings
+  delegate :prevent_sharing_groups_outside_hierarchy, :new_user_signups_cap, :setup_for_company, :jobs_to_be_done, to: :namespace_settings
   delegate :runner_token_expiration_interval, :runner_token_expiration_interval=, :runner_token_expiration_interval_human_readable, :runner_token_expiration_interval_human_readable=, to: :namespace_settings, allow_nil: true
   delegate :subgroup_runner_token_expiration_interval, :subgroup_runner_token_expiration_interval=, :subgroup_runner_token_expiration_interval_human_readable, :subgroup_runner_token_expiration_interval_human_readable=, to: :namespace_settings, allow_nil: true
   delegate :project_runner_token_expiration_interval, :project_runner_token_expiration_interval=, :project_runner_token_expiration_interval_human_readable, :project_runner_token_expiration_interval_human_readable=, to: :namespace_settings, allow_nil: true
@@ -187,7 +187,7 @@ class Group < Namespace
 
   scope :by_id, ->(groups) { where(id: groups) }
 
-  scope :by_ids_or_paths, ->(ids, paths) do
+  scope :by_ids_or_paths, -> (ids, paths) do
     return by_id(ids) unless paths.present?
 
     ids_by_full_path = Route
@@ -205,40 +205,26 @@ class Group < Namespace
     where(visibility_level: Gitlab::VisibilityLevel.level_value(visibility)) if visibility.present?
   end
 
-  scope :for_authorized_group_members, ->(user_ids) do
+  scope :for_authorized_group_members, -> (user_ids) do
     joins(:group_members)
       .where(members: { user_id: user_ids })
       .where("access_level >= ?", Gitlab::Access::GUEST)
   end
 
-  scope :for_authorized_project_members, ->(user_ids) do
+  scope :for_authorized_project_members, -> (user_ids) do
     joins(projects: :project_authorizations)
       .where(project_authorizations: { user_id: user_ids })
   end
 
-  scope :with_project_creation_levels, ->(project_creation_levels) do
+  scope :with_project_creation_levels, -> (project_creation_levels) do
     where(project_creation_level: project_creation_levels)
   end
 
-  scope :excluding_restricted_visibility_levels_for_user, ->(user) do
-    return all if user.can_admin_all_resources?
-
-    levels = Array.wrap(Gitlab::CurrentSettings.restricted_visibility_levels).sort
-
-    case levels
-    when [Gitlab::VisibilityLevel::PRIVATE, Gitlab::VisibilityLevel::PUBLIC],
-         [Gitlab::VisibilityLevel::PRIVATE]
-      where.not(visibility_level: Gitlab::VisibilityLevel::PRIVATE)
-    when [Gitlab::VisibilityLevel::PRIVATE, Gitlab::VisibilityLevel::INTERNAL]
-      where.not(visibility_level: [Gitlab::VisibilityLevel::PRIVATE, Gitlab::VisibilityLevel::INTERNAL])
-    when Gitlab::VisibilityLevel.values
-      none
-    else
-      all
-    end
+  scope :excluding_restricted_visibility_levels_for_user, -> (user) do
+    user.can_admin_all_resources? ? all : where.not(visibility_level: Gitlab::CurrentSettings.restricted_visibility_levels)
   end
 
-  scope :project_creation_allowed, ->(user) do
+  scope :project_creation_allowed, -> (user) do
     project_creation_allowed_on_levels = [
       ::Gitlab::Access::DEVELOPER_MAINTAINER_PROJECT_ACCESS,
       ::Gitlab::Access::MAINTAINER_PROJECT_ACCESS,
@@ -257,7 +243,7 @@ class Group < Namespace
     with_project_creation_levels(project_creation_allowed_on_levels).excluding_restricted_visibility_levels_for_user(user)
   end
 
-  scope :shared_into_ancestors, ->(group) do
+  scope :shared_into_ancestors, -> (group) do
     joins(:shared_group_links)
       .where(group_group_links: { shared_group_id: group.self_and_ancestors })
   end
@@ -265,7 +251,7 @@ class Group < Namespace
   # Returns all groups that are shared with the given group (see :shared_with_group)
   # and all descendents of the given group
   # returns none if the given group is nil
-  scope :descendants_with_shared_with_groups, ->(group) do
+  scope :descendants_with_shared_with_groups, -> (group) do
     return none if group.nil?
 
     descendants_query = group.descendants.select(:id)
@@ -289,7 +275,7 @@ class Group < Namespace
   #
   # It's a replacement for `public_or_visible_to_user` that correctly
   # supports subgroup permissions
-  scope :accessible_to_user, ->(user) do
+  scope :accessible_to_user, -> (user) do
     if user
       Preloaders::GroupPolicyPreloader.new(self, user).execute
 
@@ -301,8 +287,7 @@ class Group < Namespace
 
   scope :order_path_asc, -> { reorder(self.arel_table['path'].asc) }
   scope :order_path_desc, -> { reorder(self.arel_table['path'].desc) }
-  scope :in_organization, ->(organization) { where(organization: organization) }
-  scope :by_min_access_level, ->(user, access_level) { joins(:group_members).where(members: { user: user }).where('members.access_level >= ?', access_level) }
+  scope :in_organization, -> (organization) { where(organization: organization) }
 
   class << self
     def sort_by_attribute(method)
@@ -456,6 +441,10 @@ class Group < Namespace
     # Finds the closest notification_setting with a `notification_email`
     notification_settings = notification_settings_for(user, hierarchy_order: :asc)
     notification_settings.find { |n| n.notification_email.present? }&.notification_email
+  end
+
+  def web_url(only_path: nil)
+    Gitlab::UrlBuilder.build(self, only_path: only_path)
   end
 
   def dependency_proxy_image_prefix
@@ -739,7 +728,7 @@ class Group < Namespace
 
     unless only_concrete_membership
       return GroupMember::OWNER if user.can_admin_all_resources?
-      return GroupMember::OWNER if user.can_admin_organization?(organization)
+      return GroupMember::OWNER if user.can_admin_organization?(organization_id)
     end
 
     max_member_access(user)
@@ -777,8 +766,8 @@ class Group < Namespace
 
   def related_group_ids
     [id,
-      *ancestors.pluck(:id),
-      *shared_with_group_links.pluck(:shared_with_group_id)]
+     *ancestors.pluck(:id),
+     *shared_with_group_links.pluck(:shared_with_group_id)]
   end
 
   def hashed_storage?(_feature)
@@ -818,20 +807,16 @@ class Group < Namespace
     false
   end
 
-  def import_export_upload_by_user(user)
-    import_export_uploads.find_by(user_id: user.id)
+  def export_file_exists?
+    import_export_upload&.export_file_exists?
   end
 
-  def export_file_exists?(user)
-    import_export_upload_by_user(user)&.export_file_exists?
+  def export_file
+    import_export_upload&.export_file
   end
 
-  def export_file(user)
-    import_export_upload_by_user(user)&.export_file
-  end
-
-  def export_archive_exists?(user)
-    import_export_upload_by_user(user)&.export_archive_exists?
+  def export_archive_exists?
+    import_export_upload&.export_archive_exists?
   end
 
   def adjourned_deletion?
@@ -941,21 +926,16 @@ class Group < Namespace
     feature_flag_enabled_for_self_or_ancestor?(:work_items_beta, type: :beta)
   end
 
-  def work_items_alpha_feature_flag_enabled?
-    feature_flag_enabled_for_self_or_ancestor?(:work_items_alpha)
+  def work_items_mvc_2_feature_flag_enabled?
+    feature_flag_enabled_for_self_or_ancestor?(:work_items_mvc_2)
   end
 
-  def glql_integration_feature_flag_enabled?
-    feature_flag_enabled_for_self_or_ancestor?(:glql_integration)
+  def linked_work_items_feature_flag_enabled?
+    feature_flag_enabled_for_self_or_ancestor?(:linked_work_items)
   end
 
-  # Note: this method is overridden in EE to check the work_item_epics feature flag  which also enables this feature
-  def namespace_work_items_enabled?(_user = nil)
-    ::Feature.enabled?(:namespace_level_work_items, self, type: :development)
-  end
-
-  def create_group_level_work_items_feature_flag_enabled?
-    ::Feature.enabled?(:create_group_level_work_items, self, type: :wip)
+  def work_items_rolledup_dates_feature_flag_enabled?
+    feature_flag_enabled_for_self_or_ancestor?(:work_items_rolledup_dates)
   end
 
   def supports_lock_on_merge?
@@ -963,7 +943,7 @@ class Group < Namespace
   end
 
   def usage_quotas_enabled?
-    root?
+    ::Feature.enabled?(:usage_quotas_for_all_editions, self) && root?
   end
 
   def supports_saved_replies?
@@ -974,9 +954,6 @@ class Group < Namespace
   # NOTE: We still want to keep this after removing `Namespace#feature_available?`.
   override :feature_available?
   def feature_available?(feature, user = nil)
-    # when we check the :issues feature at group level we need to check the `epics` license feature instead
-    feature = feature == :issues ? :epics : feature
-
     if ::Groups::FeatureSetting.available_features.include?(feature)
       group_feature.feature_available?(feature, user) # rubocop:disable Gitlab/FeatureAvailableUsage
     else
@@ -992,10 +969,6 @@ class Group < Namespace
 
   def packages_policy_subject
     ::Packages::Policies::Group.new(self)
-  end
-
-  def dependency_proxy_for_containers_policy_subject
-    ::Packages::Policies::DependencyProxy::Group.new(self)
   end
 
   def update_two_factor_requirement_for_members

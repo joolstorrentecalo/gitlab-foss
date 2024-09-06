@@ -213,10 +213,7 @@ let shouldExcludeFromCompliling = (modulePath) =>
 // between Vue.js 2 and Vue.js 3 while using built gitlab-ui by default
 if (EXPLICIT_VUE_VERSION) {
   Object.assign(alias, {
-    '@gitlab/ui/src/tokens/build/js': path.join(
-      ROOT_PATH,
-      'node_modules/@gitlab/ui/src/tokens/build/js',
-    ),
+    '@gitlab/ui/dist/tokens/js': path.join(ROOT_PATH, 'node_modules/@gitlab/ui/dist/tokens/js'),
     '@gitlab/ui/dist': '@gitlab/ui/src',
     '@gitlab/ui': '@gitlab/ui/src',
   });
@@ -248,11 +245,6 @@ const entriesState = {
 const defaultEntries = ['./main'];
 
 module.exports = {
-  /*
-    If there is a compilation error in production, we want to exit immediately
-    https://v4.webpack.js.org/configuration/other-options/#bail
-   */
-  bail: !IS_DEV_SERVER,
   mode: IS_PRODUCTION ? 'production' : 'development',
 
   context: path.join(ROOT_PATH, 'app/assets/javascripts'),
@@ -269,8 +261,9 @@ module.exports = {
      */
     return {
       default: defaultEntries,
+      legacy_sentry: './sentry/legacy_index.js',
       sentry: './sentry/index.js',
-      performance_bar: './entrypoints/performance_bar.js',
+      performance_bar: './performance_bar/index.js',
       jira_connect_app: './jira_connect/subscriptions/index.js',
       sandboxed_mermaid: './lib/mermaid.js',
       redirect_listbox: './entrypoints/behaviors/redirect_listbox.js',
@@ -302,30 +295,8 @@ module.exports = {
     rules: [
       {
         type: 'javascript/auto',
-        exclude: /pdfjs-dist/,
         test: /\.mjs$/,
         use: [],
-      },
-      {
-        test: /(pdfjs).*\.js?$/,
-        include: /node_modules/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: {
-              plugins: [
-                '@babel/plugin-transform-optional-chaining',
-                '@babel/plugin-transform-logical-assignment-operators',
-              ],
-              ...defaultJsOptions,
-            },
-          },
-        ],
-      },
-      {
-        test: /(@gitlab\/web-ide).*\.js?$/,
-        include: /node_modules/,
-        loader: 'babel-loader',
       },
       {
         test: /(@cubejs-client\/(vue|core)).*\.(js)?$/,

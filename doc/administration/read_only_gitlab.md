@@ -11,7 +11,8 @@ DETAILS:
 **Offering:** Self-managed
 
 NOTE:
-The recommended method to place GitLab in a read-only state is to enable
+In GitLab 13.9 and later, the recommended method to
+place GitLab in a read-only state is to enable
 [maintenance mode](../administration/maintenance_mode/index.md).
 
 In some cases, you might want to place GitLab under a read-only state.
@@ -40,22 +41,7 @@ made to your repositories. There's two ways you can accomplish that:
   Project.all.find_each { |project| project.update!(repository_read_only: true) }
   ```
 
-  To set only a subset of repositories to read-only, run the following:
-
-  ```ruby
-  # List of project IDs of projects to set to read-only.
-  projects = [1,2,3]
-
-  projects.each do |p|
-   project =  Project.find p
-   project.update!(repository_read_only: true)
-   rescue ActiveRecord::RecordNotFound
-   puts "Project ID #{p} not found"
-
-  end
-  ```
-
-  When you're ready to revert this, change `repository_read_only` to `false` on the projects. For example, run the following:
+  When you're ready to revert this, you can do so with the following command:
 
   ```ruby
   Project.all.find_each { |project| project.update!(repository_read_only: false) }

@@ -26,8 +26,6 @@ A deploy token is a pair of values:
   `gitlab+deploy-token-{n}`. You can specify a custom username when you create the deploy token.
 - **token**: `password` in the HTTP authentication framework.
 
-Deploy tokens do not support [SSH authentication](../../ssh.md).
-
 You can use a deploy token for [HTTP authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication)
 to the following endpoints:
 
@@ -70,10 +68,10 @@ use in a CI/CD pipeline:
 - `CI_DEPLOY_USER`: Username
 - `CI_DEPLOY_PASSWORD`: Token
 
-For example, to use a GitLab token to sign in to your GitLab container registry:
+For example, to use a GitLab token to log in to your GitLab container registry:
 
 ```shell
-echo "$CI_DEPLOY_PASSWORD" | docker login $CI_REGISTRY -u $CI_DEPLOY_USER --password-stdin
+docker login $CI_REGISTRY -u $CI_DEPLOY_USER --password-stdin <<<$CI_DEPLOY_PASSWORD
 ```
 
 NOTE:
@@ -99,7 +97,7 @@ jobs.
 ### GitLab public API
 
 Deploy tokens can't be used with the GitLab public API. However, you can use deploy tokens with some
-endpoints, such as those from the package registry. You can tell an endpoint belongs to the package registry because the URL has the string `packages/<format>`. For example: `https://gitlab.example.com/api/v4/projects/24/packages/generic/my_package/0.0.1/file.txt`. For more information, see
+endpoints, such as those from the package registry. For more information, see
 [Authenticate with the registry](../../packages/package_registry/index.md#authenticate-with-the-registry).
 
 ## Create a deploy token
@@ -162,7 +160,7 @@ Prerequisites:
 Example of using a deploy token to pull images from a container registry:
 
 ```shell
-echo "$DEPLOY_TOKEN" | docker login -u <username> --password-stdin registry.example.com
+docker login -u <username> -p <deploy_token> registry.example.com
 docker pull $CONTAINER_TEST_IMAGE
 ```
 
@@ -177,11 +175,13 @@ Prerequisites:
 Example of using a deploy token to push an image to a container registry:
 
 ```shell
-echo "$DEPLOY_TOKEN" | docker login -u <username> --password-stdin registry.example.com
+docker login -u <username> -p <deploy_token> registry.example.com
 docker push $CONTAINER_TEST_IMAGE
 ```
 
 ## Pull packages from a package registry
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/213566) in GitLab 13.0.
 
 You can use a deploy token to pull packages from a package registry.
 
@@ -201,6 +201,8 @@ nuget install mypkg.nupkg
 
 ## Push packages to a package registry
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/213566) in GitLab 13.0.
+
 You can use a deploy token to push packages to a GitLab package registry.
 
 Prerequisites:
@@ -218,6 +220,8 @@ nuget push mypkg.nupkg -Source GitLab
 ```
 
 ## Pull images from the dependency proxy
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/280586) in GitLab 14.2.
 
 You can use a deploy token to pull images from the dependency proxy.
 

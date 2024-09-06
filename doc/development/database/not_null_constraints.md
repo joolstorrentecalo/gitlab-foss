@@ -6,6 +6,8 @@ info: Any user with at least the Maintainer role can merge updates to this conte
 
 # `NOT NULL` constraints
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/38358) in GitLab 13.0.
+
 All attributes that should not have `NULL` as a value, should be defined as `NOT NULL`
 columns in the database.
 
@@ -35,7 +37,7 @@ end
 
 ## Add a `NOT NULL` column to an existing table
 
-With PostgreSQL 11 being the minimum version in GitLab, adding columns with `NULL` and/or
+With PostgreSQL 11 being the minimum version in GitLab 13.0 and later, adding columns with `NULL` and/or
 default values has become much easier and the standard `add_column` helper should be used in all cases.
 
 For example, consider a migration that adds a new `NOT NULL` column `active` to table `db_guides`,
@@ -317,28 +319,6 @@ scheduled after the background migration has completed, which could be several r
        end
      end
      ```
-
-   - **Optional.** For partitioned table, use:
-
-     ```ruby
-     # db/post_migrate/
-
-     PARTITIONED_TABLE_NAME = :p_ci_builds
-     CONSTRAINT_NAME = 'check_9aa9432137'
-
-     # Partitioned check constraint to be validated in https://gitlab.com/gitlab-org/gitlab/-/issues/XXXXX
-     def up
-       prepare_partitioned_async_check_constraint_validation PARTITIONED_TABLE_NAME, name: CONSTRAINT_NAME
-     end
-
-     def down
-       unprepare_partitioned_async_check_constraint_validation PARTITIONED_TABLE_NAME, name: CONSTRAINT_NAME
-     end
-     ```
-
-     NOTE:
-     `prepare_partitioned_async_check_constraint_validation` only validates the existing `NOT VALID` check constraint asynchronously for all the partitions.
-     It doesn't create or validate the check constraint for the partitioned table.
 
 1. **Optional.** If the constraint was validated asynchronously, validate the `NOT NULL` constraint once validation is complete:
 

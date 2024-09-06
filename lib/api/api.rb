@@ -13,7 +13,7 @@ module API
     USER_REQUIREMENTS = { user_id: NO_SLASH_URL_PART_REGEX }.freeze
     LOG_FILTERS = ::Rails.application.config.filter_parameters + [/^output$/]
     LOG_FORMATTER = Gitlab::GrapeLogging::Formatters::LogrageWithTimestamp.new
-    LOGGER = Logger.new(LOG_FILENAME, level: ::Gitlab::Utils.to_rails_log_level(ENV["GITLAB_LOG_LEVEL"], :info))
+    LOGGER = Logger.new(LOG_FILENAME)
 
     class MovedPermanentlyError < StandardError
       MSG_PREFIX = 'This resource has been moved permanently to'
@@ -28,27 +28,27 @@ module API
     end
 
     insert_before Grape::Middleware::Error,
-      GrapeLogging::Middleware::RequestLogger,
-      logger: LOGGER,
-      formatter: LOG_FORMATTER,
-      include: [
-        Gitlab::GrapeLogging::Loggers::FilterParameters.new(LOG_FILTERS),
-        Gitlab::GrapeLogging::Loggers::ClientEnvLogger.new,
-        Gitlab::GrapeLogging::Loggers::RouteLogger.new,
-        Gitlab::GrapeLogging::Loggers::UserLogger.new,
-        Gitlab::GrapeLogging::Loggers::TokenLogger.new,
-        Gitlab::GrapeLogging::Loggers::ExceptionLogger.new,
-        Gitlab::GrapeLogging::Loggers::QueueDurationLogger.new,
-        Gitlab::GrapeLogging::Loggers::PerfLogger.new,
-        Gitlab::GrapeLogging::Loggers::CorrelationIdLogger.new,
-        Gitlab::GrapeLogging::Loggers::ContextLogger.new,
-        Gitlab::GrapeLogging::Loggers::ContentLogger.new,
-        Gitlab::GrapeLogging::Loggers::UrgencyLogger.new,
-        Gitlab::GrapeLogging::Loggers::ResponseLogger.new
-      ]
+                  GrapeLogging::Middleware::RequestLogger,
+                  logger: LOGGER,
+                  formatter: LOG_FORMATTER,
+                  include: [
+                    Gitlab::GrapeLogging::Loggers::FilterParameters.new(LOG_FILTERS),
+                    Gitlab::GrapeLogging::Loggers::ClientEnvLogger.new,
+                    Gitlab::GrapeLogging::Loggers::RouteLogger.new,
+                    Gitlab::GrapeLogging::Loggers::UserLogger.new,
+                    Gitlab::GrapeLogging::Loggers::TokenLogger.new,
+                    Gitlab::GrapeLogging::Loggers::ExceptionLogger.new,
+                    Gitlab::GrapeLogging::Loggers::QueueDurationLogger.new,
+                    Gitlab::GrapeLogging::Loggers::PerfLogger.new,
+                    Gitlab::GrapeLogging::Loggers::CorrelationIdLogger.new,
+                    Gitlab::GrapeLogging::Loggers::ContextLogger.new,
+                    Gitlab::GrapeLogging::Loggers::ContentLogger.new,
+                    Gitlab::GrapeLogging::Loggers::UrgencyLogger.new,
+                    Gitlab::GrapeLogging::Loggers::ResponseLogger.new
+                  ]
 
     allow_access_with_scope :api
-    allow_access_with_scope :read_api, if: ->(request) { request.get? || request.head? }
+    allow_access_with_scope :read_api, if: -> (request) { request.get? || request.head? }
     prefix :api
 
     version 'v3', using: :path do
@@ -86,18 +86,8 @@ module API
         runner: -> { @current_runner || @runner },
         remote_ip: request.ip,
         caller_id: api_endpoint.endpoint_id,
-        feature_category: feature_category,
-        **http_router_rule_context
+        feature_category: feature_category
       )
-
-      increment_http_router_metrics
-    end
-
-    before do
-      ::Current.organization = Gitlab::Current::Organization.new(
-        params: {},
-        user: @current_user
-      ).organization
     end
 
     before do
@@ -203,8 +193,6 @@ module API
     helpers ::API::Helpers::CommonHelpers
     helpers ::API::Helpers::PerformanceBarHelpers
     helpers ::API::Helpers::RateLimiter
-    helpers Gitlab::HttpRouter::RuleContext
-    helpers Gitlab::HttpRouter::RuleMetrics
 
     namespace do
       after do
@@ -245,8 +233,8 @@ module API
         mount ::API::Commits
         mount ::API::CommitStatuses
         mount ::API::ComposerPackages
-        mount ::API::Conan::V1::InstancePackages
-        mount ::API::Conan::V1::ProjectPackages
+        mount ::API::ConanInstancePackages
+        mount ::API::ConanProjectPackages
         mount ::API::ContainerRegistryEvent
         mount ::API::ContainerRepositories
         mount ::API::DebianGroupPackages
@@ -277,7 +265,6 @@ module API
         mount ::API::GroupPackages
         mount ::API::GroupVariables
         mount ::API::HelmPackages
-        mount ::API::ImportBitbucket
         mount ::API::ImportBitbucketServer
         mount ::API::ImportGithub
         mount ::API::Integrations
@@ -290,13 +277,14 @@ module API
         mount ::API::Keys
         mount ::API::Lint
         mount ::API::Markdown
-        mount ::API::MarkdownUploads
         mount ::API::MavenPackages
         mount ::API::Members
         mount ::API::MergeRequestApprovals
         mount ::API::MergeRequests
         mount ::API::MergeRequestDiffs
         mount ::API::Metadata
+        mount ::API::Metrics::Dashboard::Annotations
+        mount ::API::Metrics::UserStarredDashboards
         mount ::API::MlModelPackages
         mount ::API::Namespaces
         mount ::API::NpmGroupPackages
@@ -313,7 +301,6 @@ module API
         mount ::API::ProjectAvatar
         mount ::API::ProjectClusters
         mount ::API::ProjectContainerRepositories
-        mount ::API::ProjectContainerRegistryProtectionRules
         mount ::API::ProjectDebianDistributions
         mount ::API::ProjectEvents
         mount ::API::ProjectExport
@@ -321,10 +308,9 @@ module API
         mount ::API::ProjectImport
         mount ::API::ProjectJobTokenScope
         mount ::API::ProjectPackages
-        mount ::API::ProjectPackagesProtectionRules
         mount ::API::ProjectRepositoryStorageMoves
-        mount ::API::ProjectSnapshots
         mount ::API::ProjectSnippets
+        mount ::API::ProjectSnapshots
         mount ::API::ProjectStatistics
         mount ::API::ProjectTemplates
         mount ::API::Projects
@@ -358,8 +344,6 @@ module API
         mount ::API::Users
         mount ::API::UserCounts
         mount ::API::UserRunners
-        mount ::API::VirtualRegistries::Packages::Maven
-        mount ::API::WebCommits
         mount ::API::Wikis
 
         add_open_api_documentation!
@@ -398,9 +382,7 @@ module API
       mount ::API::Ml::Mlflow::Entrypoint
     end
 
-    mount ::API::Internal::AutoFlow
     mount ::API::Internal::Base
-    mount ::API::Internal::Coverage if Gitlab::Utils.to_boolean(ENV['COVERBAND_ENABLED'], default: false)
     mount ::API::Internal::Lfs
     mount ::API::Internal::Pages
     mount ::API::Internal::Kubernetes

@@ -339,7 +339,7 @@ RSpec.describe 'GraphQL', feature_category: :shared do
         let(:query) { 'query { currentUser { id, username } }' }
 
         describe 'with git-lfs token' do
-          let(:lfs_token) { Gitlab::LfsToken.new(user, nil).token }
+          let(:lfs_token) { Gitlab::LfsToken.new(user).token }
           let(:header_token) { Base64.encode64("#{user.username}:#{lfs_token}") }
           let(:headers) do
             { 'Authorization' => "Basic #{header_token}" }
@@ -416,6 +416,7 @@ RSpec.describe 'GraphQL', feature_category: :shared do
               stub_feature_flags(graphql_minimal_auth_methods: false)
             end
 
+            # expect(graphql_data['currentUser']).to be_nil
             it 'does not authenticate user from header' do
               post '/api/graphql', params: { query: query }, headers: headers
 
@@ -513,30 +514,6 @@ RSpec.describe 'GraphQL', feature_category: :shared do
           expect(response).to have_gitlab_http_status(:unauthorized)
 
           expect_graphql_errors_to_include('Invalid token')
-        end
-      end
-
-      context 'when the personal access token has read_api scope' do
-        it 'they can perform a query' do
-          token.update!(scopes: [:read_api])
-
-          post_graphql(query, headers: { 'PRIVATE-TOKEN' => token.token })
-
-          expect(response).to have_gitlab_http_status(:ok)
-
-          expect(graphql_data['echo']).to eq("\"#{token.user.username}\" says: Hello world")
-        end
-
-        it 'they cannot perform a mutation' do
-          token.update!(scopes: [:read_api])
-
-          post_graphql(mutation, headers: { 'PRIVATE-TOKEN' => token.token })
-
-          # The response status is OK but they get no data back and they get errors.
-          expect(response).to have_gitlab_http_status(:ok)
-          expect(graphql_data['echoCreate']).to be_nil
-
-          expect_graphql_errors_to_include("does not exist or you don't have permission")
         end
       end
     end

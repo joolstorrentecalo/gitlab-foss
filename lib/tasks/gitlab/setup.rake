@@ -12,7 +12,7 @@ namespace :gitlab do
       Gitlab::GitalyClient::ServerService.new(name).info
     end
   rescue GRPC::Unavailable => ex
-    puts Rainbow("Failed to connect to Gitaly...").red
+    puts "Failed to connect to Gitaly...".color(:red)
     puts "Error: #{ex}"
     exit 1
   end
@@ -36,7 +36,7 @@ namespace :gitlab do
     Rake::Task["gitlab:db:lock_writes"].invoke
     Rake::Task["db:seed_fu"].invoke
   rescue Gitlab::TaskAbortedByUserError
-    puts Rainbow("Quitting...").red
+    puts "Quitting...".color(:red)
     exit 1
   end
 end

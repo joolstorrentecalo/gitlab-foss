@@ -17,12 +17,6 @@ module Users
       end
     end
 
-    def execute!
-      user.ban!
-      record_custom_attribute
-      success
-    end
-
     private
 
     attr_reader :user, :reason
@@ -37,5 +31,3 @@ module Users
     end
   end
 end
-
-Users::AutoBanService.prepend_mod

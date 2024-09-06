@@ -18,6 +18,9 @@ import {
 } from '~/vue_shared/components/filtered_search_bar/constants';
 
 export default {
+  i18n: {
+    searchInputPlaceholder: __('Search or filter results…'),
+  },
   components: {
     FilteredSearchBar,
     GlSorting,
@@ -61,10 +64,7 @@ export default {
     },
     sortOptions: {
       type: Array,
-      required: false,
-      default() {
-        return [];
-      },
+      required: true,
     },
     activeSortOption: {
       type: Object,
@@ -74,28 +74,17 @@ export default {
       type: Boolean,
       required: true,
     },
-    searchInputPlaceholder: {
-      type: String,
-      required: false,
-      default: __('Search or filter results…'),
-    },
   },
   computed: {
     filteredSearchValue() {
       const tokens = prepareTokens(
         urlQueryToFilter(this.filteredSearchQuery, {
           filteredSearchTermKey: this.filteredSearchTermKey,
-          filterNamesAllowList: [
-            FILTERED_SEARCH_TERM,
-            ...this.filteredSearchTokens.map(({ type }) => type),
-          ],
+          filterNamesAllowList: [FILTERED_SEARCH_TERM],
         }),
       );
 
       return tokens.length ? tokens : [TOKEN_EMPTY_SEARCH_TERM];
-    },
-    shouldShowSort() {
-      return this.sortOptions.length;
     },
   },
   methods: {
@@ -104,7 +93,6 @@ export default {
         'filter',
         filterToQueryObject(processFilters(filters), {
           filteredSearchTermKey: this.filteredSearchTermKey,
-          shouldExcludeEmpty: true,
         }),
       );
     },
@@ -113,26 +101,25 @@ export default {
 </script>
 
 <template>
-  <div class="gl-border-t gl-border-b gl-bg-gray-10 gl-p-5">
-    <div class="gl-flex gl-flex-col gl-gap-3 md:gl-flex-row">
-      <div class="gl-grow">
+  <div class="gl-p-5 gl-bg-gray-10 gl-border-t gl-border-b">
+    <div class="gl-display-flex gl-flex-direction-column gl-md-flex-direction-row gl-gap-3">
+      <div class="gl-flex-grow-1">
         <filtered-search-bar
           :namespace="filteredSearchNamespace"
           :tokens="filteredSearchTokens"
           :initial-filter-value="filteredSearchValue"
           sync-filter-and-sort
           :recent-searches-storage-key="filteredSearchRecentSearchesStorageKey"
-          :search-input-placeholder="searchInputPlaceholder"
-          terms-as-tokens
+          :search-input-placeholder="$options.i18n.searchInputPlaceholder"
           @onFilter="onFilter"
         />
       </div>
       <div v-if="$scopedSlots.default">
         <slot></slot>
       </div>
-      <div v-if="shouldShowSort" data-testid="groups-projects-sort">
+      <div>
         <gl-sorting
-          class="gl-flex"
+          class="gl-display-flex"
           dropdown-class="gl-w-full"
           block
           :text="activeSortOption.text"

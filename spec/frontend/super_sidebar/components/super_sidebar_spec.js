@@ -41,14 +41,6 @@ const trialStatusPopoverStubTestId = 'trial-status-popover';
 const TrialStatusPopoverStub = {
   template: `<div data-testid="${trialStatusPopoverStubTestId}" />`,
 };
-const duoProTrialStatusWidgetStubTestId = 'duo-pro-trial-status-widget';
-const DuoProTrialStatusWidgetStub = {
-  template: `<div data-testid="${duoProTrialStatusWidgetStubTestId}" />`,
-};
-const duoProTrialStatusPopoverStubTestId = 'duo-pro-trial-status-popover';
-const DuoProTrialStatusPopoverStub = {
-  template: `<div data-testid="${duoProTrialStatusPopoverStubTestId}" />`,
-};
 const UserBarStub = {
   template: `<div><a href="#">link</a></div>`,
 };
@@ -70,9 +62,6 @@ describe('SuperSidebar component', () => {
   const findHoverPeekBehavior = () => wrapper.findComponent(SidebarHoverPeekBehavior);
   const findTrialStatusWidget = () => wrapper.findByTestId(trialStatusWidgetStubTestId);
   const findTrialStatusPopover = () => wrapper.findByTestId(trialStatusPopoverStubTestId);
-  const findDuoProTrialStatusWidget = () => wrapper.findByTestId(duoProTrialStatusWidgetStubTestId);
-  const findDuoProTrialStatusPopover = () =>
-    wrapper.findByTestId(duoProTrialStatusPopoverStubTestId);
   const findSidebarMenu = () => wrapper.findComponent(SidebarMenu);
   const findAdminLink = () => wrapper.findByTestId('sidebar-admin-link');
   const findContextHeader = () => wrapper.findComponent('#super-sidebar-context-header');
@@ -88,7 +77,6 @@ describe('SuperSidebar component', () => {
     wrapper = shallowMountExtended(SuperSidebar, {
       provide: {
         showTrialStatusWidget: false,
-        showDuoProTrialStatusWidget: false,
         ...provide,
       },
       propsData: {
@@ -97,8 +85,6 @@ describe('SuperSidebar component', () => {
       stubs: {
         TrialStatusWidget: TrialStatusWidgetStub,
         TrialStatusPopover: TrialStatusPopoverStub,
-        DuoProTrialStatusWidget: DuoProTrialStatusWidgetStub,
-        DuoProTrialStatusPopover: DuoProTrialStatusPopoverStub,
         UserBar: stubComponent(UserBar, UserBarStub),
       },
       attachTo: document.body,
@@ -184,7 +170,7 @@ describe('SuperSidebar component', () => {
 
       expect(link.exists()).toBe(true);
       expect(link.attributes('href')).toBe(linkAttrs.href);
-      expect(link.attributes('class')).toContain('gl-hidden');
+      expect(link.attributes('class')).toContain('gl-display-none');
     });
 
     it('sets up the sidebar toggle shortcut', () => {
@@ -222,13 +208,6 @@ describe('SuperSidebar component', () => {
 
       expect(findTrialStatusWidget().exists()).toBe(false);
       expect(findTrialStatusPopover().exists()).toBe(false);
-    });
-
-    it('does not render duo pro trial status widget', () => {
-      createWrapper();
-
-      expect(findDuoProTrialStatusWidget().exists()).toBe(false);
-      expect(findDuoProTrialStatusPopover().exists()).toBe(false);
     });
 
     it('does not have peek behaviors', () => {
@@ -358,32 +337,6 @@ describe('SuperSidebar component', () => {
     });
   });
 
-  describe('when a duo pro trial is active', () => {
-    beforeEach(() => {
-      createWrapper({ provide: { showDuoProTrialStatusWidget: true } });
-    });
-
-    it('renders duo pro trial status widget', () => {
-      expect(findDuoProTrialStatusWidget().exists()).toBe(true);
-      expect(findDuoProTrialStatusPopover().exists()).toBe(true);
-    });
-  });
-
-  describe('when a trial and duo pro trial is active', () => {
-    beforeEach(() => {
-      createWrapper({
-        provide: { showTrialStatusWidget: true, showDuoProTrialStatusWidget: true },
-      });
-    });
-
-    it('renders trial status widget only', () => {
-      expect(findTrialStatusWidget().exists()).toBe(true);
-      expect(findTrialStatusPopover().exists()).toBe(true);
-      expect(findDuoProTrialStatusWidget().exists()).toBe(false);
-      expect(findDuoProTrialStatusPopover().exists()).toBe(false);
-    });
-  });
-
   describe('keyboard interactivity', () => {
     it('does not bind keydown events on screens xl and above', async () => {
       jest.spyOn(document, 'addEventListener');
@@ -435,13 +388,22 @@ describe('SuperSidebar component', () => {
       focusSpy = jest.spyOn(findFirstFocusableElement().element, 'focus');
     });
 
-    it('focuses the first focusable element when sidebar is not peeking', async () => {
+    it('focuses the first focusable element when sidebar is overlapping and not peeking', async () => {
       jest.spyOn(bp, 'windowWidth').mockReturnValue(lg);
 
       wrapper.vm.sidebarState.isCollapsed = false;
       await nextTick();
 
       expect(focusSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't focus the first focusable element when sidebar is not overlapping", async () => {
+      jest.spyOn(bp, 'windowWidth').mockReturnValue(xl);
+
+      wrapper.vm.sidebarState.isCollapsed = false;
+      await nextTick();
+
+      expect(focusSpy).not.toHaveBeenCalled();
     });
 
     it("doesn't focus the first focusable element when sidebar is peeking", async () => {

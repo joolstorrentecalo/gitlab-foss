@@ -21,8 +21,6 @@ RSpec.describe 'Project navbar', :with_license, :js, feature_category: :groups_a
     insert_infrastructure_registry_nav(s_('Terraform|Terraform states'))
     insert_infrastructure_google_cloud_nav
     insert_infrastructure_aws_nav
-    project.update!(service_desk_enabled: true)
-    allow(Gitlab::ServiceDesk).to receive(:supported?).and_return(true)
   end
 
   it_behaves_like 'verified navigation bar' do
@@ -73,7 +71,7 @@ RSpec.describe 'Project navbar', :with_license, :js, feature_category: :groups_a
     let_it_be(:harbor_integration) { create(:harbor_integration, project: project) }
 
     before do
-      insert_harbor_registry_nav
+      insert_harbor_registry_nav(_('AWS'))
 
       visit project_path(project)
     end

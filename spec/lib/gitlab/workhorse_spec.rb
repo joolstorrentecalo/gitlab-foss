@@ -301,7 +301,7 @@ RSpec.describe Gitlab::Workhorse, feature_category: :shared do
           response = described_class.git_http_ok(repository, Gitlab::GlRepository::PROJECT, user, action)
 
           expect(response.dig(:GitalyServer, :call_metadata)).to include('gitaly-feature-enforce-requests-limits' => 'true',
-            'gitaly-feature-mep-mep' => 'true')
+                                                                         'gitaly-feature-mep-mep' => 'true')
         end
 
         it 'sets the flag to false for other projects' do
@@ -309,7 +309,7 @@ RSpec.describe Gitlab::Workhorse, feature_category: :shared do
           response = described_class.git_http_ok(other_project.repository, Gitlab::GlRepository::PROJECT, user, action)
 
           expect(response.dig(:GitalyServer, :call_metadata)).to include('gitaly-feature-enforce-requests-limits' => 'true',
-            'gitaly-feature-mep-mep' => 'false')
+                                                                         'gitaly-feature-mep-mep' => 'false')
         end
 
         it 'sets the flag to false when there is no project' do
@@ -317,7 +317,7 @@ RSpec.describe Gitlab::Workhorse, feature_category: :shared do
           response = described_class.git_http_ok(snippet.repository, Gitlab::GlRepository::SNIPPET, user, action)
 
           expect(response.dig(:GitalyServer, :call_metadata)).to include('gitaly-feature-enforce-requests-limits' => 'true',
-            'gitaly-feature-mep-mep' => 'false')
+                                                                         'gitaly-feature-mep-mep' => 'false')
         end
       end
     end
@@ -493,7 +493,6 @@ RSpec.describe Gitlab::Workhorse, feature_category: :shared do
         'URL' => url,
         'AllowRedirects' => false,
         'Header' => {},
-        'ResponseHeaders' => {},
         'Body' => '',
         'Method' => 'GET'
       }
@@ -509,24 +508,22 @@ RSpec.describe Gitlab::Workhorse, feature_category: :shared do
       expect(params).to eq(expected_params)
     end
 
-    context 'when body, headers, response headers and method are specified' do
+    context 'when body, headers and method are specified' do
       let(:body) { 'body' }
       let(:headers) { { Authorization: ['Bearer token'] } }
-      let(:response_headers) { { 'CustomHeader' => 'test' } }
       let(:method) { 'POST' }
 
       let(:expected_params) do
         super().merge(
           'Body' => body,
           'Header' => headers,
-          'ResponseHeaders' => { 'CustomHeader' => ['test'] },
           'Method' => method
         ).deep_stringify_keys
       end
 
-      it 'sets everything correctly' do
+      it 'sets the header correctly' do
         key, command, params = decode_workhorse_header(
-          described_class.send_url(url, body: body, headers: headers, response_headers: response_headers, method: method)
+          described_class.send_url(url, body: body, headers: headers, method: method)
         )
 
         expect(key).to eq("Gitlab-Workhorse-Send-Data")

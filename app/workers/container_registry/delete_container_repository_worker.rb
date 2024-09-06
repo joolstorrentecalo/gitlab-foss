@@ -32,8 +32,6 @@ module ContainerRegistry
       end
 
       next_container_repository.destroy!
-
-      audit_event(next_container_repository)
     rescue StandardError => exception
       next_container_repository&.set_delete_scheduled_status
 
@@ -80,11 +78,5 @@ module ContainerRegistry
         )
       )
     end
-
-    def audit_event(repository)
-      # defined in EE
-    end
   end
 end
-
-ContainerRegistry::DeleteContainerRepositoryWorker.prepend_mod

@@ -7,7 +7,6 @@ import { issuableStatusText, STATUS_OPEN, STATUS_REOPENED } from '~/issues/const
 import { isExternal } from '~/lib/utils/url_utility';
 import { __, n__, sprintf } from '~/locale';
 import ConfidentialityBadge from '~/vue_shared/components/confidentiality_badge.vue';
-import ImportedBadge from '~/vue_shared/components/imported_badge.vue';
 import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
 import WorkItemTypeIcon from '~/work_items/components/work_item_type_icon.vue';
 
@@ -21,7 +20,6 @@ export default {
     GlSprintf,
     HiddenBadge,
     LockedBadge,
-    ImportedBadge,
     TimeAgoTooltip,
     WorkItemTypeIcon,
   },
@@ -68,11 +66,6 @@ export default {
       default: false,
     },
     isHidden: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    isImported: {
       type: Boolean,
       required: false,
       default: false,
@@ -162,10 +155,13 @@ export default {
 </script>
 
 <template>
-  <div class="detail-page-header gl-flex-col md:gl-flex-row">
-    <div class="detail-page-header-body gl-flex-wrap gl-gap-x-2">
-      <gl-badge :variant="badgeVariant" :icon="statusIcon" data-testid="issue-state-badge">
-        <slot name="status-badge">{{ badgeText }}</slot>
+  <div class="detail-page-header gl-flex-direction-column gl-md-flex-direction-row">
+    <div class="detail-page-header-body gl-flex-wrap gl-column-gap-2">
+      <gl-badge :variant="badgeVariant" data-testid="issue-state-badge">
+        <gl-icon v-if="statusIcon" :name="statusIcon" :class="statusIconClass" />
+        <span class="gl-display-none gl-sm-display-block" :class="{ 'gl-ml-2': statusIcon }">
+          <slot name="status-badge">{{ badgeText }}</slot>
+        </span>
       </gl-badge>
       <confidentiality-badge
         v-if="confidential"
@@ -174,8 +170,6 @@ export default {
       />
       <locked-badge v-if="blocked" :issuable-type="issuableType" />
       <hidden-badge v-if="isHidden" :issuable-type="issuableType" />
-      <imported-badge v-if="isImported" :importable-type="issuableType" />
-
       <work-item-type-icon
         v-if="shouldShowWorkItemTypeIcon"
         show-text
@@ -189,8 +183,12 @@ export default {
           {{ serviceDeskReplyTo }}
         </template>
         <template #author>
-          <gl-link class="js-user-link gl-font-bold" :href="author.webUrl" :data-user-id="authorId">
-            <span :class="[{ 'gl-hidden': !isAuthorExternal }, 'sm:gl-inline']">
+          <gl-link
+            class="gl-font-weight-bold js-user-link"
+            :href="author.webUrl"
+            :data-user-id="authorId"
+          >
+            <span :class="[{ 'gl-display-none': !isAuthorExternal }, 'gl-sm-display-inline']">
               {{ author.name }}
             </span>
             <gl-icon
@@ -198,7 +196,7 @@ export default {
               name="external-link"
               :aria-label="__('external link')"
             />
-            <strong v-if="author.username" class="author gl-inline sm:!gl-hidden"
+            <strong v-if="author.username" class="author gl-display-inline gl-sm-display-none!"
               >@{{ author.username }}</strong
             >
           </gl-link>
@@ -213,17 +211,17 @@ export default {
       />
       <span
         v-if="taskCompletionStatus && hasTasks"
-        class="gl-hidden md:gl-block lg:gl-inline-block"
+        class="gl-display-none gl-md-display-block gl-lg-display-inline-block"
         >{{ taskStatusString }}</span
       >
       <gl-button
         icon="chevron-double-lg-left"
-        class="js-sidebar-toggle gl-ml-auto gl-block sm:!gl-hidden"
+        class="gl-ml-auto gl-display-block gl-sm-display-none! js-sidebar-toggle"
         :aria-label="__('Expand sidebar')"
         @click="handleRightSidebarToggleClick"
       />
     </div>
-    <div class="detail-page-header-actions gl-flex gl-gap-3 gl-self-center">
+    <div class="detail-page-header-actions gl-align-self-center gl-display-flex gl-gap-3">
       <slot name="header-actions"></slot>
     </div>
   </div>

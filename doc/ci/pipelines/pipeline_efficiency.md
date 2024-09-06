@@ -1,7 +1,7 @@
 ---
 stage: Verify
 group: Pipeline Execution
-info: This page is maintained by Developer Relations, author @dnsmichi, see https://handbook.gitlab.com/handbook/marketing/developer-relations/developer-advocacy/content/#maintained-documentation
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # Pipeline efficiency
@@ -34,13 +34,13 @@ heavily influenced by the:
 - [Size of the repository](../../user/project/repository/monorepos/index.md)
 - Total number of stages and jobs.
 - Dependencies between jobs.
-- The ["critical path"](#needs-dependency-visualization), which represents
+- The ["critical path"](#directed-acyclic-graphs-dag-visualization), which represents
   the minimum and maximum pipeline duration.
 
 Additional points to pay attention relate to [GitLab Runners](../runners/index.md):
 
 - Availability of the runners and the resources they are provisioned with.
-- Build dependencies, their installation time, and storage space requirements.
+- Build dependencies and their installation time.
 - [Container image size](#docker-images).
 - Network latency and slow connections.
 
@@ -89,10 +89,12 @@ running simultaneously to support the parallel jobs.
 The [testing levels for GitLab](../../development/testing_guide/testing_levels.md)
 provide an example of a complex testing strategy with many components involved.
 
-### `needs` dependency visualization
+### Directed Acyclic Graphs (DAG) visualization
 
-Viewing the `needs` dependencies in the [full pipeline graph](../pipelines/index.md#group-jobs-by-stage-or-needs-configuration)
-can help analyze the critical path in the pipeline and understand possible blockers.
+The [Directed Acyclic Graph](../directed_acyclic_graph/index.md) (DAG) visualization can help analyze the critical path in
+the pipeline and understand possible blockers.
+
+![CI Pipeline Critical Path with DAG](img/ci_efficiency_pipeline_dag_critical_path.png)
 
 ### Pipeline Monitoring
 
@@ -169,7 +171,6 @@ to stop them from running:
 - Use [`rules`](../yaml/index.md#rules) to skip tests that aren't needed. For example,
   skip backend tests when only the frontend code is changed.
 - Run non-essential [scheduled pipelines](schedules.md) less frequently.
-- Distribute [`cron` schedules](schedules.md#view-and-optimize-pipeline-schedules) evenly across time.
 
 ### Fail fast
 
@@ -184,11 +185,11 @@ Decide if it's important for long jobs to run early, before fast feedback from
 faster jobs. The initial failures may make it clear that the rest of the pipeline
 shouldn't run, saving pipeline resources.
 
-### `needs` keyword
+### Directed Acyclic Graphs (DAG)
 
 In a basic configuration, jobs always wait for all other jobs in earlier stages to complete
 before running. This is the simplest configuration, but it's also the slowest in most
-cases. [Pipelines with the `needs` keyword](../directed_acyclic_graph/index.md) and
+cases. [Directed Acyclic Graphs](../directed_acyclic_graph/index.md) and
 [parent/child pipelines](downstream_pipelines.md#parent-child-pipelines) are more flexible and can
 be more efficient, but can also make pipelines harder to understand and analyze.
 

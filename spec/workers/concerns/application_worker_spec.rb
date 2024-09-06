@@ -26,7 +26,7 @@ RSpec.describe ApplicationWorker, feature_category: :shared do
   before do
     # Set up Sidekiq.default_configuration's Thread.current[:sidekiq_redis_pool].
     # Creating a RedisConnection during spec's runtime will perform Sidekiq.info which messes with our spec expectations.
-    Gitlab::SidekiqSharding::Validator.allow_unrouted_sidekiq_calls { Sidekiq.redis(&:ping) }
+    Sidekiq.redis(&:ping)
 
     allow(Feature).to receive(:enabled?).and_call_original
     allow(Feature).to receive(:enabled?).with(:route_to_main, type: :ops).and_return(true)
@@ -602,23 +602,6 @@ RSpec.describe ApplicationWorker, feature_category: :shared do
     end
   end
 
-  describe '.with_ip_address_state' do
-    around do |example|
-      Sidekiq::Testing.fake!(&example)
-    end
-
-    let(:ip_address) { '1.1.1.1' }
-
-    it 'sets IP state' do
-      allow(::Gitlab::IpAddressState).to receive(:current).and_return(ip_address)
-
-      worker.with_ip_address_state.perform_async
-
-      expect(Sidekiq::Queues[worker.queue].first).to include('ip_address_state' => ip_address)
-      expect(Sidekiq::Queues[worker.queue].length).to eq(1)
-    end
-  end
-
   context 'when using perform_async/in/at' do
     let(:shard_pool) { 'dummy_pool' }
     let(:shard_name) { 'shard_name' }
@@ -650,64 +633,6 @@ RSpec.describe ApplicationWorker, feature_category: :shared do
           operation
         end
       end
-    end
-
-    context 'with ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper' do
-      let(:worker) { ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper }
-
-      context 'when calling perform_async with setter' do
-        subject(:operation) { worker.set(testing: true).perform_async({ 'job_class' => ActionMailer::MailDeliveryJob }) }
-
-        it_behaves_like 'uses shard router'
-      end
-
-      context 'when calling perform_async with setter without job_class' do
-        subject(:operation) { worker.set(testing: true).perform_async }
-
-        it_behaves_like 'uses shard router'
-      end
-
-      context 'when calling perform_in with setter' do
-        subject(:operation) { worker.set(testing: true).perform_in(1, { 'job_class' => ActionMailer::MailDeliveryJob }) }
-
-        it_behaves_like 'uses shard router'
-      end
-
-      context 'when calling perform_in with setter without job_class' do
-        subject(:operation) { worker.set(testing: true).perform_in(1) }
-
-        it_behaves_like 'uses shard router'
-      end
-
-      context 'when calling perform_at with setter' do
-        subject(:operation) { worker.set(testing: true).perform_at(1, { 'job_class' => ActionMailer::MailDeliveryJob }) }
-
-        it_behaves_like 'uses shard router'
-      end
-
-      context 'when calling perform_at with setter without job_class' do
-        subject(:operation) { worker.set(testing: true).perform_at(1) }
-
-        it_behaves_like 'uses shard router'
-      end
-    end
-
-    context 'when calling perform_async with setter' do
-      subject(:operation) { worker.set(testing: true).perform_async }
-
-      it_behaves_like 'uses shard router'
-    end
-
-    context 'when calling perform_in with setter' do
-      subject(:operation) { worker.set(testing: true).perform_in(1) }
-
-      it_behaves_like 'uses shard router'
-    end
-
-    context 'when calling perform_at with setter' do
-      subject(:operation) { worker.set(testing: true).perform_at(1) }
-
-      it_behaves_like 'uses shard router'
     end
 
     context 'when calling perform_async' do

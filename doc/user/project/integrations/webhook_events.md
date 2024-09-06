@@ -1,5 +1,5 @@
 ---
-stage: Foundations
+stage: Manage
 group: Import and Integrate
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -209,19 +209,8 @@ Payload example:
 
 ## Issue events
 
-> - `type` attribute in `object_attributes` [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/467415) in GitLab 17.2.
-
-Issue events are triggered when an issue or work item is created, updated, closed, or reopened.
-The supported work item types are:
-
-- [Tasks](../../tasks.md)
-- [Incidents](../../../operations/incident_management/incidents.md)
-- [Test cases](../../../ci/test_cases/index.md)
-- [Requirements](../requirements/index.md)
-- [Objectives and key results (OKRs)](../../okrs.md)
-
-For issues and [Service Desk](../service_desk/index.md) issues, the `object_kind` is `issue`, and the `type` is `Issue`.
-For all other work items, the `object_kind` field is `work_item`, and the `type` is the work item type.
+Issue events are triggered when a new issue is created or
+an existing issue is updated, closed, or reopened.
 
 The available values for `object_attributes.action` in the payload are:
 
@@ -303,7 +292,6 @@ Payload example:
     "human_time_change": null,
     "weight": null,
     "health_status": "at_risk",
-    "type": "Issue",
     "iid": 23,
     "url": "http://example.com/diaspora/issues/23",
     "state": "opened",
@@ -835,13 +823,13 @@ Payload example:
   "snippet": {
     "id": 53,
     "title": "test",
-    "description": "A snippet description.",
     "content": "puts 'Hello world'",
     "author_id": 1,
     "project_id": 5,
     "created_at": "2015-04-09 02:40:38 UTC",
     "updated_at": "2015-04-09 02:40:38 UTC",
     "file_name": "test.rb",
+    "expires_at": null,
     "type": "ProjectSnippet",
     "visibility_level": 0,
     "url": "http://example.com/gitlab-org/gitlab-test/-/snippets/53"
@@ -1154,6 +1142,9 @@ Payload example:
 ## Pipeline events
 
 Pipeline events are triggered when the status of a pipeline changes.
+
+In [GitLab 13.9](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/53159)
+and later, the pipeline webhook returns only the latest jobs.
 
 In [GitLab 15.1](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/89546)
 and later, pipeline webhooks triggered by blocked users are not processed.
@@ -1555,7 +1546,7 @@ If the pipeline has a name, that name is the value of `commit.name`.
 
 Deployment events are triggered when a deployment:
 
-- Starts
+- Starts ([introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/41214) in GitLab 13.5)
 - Succeeds
 - Fails
 - Is cancelled
@@ -2081,14 +2072,11 @@ Payload example:
 > - [Enabled on GitLab.com](https://gitlab.com/gitlab-org/gitlab/-/issues/439379) in GitLab 16.11.
 > - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/454642) in GitLab 16.11. Feature flag `access_token_webhooks` removed.
 
-Two access token expiration events are generated:
-
-- Seven days before a [project or group access token](../../../security/token_overview.md) expires.
-- One day before the token expires.
+An access token event is triggered when a [project or group access token](../../../security/token_overview.md) will expire in seven days or less.
 
 The available values for `event_name` in the payload are:
 
-- `expiring_access_token`
+- `expiring`
 
 Request header:
 
@@ -2101,6 +2089,7 @@ Payload example for project:
 ```json
 {
   "object_kind": "access_token",
+  "project_id": 7,
   "project": {
     "id": 7,
     "name": "Flight",
@@ -2121,10 +2110,10 @@ Payload example for project:
   },
   "object_attributes": {
     "user_id": 90,
-    "created_at": "2024-01-24 16:27:40 UTC",
+    "created_at": "2024-02-05T03:13:44.855Z",
     "id": 25,
     "name": "acd",
-    "expires_at": "2024-01-26"
+    "expires_at": "2024-01-26",
   },
   "event_name": "expiring_access_token"
 }
@@ -2135,9 +2124,11 @@ Payload example for group:
 ```json
 {
   "object_kind": "access_token",
+  "group_id": 35,
   "group": {
     "group_name": "Twitter",
     "group_path": "twitter",
+    "full_path": "twitter",
     "group_id": 35
   },
   "object_attributes": {
@@ -2145,7 +2136,7 @@ Payload example for group:
     "created_at": "2024-01-24 16:27:40 UTC",
     "id": 25,
     "name": "acd",
-    "expires_at": "2024-01-26"
+    "expires_at": "2024-01-26",
   },
   "event_name": "expiring_access_token"
 }

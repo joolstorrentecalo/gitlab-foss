@@ -28,11 +28,10 @@ inherit_mode:
 
 AllCops:
   # The oldest supported Ruby version.
-  TargetRubyVersion: 3.1
+  TargetRubyVersion: 3.0
   TargetRailsVersion: 7.0
   Exclude:
     - 'gems/**/*'
-    - 'qa/gems/**/*'
     - 'vendor/**/*'
     - 'node_modules/**/*'
     - 'db/fixtures/**/*'
@@ -446,7 +445,6 @@ Gitlab/DocUrl:
     - danger/**/*
     - ee/spec/**/*
     - haml_lint/**/*
-    - keeps/**/*
     - qa/**/*
     - rubocop/**/*
     - scripts/**/*
@@ -537,32 +535,9 @@ Gitlab/RSpec/AvoidSetup:
   Include:
     - 'ee/spec/features/registrations/saas/**/*'
     - 'ee/spec/features/trials/saas/**/*'
-    - 'ee/spec/features/gitlab_subscriptions/trials/duo_pro/**/*'
-    - 'ee/spec/features/gitlab_subscriptions/trials/duo_enterprise/**/*'
 
 RSpec/DuplicateSpecLocation:
   Enabled: true
-
-# https://docs.gitlab.com/ee/development/software_design.html#bounded-contexts
-Gitlab/BoundedContexts:
-  Enabled: true
-  Exclude:
-    - '**/lib/api/**/*'
-    - 'ee/lib/ee/api/**/*'
-    - '**/app/assets/**/*'
-    - '**/app/channels/**/*'
-    - '**/app/components/**/*'
-    - '**/app/controllers/**/*'
-    - '**/app/helpers/**/*'
-    - '**/app/presenters/**/*'
-    - '**/app/serializers/**/*'
-    - '**/lib/tasks/**/*'
-    - '**/app/views/**/*'
-  Include:
-    - 'app/**/*'
-    - 'ee/app/**/*'
-    - 'lib/**/*'
-    - 'ee/lib/**/*'
 
 Gitlab/PolicyRuleBoolean:
   Enabled: true
@@ -959,7 +934,6 @@ Gitlab/NamespacedClass:
     - 'ee/db/**/*.rb'
     - 'ee/elastic/**/*.rb'
     - 'scripts/**/*'
-    - 'spec/fixtures/migrations/**/*.rb'
     - 'spec/migrations/**/*.rb'
     - 'app/experiments/**/*_experiment.rb'
     - 'ee/app/experiments/**/*_experiment.rb'
@@ -1017,11 +991,6 @@ QA/SelectorUsage:
   Exclude:
     - 'spec/rubocop/**/*_spec.rb'
 
-QA/FeatureFlags:
-  Enabled: true
-  Include:
-    - 'qa/qa/specs/features/**/*.rb'
-
 Performance/ActiveRecordSubtransactions:
   Exclude:
     - 'spec/**/*.rb'
@@ -1032,7 +1001,7 @@ Performance/ActiveRecordSubtransactionMethods:
     - 'spec/**/*.rb'
     - 'ee/spec/**/*.rb'
 
-Migration/BatchedMigrationBaseClass:
+Migration/BackgroundMigrationBaseClass:
   Enabled: false
 
 BackgroundMigration/AvoidSilentRescueExceptions:
@@ -1122,8 +1091,6 @@ Search/NamespacedClass:
     - 'spec/migrations/**/*.rb'
     - 'app/experiments/**/*_experiment.rb'
     - 'ee/app/experiments/**/*_experiment.rb'
-    - 'lib/gitlab/background_migration/**/*.rb'
-    - 'ee/lib/ee/gitlab/background_migration/**/*.rb'
     - 'lib/gitlab/instrumentation/**/*.rb'
     - 'lib/gitlab/usage/metrics/instrumentations/**/*.rb'
     - 'ee/lib/gitlab/usage/metrics/instrumentations/**/*.rb'
@@ -1134,6 +1101,10 @@ SidekiqLoadBalancing/WorkerDataConsistency:
   Include:
     - 'app/workers/**/*'
     - 'ee/app/workers/**/*'
+
+# This cop is disabled for Ruby 3.0+ anyway.
+Lint/NonDeterministicRequireOrder:
+  Enabled: false
 
 Graphql/ResourceNotAvailableError:
   Exclude:
@@ -1204,20 +1175,3 @@ Gitlab/TokenWithoutPrefix:
     - 'lib/**/*'
     - 'ee/app/**/*'
     - 'ee/lib/**/*'
-
-Rails/StrongParams:
-  Enabled: true
-  SafeAutoCorrect: false
-  Include:
-    - 'app/controllers/**/*'
-    - 'ee/app/controllers/**/*'
-
-QA/FabricateUsage:
-  Include:
-    - 'qa/qa/specs/**/*_spec.rb'
-
-Gitlab/NoFindInWorkers:
-  Enabled: true
-  Include:
-    - app/workers/**/*
-    - ee/app/workers/**/*

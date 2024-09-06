@@ -110,7 +110,7 @@ projects that need updating. Those projects can be:
   timestamp that is more recent than the `last_repository_successful_sync_at`
   timestamp in the `Geo::ProjectRegistry` model.
 - Manual: The administrator can manually flag a repository to resync in the
-  [Geo **Admin** area](../administration/geo_sites.md).
+  [Geo Admin Area](../administration/geo_sites.md).
 
 When we fail to fetch a repository on the secondary `RETRIES_BEFORE_REDOWNLOAD`
 times, Geo does a so-called _re-download_. It will do a clean clone
@@ -199,7 +199,7 @@ sequenceDiagram
   S->>TDB: Insert to `job_artifact_registry`
 ```
 
-- [Sidekiq-cron](https://github.com/sidekiq-cron/sidekiq-cron) enqueues a `Geo::Secondary::RegistryConsistencyWorker` job every minute. As long as it is actively doing work (creating and deleting rows), this job immediately re-enqueues itself. This job uses an exclusive lease to prevent multiple instances of itself from running simultaneously.
+- [Sidekiq-cron](https://github.com/ondrejbartas/sidekiq-cron) enqueues a `Geo::Secondary::RegistryConsistencyWorker` job every minute. As long as it is actively doing work (creating and deleting rows), this job immediately re-enqueues itself. This job uses an exclusive lease to prevent multiple instances of itself from running simultaneously.
 - [Sidekiq](architecture.md#sidekiq) picks up `Geo::Secondary::RegistryConsistencyWorker` job
   - Sidekiq queries `ci_job_artifacts` table for up to 10000 rows
   - Sidekiq queries `job_artifact_registry` table for up to 10000 rows
@@ -318,30 +318,22 @@ sequenceDiagram
 
 ## Authentication
 
-To authenticate Git and file transfers, each `GeoNode` record has two fields:
+To authenticate file transfers, each `GeoNode` record has two fields:
 
 - A public access key (`access_key` field).
 - A secret access key (`secret_access_key` field).
 
 The **secondary** site authenticates itself via a [JWT request](https://jwt.io/).
-
-The **secondary** site authorizes HTTP requests with the `Authorization` header:
+When the **secondary** site wishes to download a file, it sends an
+HTTP request with the `Authorization` header:
 
 ```plaintext
 Authorization: GL-Geo <access_key>:<JWT payload>
 ```
 
-The **primary** site uses the `access_key` field to look up the corresponding
-**secondary** site and decrypts the JWT payload.
-
-NOTE:
-JWT requires synchronized clocks between the machines involved, otherwise the
-**primary** site may reject the request.
-
-### File transfers
-
-When the **secondary** site wishes to download a file, the JWT payload
-contains additional information to identify the file
+The **primary** site uses the `access_key` field to look up the
+corresponding **secondary** site and decrypts the JWT payload,
+which contains additional information to identify the file
 request. This ensures that the **secondary** site downloads the right
 file for the right database ID. For example, for an LFS object, the
 request must also include the SHA256 sum of the file. An example JWT
@@ -352,21 +344,13 @@ payload looks like:
 ```
 
 If the requested file matches the requested SHA256 sum, then the Geo
-**primary** site sends data via the X-Sendfile
+**primary** site sends data via the [X-Sendfile](https://www.nginx.com/resources/wiki/start/topics/examples/xsendfile/)
 feature, which allows NGINX to handle the file transfer without tying
 up Rails or Workhorse.
 
-### Git transfers
-
-When the **secondary** site wishes to clone or fetch a Git repository from the
-**primary** site, the JWT payload contains additional information to identify
-the Git repository request. This ensures that the **secondary** site downloads
-the right Git repository for the right database ID. An example JWT
-payload looks like:
-
-```yaml
-{"data": {scope: "mygroup/myproject"}, iat: "1234567890"}
-```
+NOTE:
+JWT requires synchronized clocks between the machines
+involved, otherwise it may fail with an encryption error.
 
 ## Git Push to Geo secondary
 
@@ -481,7 +465,7 @@ basically hashes all Git refs together and stores that hash in the
 The **secondary** site does the same to calculate the hash of its
 clone, and compares the hash with the value the **primary** site
 calculated. If there is a mismatch, Geo will mark this as a mismatch
-and the administrator can see this in the [Geo **Admin** area](../administration/geo_sites.md).
+and the administrator can see this in the [Geo Admin Area](../administration/geo_sites.md).
 
 ## Geo proxying
 
@@ -650,6 +634,44 @@ If a new feature introduces a new kind of data which is not a Git repository, or
 
 As an example, container registry data does not easily fit into the above categories. It is backed by a registry service which owns the data, and GitLab interacts with the registry service's API. So a one off approach is required for Geo support of container registry. Still, we are able to reuse much of the glue code of [the Geo self-service framework](geo/framework.md#repository-replicator-strategy).
 
+## History of communication channel
+
+The communication channel has changed since first iteration, you can
+check here historic decisions and why we moved to new implementations.
+
+### Custom code (GitLab 8.6 and earlier)
+
+In GitLab versions before 8.6, custom code is used to handle
+notification from **primary** site to **secondary** sites by HTTP
+requests.
+
+### System hooks (GitLab 8.7 to 9.5)
+
+Later, it was decided to move away from custom code and begin using
+system hooks. More people were using them, so
+many would benefit from improvements made to this communication layer.
+
+There is a specific **internal** endpoint in our API code (Grape),
+that receives all requests from this System Hooks:
+`/api/v4/geo/receive_events`.
+
+We switch and filter from each event by the `event_name` field.
+
+### Geo Log Cursor (GitLab 10.0 and up)
+
+In GitLab 10.0 and later, [System Webhooks](#system-hooks-gitlab-87-to-95) are no longer
+used and [Geo Log Cursor](#geo-log-cursor-daemon) is used instead. The Log Cursor traverses the
+`Geo::EventLog` rows to see if there are changes since the last time
+the log was checked and will handle repository updates, deletes,
+changes, and renames.
+
+The table is within the replicated database. This has two advantages over the
+old method:
+
+- Replication is synchronous and we preserve the order of events.
+- Replication of the events happen at the same time as the changes in the
+  database.
+
 ## Self-service framework
 
 If you want to add easy Geo replication of a resource you're working
@@ -659,11 +681,10 @@ on, check out our [self-service framework](geo/framework.md).
 
 ### GET:Geo pipeline
 
-After triggering a successful [e2e:test-on-omnibus-ee](testing_guide/end_to_end/index.md#using-the-test-on-omnibus-job) pipeline, you can manually trigger a job named `GET:Geo`:
+After triggering a successful [e2e:package-and-test-ee](testing_guide/end_to_end/index.md#using-the-package-and-test-job) pipeline, you can manually trigger a job named `GET:Geo`:
 
 1. In the [GitLab project](https://gitlab.com/gitlab-org/gitlab), select the **Pipelines** tab of a merge request.
 1. Select the `Stage: qa` stage on the latest pipeline to expand and list all the related jobs.
-1. Select trigger job `e2e:test-on-omnibus` to navigate inside child pipeline.
 1. Select `trigger-omnibus` to view the [Omnibus GitLab Mirror](https://gitlab.com/gitlab-org/build/omnibus-gitlab-mirror) pipeline corresponding to the merge request.
 1. The `GET:Geo` job can be found and triggered under the `trigger-qa` stage.
 
@@ -682,7 +703,7 @@ see the [QA documentation](https://gitlab.com/gitlab-org/gitlab/-/tree/master/qa
 
 The pipeline involves the interaction of multiple different projects:
 
-- [GitLab](https://gitlab.com/gitlab-org/gitlab) - The [`e2e:test-on-omnibus-ee` job](testing_guide/end_to_end/index.md#using-the-test-on-omnibus-job) is launched from merge requests in this project.
+- [GitLab](https://gitlab.com/gitlab-org/gitlab) - The [`e2e:package-and-test-ee` job](testing_guide/end_to_end/index.md#using-the-package-and-test-job) is launched from merge requests in this project.
 - [`omnibus-gitlab`](https://gitlab.com/gitlab-org/omnibus-gitlab) - Builds relevant artifacts containing the changes from the triggering merge request pipeline.
 - [GET-Configs/Geo](https://gitlab.com/gitlab-org/quality/gitlab-environment-toolkit-configs/Geo) - Coordinates the lifecycle of a short-lived Geo installation that can be evaluated.
 - [GET](https://gitlab.com/gitlab-org/gitlab-environment-toolkit) - Contains the necessary logic for creating and destroying Geo installations. Used by `GET-Configs/Geo`.

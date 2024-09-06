@@ -28,16 +28,13 @@ Find out [which versions of PostgreSQL (and other components) ship](https://gitl
 with each Linux package release.
 
 The lowest supported PostgreSQL versions are listed in the
-[installation requirements](../../install/requirements.md#postgresql).
+[installation requirements](../../install/requirements.md#postgresql-requirements).
 
 Read more about update policies and warnings in the PostgreSQL
 [upgrade docs](https://docs.gitlab.com/omnibus/settings/database.html#upgrade-packaged-postgresql-server).
 
 | First GitLab version | PostgreSQL versions | Default version for fresh installs | Default version for upgrades | Notes |
 | -------------- | ------------------- | ---------------------------------- | ---------------------------- | ----- |
-| 17.4.0 | 14.11, 16.4 | 14.11 | 14.11 | PostgreSQL 16 is available for new installations if not using [Geo](../geo/index.md#requirements-for-running-geo) or [Patroni](../postgresql/index.md#postgresql-replication-and-failover-for-linux-package-installations). |
-| 17.0.0 | 14.11 | 14.11 | 14.11 | Package upgrades are aborted if PostgreSQL is not upgraded to 14 already. |
-| 16.10.1, 16.9.3, 16.8.5 | 13.14, 14.11 | 14.11 | 14.11 | |
 | 16.6.7, 16.7.5, 16.8.2 | 13.13, 14.10 | 14.10 | 14.10 | |
 | 16.7.0 | 13.12, 14.9 | 14.9 | 14.9 | |
 | 16.4.3, 16.5.3, 16.6.1 | 13.12, 14.9 | 13.12 | 13.12 | For upgrades, you can manually upgrade to 14.9 following the [upgrade documentation](../../update/versions/gitlab_16_changes.md#linux-package-installations-2). |

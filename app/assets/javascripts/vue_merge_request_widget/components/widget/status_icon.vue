@@ -48,9 +48,9 @@ export default {
     :class="{
       [iconClassNameText]: !isLoading,
       [`mr-widget-status-icon-level-${level}`]: !isLoading,
-      'gl-flex gl-h-6 gl-w-6 gl-items-center gl-justify-center': level === 1,
+      'gl-w-6 gl-h-6 gl--flex-center': level === 1,
     }"
-    class="gl-relative gl-mr-3 gl-rounded-full"
+    class="gl-relative gl-rounded-full gl-mr-3"
   >
     <gl-loading-icon v-if="isLoading" size="sm" inline />
     <gl-icon
@@ -59,7 +59,7 @@ export default {
       :size="12"
       :aria-label="iconAriaLabel"
       :data-testid="`status-${iconName}-icon`"
-      class="gl-relative gl-z-1"
+      class="gl-relative gl-z-index-1"
     />
   </div>
 </template>

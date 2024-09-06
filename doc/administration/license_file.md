@@ -4,6 +4,8 @@ group: Provision
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
+<!-- To promote the workflow described in license.md, this page is not included in global left nav. -->
+
 # Activate GitLab EE with a license file or key
 
 If you receive a license file from GitLab (for example, for a trial), you can
@@ -16,11 +18,15 @@ link to the **Add license** page should be displayed.
 Otherwise, to add your license:
 
 1. Sign in to GitLab as an administrator.
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. In the **Add License** area, add a license by either uploading the file or entering the key.
 1. Select the **Terms of Service** checkbox.
 1. Select **Add license**.
+
+NOTE:
+In GitLab 14.7.x to 14.9.x, you can add the license file with the UI.
+In GitLab 14.1.x to 14.7, if you have already activated your subscription with an activation code, you cannot access **Add License** from the Admin Area. You must access **Add License** directly from the URL, `<YourGitLabURL>/admin/license/new`.
 
 ## Activate subscription during installation
 
@@ -53,11 +59,9 @@ If you have a license, you can also import it when you install GitLab.
     gitlab_rails['initial_license_file'] = "/path/to/license/file"
     ```
 
-- For Helm Charts installations, use [the `global.gitlab.license` configuration keys](https://docs.gitlab.com/charts/installation/command-line-options.html#basic-configuration).
-
 WARNING:
 These methods only add a license at the time of installation. To renew or upgrade
-a license, add the license in the **Admin area** in the web user interface.
+a license, add the license in the **Admin Area** in the web user interface.
 
 ## Submit license usage data
 
@@ -70,7 +74,7 @@ timestamps could be converted to another format) and cause failures when the fil
 
 If you don't submit your data each month after your subscription start date, an email is sent to the address
 associated with your subscription and a banner displays to remind you to submit your data. The banner displays
-in the **Admin area** on the **Dashboard** and on the **Subscription** pages. You can only dismiss it until the
+in the **Admin Area** on the **Dashboard** and on the **Subscription** pages. You can only dismiss it until the
 following month after you submit your license usage data.
 
 ## What happens when your license expires
@@ -78,19 +82,10 @@ following month after you submit your license usage data.
 Fifteen days before the license expires, a notification banner with the upcoming expiration
 date displays to GitLab administrators.
 
-Licenses expire at the start of the expiration date, 00:00 server time.
-
 When your license expires, GitLab locks features, like Git pushes
 and issue creation. Your instance becomes read-only and
 an expiration message displays to all administrators. You have a 14-day grace period
 before this occurs.
-
-For example, if a license has a start date of January 1, 2024 and an end date of January 1, 2025:
-
-- It expires at 11:59:59 PM server time December 31, 2024.
-- It is considered expired from 12:00:00 AM server time January 1, 2025.
-- The grace period of 14 days starts at 12:00:00 AM server time January 1, 2025 and ends at 11:59:59 PM server time January 14, 2025.
-- Your instance becomes read-only at 12:00:00 AM server time January 15, 2025.
 
 To resume functionality, [renew your subscription](../subscriptions/self_managed/index.md#renew-subscription-manually).
 
@@ -102,7 +97,7 @@ To go back to Free features, [delete all expired licenses](#remove-a-license).
 
 To remove a license from a self-managed instance:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Subscription**.
 1. Select **Remove license**.
 
@@ -112,7 +107,7 @@ Repeat these steps to remove all licenses, including those applied in the past.
 
 To view your license details:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Subscription**.
 
 You can add and view more than one license, but only the latest license in
@@ -122,6 +117,12 @@ When you add a future-dated license, it doesn't take effect until its applicable
 You can view all active subscriptions in the **Subscription history** table.
 
 You can also [export](../subscriptions/self_managed/index.md) your license usage information to a CSV file.
+
+NOTE:
+In GitLab 13.6 and earlier, a banner about an expiring license may continue to display
+when you add a new license. This happens when the start date of the new license
+is in the future and the expiring one is still active.
+The banner disappears after the new license becomes active.
 
 ## License commands in the Rails console
 
@@ -159,7 +160,7 @@ License.current.license_id
 License.current.data
 
 # Confirm the current billable seat count excluding guest users. This is useful for customers who use an Ultimate subscription tier where Guest seats are not counted.
-User.active.without_bots.excluding_guests_and_requests.count
+User.active.without_bots.excluding_guests.count
 
 ```
 
@@ -231,7 +232,7 @@ License.select(&TYPE).each(&:destroy!)
 
 ## Troubleshooting
 
-### No Subscription area in the Admin area
+### No Subscription area in the Admin Area
 
 You cannot add your license because there is no **Subscription** area.
 This issue might occur if:

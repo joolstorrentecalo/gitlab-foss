@@ -4,6 +4,8 @@
 
 module LooseForeignKeysHelper
   def process_loose_foreign_key_deletions(record:)
-    LooseForeignKeys::ProcessDeletedRecordsService.new(connection: record.connection).execute
+    LooseForeignKeys::DeletedRecord.using_connection(record.connection) do
+      LooseForeignKeys::ProcessDeletedRecordsService.new(connection: record.connection).execute
+    end
   end
 end

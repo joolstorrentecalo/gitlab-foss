@@ -6,12 +6,11 @@ module LooseForeignKeys
     DELETE_LIMIT = 1000
     UPDATE_LIMIT = 500
 
-    def initialize(loose_foreign_key_definition:, connection:, deleted_parent_records:, logger: Sidekiq.logger, with_skip_locked: false)
+    def initialize(loose_foreign_key_definition:, connection:, deleted_parent_records:, with_skip_locked: false)
       @loose_foreign_key_definition = loose_foreign_key_definition
       @connection = connection
       @deleted_parent_records = deleted_parent_records
       @with_skip_locked = with_skip_locked
-      @logger = logger
     end
 
     def execute
@@ -30,7 +29,7 @@ module LooseForeignKeys
 
     private
 
-    attr_reader :loose_foreign_key_definition, :connection, :deleted_parent_records, :with_skip_locked, :logger
+    attr_reader :loose_foreign_key_definition, :connection, :deleted_parent_records, :with_skip_locked
 
     def build_query
       query = if async_delete?
@@ -38,13 +37,11 @@ module LooseForeignKeys
               elsif async_nullify?
                 update_query
               else
-                logger.error("Invalid on_delete argument: #{loose_foreign_key_definition.on_delete}")
-                return ""
+                raise "Invalid on_delete argument: #{loose_foreign_key_definition.on_delete}"
               end
 
       unless query.include?(%{"#{loose_foreign_key_definition.column}" IN (})
-        logger.error("FATAL: foreign key condition is missing from the generated query: #{query}")
-        return ""
+        raise("FATAL: foreign key condition is missing from the generated query: #{query}")
       end
 
       query

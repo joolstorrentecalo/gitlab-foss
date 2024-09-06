@@ -53,5 +53,6 @@ export default {
     :event="event"
     :message="$options.i18n.message"
     icon-name="approval-solid"
+    icon-class="gl-text-green-500"
   />
 </template>

@@ -49,37 +49,6 @@ RSpec.describe API::Notes, feature_category: :team_planning do
       end
     end
 
-    context 'when system note with issue_email_participants action' do
-      let!(:email) { 'user@example.com' }
-      let!(:note_text) { "added #{email}" }
-      let!(:note) do
-        create(:note, :system, project: project, noteable: issue, author: Users::Internal.support_bot, note: note_text)
-      end
-
-      let!(:system_note_metadata) { create(:system_note_metadata, note: note, action: :issue_email_participants) }
-      let!(:another_user) { create(:user) }
-
-      let(:obfuscated_email) { 'us*****@e*****.c**' }
-
-      it 'returns obfuscated email' do
-        get api("/projects/#{project.id}/issues/#{issue.iid}/notes", another_user)
-
-        expect(response).to have_gitlab_http_status(:ok)
-        expect(response).to include_pagination_headers
-        expect(json_response.first['body']).to include(obfuscated_email)
-      end
-
-      context 'when user has at least the reporter role in project' do
-        it 'returns email' do
-          get api("/projects/#{project.id}/issues/#{issue.iid}/notes", user)
-
-          expect(response).to have_gitlab_http_status(:ok)
-          expect(response).to include_pagination_headers
-          expect(json_response.first['body']).to include(email)
-        end
-      end
-    end
-
     context "when referencing other project" do
       # For testing the cross-reference of a private issue in a public project
       let(:private_project) do
@@ -415,30 +384,6 @@ RSpec.describe API::Notes, feature_category: :team_planning do
 
         it 'does not create a new note' do
           expect { subject }.not_to change { Note.count }
-        end
-      end
-    end
-
-    context 'when authenticated with a token that has the ai_workflows scope' do
-      let(:oauth_token) { create(:oauth_access_token, user: user, scopes: [:ai_workflows]) }
-
-      context 'a post request creates a merge request note' do
-        subject { post api(request_path, oauth_access_token: oauth_token), params: params }
-
-        it 'is successful' do
-          subject
-
-          expect(response).to have_gitlab_http_status(:created)
-        end
-      end
-
-      context 'a get request returns a list of merge request notes' do
-        subject { get api(request_path, oauth_access_token: oauth_token) }
-
-        it 'is successful' do
-          subject
-
-          expect(response).to have_gitlab_http_status(:ok)
         end
       end
     end

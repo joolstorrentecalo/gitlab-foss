@@ -2,15 +2,13 @@
 
 require 'spec_helper'
 
-RSpec.describe Gitlab::ImportExport::Base::RelationFactory, feature_category: :importers do
+RSpec.describe Gitlab::ImportExport::Base::RelationFactory do
   let(:user) { create(:admin) }
   let(:project) { create(:project) }
   let(:members_mapper) { double('members_mapper').as_null_object }
   let(:relation_sym) { :project_snippets }
   let(:relation_hash) { {} }
   let(:excluded_keys) { [] }
-  let(:import_source) { Import::SOURCE_DIRECT_TRANSFER }
-  let(:original_users_map) { nil }
 
   subject do
     described_class.create( # rubocop:disable Rails/SaveBang
@@ -21,9 +19,7 @@ RSpec.describe Gitlab::ImportExport::Base::RelationFactory, feature_category: :i
       members_mapper: members_mapper,
       user: user,
       importable: project,
-      excluded_keys: excluded_keys,
-      import_source: import_source,
-      original_users_map: original_users_map
+      excluded_keys: excluded_keys
     )
   end
 
@@ -94,28 +90,6 @@ RSpec.describe Gitlab::ImportExport::Base::RelationFactory, feature_category: :i
         expect(subject).to be_instance_of(Note)
       end
 
-      it 'sets imported_from' do
-        expect(subject.imported_from).to eq(Import::SOURCE_DIRECT_TRANSFER.to_s)
-      end
-
-      context 'when import_source is gitlab_project' do
-        let(:import_source) { Import::SOURCE_PROJECT_EXPORT_IMPORT }
-
-        it 'sets imported_from' do
-          expect(subject.imported_from).to eq(Import::SOURCE_PROJECT_EXPORT_IMPORT.to_s)
-        end
-      end
-
-      context 'when object does not have an imported_from attribute' do
-        let(:relation_sym) { :user }
-        let(:relation_hash) { attributes_for(:user) }
-
-        it 'works without an error' do
-          expect(subject).not_to respond_to(:imported_from) # Sanity check: This must be true for test subject
-          expect(subject).to be_instance_of(User)
-        end
-      end
-
       context 'when relation contains user references' do
         let(:new_user) { create(:user) }
         let(:exported_member) do
@@ -145,24 +119,6 @@ RSpec.describe Gitlab::ImportExport::Base::RelationFactory, feature_category: :i
 
         it 'maps the right author to the imported note' do
           expect(subject.author).to eq(new_user)
-        end
-
-        context 'when original_users_map is nil' do
-          it 'does not store the object original users' do
-            subject
-
-            expect(original_users_map).to eq(nil)
-          end
-        end
-
-        context 'when original_users_map is a Hash' do
-          let(:original_users_map) { {} }
-
-          it "store the relation hash original user IDs" do
-            subject
-
-            expect(original_users_map[subject]).to eq({ 'author_id' => 999 })
-          end
         end
       end
 
@@ -226,14 +182,6 @@ RSpec.describe Gitlab::ImportExport::Base::RelationFactory, feature_category: :i
 
       it 'returns constantized class' do
         expect(described_class.relation_class(relation_name)).to eq(Badge)
-      end
-    end
-
-    context 'when relation name is user_contributions' do
-      let(:relation_name) { 'user_contributions' }
-
-      it 'returns constantized class' do
-        expect(described_class.relation_class(relation_name)).to eq(User)
       end
     end
   end

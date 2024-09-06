@@ -7,7 +7,9 @@ info: Any user with at least the Maintainer role can merge updates to this conte
 # Python development guidelines
 
 GitLab requires Python as a dependency for [reStructuredText](https://docutils.sourceforge.io/rst.html)
-markup rendering. It requires Python 3.
+markup rendering.
+
+As of GitLab 11.10, we require Python 3.
 
 ## Installation
 

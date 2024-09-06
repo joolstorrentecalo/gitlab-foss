@@ -20,7 +20,6 @@ Bundler.require(*Rails.groups)
 module Gitlab
   class Application < Rails::Application
     config.load_defaults 7.0
-
     # This section contains configuration from Rails upgrades to override the new defaults so that we
     # keep existing behavior.
     #
@@ -38,6 +37,7 @@ module Gitlab
     config.active_record.automatic_scope_inversing = nil # New default is true
     config.active_record.verify_foreign_keys_for_fixtures = nil # New default is true
     config.active_record.partial_inserts = true # New default is false
+    config.active_support.cache_format_version = nil # New default is 7.0
     config.active_support.disable_to_s_conversion = false # New default is true
     config.active_support.executor_around_test_case = nil # New default is true
     config.active_support.isolation_level = nil # New default is thread
@@ -46,6 +46,7 @@ module Gitlab
 
     # Rails 6.1
     config.action_dispatch.cookies_same_site_protection = nil # New default is :lax
+    ActiveSupport.utc_to_local_returns_utc_offset_times = false
     config.action_view.preload_links_header = false
 
     # Rails 5.2
@@ -86,13 +87,7 @@ module Gitlab
     require_dependency Rails.root.join('lib/gitlab/runtime')
     require_dependency Rails.root.join('lib/gitlab/patch/database_config')
     require_dependency Rails.root.join('lib/gitlab/patch/redis_cache_store')
-    require_dependency Rails.root.join('lib/gitlab/patch/old_redis_cache_store')
     require_dependency Rails.root.join('lib/gitlab/exceptions_app')
-
-    unless ::Gitlab.next_rails?
-      config.active_support.cache_format_version = nil
-      ActiveSupport.utc_to_local_returns_utc_offset_times = false
-    end
 
     config.exceptions_app = Gitlab::ExceptionsApp.new(Gitlab.jh? ? Rails.root.join('jh/public') : Rails.public_path)
 
@@ -115,23 +110,17 @@ module Gitlab
     # This is a nice reference article on autoloading/eager loading:
     # http://blog.arkency.com/2014/11/dont-forget-about-eager-load-when-extending-autoload
     config.eager_load_paths.push(*%W[#{config.root}/lib
-      #{config.root}/app/models/badges
-      #{config.root}/app/models/hooks
-      #{config.root}/app/models/members
-      #{config.root}/app/graphql/resolvers/concerns
-      #{config.root}/app/graphql/mutations/concerns
-      #{config.root}/app/graphql/types/concerns])
+                                     #{config.root}/app/models/badges
+                                     #{config.root}/app/models/hooks
+                                     #{config.root}/app/models/members
+                                     #{config.root}/app/graphql/resolvers/concerns
+                                     #{config.root}/app/graphql/mutations/concerns
+                                     #{config.root}/app/graphql/types/concerns])
 
     config.generators.templates.push("#{config.root}/generator_templates")
 
-    foss_eager_load_paths =
-      if Gitlab.next_rails?
-        config.all_eager_load_paths.dup.freeze
-      else
-        config.eager_load_paths.dup.freeze
-      end
-
-    load_paths = ->(dir:) do
+    foss_eager_load_paths = config.eager_load_paths.dup.freeze
+    load_paths = lambda do |dir:|
       ext_paths = foss_eager_load_paths.each_with_object([]) do |path, memo|
         ext_path = config.root.join(dir, Pathname.new(path).relative_path_from(config.root))
         memo << ext_path.to_s
@@ -242,7 +231,6 @@ module Gitlab
       redirect
       question
       SAMLResponse
-      selectedText
     ]
 
     # This config option can be removed after Rails 7.1 by https://gitlab.com/gitlab-org/gitlab/-/issues/416270
@@ -279,17 +267,21 @@ module Gitlab
     config.assets.paths << "#{config.root}/vendor/assets/fonts"
 
     config.assets.precompile << "application_utilities.css"
+    config.assets.precompile << "application_utilities_to_be_replaced.css"
     config.assets.precompile << "application_utilities_dark.css"
+    config.assets.precompile << "application_utilities_to_be_replaced_dark.css"
     config.assets.precompile << "application_dark.css"
     config.assets.precompile << "tailwind.css"
+    config.assets.precompile << "tailwind_all_the_way.css"
 
     config.assets.precompile << "print.css"
-    config.assets.precompile << "mailers/highlighted_diff_email.css"
-    config.assets.precompile << "mailers/mailer.css"
-    config.assets.precompile << "mailers/mailer_client_specific.css"
-    config.assets.precompile << "mailers/notify.css"
-    config.assets.precompile << "mailers/notify_enhanced.css"
+    config.assets.precompile << "mailer.css"
+    config.assets.precompile << "mailer_client_specific.css"
+    config.assets.precompile << "notify.css"
+    config.assets.precompile << "notify_enhanced.css"
+    config.assets.precompile << "mailers/*.css"
     config.assets.precompile << "page_bundles/_mixins_and_variables_and_functions.css"
+    config.assets.precompile << "page_bundles/admin/application_settings_metrics_and_profiling.css"
     config.assets.precompile << "page_bundles/admin/elasticsearch_form.css"
     config.assets.precompile << "page_bundles/admin/geo_sites.css"
     config.assets.precompile << "page_bundles/admin/geo_replicable.css"
@@ -305,7 +297,6 @@ module Gitlab
     config.assets.precompile << "page_bundles/clusters.css"
     config.assets.precompile << "page_bundles/commits.css"
     config.assets.precompile << "page_bundles/commit_description.css"
-    config.assets.precompile << "page_bundles/commit_rapid_diffs.css"
     config.assets.precompile << "page_bundles/cycle_analytics.css"
     config.assets.precompile << "page_bundles/dashboard.css"
     config.assets.precompile << "page_bundles/dashboard_projects.css"
@@ -328,18 +319,16 @@ module Gitlab
     config.assets.precompile << "page_bundles/issues_list.css"
     config.assets.precompile << "page_bundles/issues_show.css"
     config.assets.precompile << "page_bundles/jira_connect.css"
-    config.assets.precompile << "page_bundles/log_viewer.css"
+    config.assets.precompile << "page_bundles/learn_gitlab.css"
     config.assets.precompile << "page_bundles/login.css"
     config.assets.precompile << "page_bundles/members.css"
     config.assets.precompile << "page_bundles/merge_conflicts.css"
     config.assets.precompile << "page_bundles/merge_request_analytics.css"
     config.assets.precompile << "page_bundles/merge_request.css"
-    config.assets.precompile << "page_bundles/merge_request_rapid_diffs.css"
     config.assets.precompile << "page_bundles/merge_requests.css"
     config.assets.precompile << "page_bundles/milestone.css"
     config.assets.precompile << "page_bundles/ml_experiment_tracking.css"
     config.assets.precompile << "page_bundles/new_namespace.css"
-    config.assets.precompile << "page_bundles/notes_shared.css"
     config.assets.precompile << "page_bundles/notifications.css"
     config.assets.precompile << "page_bundles/oncall_schedules.css"
     config.assets.precompile << "page_bundles/operations.css"
@@ -366,6 +355,7 @@ module Gitlab
     config.assets.precompile << "page_bundles/runners.css"
     config.assets.precompile << "page_bundles/search.css"
     config.assets.precompile << "page_bundles/security_dashboard.css"
+    config.assets.precompile << "page_bundles/security_discover.css"
     config.assets.precompile << "page_bundles/settings.css"
     config.assets.precompile << "page_bundles/signup.css"
     config.assets.precompile << "page_bundles/terminal.css"
@@ -412,6 +402,10 @@ module Gitlab
     config.assets.precompile << "illustrations/*.svg"
     config.assets.precompile << "illustrations/*.png"
 
+    # Import css for xterm
+    config.assets.paths << "#{config.root}/node_modules/xterm/src/"
+    config.assets.precompile << "xterm.css"
+
     # Import path for EE specific SCSS entry point
     # In CE it will import a noop file, in EE a functioning file
     # Order is important, so that the ee file takes precedence:
@@ -452,7 +446,7 @@ module Gitlab
 
     # Allow access to GitLab API from other domains
     config.middleware.insert_before Warden::Manager, Rack::Cors do
-      headers_to_expose = %w[Link X-Total X-Total-Pages X-Per-Page X-Page X-Next-Page X-Prev-Page X-Gitlab-Blob-Id X-Gitlab-Commit-Id X-Gitlab-Content-Sha256 X-Gitlab-Encoding X-Gitlab-File-Name X-Gitlab-File-Path X-Gitlab-Last-Commit-Id X-Gitlab-Ref X-Gitlab-Size X-Request-Id ETag]
+      headers_to_expose = %w[Link X-Total X-Total-Pages X-Per-Page X-Page X-Next-Page X-Prev-Page X-Gitlab-Blob-Id X-Gitlab-Commit-Id X-Gitlab-Content-Sha256 X-Gitlab-Encoding X-Gitlab-File-Name X-Gitlab-File-Path X-Gitlab-Last-Commit-Id X-Gitlab-Ref X-Gitlab-Size]
 
       allow do
         origins Gitlab.config.gitlab.url
@@ -502,14 +496,6 @@ module Gitlab
         end
       end
 
-      allow do
-        origins '*'
-        resource '/oauth/token/info',
-          headers: %w[Authorization],
-          credentials: false,
-          methods: %i[get head options]
-      end
-
       # These are routes from doorkeeper-openid_connect:
       # https://github.com/doorkeeper-gem/doorkeeper-openid_connect#routes
       allow do
@@ -524,8 +510,8 @@ module Gitlab
         allow do
           origins '*'
           resource openid_path,
-            credentials: false,
-            methods: %i[get head]
+          credentials: false,
+          methods: %i[get head]
         end
       end
 
@@ -534,18 +520,13 @@ module Gitlab
       allow do
         origins 'https://*.web-ide.gitlab-static.net'
         resource '/assets/webpack/*',
-          credentials: false,
-          methods: %i[get head]
+                 credentials: false,
+                 methods: %i[get head]
       end
     end
 
     # Use caching across all environments
-    if ::Gitlab.next_rails?
-      ActiveSupport::Cache::RedisCacheStore.prepend(Gitlab::Patch::RedisCacheStore)
-    else
-      ActiveSupport::Cache::RedisCacheStore.prepend(Gitlab::Patch::OldRedisCacheStore)
-    end
-
+    ActiveSupport::Cache::RedisCacheStore.prepend(Gitlab::Patch::RedisCacheStore)
     config.cache_store = :redis_cache_store, Gitlab::Redis::Cache.active_support_config
 
     config.active_job.queue_adapter = :sidekiq
@@ -596,9 +577,9 @@ module Gitlab
         asset_roots << config.root.join("ee/app/assets").to_s
       end
 
-      LOOSE_APP_ASSETS = ->(logical_path, filename) do
+      LOOSE_APP_ASSETS = lambda do |logical_path, filename|
         filename.start_with?(*asset_roots) &&
-          ['.js', '.css', '.md', '.vue', '.graphql', ''].exclude?(File.extname(logical_path))
+          !['.js', '.css', '.md', '.vue', '.graphql', ''].include?(File.extname(logical_path))
       end
 
       app.config.assets.precompile << LOOSE_APP_ASSETS

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'active_support'
-require 'active_support/core_ext'
 require 'active_support/core_ext/string'
 require 'gitlab/housekeeper/logger'
 require 'gitlab/housekeeper/keep'
@@ -70,9 +68,9 @@ module Gitlab
 
               # If no merge request exists yet, create an empty one to allow keeps to use the web URL.
               unless @dry_run
-                merge_request = get_existing_merge_request(branch_name) || create(change, branch_name)
+                merge_reqeust = get_existing_merge_request(branch_name) || create(change, branch_name)
 
-                change.mr_web_url = merge_request['web_url']
+                change.mr_web_url = merge_reqeust['web_url']
               end
 
               git.in_branch(branch_name) do
@@ -124,8 +122,7 @@ module Gitlab
       end
 
       def print_change_details(change, branch_name)
-        base_message = "Merge request URL: #{change.mr_web_url || '(known after create)'}, on branch #{branch_name}. " \
-                       "Squash commits enabled."
+        base_message = "Merge request URL: #{change.mr_web_url || '(known after create)'}, on branch #{branch_name}."
         base_message << " CI skipped." if change.push_options.ci_skip
 
         @logger.puts base_message.yellowish
@@ -139,10 +136,9 @@ module Gitlab
         @logger.puts change.description
         @logger.puts
 
-        if change.labels.present? || change.assignees.present? || change.reviewers.present?
+        if change.labels.present? || change.reviewers.present?
           @logger.puts '=> Attributes:'
           @logger.puts "Labels: #{change.labels.join(', ')}"
-          @logger.puts "Assignees: #{change.assignees.join(', ')}"
           @logger.puts "Reviewers: #{change.reviewers.join(', ')}"
           @logger.puts
         end
@@ -154,21 +150,25 @@ module Gitlab
       end
 
       def create(change, branch_name)
-        change.non_housekeeper_changes = gitlab_client.non_housekeeper_changes(
+        non_housekeeper_changes = gitlab_client.non_housekeeper_changes(
           source_project_id: housekeeper_fork_project_id,
           source_branch: branch_name,
           target_branch: @target_branch,
           target_project_id: housekeeper_target_project_id
         )
 
-        git.push(branch_name, change.push_options) if change.update_required?(:code)
+        git.push(branch_name, change.push_options) unless non_housekeeper_changes.include?(:code)
 
         gitlab_client.create_or_update_merge_request(
           change: change,
           source_project_id: housekeeper_fork_project_id,
           source_branch: branch_name,
           target_branch: @target_branch,
-          target_project_id: housekeeper_target_project_id
+          target_project_id: housekeeper_target_project_id,
+          update_title: !non_housekeeper_changes.include?(:title),
+          update_description: !non_housekeeper_changes.include?(:description),
+          update_labels: !non_housekeeper_changes.include?(:labels),
+          update_reviewers: !non_housekeeper_changes.include?(:reviewers)
         )
       end
 

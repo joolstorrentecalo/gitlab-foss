@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Ci::JobArtifacts::DestroyBatchService, feature_category: :job_artifacts do
+RSpec.describe Ci::JobArtifacts::DestroyBatchService, feature_category: :build_artifacts do
   let(:artifacts) { Ci::JobArtifact.where(id: [artifact_with_file.id, artifact_without_file.id]) }
   let(:skip_projects_on_refresh) { false }
   let(:service) do
@@ -50,7 +50,7 @@ RSpec.describe Ci::JobArtifacts::DestroyBatchService, feature_category: :job_art
     it 'reports metrics for destroyed artifacts' do
       expect_next_instance_of(Gitlab::Ci::Artifacts::Metrics) do |metrics|
         expect(metrics).to receive(:increment_destroyed_artifacts_count).with(2).and_call_original
-        expect(metrics).to receive(:increment_destroyed_artifacts_bytes).with(ci_artifact_fixture_size).and_call_original
+        expect(metrics).to receive(:increment_destroyed_artifacts_bytes).with(107464).and_call_original
       end
 
       execute
@@ -71,7 +71,7 @@ RSpec.describe Ci::JobArtifacts::DestroyBatchService, feature_category: :job_art
 
       let(:artifacts) do
         Ci::JobArtifact.where(id: [artifact_with_file.id, artifact_under_refresh_1.id, artifact_under_refresh_2.id,
-          artifact_under_refresh_3.id])
+                                   artifact_under_refresh_3.id])
       end
 
       before do

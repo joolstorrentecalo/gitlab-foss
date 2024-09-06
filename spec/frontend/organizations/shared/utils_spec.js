@@ -1,54 +1,80 @@
-import organizationGroupsGraphQlResponse from 'test_fixtures/graphql/organizations/groups.query.graphql.json';
-import organizationProjectsGraphQlResponse from 'test_fixtures/graphql/organizations/projects.query.graphql.json';
 import {
+  formatProjects,
   formatGroups,
   onPageChange,
-  deleteParams,
-  renderDeleteSuccessToast,
-  timestampType,
+  deleteProjectParams,
+  renderProjectDeleteSuccessToast,
 } from '~/organizations/shared/utils';
-import { SORT_CREATED_AT, SORT_UPDATED_AT, SORT_NAME } from '~/organizations/shared/constants';
 import { ACTION_EDIT, ACTION_DELETE } from '~/vue_shared/components/list_actions/constants';
 import { getIdFromGraphQLId } from '~/graphql_shared/utils';
-import { formatGraphQLProjects } from '~/vue_shared/components/projects_list/utils';
 import toast from '~/vue_shared/plugins/global_toast';
-import {
-  TIMESTAMP_TYPE_CREATED_AT,
-  TIMESTAMP_TYPE_UPDATED_AT,
-} from '~/vue_shared/components/resource_lists/constants';
+import { organizationProjects, organizationGroups } from '~/organizations/mock_data';
 
 jest.mock('~/vue_shared/plugins/global_toast');
 
-const {
-  data: {
-    organization: {
-      groups: { nodes: organizationGroups },
-    },
-  },
-} = organizationGroupsGraphQlResponse;
+describe('formatProjects', () => {
+  it('correctly formats the projects', () => {
+    const [firstMockProject] = organizationProjects;
+    const formattedProjects = formatProjects(organizationProjects);
+    const [firstFormattedProject] = formattedProjects;
 
-const {
-  data: {
-    organization: {
-      projects: { nodes: organizationProjects },
-    },
-  },
-} = organizationProjectsGraphQlResponse;
+    expect(firstFormattedProject).toMatchObject({
+      id: getIdFromGraphQLId(firstMockProject.id),
+      name: firstMockProject.nameWithNamespace,
+      mergeRequestsAccessLevel: firstMockProject.mergeRequestsAccessLevel.stringValue,
+      issuesAccessLevel: firstMockProject.issuesAccessLevel.stringValue,
+      forkingAccessLevel: firstMockProject.forkingAccessLevel.stringValue,
+      accessLevel: {
+        integerValue: 30,
+      },
+      availableActions: [ACTION_EDIT, ACTION_DELETE],
+      actionLoadingStates: {
+        [ACTION_DELETE]: false,
+      },
+    });
+
+    expect(formattedProjects.length).toBe(organizationProjects.length);
+  });
+
+  describe('when project does not have delete permissions', () => {
+    const [firstProject] = organizationProjects;
+    const nonDeletableProject = {
+      ...firstProject,
+      userPermissions: { ...firstProject.userPermissions, removeProject: false },
+    };
+    const [nonDeletableFormattedProject] = formatProjects([nonDeletableProject]);
+
+    it('does not include delete action in `availableActions`', () => {
+      expect(nonDeletableFormattedProject.availableActions).toEqual([ACTION_EDIT]);
+    });
+  });
+
+  describe('when project does not have edit permissions', () => {
+    const [firstProject] = organizationProjects;
+    const nonEditableProject = {
+      ...firstProject,
+      userPermissions: { ...firstProject.userPermissions, viewEditPage: false },
+    };
+    const [nonEditableFormattedProject] = formatProjects([nonEditableProject]);
+
+    it('does not include edit action in `availableActions`', () => {
+      expect(nonEditableFormattedProject.availableActions).toEqual([ACTION_DELETE]);
+    });
+  });
+});
 
 describe('formatGroups', () => {
-  it('correctly formats the groups with edit and delete permissions', () => {
+  it('correctly formats the groups with delete permissions', () => {
     const [firstMockGroup] = organizationGroups;
     const formattedGroups = formatGroups(organizationGroups);
     const [firstFormattedGroup] = formattedGroups;
 
     expect(firstFormattedGroup).toMatchObject({
       id: getIdFromGraphQLId(firstMockGroup.id),
-      name: firstMockGroup.fullName,
-      fullName: firstMockGroup.fullName,
       parent: null,
-      editPath: firstMockGroup.organizationEditPath,
+      editPath: `${firstFormattedGroup.webUrl}/-/edit`,
       accessLevel: {
-        integerValue: 50,
+        integerValue: 30,
       },
       availableActions: [ACTION_EDIT, ACTION_DELETE],
       actionLoadingStates: {
@@ -58,21 +84,19 @@ describe('formatGroups', () => {
     expect(formattedGroups.length).toBe(organizationGroups.length);
   });
 
-  it('correctly formats the groups without edit or delete permissions', () => {
-    const nonDeletableGroup = organizationGroups[1];
+  it('correctly formats the groups without delete permissions', () => {
+    const nonDeletableGroup = organizationGroups[organizationGroups.length - 1];
     const formattedGroups = formatGroups(organizationGroups);
-    const nonDeletableFormattedGroup = formattedGroups[1];
+    const nonDeletableFormattedGroup = formattedGroups[formattedGroups.length - 1];
 
     expect(nonDeletableFormattedGroup).toMatchObject({
       id: getIdFromGraphQLId(nonDeletableGroup.id),
-      name: nonDeletableGroup.fullName,
-      fullName: nonDeletableGroup.fullName,
       parent: null,
-      editPath: nonDeletableGroup.organizationEditPath,
+      editPath: `${nonDeletableFormattedGroup.webUrl}/-/edit`,
       accessLevel: {
-        integerValue: 0,
+        integerValue: 30,
       },
-      availableActions: [],
+      availableActions: [ACTION_EDIT],
       actionLoadingStates: {
         [ACTION_DELETE]: false,
       },
@@ -108,32 +132,18 @@ describe('onPageChange', () => {
   });
 });
 
-describe('renderDeleteSuccessToast', () => {
-  const [MOCK_PROJECT] = formatGraphQLProjects(organizationProjects);
-  const MOCK_TYPE = 'Project';
+describe('renderProjectDeleteSuccessToast', () => {
+  const [MOCK_PROJECT] = formatProjects(organizationProjects);
 
   it('calls toast correctly', () => {
-    renderDeleteSuccessToast(MOCK_PROJECT, MOCK_TYPE);
+    renderProjectDeleteSuccessToast(MOCK_PROJECT);
 
-    expect(toast).toHaveBeenCalledWith(`${MOCK_TYPE} '${MOCK_PROJECT.name}' is being deleted.`);
+    expect(toast).toHaveBeenCalledWith(`Project '${MOCK_PROJECT.name}' is being deleted.`);
   });
 });
 
-describe('deleteParams', () => {
+describe('deleteProjectParams', () => {
   it('returns {} always', () => {
-    expect(deleteParams()).toStrictEqual({});
-  });
-});
-
-describe('timestampType', () => {
-  describe.each`
-    sortName           | expectedTimestampType
-    ${SORT_CREATED_AT} | ${TIMESTAMP_TYPE_CREATED_AT}
-    ${SORT_UPDATED_AT} | ${TIMESTAMP_TYPE_UPDATED_AT}
-    ${SORT_NAME}       | ${TIMESTAMP_TYPE_CREATED_AT}
-  `('when sort name is $sortName', ({ sortName, expectedTimestampType }) => {
-    it(`returns ${expectedTimestampType}`, () => {
-      expect(timestampType(sortName)).toBe(expectedTimestampType);
-    });
+    expect(deleteProjectParams()).toStrictEqual({});
   });
 });

@@ -203,6 +203,66 @@ RSpec.shared_examples 'issues or work items finder' do |factory, execute_context
         end
       end
 
+      context 'filtering by group_id' do
+        let(:params) { { group_id: group.id } }
+
+        context 'when include_subgroup param not set' do
+          it 'returns all group items' do
+            expect(items).to contain_exactly(item1, item5)
+          end
+
+          context 'when projects outside the group are passed' do
+            let(:params) { { group_id: group.id, projects: [project2.id] } }
+
+            it 'returns no items' do
+              expect(items).to be_empty
+            end
+          end
+
+          context 'when projects of the group are passed' do
+            let(:params) { { group_id: group.id, projects: [project1.id] } }
+
+            it 'returns the item within the group and projects' do
+              expect(items).to contain_exactly(item1, item5)
+            end
+          end
+
+          context 'when projects of the group are passed as a subquery' do
+            let(:params) { { group_id: group.id, projects: Project.id_in(project1.id) } }
+
+            it 'returns the item within the group and projects' do
+              expect(items).to contain_exactly(item1, item5)
+            end
+          end
+
+          context 'when release_tag is passed as a parameter' do
+            let(:params) { { group_id: group.id, release_tag: 'dne-release-tag' } }
+
+            it 'ignores the release_tag parameter' do
+              expect(items).to contain_exactly(item1, item5)
+            end
+          end
+        end
+
+        context 'when include_subgroup param is true' do
+          before do
+            params[:include_subgroups] = true
+          end
+
+          it 'returns all group and subgroup items' do
+            expect(items).to contain_exactly(item1, item4, item5)
+          end
+
+          context 'when mixed projects are passed' do
+            let(:params) { { group_id: group.id, projects: [project2.id, project3.id] } }
+
+            it 'returns the item within the group and projects' do
+              expect(items).to contain_exactly(item4)
+            end
+          end
+        end
+      end
+
       context 'filtering by author' do
         context 'by author ID' do
           let(:params) { { author_id: user2.id } }
@@ -218,6 +278,16 @@ RSpec.shared_examples 'issues or work items finder' do |factory, execute_context
 
           it 'returns items created by any of the given users' do
             expect(items).to contain_exactly(item3, item6)
+          end
+
+          context 'when feature flag is disabled' do
+            before do
+              stub_feature_flags(or_issuable_queries: false)
+            end
+
+            it 'does not add any filter' do
+              expect(items).to contain_exactly(item1, item2, item3, item4, item5, item6)
+            end
           end
         end
 
@@ -491,6 +561,16 @@ RSpec.shared_examples 'issues or work items finder' do |factory, execute_context
 
           it 'returns items that have at least one of the given labels' do
             expect(items).to contain_exactly(item2, item3)
+          end
+
+          context 'when feature flag is disabled' do
+            before do
+              stub_feature_flags(or_issuable_queries: false)
+            end
+
+            it 'does not add any filter' do
+              expect(items).to contain_exactly(item1, item2, item3, item4, item5)
+            end
           end
         end
       end

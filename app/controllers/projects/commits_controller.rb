@@ -16,7 +16,6 @@ class Projects::CommitsController < Projects::ApplicationController
   before_action :authorize_read_code!
   before_action :validate_ref!, except: :commits_root
   before_action :validate_path, if: -> { !request.format.atom? }
-  before_action :set_is_ambiguous_ref, only: [:show]
   before_action :set_commits, except: :commits_root
 
   feature_category :source_code_management
@@ -49,6 +48,8 @@ class Projects::CommitsController < Projects::ApplicationController
   # rubocop: enable CodeReuse/ActiveRecord
 
   def signatures
+    Gitlab::QueryLimiting.disable!('https://gitlab.com/gitlab-org/gitlab/-/issues/424527')
+
     respond_to do |format|
       format.json do
         render json: {

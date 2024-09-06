@@ -6,7 +6,7 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
   include GraphqlHelpers
 
   let_it_be(:user) { create(:user) }
-  let_it_be(:namespace) { create(:group, developers: user) }
+  let_it_be(:namespace) { create(:group) }
 
   let_it_be(:project) do
     create(
@@ -22,9 +22,7 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
     )
   end
 
-  let_it_be_with_reload(:resource) do
-    create(:ci_catalog_resource, :published, project: project, last_30_day_usage_count: 15)
-  end
+  let_it_be_with_reload(:resource) { create(:ci_catalog_resource, :published, project: project) }
 
   let(:query) do
     <<~GQL
@@ -38,6 +36,10 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
 
   subject(:post_query) { post_graphql(query, current_user: user) }
 
+  before_all do
+    namespace.add_developer(user)
+  end
+
   context 'when the current user has permission to read the namespace catalog' do
     it 'returns the resource with the expected data' do
       post_query
@@ -49,8 +51,7 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
           fullPath: project.full_path,
           webPath: "/#{project.full_path}",
           verificationLevel: "UNVERIFIED",
-          starCount: project.star_count,
-          last30DayUsageCount: resource.last_30_day_usage_count
+          starCount: project.star_count
         )
       )
     end
@@ -73,16 +74,12 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
 
     let_it_be(:inputs) do
       {
-        access_token: nil,
+        website: nil,
         environment: {
           default: 'test'
         },
         tags: {
           type: 'array'
-        },
-        website: {
-          description: 'The website',
-          regex: '^https'
         }
       }
     end
@@ -107,12 +104,9 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
                     name
                     includePath
                     inputs {
-                      default
-                      description
                       name
-                      regex
+                      default
                       required
-                      type
                     }
                   }
                 }
@@ -133,31 +127,23 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
           components.first,
           name: components.first.name,
           include_path: components.first.include_path,
-          inputs: contain_exactly(
-            a_graphql_entity_for(
-              name: 'access_token',
-              required: true,
-              type: 'STRING'
-            ),
+          inputs: [
             a_graphql_entity_for(
               name: 'tags',
-              required: true,
-              type: 'ARRAY'
+              default: nil,
+              required: true
             ),
             a_graphql_entity_for(
               name: 'website',
-              required: true,
-              description: 'The website',
-              regex: '^https',
-              type: 'STRING'
+              default: nil,
+              required: true
             ),
             a_graphql_entity_for(
               name: 'environment',
               default: 'test',
-              required: false,
-              type: 'STRING'
+              required: false
             )
-          )
+          ]
         ),
         a_graphql_entity_for(
           components.last,
@@ -170,6 +156,7 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
 
   describe 'version fields' do
     before_all do
+      # To test the readme_html field, we need to create versions with real commit shas
       project.repository.create_branch('branch_v2', project.default_branch)
       project.repository.update_file(
         user, 'README.md', 'Readme v2', message: 'Update readme', branch_name: 'branch_v2')
@@ -179,25 +166,29 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
     end
 
     let_it_be(:version1) do
-      release = create(:release,
+      version = create(:release, :with_catalog_resource_version,
         project: project,
         tag: '1.0.0',
         sha: project.commit('1.0.0').sha,
         released_at: Date.yesterday
-      )
+      ).catalog_resource_version
 
-      create(:ci_catalog_resource_version, semver: '1.0.0', catalog_resource: resource, release: release)
+      version.update!(semver: '1.0.0')
+
+      version
     end
 
     let_it_be(:version2) do
-      release = create(:release,
+      version = create(:release, :with_catalog_resource_version,
         project: project,
         tag: '2.0.0',
         sha: project.commit('2.0.0').sha,
         released_at: Date.today
-      )
+      ).catalog_resource_version
 
-      create(:ci_catalog_resource_version, semver: '2.0.0', catalog_resource: resource, release: release)
+      version.update!(semver: '2.0.0')
+
+      version
     end
 
     describe 'versions' do
@@ -242,14 +233,14 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
         )
       end
 
-      context 'when the readme field is requested on more than one version' do
+      context 'when the readmeHtml field is requested on more than one version' do
         let(:query) do
           <<~GQL
             query {
               ciCatalogResource(fullPath: "#{resource.project.full_path}") {
                 versions {
                   nodes {
-                    readme
+                    readmeHtml
                   }
                 }
               }
@@ -261,7 +252,7 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
           post_query
 
           expect_graphql_errors_to_include \
-            [/"readme" field can be requested only for 1 CiCatalogResourceVersion\(s\) at a time./]
+            [/"readmeHtml" field can be requested only for 1 CiCatalogResourceVersion\(s\) at a time./]
         end
       end
 
@@ -279,7 +270,6 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
                     path
                     releasedAt
                     readmeHtml
-                    readme
                   }
                 }
               }
@@ -287,8 +277,7 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
           GQL
         end
 
-        it 'returns the version that matches the name',
-          quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/465564' do
+        it 'returns the version that matches the name' do
           post_query
 
           expect(graphql_data_at(:ciCatalogResource, :versions, :nodes)).to contain_exactly(
@@ -297,9 +286,9 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
               name: version1.name,
               path: project_tag_path(project, version1.name),
               releasedAt: version1.released_at,
-              readme: version1.readme,
-              readmeHtml: "<p data-sourcepos=\"1:1-1:17\" dir=\"auto\"><a data-sourcepos=\"1:1-1:17\" " \
-                "href=\"/group1/project-1/-/blob/master/README.md\" class=\"gfm\">link</a></p>"
+              readmeHtml: a_string_including(
+                "#{project.full_path}/-/blob/#{project.default_branch}/README.md"
+              )
             )
           )
         end
@@ -322,6 +311,83 @@ RSpec.describe 'Query.ciCatalogResource', feature_category: :pipeline_compositio
           post_query
 
           expect(graphql_data_at(:ciCatalogResource, :versions, :nodes)).to eq([])
+        end
+      end
+    end
+  end
+
+  describe 'openIssuesCount' do
+    context 'when open_issue_count is requested' do
+      let(:query) do
+        <<~GQL
+          query {
+            ciCatalogResource(id: "#{resource.to_global_id}") {
+              openIssuesCount
+            }
+          }
+        GQL
+      end
+
+      it 'returns the correct count' do
+        create(:issue, :opened, project: project)
+        create(:issue, :opened, project: project)
+
+        post_query
+
+        expect(graphql_data_at(:ciCatalogResource)).to match(
+          a_graphql_entity_for(
+            open_issues_count: 2
+          )
+        )
+      end
+
+      context 'when open_issue_count is zero' do
+        it 'returns zero' do
+          post_query
+
+          expect(graphql_data_at(:ciCatalogResource)).to match(
+            a_graphql_entity_for(
+              open_issues_count: 0
+            )
+          )
+        end
+      end
+    end
+  end
+
+  describe 'openMergeRequestsCount' do
+    context 'when merge_requests_count is requested' do
+      let(:query) do
+        <<~GQL
+          query {
+            ciCatalogResource(id: "#{resource.to_global_id}") {
+              openMergeRequestsCount
+            }
+          }
+        GQL
+      end
+
+      it 'returns the correct count' do
+        create(:merge_request, :opened, source_project: project)
+
+        post_query
+
+        expect(graphql_data_at(:ciCatalogResource)).to match(
+          a_graphql_entity_for(
+            open_merge_requests_count: 1
+          )
+        )
+      end
+
+      context 'when open merge_requests_count is zero' do
+        it 'returns zero' do
+          post_query
+
+          expect(graphql_data_at(:ciCatalogResource)).to match(
+            a_graphql_entity_for(
+              open_merge_requests_count: 0
+            )
+          )
         end
       end
     end

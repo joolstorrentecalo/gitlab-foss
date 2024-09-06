@@ -46,6 +46,9 @@ describe('graph component', () => {
     mountFn = shallowMount,
     props = {},
     stubOverride = {},
+    glFeatures = {
+      newPipelineGraph: false,
+    },
   } = {}) => {
     wrapper = mountFn(PipelineGraph, {
       propsData: {
@@ -64,6 +67,9 @@ describe('graph component', () => {
         'job-item': true,
         'job-group-dropdown': true,
         ...stubOverride,
+      },
+      provide: {
+        glFeatures,
       },
     });
   };
@@ -183,50 +189,81 @@ describe('graph component', () => {
     });
   });
 
-  describe('container', () => {
+  describe.each`
+    name          | value    | state
+    ${'disabled'} | ${false} | ${'should not'}
+    ${'enabled'}  | ${true}  | ${'should'}
+  `('With feature flag newPipelineGraph $name', ({ value, state }) => {
     beforeEach(() => {
       createComponent({
         mountFn: mountExtended,
         stubOverride: { 'job-item': false, StageColumnComponent },
+        glFeatures: {
+          newPipelineGraph: value,
+        },
         stubs: {
           StageColumnComponent,
         },
       });
     });
 
-    it(`has class pipeline-graph-container on wrapper`, () => {
-      expect(findPipelineContainer().classes('pipeline-graph-container')).toBe(true);
+    it(`${state} add class pipeline-graph-container on wrapper`, () => {
+      expect(findPipelineContainer().classes('pipeline-graph-container')).toBe(value);
     });
 
-    it(`has class is-stage-view on rootGraphLayout`, () => {
-      expect(findRootGraphLayout().classes('is-stage-view')).toBe(true);
+    it(`${state} add class is-stage-view on rootGraphLayout`, () => {
+      expect(findRootGraphLayout().classes('is-stage-view')).toBe(value);
     });
 
-    it(`has correct titleClasses on stageColumnTitle`, () => {
+    it(`${state} add titleClasses on stageColumnTitle`, () => {
       const titleClasses = [
-        'gl-font-bold',
+        'gl-font-weight-bold',
         'gl-pipeline-job-width',
-        'gl-truncate',
-        'gl-leading-36',
+        'gl-text-truncate',
+        'gl-line-height-36',
         'gl-pl-4',
-        '-gl-mb-2',
+        'gl-mb-n2',
       ];
+      const legacyTitleClasses = [
+        'gl-font-weight-bold',
+        'gl-pipeline-job-width',
+        'gl-text-truncate',
+        'gl-line-height-36',
+        'gl-pl-3',
+      ];
+      const checkClasses = value ? titleClasses : legacyTitleClasses;
 
-      expect(findStageColumnTitle().classes()).toEqual(expect.arrayContaining(titleClasses));
+      expect(findStageColumnTitle().classes()).toEqual(expect.arrayContaining(checkClasses));
     });
 
-    it(`has correct jobClasses on findJobItem`, () => {
+    it(`${state} add jobClasses on findJobItem`, () => {
       const jobClasses = [
         'gl-p-3',
         'gl-border-0',
+        'gl-bg-transparent',
         'gl-rounded-base',
-        'hover:gl-bg-strong',
-        'focus:gl-bg-strong',
-        'hover:gl-text-gray-900',
-        'focus:gl-text-gray-900',
+        'gl-hover-bg-gray-50',
+        'gl-focus-bg-gray-50',
+        'gl-hover-text-gray-900',
+        'gl-focus-text-gray-900',
       ];
+      const legacyJobClasses = [
+        'gl-p-3',
+        'gl-border-gray-100',
+        'gl-border-solid',
+        'gl-border-1',
+        'gl-bg-white',
+        'gl-rounded-7',
+        'gl-hover-bg-gray-50',
+        'gl-focus-bg-gray-50',
+        'gl-hover-text-gray-900',
+        'gl-focus-text-gray-900',
+        'gl-hover-border-gray-200',
+        'gl-focus-border-gray-200',
+      ];
+      const checkClasses = value ? jobClasses : legacyJobClasses;
 
-      expect(findJobItem().props('cssClassJobName')).toEqual(expect.arrayContaining(jobClasses));
+      expect(findJobItem().props('cssClassJobName')).toEqual(expect.arrayContaining(checkClasses));
     });
   });
 });

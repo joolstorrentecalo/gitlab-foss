@@ -137,7 +137,7 @@ module Gitlab
           @execution_message[:clone] = message
         end
 
-        desc { _('Move this issue to another project') }
+        desc { _('Move this issue to another project.') }
         explanation do |path_to_project|
           _("Moves this issue to %{path_to_project}.") % { path_to_project: path_to_project }
         end
@@ -221,28 +221,27 @@ module Gitlab
           @execution_message[:remove_zoom] = result.message
         end
 
-        desc { _("Add email participants that don't have a GitLab account.") }
-        explanation { _("Adds email participants that don't have a GitLab account.") }
+        desc { _('Add email participant(s)') }
+        explanation { _('Adds email participant(s).') }
         params 'email1@example.com email2@example.com (up to 6 emails)'
         types Issue
         condition do
           quick_action_target.persisted? &&
             Feature.enabled?(:issue_email_participants, parent) &&
-            current_user.can?(:"admin_#{quick_action_target.to_ability_name}", quick_action_target) &&
-            issue_or_work_item_feature_flag_enabled?
+            current_user.can?(:"admin_#{quick_action_target.to_ability_name}", quick_action_target)
         end
-        command :add_email do |emails = ""|
+        command :invite_email do |emails = ""|
           response = ::IssueEmailParticipants::CreateService.new(
             target: quick_action_target,
             current_user: current_user,
             emails: emails.split(' ')
           ).execute
 
-          @execution_message[:add_email] = response.message
+          @execution_message[:invite_email] = response.message
         end
 
-        desc { _('Remove email participants') }
-        explanation { _('Removes email participants.') }
+        desc { _('Remove email participant(s)') }
+        explanation { _('Removes email participant(s).') }
         params 'email1@example.com email2@example.com (up to 6 emails)'
         types Issue
         condition do
@@ -294,23 +293,22 @@ module Gitlab
         end
 
         desc { _('Add customer relation contacts') }
-        explanation { _('Add customer relation contacts.') }
+        explanation { _('Add customer relation contact(s).') }
         params '[contact:contact@example.com] [contact:person@example.org]'
         types Issue
         condition do
           current_user.can?(:set_issue_crm_contacts, quick_action_target) &&
-            CustomerRelations::Contact.exists_for_group?(quick_action_target.resource_parent.root_ancestor)
+            CustomerRelations::Contact.exists_for_group?(quick_action_target.project.root_ancestor)
         end
         execution_message do
           _('One or more contacts were successfully added.')
         end
         command :add_contacts do |contact_emails|
-          @updates[:add_contacts] ||= []
-          @updates[:add_contacts] += contact_emails.split(' ')
+          @updates[:add_contacts] = contact_emails.split(' ')
         end
 
         desc { _('Remove customer relation contacts') }
-        explanation { _('Remove customer relation contacts.') }
+        explanation { _('Remove customer relation contact(s).') }
         params '[contact:contact@example.com] [contact:person@example.org]'
         types Issue
         condition do
@@ -321,8 +319,7 @@ module Gitlab
           _('One or more contacts were successfully removed.')
         end
         command :remove_contacts do |contact_emails|
-          @updates[:remove_contacts] ||= []
-          @updates[:remove_contacts] += contact_emails.split(' ')
+          @updates[:remove_contacts] = contact_emails.split(' ')
         end
 
         desc { _('Add a timeline event to incident') }
@@ -370,14 +367,6 @@ module Gitlab
 
       def timeline_event_create_service(event_text, event_date_time)
         ::IncidentManagement::TimelineEvents::CreateService.new(quick_action_target, current_user, { note: event_text, occurred_at: event_date_time, editable: true })
-      end
-
-      def issue_or_work_item_feature_flag_enabled?
-        !quick_action_target.is_a?(WorkItem) ||
-          (
-            quick_action_target.resource_parent.is_a?(Project) &&
-            quick_action_target.resource_parent.work_items_alpha_feature_flag_enabled?
-          )
       end
     end
   end

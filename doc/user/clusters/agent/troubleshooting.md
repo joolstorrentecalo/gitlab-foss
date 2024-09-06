@@ -44,6 +44,24 @@ This error occurs when the `kas-address` doesn't include a trailing slash. To fi
 `wss` or `ws` URL ends with a trailing slash, like `wss://GitLab.host.tld:443/-/kubernetes-agent/`
 or `ws://GitLab.host.tld:80/-/kubernetes-agent/`.
 
+## ValidationError(Deployment.metadata)
+
+```json
+{
+  "level": "info",
+  "time": "2020-10-30T08:56:54.329Z",
+  "msg": "Synced",
+  "project_id": "root/kas-manifest001",
+  "resource_key": "apps/Deployment/kas-test001/nginx-deployment",
+  "sync_result": "error validating data: [ValidationError(Deployment.metadata): unknown field \"replicas\" in io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta, ValidationError(Deployment.metadata): unknown field \"selector\" in io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta, ValidationError(Deployment.metadata): unknown field \"template\" in io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta]"
+}
+```
+
+This error occurs when a manifest file is malformed and Kubernetes can't
+create the specified objects. Make sure that your manifest files are valid.
+
+For additional troubleshooting, try to use the manifest files to create objects in Kubernetes directly.
+
 ## Error while dialing failed to WebSocket dial: failed to send handshake request
 
 ```json
@@ -90,9 +108,9 @@ certificate authority that is unknown to the agent.
 
 To fix this issue, you can present the CA certificate file to the agent
 by [customizing the Helm installation](install/index.md#customize-the-helm-installation).
-Add `--set-file config.kasCaCert=my-custom-ca.pem` to the `helm install` command. The file should be a valid PEM or DER-encoded certificate.
+Add `--set-file config.caCert=my-custom-ca.pem` to the `helm install` command. The file should be a valid PEM or DER-encoded certificate.
 
-When you deploy `agentk` with a set `config.kasCaCert` value, the certificate is added to `configmap` and the certificate file is mounted in `/etc/ssl/certs`.
+When you deploy `agentk` with a set `config.caCert` value, the certificate is added to `configmap` and the certificate file is mounted in `/etc/ssl/certs`.
 
 ```yaml
 $ kubectl get configmap -lapp=gitlab-agent -o yaml
@@ -154,6 +172,21 @@ To apply the changes:
    gitlab-ctl restart gitlab-kas
    ```
 
+## Project not found
+
+```json
+{
+  "level ":"error ",
+  "time ":"2022-01-05T15:18:11.331Z",
+  "msg ":"GetObjectsToSynchronize.Recv failed ",
+  "mod_name ":"gitops ",
+  "error ":"rpc error: code = NotFound desc = project not found ",
+}
+```
+
+This error occurs when the project where you keep your manifests is not public. To fix it, make sure your project is public or your manifest files
+are stored in the repository where the agent is configured.
+
 ## Failed to perform vulnerability scan on workload: jobs.batch already exists
 
 ```json
@@ -176,6 +209,27 @@ kubectl delete jobs -l app.kubernetes.io/managed-by=starboard -n gitlab-agent
 
 [We're working on making the cleanup of these jobs more robust.](https://gitlab.com/gitlab-org/gitlab/-/issues/362016)
 
+## Inventory policy prevented actuation (strategy: Apply, status: Empty, policy: MustMatch)
+
+```json
+{
+  "error":"inventory policy prevented actuation (strategy: Apply, status: Empty, policy: MustMatch)",
+  "group":"networking.k8s.io",
+  "kind":"Deployment",
+  "name":"resource-name",
+  "namespace":"namespace",
+  "status":"Skipped",
+  "timestamp":"2022-10-29T15:34:21Z",
+  "type":"apply"
+}
+```
+
+This error occurs when the GitLab agent tries to update an object and the object doesn't have the required annotations. To fix this error, you can:
+
+- Add the required annotations manually.
+- Delete the object and let the agent recreate it.
+- Change your [`inventory_policy`](../../infrastructure/clusters/deploy/inventory_object.md#inventory_policy-options) setting.
+
 ## Parse error during installation
 
 When you install the agent, you might encounter an error that states:
@@ -197,10 +251,10 @@ might be caused by one of the following:
 - There are multiple [`_gitlab_kas` cookies](../../../administration/clusters/kas.md#kubernetes-api-proxy-cookie)
   in the browser and sent to KAS. The most likely cause is multiple GitLab instances hosted
   on the same site.
-
+  
   For example, `gitlab.com` set a `_gitlab_kas` cookie targeted for `kas.gitlab.com`,
   but the cookie is also sent to `kas.staging.gitlab.com`, which causes the error on `staging.gitlab.com`.
-
+  
   To temporarily resolve, delete the `_gitlab_kas` cookie for `gitlab.com` from the browser cookie store.
   [Issue 418998](https://gitlab.com/gitlab-org/gitlab/-/issues/418998) proposes a fix for this known issue.
 - GitLab and KAS run on different sites. For example, GitLab on `gitlab.example.com` and KAS on `kas.example.com`.

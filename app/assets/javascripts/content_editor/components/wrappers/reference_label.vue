@@ -31,6 +31,7 @@ export default {
 <template>
   <node-view-wrapper as="span" :class="{ 'ProseMirror-selectednode': selected }">
     <gl-label
+      size="sm"
       :scoped="isScopedLabel"
       :background-color="node.attrs.color || $options.fallbackLabelBackgroundColor"
       :title="node.attrs.text"

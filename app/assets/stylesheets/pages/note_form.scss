@@ -84,17 +84,16 @@
       margin: 2px;
       padding-left: calc(#{$gl-spacing-scale-5} - 2px);
 
-      // stylelint-disable-next-line gitlab/no-gl-class
       .gl-dark & {
         width: calc(100% - 6px);
         margin: 2px 3px;
         padding-left: calc(#{$gl-spacing-scale-5} - 3px);
-
+        
         // cf. https://gitlab.com/gitlab-org/gitlab/-/merge_requests/147476
         &.note-textarea-rounded-bottom {
           margin-bottom: 3px;
-          border-bottom-left-radius: $gl-border-radius-base;
-          border-bottom-right-radius: $gl-border-radius-base;
+          border-bottom-left-radius: $border-radius-default;
+          border-bottom-right-radius: $border-radius-default;
         }
       }
 
@@ -125,14 +124,13 @@
   flex-flow: row wrap;
   width: 100%;
 
-  // stylelint-disable-next-line gitlab/no-gl-class
   .gl-float-right {
     // Flexbox quirk to make sure right-aligned items stay right-aligned.
     margin-left: auto;
   }
 }
 
-// stylelint-disable-next-line gitlab/no-gl-class
+
 .md-header .gl-tabs-nav {
   border-bottom: 0;
 }
@@ -140,7 +138,7 @@
 .issuable-note-warning {
   color: $orange-600;
   background-color: $orange-50;
-  border-radius: $gl-border-radius-base $gl-border-radius-base 0 0;
+  border-radius: $border-radius-default $border-radius-default 0 0;
   padding: 3px 12px;
   margin: auto;
   align-items: center;
@@ -170,7 +168,7 @@
 }
 
 .sidebar-item-icon {
-  border-radius: $gl-border-radius-base;
+  border-radius: $border-radius-default;
   margin: 0 5px 0 0;
   vertical-align: text-bottom;
 
@@ -279,21 +277,20 @@ table {
   }
 }
 
-.discussion-body .notes .timeline-entry:first-of-type + .discussion-reply-holder {
-  padding-top: $gl-padding-12;
-}
-
 .discussion-body,
 .diff-file,
 .commit-diff {
   .discussion-reply-holder {
     border-radius: 0 0 $gl-border-radius-base $gl-border-radius-base;
     padding: 0 $gl-padding $gl-padding-12 $gl-padding;
+    border-top: 1px solid $gray-50;
 
     + .new-note {
-      @apply gl-border-t-1;
-      @apply gl-border-solid;
-      @apply gl-border-subtle;
+      border-top: 1px solid $gray-50;
+    }
+
+    &.is-replying {
+      padding-top: $gl-padding-12;
     }
 
     &.internal-note,
@@ -309,32 +306,9 @@ table {
   }
 }
 
-.code-commit .discussion-notes .notes .note-comment:first-child {
-  @apply gl-bg-default;
-  @apply gl-border-b;
-  @apply gl-border-b-subtle;
-
-  // stylelint-disable-next-line gitlab/no-gl-class
-  .gl-dark & {
-    @apply gl-bg-strong;
-    border-bottom-color: var(--gl-background-color-default);
-  }
-}
-
-.code-commit .discussion-notes .notes .note-comment:first-child {
-  + .discussion-reply-holder {
-    &,
-    + .discussion-reply-holder {
-      margin-top: $gl-padding;
-    }
-  }
-}
-
-
-.code-commit .discussion-reply-holder,
 .diff-td > .content > .discussion-reply-holder {
   padding-top: $gl-padding-12;
-  @apply gl-bg-subtle;
+  background-color: $gray-10;
 }
 
 .discussion-with-resolve-btn {
@@ -344,6 +318,10 @@ table {
 
   .discussion-actions {
     display: table;
+
+    svg {
+      fill: $gray-500;
+    }
 
     .btn-group {
       display: table-cell;
@@ -452,6 +430,12 @@ table {
     display: flex;
     width: 100%;
     margin-bottom: 10px;
+
+    .btn-success {
+      flex-grow: 1;
+      flex-shrink: 0;
+      width: auto;
+    }
 
     .dropdown-toggle {
       flex-grow: 0;

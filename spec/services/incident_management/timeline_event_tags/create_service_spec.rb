@@ -5,14 +5,17 @@ require 'spec_helper'
 RSpec.describe IncidentManagement::TimelineEventTags::CreateService, feature_category: :incident_management do
   let_it_be(:user_with_permissions) { create(:user) }
   let_it_be(:user_without_permissions) { create(:user) }
-  let_it_be_with_reload(:project) do
-    create(:project, maintainers: user_with_permissions, developers: user_without_permissions)
-  end
+  let_it_be_with_reload(:project) { create(:project) }
 
   let(:current_user) { user_with_permissions }
-  let(:args) { { name: 'Test tag 1', project_path: project.full_path } }
+  let(:args) { { 'name': 'Test tag 1', 'project_path': project.full_path } }
 
   let(:service) { described_class.new(project, current_user, args) }
+
+  before do
+    project.add_maintainer(user_with_permissions)
+    project.add_developer(user_without_permissions)
+  end
 
   describe '#execute' do
     shared_examples 'error response' do |message|

@@ -1,10 +1,12 @@
 ---
-stage: Foundations
+stage: Manage
 group: Import and Integrate
 info: Any user with at least the Maintainer role can merge updates to this content. For details, see https://docs.gitlab.com/ee/development/development_processes.html#development-guidelines-review.
 ---
 
 # Internationalization for GitLab
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/10669) in GitLab 9.2.
 
 For working with internationalization (i18n),
 [GNU gettext](https://www.gnu.org/software/gettext/) is used given it's the most
@@ -567,11 +569,11 @@ instead:
 
 - In Ruby/HAML:
 
-  ```ruby
-  safe_format(_('In &lt; 1 hour'))
+   ```ruby
+   safe_format(_('In &lt; 1 hour'))
 
-  # => 'In < 1 hour'
-  ```
+   # => 'In < 1 hour'
+   ```
 
 - In JavaScript:
 
@@ -931,6 +933,7 @@ strings have been translated and approved. Even though a larger number of string
 translated, only the approved translations display in the GitLab UI.
 
 NOTE:
+[Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/221012) in GitLab 13.3:
 Languages with less than 2% of translations are not available in the UI.
 
 Suppose you want to add translations for a new language, for example, French:

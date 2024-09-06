@@ -253,18 +253,6 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
       expect_allowed(*owner_permissions)
       expect_allowed(*admin_permissions)
     end
-
-    context 'when user is also an admin' do
-      before do
-        organization_owner.update!(admin: true)
-      end
-
-      it { expect_disallowed(:admin_organization) }
-
-      context 'with admin mode', :enable_admin_mode do
-        it { expect_allowed(:admin_organization) }
-      end
-    end
   end
 
   context 'migration bot' do
@@ -1127,6 +1115,14 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
   end
 
   describe 'dependency proxy' do
+    RSpec.shared_examples 'disabling admin_package feature flag' do
+      before do
+        stub_feature_flags(raise_group_admin_package_permission_to_owner: false)
+      end
+
+      it { is_expected.to be_allowed(:admin_dependency_proxy) }
+    end
+
     shared_examples 'disallows all dependency proxy access' do
       it { is_expected.to be_disallowed(:read_dependency_proxy) }
       it { is_expected.to be_disallowed(:admin_dependency_proxy) }
@@ -1169,6 +1165,7 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
           let(:current_user) { maintainer }
 
           it_behaves_like 'allows dependency proxy read access but not admin'
+          it_behaves_like 'disabling admin_package feature flag'
         end
 
         context 'owner' do
@@ -1176,27 +1173,52 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
 
           it { is_expected.to be_allowed(:read_dependency_proxy) }
           it { is_expected.to be_allowed(:admin_dependency_proxy) }
+
+          it_behaves_like 'disabling admin_package feature flag'
         end
       end
 
-      context 'placeholder user' do
-        let_it_be(:placeholder_user) { create(:user, user_type: :placeholder, developer_of: group) }
+      context 'deploy token user' do
+        let!(:group_deploy_token) do
+          create(:group_deploy_token, group: group, deploy_token: deploy_token)
+        end
 
-        subject { described_class.new(placeholder_user, group) }
+        subject { described_class.new(deploy_token, group) }
 
-        it_behaves_like 'disallows all dependency proxy access'
+        context 'with insufficient scopes' do
+          let_it_be(:deploy_token) { create(:deploy_token, :group) }
+
+          it_behaves_like 'disallows all dependency proxy access'
+        end
+
+        context 'with sufficient scopes' do
+          let_it_be(:deploy_token) { create(:deploy_token, :group, :dependency_proxy_scopes) }
+
+          it_behaves_like 'allows dependency proxy read access but not admin'
+        end
       end
 
-      context 'import user' do
-        let_it_be(:import_user) { create(:user, user_type: :import_user, developer_of: group) }
+      context 'group access token user' do
+        let_it_be(:bot_user) { create(:user, :project_bot) }
+        let_it_be(:token) { create(:personal_access_token, user: bot_user, scopes: [Gitlab::Auth::READ_API_SCOPE]) }
 
-        subject { described_class.new(import_user, group) }
+        subject { described_class.new(bot_user, group) }
 
-        it_behaves_like 'disallows all dependency proxy access'
+        context 'not a member of the group' do
+          it_behaves_like 'disallows all dependency proxy access'
+        end
+
+        context 'a member of the group' do
+          before do
+            group.add_guest(bot_user)
+          end
+
+          it_behaves_like 'allows dependency proxy read access but not admin'
+        end
       end
 
       context 'all other user types' do
-        User::USER_TYPES.except(:human, :project_bot, :placeholder, :import_user).each_value do |user_type|
+        User::USER_TYPES.except(:human, :project_bot).each_value do |user_type|
           context "with user_type #{user_type}" do
             before do
               current_user.update!(user_type: user_type)
@@ -1311,23 +1333,11 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
   end
 
   describe 'update_runners_registration_token' do
-    let(:allow_runner_registration_token) { true }
-
-    before do
-      stub_application_setting(allow_runner_registration_token: allow_runner_registration_token)
-    end
-
     context 'admin' do
       let(:current_user) { admin }
 
       context 'when admin mode is enabled', :enable_admin_mode do
         it { is_expected.to be_allowed(:update_runners_registration_token) }
-
-        context 'with registration tokens disabled' do
-          let(:allow_runner_registration_token) { false }
-
-          it { is_expected.to be_disallowed(:update_runners_registration_token) }
-        end
       end
 
       context 'when admin mode is disabled' do
@@ -1339,12 +1349,6 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
       let(:current_user) { owner }
 
       it { is_expected.to be_allowed(:update_runners_registration_token) }
-
-      context 'with registration tokens disabled' do
-        let(:allow_runner_registration_token) { false }
-
-        it { is_expected.to be_disallowed(:update_runners_registration_token) }
-      end
     end
 
     context 'with maintainer' do
@@ -1379,23 +1383,11 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
   end
 
   describe 'register_group_runners' do
-    let(:allow_runner_registration_token) { true }
-
-    before do
-      stub_application_setting(allow_runner_registration_token: allow_runner_registration_token)
-    end
-
     context 'admin' do
       let(:current_user) { admin }
 
       context 'when admin mode is enabled', :enable_admin_mode do
         it { is_expected.to be_allowed(:register_group_runners) }
-
-        context 'with registration tokens disabled' do
-          let(:allow_runner_registration_token) { false }
-
-          it { is_expected.to be_disallowed(:register_group_runners) }
-        end
 
         context 'with specific group runner registration disabled' do
           before do
@@ -1411,12 +1403,6 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
           end
 
           it { is_expected.to be_allowed(:register_group_runners) }
-
-          context 'with registration tokens disabled' do
-            let(:allow_runner_registration_token) { false }
-
-            it { is_expected.to be_disallowed(:register_group_runners) }
-          end
 
           context 'with specific group runner registration disabled' do
             before do
@@ -1445,12 +1431,6 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
       let(:current_user) { owner }
 
       it { is_expected.to be_allowed(:register_group_runners) }
-
-      context 'with registration tokens disabled' do
-        let(:allow_runner_registration_token) { false }
-
-        it { is_expected.to be_disallowed(:register_group_runners) }
-      end
 
       context 'with group runner registration disabled' do
         before do
@@ -1771,13 +1751,33 @@ RSpec.describe GroupPolicy, feature_category: :system_access do
     context 'with maintainer' do
       let(:current_user) { maintainer }
 
-      specify { is_expected.to be_disallowed(:admin_package) }
+      context 'with feature flag enabled' do
+        specify { is_expected.to be_disallowed(:admin_package) }
+      end
+
+      context 'with feature flag disabled' do
+        before do
+          stub_feature_flags(raise_group_admin_package_permission_to_owner: false)
+        end
+
+        specify { is_expected.to be_allowed(:admin_package) }
+      end
     end
 
     context 'with owner' do
       let(:current_user) { owner }
 
-      specify { is_expected.to be_allowed(:admin_package) }
+      context 'with feature flag enabled' do
+        specify { is_expected.to be_allowed(:admin_package) }
+      end
+
+      context 'with feature flag disabled' do
+        before do
+          stub_feature_flags(raise_group_admin_package_permission_to_owner: false)
+        end
+
+        specify { is_expected.to be_allowed(:admin_package) }
+      end
     end
   end
 end

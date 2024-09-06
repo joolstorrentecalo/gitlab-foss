@@ -28,7 +28,7 @@ export default {
       v-if="hasPipeline"
       :status="lastPipelineStatus"
       show-status-text
-      class="gl-align-middle"
+      class="gl-vertical-align-middle"
     />
     <span v-else data-testid="pipeline-schedule-status-text">
       {{ s__('PipelineSchedules|None') }}

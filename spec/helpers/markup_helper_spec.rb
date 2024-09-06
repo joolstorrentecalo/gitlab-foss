@@ -25,7 +25,7 @@ RSpec.describe MarkupHelper, feature_category: :team_planning do
   end
 
   describe "#markdown" do
-    context "referencing multiple objects" do
+    describe "referencing multiple objects" do
       let(:actual) { "#{merge_request.to_reference} -> #{commit.to_reference} -> #{issue.to_reference}" }
 
       it "links to the merge request" do
@@ -44,7 +44,7 @@ RSpec.describe MarkupHelper, feature_category: :team_planning do
       end
     end
 
-    context "override default project" do
+    describe "override default project" do
       let(:actual) { issue.to_reference }
 
       let_it_be(:second_project) { create(:project, :public) }
@@ -56,7 +56,7 @@ RSpec.describe MarkupHelper, feature_category: :team_planning do
       end
     end
 
-    context 'uploads' do
+    describe 'uploads' do
       let(:text) { "![ImageTest](/uploads/test.png)" }
 
       let_it_be(:group) { create(:group) }
@@ -65,22 +65,22 @@ RSpec.describe MarkupHelper, feature_category: :team_planning do
 
       describe 'inside a project' do
         it 'renders uploads relative to project' do
-          expect(subject).to include("/-/project/#{project.id}/uploads/test.png")
+          expect(subject).to include("#{project.full_path}/uploads/test.png")
         end
       end
 
-      context 'inside a group' do
+      describe 'inside a group' do
         before do
           helper.instance_variable_set(:@group, group)
           helper.instance_variable_set(:@project, nil)
         end
 
         it 'renders uploads relative to the group' do
-          expect(subject).to include("/-/group/#{group.id}/uploads/test.png")
+          expect(subject).to include("#{group.full_path}/-/uploads/test.png")
         end
       end
 
-      context "with a group in the context" do
+      describe "with a group in the context" do
         let_it_be(:project_in_group) { create(:project, group: group) }
 
         before do
@@ -89,7 +89,7 @@ RSpec.describe MarkupHelper, feature_category: :team_planning do
         end
 
         it 'renders uploads relative to project' do
-          expect(subject).to include("/-/project/#{project_in_group.id}/uploads/test.png")
+          expect(subject).to include("#{project_in_group.path_with_namespace}/uploads/test.png")
         end
       end
     end
@@ -151,17 +151,6 @@ RSpec.describe MarkupHelper, feature_category: :team_planning do
           expect(subject.css('a')[0].attr('href')).to eq(expanded_path)
           expect(subject.css('img')[0].attr('data-src')).to eq(expanded_path)
         end
-      end
-    end
-
-    context 'when there is a postprocessing option provided' do
-      it 'passes the postprocess options to the Markup::RenderingService' do
-        expect(Markup::RenderingService)
-          .to receive(:new)
-          .with('test', context: anything,
-            postprocess_context: a_hash_including(requested_path: 'path')).and_call_original
-
-        helper.markdown('test', {}, { requested_path: 'path' })
       end
     end
   end
@@ -373,7 +362,7 @@ RSpec.describe MarkupHelper, feature_category: :team_planning do
         it 'renders uploads relative to project' do
           result = helper.render_wiki_content(wiki_page)
 
-          expect(result).to include("/-/project/#{project.id}#{upload_link}")
+          expect(result).to include("#{project.full_path}#{upload_link}")
         end
       end
     end

@@ -5,8 +5,6 @@ module Gitlab
     module CommandBuilder
       extend self
 
-      RedisCommandNilArgumentError = Class.new(StandardError)
-
       # Ref: https://github.com/redis-rb/redis-client/blob/v0.19.1/lib/redis_client/command_builder.rb
       # we modify the command builder to convert nil to strings as this behaviour was present in
       # https://github.com/redis/redis-rb/blob/v4.8.0/lib/redis/connection/command_helper.rb#L20
@@ -39,13 +37,7 @@ module Gitlab
             element
           when Symbol
             element.name
-          when Integer, Float
-            element.to_s
-          when NilClass
-            Gitlab::ErrorTracking.track_and_raise_for_dev_exception(
-              RedisCommandNilArgumentError.new("nil arguments should be handled at the caller")
-            )
-
+          when Integer, Float, NilClass
             element.to_s
           else
             raise TypeError, "Unsupported command argument type: #{element.class}"

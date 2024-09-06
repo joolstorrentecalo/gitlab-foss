@@ -3,18 +3,13 @@ import Vue from 'vue';
 // eslint-disable-next-line no-restricted-imports
 import Vuex from 'vuex';
 import VueApollo from 'vue-apollo';
+import createDefaultClient from '~/lib/graphql';
 import { parseDataAttributes } from '~/members/utils';
-import { TABS } from 'ee_else_ce/members/tabs_metadata';
+import { MEMBER_TYPES } from 'ee_else_ce/members/constants';
 import MembersTabs from './components/members_tabs.vue';
 import membersStore from './store';
-import { graphqlClient } from './graphql_client';
 
-/**
- * @param {HTMLElement} el
- * @param {string} context as defined in CONTEXT_TYPE in ./constants.js
- * @param {Object} options
- */
-export const initMembersApp = (el, context, options) => {
+export const initMembersApp = (el, options) => {
   if (!el) {
     return () => {};
   }
@@ -32,27 +27,35 @@ export const initMembersApp = (el, context, options) => {
     exportCsvPath,
     groupName,
     groupPath,
-    projectPath,
     manageMemberRolesPath,
-    canApproveAccessRequests,
-    namespaceUserLimit,
-    availableRoles,
-    reassignmentCsvPath,
     ...vuexStoreAttributes
   } = parseDataAttributes(el);
 
-  const modules = TABS.reduce((accumulator, tab) => {
-    if (!options[tab.namespace]) {
+  const modules = Object.keys(MEMBER_TYPES).reduce((accumulator, namespace) => {
+    const namespacedOptions = options[namespace];
+
+    if (!namespacedOptions) {
       return accumulator;
     }
-    const store = tab.store ?? membersStore;
-    const data = vuexStoreAttributes[tab.namespace];
-    const namespacedOptions = options[tab.namespace];
-    const moduleStore = store({ ...data, ...namespacedOptions });
+
+    const {
+      tableFields = [],
+      tableAttrs = {},
+      tableSortableFields = [],
+      requestFormatter = () => {},
+      filteredSearchBar = { show: false },
+    } = namespacedOptions;
 
     return {
       ...accumulator,
-      [tab.namespace]: moduleStore,
+      [namespace]: membersStore({
+        ...vuexStoreAttributes[namespace],
+        tableFields,
+        tableAttrs,
+        tableSortableFields,
+        requestFormatter,
+        filteredSearchBar,
+      }),
     };
   }, {});
 
@@ -60,12 +63,9 @@ export const initMembersApp = (el, context, options) => {
 
   return new Vue({
     el,
-    name: 'MembersRoot',
     components: { MembersTabs },
     store,
-    apolloProvider: new VueApollo({
-      defaultClient: graphqlClient,
-    }),
+    apolloProvider: new VueApollo({ defaultClient: createDefaultClient() }),
     provide: {
       currentUserId: gon.current_user_id || null,
       sourceId,
@@ -75,17 +75,9 @@ export const initMembersApp = (el, context, options) => {
       canExportMembers,
       exportCsvPath,
       manageMemberRolesPath,
-      canApproveAccessRequests,
-      namespaceUserLimit,
-      availableRoles,
-      context,
-      reassignmentCsvPath,
       group: {
         name: groupName,
         path: groupPath,
-      },
-      project: {
-        path: projectPath,
       },
     },
     render: (createElement) => createElement('members-tabs'),

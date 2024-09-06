@@ -3,8 +3,6 @@
  *
  */
 .md {
-  position: relative;
-  z-index: 1;
   color: $gl-text-color;
   word-wrap: break-word;
 
@@ -45,12 +43,6 @@
     max-width: 100%;
   }
 
-  img[width][height] {
-    object-fit: contain;
-    object-position: top;
-    height: auto;
-  }
-
   img:not(.emoji) {
     margin: 0 0 8px;
   }
@@ -58,7 +50,7 @@
   img.lazy {
     min-width: 200px;
     min-height: 100px;
-    background-color: $gray-10;
+    background-color: $gray-lightest;
   }
 
   img.js-lazy-loaded,
@@ -80,16 +72,6 @@
     margin-bottom: $gl-padding;
   }
 
-  // Shift the anchor link for a heading inside a details summary to the left
-  // to make room for the summary toggle
-  details summary {
-    h1, h2, h3, h4, h5, h6 {
-      a.anchor {
-        margin-left: -2rem;
-      }
-    }
-  }
-
   summary > * {
     display: inline-block;
     margin-bottom: 0;
@@ -98,16 +80,11 @@
   // Single code lines should wrap
   code {
     font-family: $monospace-font;
-    vertical-align: bottom;
     white-space: pre-wrap;
     // Safari
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: keep-all;
-  }
-
-  mark {
-    @include str-highlighted;
   }
 
   h1 {
@@ -163,7 +140,7 @@
     margin-bottom: $gl-spacing-scale-3;
     margin-left: 0;
     margin-right: 0;
-    @apply gl-shadow-inner-l-4-gray-100;
+    @include gl-inset-border-l-4-gray-100;
 
     &:dir(rtl) {
       border-left: 0;
@@ -355,7 +332,7 @@
     &.stripes-odd tr:nth-of-type(odd),
     &.stripes-even tr:nth-of-type(even),
     &.stripes-hover tr:hover {
-      background: $gray-10;
+      background: $gray-light;
     }
   }
 
@@ -367,7 +344,7 @@
     margin-bottom: 16px;
     line-height: 1.6em;
     overflow-x: auto;
-    border-radius: $gl-border-radius-base;
+    border-radius: $border-radius-default;
 
     // Multi-line code blocks should scroll horizontally
     code {
@@ -629,7 +606,7 @@
   }
 
   .sidebarblock {
-    background: $gray-50;
+    background: $gray-darker;
     padding: $gl-padding-12 $gl-padding-24;
     border-radius: $gl-border-radius-large;
 
@@ -749,7 +726,7 @@ pre {
   word-break: break-all;
   word-wrap: break-word;
   color: $gl-text-color;
-  background-color: $gray-10;
+  background-color: $gray-light;
   border: 1px solid $gray-100;
   border-radius: $border-radius-small;
 

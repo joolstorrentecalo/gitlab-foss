@@ -42,7 +42,8 @@ module Gitlab
           end
         end
 
-        def self.default; end
+        def self.default
+        end
       end
     end
   end

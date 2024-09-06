@@ -29,10 +29,8 @@
               "access_level": {
                 "type": "integer",
                 "enum": [
-                  0,
                   30,
-                  40,
-                  60
+                  40
                 ]
               }
             }
@@ -60,10 +58,8 @@
               "access_level": {
                 "type": "integer",
                 "enum": [
-                  0,
                   30,
-                  40,
-                  60
+                  40
                 ]
               }
             }

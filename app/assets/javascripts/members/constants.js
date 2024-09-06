@@ -4,10 +4,10 @@ import { __, s__ } from '~/locale';
 import { OPERATORS_IS } from '~/vue_shared/components/filtered_search_bar/constants';
 
 // Overridden in EE
-export const GROUPS_APP_OPTIONS = {};
-export const PROJECTS_APP_OPTIONS = {};
+export const EE_GROUPS_APP_OPTIONS = {};
+export const EE_PROJECTS_APP_OPTIONS = {};
 
-export const ACTION_BUTTONS = {};
+export const EE_ACTION_BUTTONS = {};
 
 export const FIELD_KEY_ACCOUNT = 'account';
 export const FIELD_KEY_SOURCE = 'source';
@@ -30,13 +30,13 @@ export const FIELDS = [
       asc: 'name_asc',
       desc: 'name_desc',
     },
-    tdClass: '!gl-align-middle',
+    tdClass: 'gl-vertical-align-middle!',
   },
   {
     key: FIELD_KEY_SOURCE,
     label: __('Source'),
     thClass: 'col-meta',
-    tdClass: 'col-meta !gl-align-middle',
+    tdClass: 'col-meta gl-vertical-align-middle!',
   },
   {
     key: FIELD_KEY_GRANTED,
@@ -45,25 +45,25 @@ export const FIELDS = [
       asc: 'last_joined',
       desc: 'oldest_joined',
     },
-    tdClass: '!gl-align-middle',
+    tdClass: 'gl-vertical-align-middle!',
   },
   {
     key: FIELD_KEY_INVITED,
     label: __('Invited'),
     thClass: 'col-meta',
-    tdClass: 'col-meta !gl-align-middle',
+    tdClass: 'col-meta gl-vertical-align-middle!',
   },
   {
     key: FIELD_KEY_REQUESTED,
     label: __('Requested'),
     thClass: 'col-meta',
-    tdClass: 'col-meta !gl-align-middle',
+    tdClass: 'col-meta gl-vertical-align-middle!',
   },
   {
     key: FIELD_KEY_MAX_ROLE,
-    label: __('Role'),
+    label: __('Max role'),
     thClass: 'col-max-role',
-    tdClass: 'col-max-role !gl-align-middle',
+    tdClass: 'col-max-role gl-vertical-align-middle!',
     sort: {
       asc: 'access_level_asc',
       desc: 'access_level_desc',
@@ -73,13 +73,13 @@ export const FIELDS = [
     key: FIELD_KEY_EXPIRATION,
     label: __('Expiration'),
     thClass: 'col-expiration',
-    tdClass: 'col-expiration !gl-align-middle',
+    tdClass: 'col-expiration gl-vertical-align-middle!',
   },
   {
     key: FIELD_KEY_ACTIVITY,
     label: s__('Members|Activity'),
     thClass: 'col-activity',
-    tdClass: 'col-activity !gl-align-middle',
+    tdClass: 'col-activity gl-vertical-align-middle!',
   },
   {
     key: FIELD_KEY_USER_CREATED_AT,
@@ -139,7 +139,12 @@ export const FILTERED_SEARCH_TOKEN_WITH_INHERITED_PERMISSIONS = {
   operators: OPERATORS_IS,
   options: [
     { value: 'exclude', title: s__('Members|Direct') },
-    { value: 'only', title: s__('Members|Indirect') },
+    {
+      value: 'only',
+      title: gon.features?.webuiMembersInheritedUsers
+        ? s__('Members|Indirect')
+        : s__('Members|Inherited'),
+    },
   ],
 };
 
@@ -148,32 +153,19 @@ export const FILTERED_SEARCH_TOKEN_GROUPS_WITH_INHERITED_PERMISSIONS = {
   type: 'groups_with_inherited_permissions',
 };
 
-export const FILTERED_SEARCH_MAX_ROLE = {
-  type: 'max_role',
-  icon: 'shield',
-  title: __('Role'),
-  token: GlFilteredSearchToken,
-  unique: true,
-  operators: OPERATORS_IS,
-};
-
 export const AVAILABLE_FILTERED_SEARCH_TOKENS = [
   FILTERED_SEARCH_TOKEN_TWO_FACTOR,
   FILTERED_SEARCH_TOKEN_WITH_INHERITED_PERMISSIONS,
   FILTERED_SEARCH_TOKEN_GROUPS_WITH_INHERITED_PERMISSIONS,
-  FILTERED_SEARCH_MAX_ROLE,
 ];
 
 export const AVATAR_SIZE = 48;
 
-export const DEFAULT_PAGE_SIZE = 20;
-
-export const MEMBERS_TAB_TYPES = Object.freeze({
+export const MEMBER_TYPES = Object.freeze({
   user: 'user',
   group: 'group',
   invite: 'invite',
   accessRequest: 'accessRequest',
-  placeholder: 'placeholder',
 });
 
 // `app/models/members/group_member.rb`
@@ -186,8 +178,33 @@ export const TAB_QUERY_PARAM_VALUES = Object.freeze({
   group: 'groups',
   invite: 'invited',
   accessRequest: 'access_requests',
-  placeholder: 'placeholders',
 });
+
+// Overridden in EE
+export const TABS = [
+  {
+    namespace: MEMBER_TYPES.user,
+    title: __('Members'),
+  },
+  {
+    namespace: MEMBER_TYPES.group,
+    title: __('Groups'),
+    attrs: { 'data-testid': 'groups-list-tab' },
+    queryParamValue: TAB_QUERY_PARAM_VALUES.group,
+  },
+  {
+    namespace: MEMBER_TYPES.invite,
+    title: __('Invited'),
+    requiredPermissions: ['canManageMembers'],
+    queryParamValue: TAB_QUERY_PARAM_VALUES.invite,
+  },
+  {
+    namespace: MEMBER_TYPES.accessRequest,
+    title: __('Access requests'),
+    requiredPermissions: ['canManageAccessRequests'],
+    queryParamValue: TAB_QUERY_PARAM_VALUES.accessRequest,
+  },
+];
 
 /**
  * This user state value comes from the User model
@@ -222,10 +239,3 @@ export const I18N_USER_YOU = __("It's you");
 export const I18N_USER_BLOCKED = __('Blocked');
 export const I18N_USER_BOT = __('Bot');
 export const I188N_USER_2FA = __('2FA');
-export const I18N_ROLE_SAVE_SUCCESS = s__('Members|Role was successfully updated.');
-export const I18N_ROLE_SAVE_ERROR = s__('MemberRole|Could not update role.');
-
-export const CONTEXT_TYPE = Object.freeze({
-  PROJECT: 'PROJECT',
-  GROUP: 'GROUP',
-});

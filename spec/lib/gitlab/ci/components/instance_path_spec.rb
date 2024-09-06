@@ -108,14 +108,39 @@ RSpec.describe Gitlab::Ci::Components::InstancePath, feature_category: :pipeline
       context 'when fetching the latest release' do
         let(:version) { '~latest' }
 
-        context 'when there is no project' do
-          it_behaves_like 'does not find the component'
-        end
-
         context 'when the project is not a catalog resource' do
-          let_it_be(:project) { create(:project, :repository) }
+          let_it_be(:project) do
+            create(
+              :project, :custom_repo,
+              files: {
+                'templates/secret-detection.yml' => 'image: alpine_1'
+              }
+            )
+          end
 
-          it_behaves_like 'does not find the component'
+          let_it_be(:v2_5_0) do
+            sha = project.repository.commit('master').id
+
+            create(:release, project: project, tag: '2.5.0', sha: sha, released_at: Date.yesterday)
+          end
+
+          let_it_be(:v1_1_1) do
+            sha = project.repository.update_file(
+              user, 'templates/secret-detection.yml', 'image: alpine_2',
+              message: 'Updates image', branch_name: project.default_branch
+            )
+
+            create(:release, project: project, sha: sha, tag: '1.1.1', released_at: Date.today)
+          end
+
+          it 'returns the component content of the latest project release by date', :aggregate_failures do
+            result = path.fetch_content!(current_user: user)
+
+            expect(result.content).to eq('image: alpine_2')
+            expect(result.path).to eq('templates/secret-detection.yml')
+            expect(path.project).to eq(project)
+            expect(path.sha).to eq(v1_1_1.sha)
+          end
         end
 
         context 'when the project is a catalog resource' do
@@ -145,16 +170,6 @@ RSpec.describe Gitlab::Ci::Components::InstancePath, feature_category: :pipeline
             release = create(:release, project: project, tag: '1.1.2', sha: sha, released_at: Date.today)
 
             create(:ci_catalog_resource_version, catalog_resource: resource, release: release, semver: '1.1.2')
-          end
-
-          let_it_be(:v6_0_0_pre) do
-            sha = project.repository.update_file(
-              user, 'templates/secret-detection.yml', 'image: alpine_6',
-              message: 'Updates release', branch_name: project.default_branch
-            )
-            release = create(:release, project: project, tag: '6.0.0-pre', sha: sha, released_at: Date.today)
-
-            create(:ci_catalog_resource_version, catalog_resource: resource, release: release, semver: '6.0.0-pre')
           end
 
           it 'returns the component content of the latest semantic version', :aggregate_failures do
@@ -191,15 +206,6 @@ RSpec.describe Gitlab::Ci::Components::InstancePath, feature_category: :pipeline
               let(:version) { '3' }
 
               it 'returns nil' do
-                result = path.fetch_content!(current_user: user)
-                expect(result).to be_nil
-              end
-            end
-
-            context 'when the version matches a pre-release' do
-              let(:version) { '6' }
-
-              it 'returns nil as shorthand should not fetch pre-release versions' do
                 result = path.fetch_content!(current_user: user)
                 expect(result).to be_nil
               end
@@ -294,37 +300,6 @@ RSpec.describe Gitlab::Ci::Components::InstancePath, feature_category: :pipeline
             expect(path.project).to eq(project)
           end
         end
-      end
-    end
-  end
-
-  describe '#invalid_usage_for_latest?' do
-    let_it_be(:project) { create(:project) }
-    let(:project_path) { project.full_path }
-    let(:address) { "acme.com/#{project_path}/secret-detection@#{version}" }
-
-    context 'when the version is ~latest and the project is not a catalog resource' do
-      let(:version) { '~latest' }
-
-      it 'returns true and therefore is valid' do
-        expect(path.invalid_usage_for_latest?).to be_truthy
-      end
-    end
-
-    context 'when the version is not ~latest' do
-      let(:version) { '1.0.0' }
-
-      it 'returns false' do
-        expect(path.invalid_usage_for_latest?).to be_falsey
-      end
-    end
-
-    context 'when the project is a catalog resource' do
-      let(:version) { '~latest' }
-      let!(:catalog_resource) { create(:ci_catalog_resource, project: project) }
-
-      it 'returns false' do
-        expect(path.invalid_usage_for_latest?).to be_falsey
       end
     end
   end

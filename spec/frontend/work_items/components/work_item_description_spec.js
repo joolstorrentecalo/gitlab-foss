@@ -3,6 +3,7 @@ import { shallowMount } from '@vue/test-utils';
 import Vue, { nextTick } from 'vue';
 import VueApollo from 'vue-apollo';
 import createMockApollo from 'helpers/mock_apollo_helper';
+import { mockTracking } from 'helpers/tracking_helper';
 import waitForPromises from 'helpers/wait_for_promises';
 import EditedAt from '~/issues/show/components/edited.vue';
 import { updateDraft } from '~/lib/utils/autosave';
@@ -10,10 +11,13 @@ import { confirmAction } from '~/lib/utils/confirm_via_gl_modal/confirm_via_gl_m
 import MarkdownEditor from '~/vue_shared/components/markdown/markdown_editor.vue';
 import WorkItemDescription from '~/work_items/components/work_item_description.vue';
 import WorkItemDescriptionRendered from '~/work_items/components/work_item_description_rendered.vue';
+import { TRACKING_CATEGORY_SHOW } from '~/work_items/constants';
 import updateWorkItemMutation from '~/work_items/graphql/update_work_item.mutation.graphql';
+import groupWorkItemByIidQuery from '~/work_items/graphql/group_work_item_by_iid.query.graphql';
 import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
 import { autocompleteDataSources, markdownPreviewPath } from '~/work_items/utils';
 import {
+  groupWorkItemByIidResponseFactory,
   updateWorkItemMutationResponse,
   workItemByIidResponseFactory,
   workItemQueryResponse,
@@ -22,6 +26,8 @@ import {
 jest.mock('~/lib/utils/confirm_via_gl_modal/confirm_via_gl_modal');
 jest.mock('~/lib/utils/autosave');
 
+const workItemId = workItemQueryResponse.data.workItem.id;
+
 describe('WorkItemDescription', () => {
   let wrapper;
 
@@ -29,6 +35,7 @@ describe('WorkItemDescription', () => {
 
   const mutationSuccessHandler = jest.fn().mockResolvedValue(updateWorkItemMutationResponse);
   let workItemResponseHandler;
+  let groupWorkItemResponseHandler;
 
   const findForm = () => wrapper.findComponent(GlForm);
   const findMarkdownEditor = () => wrapper.findComponent(MarkdownEditor);
@@ -40,6 +47,7 @@ describe('WorkItemDescription', () => {
   const findCancelButton = () => wrapper.find('[data-testid="cancel"]');
   const findSubmitButton = () => wrapper.find('[data-testid="save-description"]');
   const clickCancel = () => findForm().vm.$emit('reset', new Event('reset'));
+  const clickSave = () => findForm().vm.$emit('submit', new Event('submit'));
 
   const createComponent = async ({
     mutationHandler = mutationSuccessHandler,
@@ -48,25 +56,27 @@ describe('WorkItemDescription', () => {
     isEditing = false,
     isGroup = false,
     workItemIid = '1',
-    workItemTypeId = workItemQueryResponse.data.workItem.workItemType.id,
+    disableInlineEditing = false,
     editMode = false,
-    showButtonsBelowField,
   } = {}) => {
     workItemResponseHandler = jest.fn().mockResolvedValue(workItemResponse);
+    groupWorkItemResponseHandler = jest
+      .fn()
+      .mockResolvedValue(groupWorkItemByIidResponseFactory({ canUpdate }));
 
     const { id } = workItemQueryResponse.data.workItem;
     wrapper = shallowMount(WorkItemDescription, {
       apolloProvider: createMockApollo([
         [workItemByIidQuery, workItemResponseHandler],
+        [groupWorkItemByIidQuery, groupWorkItemResponseHandler],
         [updateWorkItemMutation, mutationHandler],
       ]),
       propsData: {
         fullPath: 'test-project-path',
         workItemId: id,
         workItemIid,
-        workItemTypeId,
+        disableInlineEditing,
         editMode,
-        showButtonsBelowField,
       },
       provide: {
         isGroup,
@@ -97,48 +107,6 @@ describe('WorkItemDescription', () => {
         autocompleteDataSources: autocompleteDataSources({ fullPath, iid }),
       });
     });
-
-    it('passes correct autocompletion data sources when it is a group work item', async () => {
-      const {
-        iid,
-        namespace: { fullPath },
-      } = workItemQueryResponse.data.workItem;
-
-      const workItemResponse = workItemByIidResponseFactory();
-
-      const groupWorkItem = {
-        data: {
-          workspace: {
-            __typename: 'Group',
-            id: 'gid://gitlab/Group/24',
-            workItem: {
-              ...workItemResponse.data.workspace.workItem,
-              namespace: {
-                id: 'gid://gitlab/Group/24',
-                fullPath: 'gitlab-org',
-                name: 'Gitlab Org',
-                __typename: 'Namespace',
-              },
-            },
-          },
-        },
-      };
-
-      createComponent({ isEditing: true, workItemResponse: groupWorkItem, isGroup: true });
-
-      await waitForPromises();
-
-      expect(findMarkdownEditor().props()).toMatchObject({
-        supportsQuickActions: true,
-        renderMarkdownPath: markdownPreviewPath({ fullPath, iid, isGroup: true }),
-        autocompleteDataSources: autocompleteDataSources({
-          fullPath,
-          iid,
-          isGroup: true,
-        }),
-      });
-    });
-
     it('shows edited by text', async () => {
       const lastEditedAt = '2022-09-21T06:18:42Z';
       const lastEditedBy = {
@@ -190,6 +158,88 @@ describe('WorkItemDescription', () => {
       expect(confirmAction).toHaveBeenCalled();
     });
 
+    it('calls update widgets mutation', async () => {
+      const updatedDesc = 'updated desc';
+
+      await createComponent({
+        isEditing: true,
+      });
+
+      editDescription(updatedDesc);
+
+      clickSave();
+
+      await waitForPromises();
+
+      expect(mutationSuccessHandler).toHaveBeenCalledWith({
+        input: {
+          id: workItemId,
+          descriptionWidget: {
+            description: updatedDesc,
+          },
+        },
+      });
+    });
+
+    it('tracks editing description', async () => {
+      await createComponent({
+        isEditing: true,
+        markdownPreviewPath: '/preview',
+      });
+      const trackingSpy = mockTracking(undefined, wrapper.element, jest.spyOn);
+
+      clickSave();
+
+      await waitForPromises();
+
+      expect(trackingSpy).toHaveBeenCalledWith(TRACKING_CATEGORY_SHOW, 'updated_description', {
+        category: TRACKING_CATEGORY_SHOW,
+        label: 'item_description',
+        property: 'type_Task',
+      });
+    });
+
+    it('emits error when mutation returns error', async () => {
+      const error = 'eror';
+
+      await createComponent({
+        isEditing: true,
+        mutationHandler: jest.fn().mockResolvedValue({
+          data: {
+            workItemUpdate: {
+              workItem: {},
+              errors: [error],
+            },
+          },
+        }),
+      });
+
+      editDescription('updated desc');
+
+      clickSave();
+
+      await waitForPromises();
+
+      expect(wrapper.emitted('error')).toEqual([[error]]);
+    });
+
+    it('emits error when mutation fails', async () => {
+      const error = 'eror';
+
+      await createComponent({
+        isEditing: true,
+        mutationHandler: jest.fn().mockRejectedValue(new Error(error)),
+      });
+
+      editDescription('updated desc');
+
+      clickSave();
+
+      await waitForPromises();
+
+      expect(wrapper.emitted('error')).toEqual([[error]]);
+    });
+
     it('autosaves description', async () => {
       await createComponent({
         isEditing: true,
@@ -208,86 +258,64 @@ describe('WorkItemDescription', () => {
       expect(findCancelButton().attributes('type')).toBe('reset');
       expect(findSubmitButton().attributes('type')).toBe('submit');
     });
-
-    it('hides buttons when showButtonsBelowField is false', async () => {
-      await createComponent({
-        isEditing: true,
-        showButtonsBelowField: false,
-      });
-
-      expect(findCancelButton().exists()).toBe(false);
-      expect(findSubmitButton().exists()).toBe(false);
-    });
   });
 
-  it('calls the project work item query', () => {
-    createComponent();
-
-    expect(workItemResponseHandler).toHaveBeenCalled();
-  });
-
-  describe('when edit mode is inactive', () => {
-    beforeEach(() => {
+  describe('when project context', () => {
+    it('calls the project work item query', () => {
       createComponent();
+
+      expect(workItemResponseHandler).toHaveBeenCalled();
     });
 
-    it('does not show edit mode of markdown editor in default mode', () => {
-      expect(findMarkdownEditor().exists()).toBe(false);
-    });
-  });
+    it('skips calling the group work item query', () => {
+      createComponent();
 
-  describe('when edit mode is active', () => {
-    beforeEach(() => {
-      createComponent({ editMode: true });
-    });
-
-    it('shows markdown editor in edit mode only when the correct props are passed', () => {
-      expect(findMarkdownEditor().exists()).toBe(true);
-    });
-
-    it('emits the `updateDraft` event when clicked on submit button in edit mode', () => {
-      const updatedDesc = 'updated desc with inline editing disabled';
-      findMarkdownEditor().vm.$emit('input', updatedDesc);
-      expect(wrapper.emitted('updateDraft')).toEqual([[updatedDesc]]);
+      expect(groupWorkItemResponseHandler).not.toHaveBeenCalled();
     });
   });
 
-  describe('checklist count visibility', () => {
-    const taskCompletionStatus = {
-      completedCount: 0,
-      count: 4,
-    };
+  describe('when group context', () => {
+    it('skips calling the project work item query', () => {
+      createComponent({ isGroup: true });
 
-    describe('when checklist exists', () => {
-      it('when edit mode is active, checklist count is not visible', async () => {
-        await createComponent({
-          editMode: true,
-          workItemResponse: workItemByIidResponseFactory({ taskCompletionStatus }),
-        });
+      expect(workItemResponseHandler).not.toHaveBeenCalled();
+    });
 
-        expect(findEditedAt().exists()).toBe(false);
+    it('calls the group work item query', () => {
+      createComponent({ isGroup: true });
+
+      expect(groupWorkItemResponseHandler).toHaveBeenCalled();
+    });
+  });
+
+  describe('when inline editing is disabled', () => {
+    describe('when edit mode is inactive', () => {
+      beforeEach(() => {
+        createComponent({ disableInlineEditing: true });
       });
 
-      it('when edit mode is inactive, checklist count is visible', async () => {
-        await createComponent({
-          editMode: false,
-          workItemResponse: workItemByIidResponseFactory({ taskCompletionStatus }),
-        });
+      it('passes the correct props for work item rendered description', () => {
+        expect(findRenderedDescription().props('disableInlineEditing')).toBe(true);
+      });
 
-        expect(findEditedAt().exists()).toBe(true);
-        expect(findEditedAt().props()).toMatchObject({
-          taskCompletionStatus,
-        });
+      it('does not show edit mode of markdown editor in default mode', () => {
+        expect(findMarkdownEditor().exists()).toBe(false);
       });
     });
 
-    describe('when checklist does not exist', () => {
-      it('checklist count is not visible', async () => {
-        await createComponent({
-          workItemResponse: workItemByIidResponseFactory({ taskCompletionStatus: null }),
-        });
+    describe('when edit mode is active', () => {
+      beforeEach(() => {
+        createComponent({ disableInlineEditing: true, editMode: true });
+      });
 
-        expect(findEditedAt().exists()).toBe(false);
+      it('shows markdown editor in edit mode only when the correct props are passed', () => {
+        expect(findMarkdownEditor().exists()).toBe(true);
+      });
+
+      it('emits the `updateDraft` event when clicked on submit button in edit mode', () => {
+        const updatedDesc = 'updated desc with inline editing disabled';
+        findMarkdownEditor().vm.$emit('input', updatedDesc);
+        expect(wrapper.emitted('updateDraft')).toEqual([[updatedDesc]]);
       });
     });
   });

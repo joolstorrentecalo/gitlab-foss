@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class ProjectStatistics < ApplicationRecord
+  include AfterCommitQueue
   include CounterAttribute
 
   belongs_to :project
@@ -38,7 +39,7 @@ class ProjectStatistics < ApplicationRecord
 
   scope :for_project_ids, ->(project_ids) { where(project_id: project_ids) }
 
-  scope :for_namespaces, ->(namespaces) { where(namespace: namespaces) }
+  scope :for_namespaces, -> (namespaces) { where(namespace: namespaces) }
 
   def total_repository_size
     repository_size + lfs_objects_size

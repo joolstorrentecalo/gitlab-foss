@@ -12,26 +12,12 @@ Documentation at GitLab follows a workflow.
 
 Ensure your documentation includes:
 
-- [Product availability details](styleguide/availability_details.md).
+- [Product badges](styleguide/index.md#product-tier-badges).
 - The GitLab [version](versions.md) that introduced the feature.
 - Accurate [links](styleguide/index.md#links).
 - Accurate [user permissions](../../user/permissions.md).
 
 Ensure you've followed the [style guide](styleguide/index.md) and [word list](styleguide/word_list.md).
-
-### Branch naming
-
-The [CI/CD pipeline for the main GitLab project](../pipelines/index.md) is configured to
-run shorter, faster pipelines on merge requests that contain only documentation changes.
-
-If you submit documentation-only changes to Omnibus, Charts, or Operator,
-to make the shorter pipeline run, you must follow these guidelines when naming your branch:
-
-| Branch name           | Valid example                |
-|:----------------------|:-----------------------------|
-| Starting with `docs/` | `docs/update-api-issues`     |
-| Starting with `docs-` | `docs-update-api-issues`     |
-| Ending in `-docs`     | `123-update-api-issues-docs` |
 
 ## Documentation labels
 
@@ -67,7 +53,7 @@ and link to it from the merged merge request that introduced the documentation c
 Circumstances in which a regular pre-merge Technical Writer review might be skipped include:
 
 - There is a short amount of time left before the milestone release. If fewer than three
-  days are remaining, seek a post-merge review and ping the writer via Slack to ensure the review is
+ days are remaining, seek a post-merge review and ping the writer via Slack to ensure the review is
   completed as soon as possible.
 - The size of the change is small and you have a high degree of confidence
   that early users of the feature (for example, GitLab.com users) can easily
@@ -93,9 +79,7 @@ and merged by the Solutions Architect team.
 
 ## AI-generated content
 
-Community members can make AI-generated contributions to GitLab documentation, provided they follow the guidelines in our [DCO or our CLA terms](https://about.gitlab.com/community/contribute/dco-cla/).
-
-GitLab team members must follow the guidelines documented in the [internal handbook](https://internal.gitlab.com/handbook/product/ai-strategy/ai-integration-effort/legal_restrictions/).
+You can make AI-generated contributions to GitLab documentation, provided you follow the guidelines in our [DCO or our CLA terms](https://about.gitlab.com/community/contribute/dco-cla/).
 
 ## Related topics
 

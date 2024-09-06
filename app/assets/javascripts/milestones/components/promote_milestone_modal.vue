@@ -9,24 +9,14 @@ export default {
   components: {
     GlModal,
   },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-    milestoneTitle: {
-      type: String,
-      required: true,
-    },
-    promoteUrl: {
-      type: String,
-      required: true,
-    },
-    groupName: {
-      type: String,
-      required: true,
-    },
+  data() {
+    return {
+      milestoneTitle: '',
+      url: '',
+      groupName: '',
+      currentButton: null,
+      visible: false,
+    };
   },
   computed: {
     title() {
@@ -42,10 +32,33 @@ export default {
       );
     },
   },
+  mounted() {
+    this.getButtons().forEach((button) => {
+      button.addEventListener('click', this.onPromoteButtonClick);
+      button.removeAttribute('disabled');
+    });
+  },
+  beforeDestroy() {
+    this.getButtons().forEach((button) => {
+      button.removeEventListener('click', this.onPromoteButtonClick);
+    });
+  },
   methods: {
+    onPromoteButtonClick({ currentTarget }) {
+      const { milestoneTitle, url, groupName } = currentTarget.dataset;
+      currentTarget.setAttribute('disabled', '');
+      this.visible = true;
+      this.milestoneTitle = milestoneTitle;
+      this.url = url;
+      this.groupName = groupName;
+      this.currentButton = currentTarget;
+    },
+    getButtons() {
+      return document.querySelectorAll('.js-promote-project-milestone-button');
+    },
     onSubmit() {
       return axios
-        .post(this.promoteUrl, { params: { format: 'json' } })
+        .post(this.url, { params: { format: 'json' } })
         .then((response) => {
           visitUrl(response.data.url);
         })
@@ -55,11 +68,14 @@ export default {
           });
         })
         .finally(() => {
-          this.onClose();
+          this.visible = false;
         });
     },
     onClose() {
-      this.$emit('promotionModalVisible', false);
+      this.visible = false;
+      if (this.currentButton) {
+        this.currentButton.removeAttribute('disabled');
+      }
     },
   },
   primaryAction: {
@@ -76,9 +92,9 @@ export default {
   <gl-modal
     :visible="visible"
     modal-id="promote-milestone-modal"
-    :title="title"
     :action-primary="$options.primaryAction"
     :action-cancel="$options.cancelAction"
+    :title="title"
     @primary="onSubmit"
     @hide="onClose"
   >

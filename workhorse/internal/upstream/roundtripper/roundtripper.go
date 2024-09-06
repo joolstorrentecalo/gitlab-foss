@@ -1,9 +1,3 @@
-/*
-Package roundtripper provides a custom HTTP roundtripper for handling requests.
-
-This package implements a custom HTTP transport for handling HTTP requests
-with additional features such as logging, tracing, and error handling.
-*/
 package roundtripper
 
 import (
@@ -34,17 +28,7 @@ func mustParseAddress(address, scheme string) string {
 
 // NewBackendRoundTripper returns a new RoundTripper instance using the provided values
 func NewBackendRoundTripper(backend *url.URL, socket string, proxyHeadersTimeout time.Duration, developmentMode bool) http.RoundTripper {
-	var tlsConf *tls.Config
-
-	if developmentMode {
-		// GitLab Observability Backend uses a LetsEncyrpt staging cert during development.
-		// We do not want to add them to the trust store: https://letsencrypt.org/docs/staging-environment/
-		//nolint:gosec
-		tlsConf = &tls.Config{
-			InsecureSkipVerify: true,
-		}
-	}
-	return newBackendRoundTripper(backend, socket, proxyHeadersTimeout, developmentMode, tlsConf)
+	return newBackendRoundTripper(backend, socket, proxyHeadersTimeout, developmentMode, nil)
 }
 
 func newBackendRoundTripper(backend *url.URL, socket string, proxyHeadersTimeout time.Duration, developmentMode bool, tlsConf *tls.Config) http.RoundTripper {
@@ -57,17 +41,16 @@ func newBackendRoundTripper(backend *url.URL, socket string, proxyHeadersTimeout
 
 	dial := transport.DialContext
 
-	switch {
-	case backend != nil && socket == "":
+	if backend != nil && socket == "" {
 		address := mustParseAddress(backend.Host, backend.Scheme)
-		transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
+		transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return dial(ctx, "tcp", address)
 		}
-	case socket != "":
-		transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
+	} else if socket != "" {
+		transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return dial(ctx, "unix", socket)
 		}
-	default:
+	} else {
 		panic("backend is nil and socket is empty")
 	}
 

@@ -8,9 +8,13 @@ RSpec.describe "User comments on commit", :js, feature_category: :source_code_ma
   include RepoHelpers
 
   let_it_be(:project) { create(:project, :repository) }
-  let_it_be(:user) { create(:user, developer_of: project) }
+  let_it_be(:user) { create(:user) }
 
   let(:comment_text) { "XML attached" }
+
+  before_all do
+    project.add_developer(user)
+  end
 
   before do
     sign_in(user)
@@ -38,7 +42,10 @@ RSpec.describe "User comments on commit", :js, feature_category: :source_code_ma
 
         expect(page).to have_field("note[note]", with: "#{comment_text} #{emoji_code}")
 
-        send_keys([:meta, :enter])
+        # Submit comment from the `Preview` tab to get rid of a separate `it` block
+        # which would specially tests if everything gets cleared from the note form.
+        click_button("Preview")
+        click_button("Comment")
       end
 
       wait_for_requests

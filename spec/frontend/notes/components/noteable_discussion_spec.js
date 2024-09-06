@@ -27,7 +27,6 @@ import {
   loggedOutnoteableData,
   userDataMock,
 } from '../mock_data';
-import { useLocalStorageSpy } from '../../__helpers__/local_storage_helper';
 
 Vue.use(Vuex);
 
@@ -97,34 +96,6 @@ describe('noteable_discussion component', () => {
     await nextTick();
 
     expect(wrapper.vm.canShowReplyActions).toBe(false);
-  });
-
-  describe('drafts', () => {
-    useLocalStorageSpy();
-
-    afterEach(() => {
-      localStorage.clear();
-    });
-
-    it.each`
-      show          | exists              | hasDraft
-      ${'show'}     | ${'exists'}         | ${true}
-      ${'not show'} | ${'does not exist'} | ${false}
-    `(
-      'should $show markdown editor on create if reply draft $exists in localStorage',
-      ({ hasDraft }) => {
-        if (hasDraft) {
-          localStorage.setItem(`autosave/Note/Issue/${discussionMock.id}/Reply`, 'draft');
-        }
-        window.gon.current_user_id = userDataMock.id;
-        store.dispatch('setUserData', userDataMock);
-        wrapper = mount(NoteableDiscussion, {
-          store,
-          propsData: { discussion: discussionMock },
-        });
-        expect(wrapper.find('.note-edit-form').exists()).toBe(hasDraft);
-      },
-    );
   });
 
   describe('actions', () => {
@@ -206,6 +177,23 @@ describe('noteable_discussion component', () => {
       const replyWrapper = wrapper.find('[data-testid="reply-wrapper"]');
       expect(replyWrapper.exists()).toBe(true);
       expect(replyWrapper.classes('internal-note')).toBe(true);
+    });
+
+    it('should add `public-note` class when the discussion is not internal', async () => {
+      const softCopyInternalNotes = [...discussionMock.notes];
+      const mockPublicNotes = softCopyInternalNotes.splice(0, 2);
+      mockPublicNotes[0].internal = false;
+
+      const mockDiscussion = {
+        ...discussionMock,
+        notes: [...mockPublicNotes],
+      };
+      wrapper.setProps({ discussion: mockDiscussion });
+      await nextTick();
+
+      const replyWrapper = wrapper.find('[data-testid="reply-wrapper"]');
+      expect(replyWrapper.exists()).toBe(true);
+      expect(replyWrapper.classes('public-note')).toBe(true);
     });
   });
 

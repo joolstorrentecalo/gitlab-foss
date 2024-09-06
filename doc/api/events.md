@@ -24,15 +24,13 @@ Available target types for the `target_type` parameter are:
 - `issue`
 - `milestone`
 - `merge_request`
-- `note` - Some notes on merge requests may be of the type `DiscussionNote`, instead of `Note`.
-  `DiscussionNote` items are [not available using the API](discussions.md#understand-note-types-in-the-api).
+- `note`
 - `project`
 - `snippet`
 - `user`
 
 These options are in lowercase.
 Events associated with epics are not available using the API.
-Some discussions on merge requests may be of type `DiscussionNote`. These are not available using the API.
 
 ### Date formatting
 
@@ -57,14 +55,14 @@ GET /events
 
 Parameters:
 
-| Attribute     | Type   | Required | Description                                                                                         |
-|---------------|--------|----------|-----------------------------------------------------------------------------------------------------|
-| `action`      | string | no       | Include only events of a particular [action type](#actions)                                         |
-| `target_type` | string | no       | Include only events of a particular [target type](#target-types)                                    |
-| `before`      | date   | no       | Include only events created before a particular date. [View how to format dates](#date-formatting). |
-| `after`       | date   | no       | Include only events created after a particular date. [View how to format dates](#date-formatting).  |
-| `scope`       | string | no       | Include all events across a user's projects.                                                        |
-| `sort`        | string | no       | Sort events in `asc` or `desc` order by `created_at`. Default is `desc`.                            |
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `action` | string | no | Include only events of a particular [action type](#actions) |
+| `target_type` | string | no | Include only events of a particular [target type](#target-types) |
+| `before` | date | no |  Include only events created before a particular date. [View how to format dates](#date-formatting). |
+| `after` | date | no |  Include only events created after a particular date. [View how to format dates](#date-formatting).  |
+| `scope` | string | no | Include all events across a user's projects. |
+| `sort` | string | no | Sort events in `asc` or `desc` order by `created_at`. Default is `desc`. |
 
 Example request:
 
@@ -95,9 +93,7 @@ Example response:
       "avatar_url":"http://www.gravatar.com/avatar/97d6d9441ff85fdc730e02a6068d267b?s=80\u0026d=identicon",
       "web_url":"https://gitlab.example.com/user3"
     },
-    "author_username":"user3",
-    "imported":false,
-    "imported_from": "none"
+    "author_username":"user3"
   },
   {
     "id": 2,
@@ -118,9 +114,7 @@ Example response:
       "avatar_url":"http://www.gravatar.com/avatar/80fb888c9a48b9a3f87477214acaa63f?s=80\u0026d=identicon",
       "web_url":"https://gitlab.example.com/ted"
     },
-    "author_username":"ted",
-    "imported":false,
-    "imported_from": "none"
+    "author_username":"ted"
   }
 ]
 ```
@@ -136,16 +130,16 @@ GET /users/:id/events
 
 Parameters:
 
-| Attribute     | Type    | Required | Description                                                                                         |
-|---------------|---------|----------|-----------------------------------------------------------------------------------------------------|
-| `id`          | integer | yes      | The ID or Username of the user                                                                      |
-| `action`      | string  | no       | Include only events of a particular [action type](#actions)                                         |
-| `target_type` | string  | no       | Include only events of a particular [target type](#target-types)                                    |
-| `before`      | date    | no       | Include only events created before a particular date. [View how to format dates](#date-formatting). |
-| `after`       | date    | no       | Include only events created after a particular date. [View how to format dates](#date-formatting).  |
-| `sort`        | string  | no       | Sort events in `asc` or `desc` order by `created_at`. Default is `desc`.                            |
-| `page`        | integer | no       | The page of results to return. Defaults to 1.                                                       |
-| `per_page`    | integer | no       | The number of results per page. Defaults to 20.                                                     |
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `id` | integer | yes | The ID or Username of the user |
+| `action` | string | no | Include only events of a particular [action type](#actions) |
+| `target_type` | string | no | Include only events of a particular [target type](#target-types) |
+| `before` | date | no |  Include only events created before a particular date. [View how to format dates](#date-formatting). |
+| `after` | date | no |  Include only events created after a particular date. [View how to format dates](#date-formatting). |
+| `sort` | string | no | Sort events in `asc` or `desc` order by `created_at`. Default is `desc`. |
+| `page` | integer | no | The page of results to return. Defaults to 1. |
+| `per_page` | integer | no | The number of results per page. Defaults to 20. |
 
 ```shell
 curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/users/:id/events"
@@ -173,9 +167,7 @@ Example response:
       "avatar_url": "http://localhost:3000/uploads/user/avatar/1/fox_avatar.png",
       "web_url": "http://localhost:3000/root"
     },
-    "author_username": "root",
-    "imported": false,
-    "imported_from": "none"
+    "author_username": "root"
   },
   {
     "id": 4,
@@ -195,8 +187,6 @@ Example response:
       "web_url": "http://localhost:3000/root"
     },
     "author_username": "john",
-    "imported": false,
-    "imported_from": "none",
     "push_data": {
       "commit_count": 1,
       "action": "pushed",
@@ -226,9 +216,7 @@ Example response:
       "avatar_url": "http://localhost:3000/uploads/user/avatar/1/fox_avatar.png",
       "web_url": "http://localhost:3000/root"
     },
-    "author_username": "root",
-    "imported": false,
-    "imported_from": "none"
+    "author_username": "root"
   },
   {
     "id": 7,
@@ -266,9 +254,7 @@ Example response:
       "avatar_url": "http://localhost:3000/uploads/user/avatar/1/fox_avatar.png",
       "web_url": "http://localhost:3000/root"
     },
-    "author_username": "root",
-    "imported": false,
-    "imported_from": "none"
+    "author_username": "root"
   }
 ]
 ```
@@ -286,14 +272,14 @@ GET /projects/:project_id/events
 
 Parameters:
 
-| Attribute     | Type           | Required | Description                                                                                         |
-|---------------|----------------|----------|-----------------------------------------------------------------------------------------------------|
-| `project_id`  | integer/string | yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding)                 |
-| `action`      | string         | no       | Include only events of a particular [action type](#actions)                                         |
-| `target_type` | string         | no       | Include only events of a particular [target type](#target-types)                                    |
-| `before`      | date           | no       | Include only events created before a particular date. [View how to format dates](#date-formatting). |
-| `after`       | date           | no       | Include only events created after a particular date. [View how to format dates](#date-formatting).  |
-| `sort`        | string         | no       | Sort events in `asc` or `desc` order by `created_at`. Default is `desc`.                            |
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `project_id` | integer/string | yes | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding) |
+| `action` | string | no | Include only events of a particular [action type](#actions) |
+| `target_type` | string | no | Include only events of a particular [target type](#target-types) |
+| `before` | date | no |  Include only events created before a particular date. [View how to format dates](#date-formatting). |
+| `after` | date | no |  Include only events created after a particular date. [View how to format dates](#date-formatting).  |
+| `sort` | string | no | Sort events in `asc` or `desc` order by `created_at`. Default is `desc`. |
 
 Example request:
 
@@ -324,9 +310,7 @@ Example response:
       "avatar_url":"http://www.gravatar.com/avatar/97d6d9441ff85fdc730e02a6068d267b?s=80\u0026d=identicon",
       "web_url":"https://gitlab.example.com/user3"
     },
-    "author_username":"user3",
-    "imported":false,
-    "imported_from": "none"
+    "author_username":"user3"
   },
   {
     "id": 9,
@@ -347,9 +331,7 @@ Example response:
       "avatar_url":"http://www.gravatar.com/avatar/80fb888c9a48b9a3f87477214acaa63f?s=80\u0026d=identicon",
       "web_url":"https://gitlab.example.com/ted"
     },
-    "author_username":"ted",
-    "imported":false,
-    "imported_from": "none"
+    "author_username":"ted"
   },
   {
     "id": 10,
@@ -389,9 +371,7 @@ Example response:
       "avatar_url": "https://gitlab.example.com/uploads/user/avatar/1/fox_avatar.png",
       "web_url": "https://gitlab.example.com/root"
     },
-    "author_username": "root",
-    "imported": false,
-    "imported_from": "none"
+    "author_username": "root"
   }
 ]
 ```

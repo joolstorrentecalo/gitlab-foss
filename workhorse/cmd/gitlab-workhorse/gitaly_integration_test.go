@@ -32,8 +32,6 @@ var (
 	gitalyAddresses []string
 )
 
-const repo1 = "repo-1"
-
 // Convert from tcp://127.0.0.1:8075 to dns scheme variants:
 // * dns:127.0.0.1:8075
 // * dns:///127.0.0.1:8075
@@ -79,22 +77,22 @@ func realGitalyOkBody(t *testing.T, gitalyAddress string) *api.Response {
 	return realGitalyAuthResponse(gitalyAddress, gitOkBody(t))
 }
 
-func ensureGitalyRepository(_ *testing.T, apiResponse *api.Response) error {
+func ensureGitalyRepository(t *testing.T, apiResponse *api.Response) error {
 	ctx, repository, err := gitaly.NewRepositoryClient(context.Background(), apiResponse.GitalyServer)
 	if err != nil {
 		return err
 	}
 
 	// Remove the repository if it already exists, for consistency
-	if _, removeRepoErr := repository.RepositoryServiceClient.RemoveRepository(ctx, &gitalypb.RemoveRepositoryRequest{
+	if _, err := repository.RepositoryServiceClient.RemoveRepository(ctx, &gitalypb.RemoveRepositoryRequest{
 		Repository: &gitalypb.Repository{
 			StorageName:  apiResponse.Repository.StorageName,
 			RelativePath: apiResponse.Repository.RelativePath,
 		},
-	}); removeRepoErr != nil {
-		status, ok := status.FromError(removeRepoErr)
-		if !ok || !(status.Code() == codes.NotFound && (status.Message() == "repository does not exist" || status.Message() == "repository not found")) {
-			return fmt.Errorf("remove repository: %w", removeRepoErr)
+	}); err != nil {
+		status, ok := status.FromError(err)
+		if !ok || !(status.Code() == codes.NotFound && status.Message() == "repository does not exist") {
+			return fmt.Errorf("remove repository: %w", err)
 		}
 
 		// Repository didn't exist.
@@ -229,8 +227,6 @@ func TestAllowedGetGitBlob(t *testing.T) {
 			)
 
 			resp, body, err := doSendDataRequest(t, "/something", "git-blob", jsonParams)
-			defer func() { _ = resp.Body.Close() }()
-
 			require.NoError(t, err)
 			shortBody := string(body[:len(expectedBody)])
 
@@ -252,7 +248,7 @@ func TestAllowedGetGitArchive(t *testing.T) {
 			require.NoError(t, ensureGitalyRepository(t, apiResponse))
 
 			archivePath := path.Join(t.TempDir(), "my/path")
-			archivePrefix := repo1
+			archivePrefix := "repo-1"
 
 			msg := serializedProtoMessage("GetArchiveRequest", &gitalypb.GetArchiveRequest{
 				Repository: &apiResponse.Repository,
@@ -264,8 +260,6 @@ func TestAllowedGetGitArchive(t *testing.T) {
 			jsonParams := buildGitalyRPCParams(gitalyAddress, rpcArg{"ArchivePath", archivePath}, msg)
 
 			resp, body, err := doSendDataRequest(t, "/archive.tar", "git-archive", jsonParams)
-			defer func() { _ = resp.Body.Close() }()
-
 			require.NoError(t, err)
 			require.Equal(t, 200, resp.StatusCode, "GET %q: status code", resp.Request.URL)
 			requireNginxResponseBuffering(t, "no", resp, "GET %q: nginx response buffering", resp.Request.URL)
@@ -301,7 +295,7 @@ func TestAllowedGetGitArchiveOldPayload(t *testing.T) {
 			require.NoError(t, ensureGitalyRepository(t, apiResponse))
 
 			archivePath := path.Join(t.TempDir(), "my/path")
-			archivePrefix := repo1
+			archivePrefix := "repo-1"
 
 			jsonParams := fmt.Sprintf(
 				`{
@@ -315,8 +309,6 @@ func TestAllowedGetGitArchiveOldPayload(t *testing.T) {
 			)
 
 			resp, body, err := doSendDataRequest(t, "/archive.tar", "git-archive", jsonParams)
-			defer func() { _ = resp.Body.Close() }()
-
 			require.NoError(t, err)
 			require.Equal(t, 200, resp.StatusCode, "GET %q: status code", resp.Request.URL)
 			requireNginxResponseBuffering(t, "no", resp, "GET %q: nginx response buffering", resp.Request.URL)
@@ -359,7 +351,6 @@ func TestAllowedGetGitDiff(t *testing.T) {
 
 			resp, body, err := doSendDataRequest(t, "/something", "git-diff", jsonParams)
 			require.NoError(t, err)
-			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, 200, resp.StatusCode, "GET %q: status code", resp.Request.URL)
 			requireNginxResponseBuffering(t, "no", resp, "GET %q: nginx response buffering", resp.Request.URL)
@@ -389,7 +380,6 @@ func TestAllowedGetGitFormatPatch(t *testing.T) {
 
 			resp, body, err := doSendDataRequest(t, "/something", "git-format-patch", jsonParams)
 			require.NoError(t, err)
-			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, 200, resp.StatusCode, "GET %q: status code", resp.Request.URL)
 			requireNginxResponseBuffering(t, "no", resp, "GET %q: nginx response buffering", resp.Request.URL)

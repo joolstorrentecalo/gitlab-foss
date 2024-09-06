@@ -69,26 +69,23 @@ class Todo < ApplicationRecord
 
   scope :pending, -> { with_state(:pending) }
   scope :done, -> { with_state(:done) }
-  scope :for_action, ->(action) { where(action: action) }
-  scope :for_author, ->(author) { where(author: author) }
-  scope :for_user, ->(user) { where(user: user) }
-  scope :for_project, ->(projects) { where(project: projects) }
-  scope :for_note, ->(notes) { where(note: notes) }
+  scope :for_action, -> (action) { where(action: action) }
+  scope :for_author, -> (author) { where(author: author) }
+  scope :for_user, -> (user) { where(user: user) }
+  scope :for_project, -> (projects) { where(project: projects) }
+  scope :for_note, -> (notes) { where(note: notes) }
   scope :for_undeleted_projects, -> { joins(:project).merge(Project.without_deleted) }
-  scope :for_group, ->(group) { where(group: group) }
-  scope :for_type, ->(type) { where(target_type: type) }
-  scope :for_target, ->(id) { where(target_id: id) }
-  scope :for_commit, ->(id) { where(commit_id: id) }
-  scope :not_in_users, ->(user_ids) { where.not('todos.user_id' => user_ids) }
+  scope :for_group, -> (group) { where(group: group) }
+  scope :for_type, -> (type) { where(target_type: type) }
+  scope :for_target, -> (id) { where(target_id: id) }
+  scope :for_commit, -> (id) { where(commit_id: id) }
+  scope :not_in_users, -> (user_ids) { where.not('todos.user_id' => user_ids) }
   scope :with_entity_associations, -> do
     preload(:target, :author, :note, group: :route, project: [:route, :group, { namespace: [:route, :owner] }, :project_setting])
   end
   scope :joins_issue_and_assignees, -> { left_joins(issue: :assignees) }
   scope :for_internal_notes, -> { joins(:note).where(note: { confidential: true }) }
   scope :with_preloaded_user, -> { preload(:user) }
-  scope :without_banned_user, -> { joins("LEFT JOIN banned_users ON todos.author_id = banned_users.user_id").where(banned_users: { user_id: nil }) }
-  scope :pending_without_hidden, -> { pending.without_banned_user }
-  scope :all_without_hidden, -> { without_banned_user.or(where.not(state: :pending)) }
 
   enum resolved_by_action: { system_done: 0, api_all_done: 1, api_done: 2, mark_all_done: 3, mark_done: 4 }, _prefix: :resolved_by
 
@@ -110,18 +107,13 @@ class Todo < ApplicationRecord
     #
     # Returns an `ActiveRecord::Relation`.
     def for_group_ids_and_descendants(group_ids)
-      groups_and_descendants_cte = Gitlab::SQL::CTE.new(
-        :groups_and_descendants_ids,
-        Group.where(id: group_ids).self_and_descendant_ids
-      )
+      groups = Group.where(id: group_ids).self_and_descendants
 
-      groups_and_descendants = Namespace.from(groups_and_descendants_cte.table)
-
-      with(groups_and_descendants_cte.to_arel)
-        .from_union([
-          for_project(Project.for_group(groups_and_descendants)),
-          for_group(groups_and_descendants)
-        ], remove_duplicates: false)
+      from_union(
+        [
+          for_project(Project.for_group(groups)),
+          for_group(groups)
+        ])
     end
 
     # Returns `true` if the current user has any todos for the given target with the optional given state.
@@ -164,12 +156,9 @@ class Todo < ApplicationRecord
     def sort_by_attribute(method)
       sorted =
         case method.to_s
-        when 'priority', 'label_priority', 'label_priority_asc' then order_by_labels_priority(asc: true)
-        when 'label_priority_desc' then order_by_labels_priority(asc: false)
+        when 'priority', 'label_priority' then order_by_labels_priority
         else order_by(method)
         end
-
-      return sorted if Gitlab::Pagination::Keyset::Order.keyset_aware?(sorted)
 
       # Break ties with the ID column for pagination
       sorted.order(id: :desc)
@@ -178,37 +167,16 @@ class Todo < ApplicationRecord
     # Order by priority depending on which issue/merge request the Todo belongs to
     # Todos with highest priority first then oldest todos
     # Need to order by created_at last because of differences on Mysql and Postgres when joining by type "Merge_request/Issue"
-    def order_by_labels_priority(asc: true)
+    def order_by_labels_priority
       highest_priority = highest_label_priority(
         target_type_column: "todos.target_type",
         target_column: "todos.target_id",
         project_column: "todos.project_id"
       ).arel.as('highest_priority')
 
-      highest_priority_arel = Arel.sql('highest_priority')
-
-      order = Gitlab::Pagination::Keyset::Order.build([
-        Gitlab::Pagination::Keyset::ColumnOrderDefinition.new(
-          attribute_name: 'highest_priority',
-          column_expression: highest_priority_arel,
-          order_expression: asc ? highest_priority_arel.asc.nulls_last : highest_priority_arel.desc.nulls_first,
-          reversed_order_expression: asc ? highest_priority_arel.desc.nulls_first : highest_priority_arel.asc.nulls_last,
-          nullable: asc ? :nulls_last : :nulls_first,
-          order_direction: asc ? :asc : :desc
-        ),
-        Gitlab::Pagination::Keyset::ColumnOrderDefinition.new(
-          attribute_name: 'created_at',
-          order_expression: asc ? Todo.arel_table[:created_at].asc : Todo.arel_table[:created_at].desc,
-          nullable: :not_nullable
-        ),
-        Gitlab::Pagination::Keyset::ColumnOrderDefinition.new(
-          attribute_name: 'id',
-          order_expression: asc ? Todo.arel_table[:id].asc : Todo.arel_table[:id].desc,
-          nullable: :not_nullable
-        )
-      ])
-
-      select(arel_table[Arel.star], highest_priority).order(order)
+      select(arel_table[Arel.star], highest_priority)
+        .order(Arel.sql('highest_priority').asc.nulls_last)
+        .order('todos.created_at')
     end
 
     def distinct_user_ids
@@ -334,29 +302,6 @@ class Todo < ApplicationRecord
     end
   end
 
-  def target_url
-    return if target.nil?
-
-    case target
-    when WorkItem
-      build_work_item_target_url
-    when Issue
-      build_issue_target_url
-    when MergeRequest
-      build_merge_request_target_url
-    when ::DesignManagement::Design
-      build_design_target_url
-    when ::AlertManagement::Alert
-      build_alert_target_url
-    when Commit
-      build_commit_target_url
-    when Project
-      build_project_target_url
-    when Group
-      build_group_target_url
-    end
-  end
-
   def self_added?
     author == user
   end
@@ -369,78 +314,6 @@ class Todo < ApplicationRecord
 
   def keep_around_commit
     project.repository.keep_around(self.commit_id, source: self.class.name)
-  end
-
-  def build_work_item_target_url
-    ::Gitlab::UrlBuilder.build(
-      target,
-      anchor: note.present? ? ActionView::RecordIdentifier.dom_id(note) : nil
-    )
-  end
-
-  def build_issue_target_url
-    ::Gitlab::UrlBuilder.build(
-      target,
-      anchor: note.present? ? ActionView::RecordIdentifier.dom_id(note) : nil
-    )
-  end
-
-  def build_merge_request_target_url
-    path = [target.project, target]
-    path.unshift(:pipelines) if build_failed?
-
-    ::Gitlab::Routing.url_helpers.polymorphic_url(
-      path,
-      {
-        anchor: note.present? ? ActionView::RecordIdentifier.dom_id(note) : nil
-      }
-    )
-  end
-
-  def build_design_target_url
-    ::Gitlab::Routing.url_helpers.designs_project_issue_url(
-      target.project,
-      target.issue,
-      {
-        anchor: note.present? ? ActionView::RecordIdentifier.dom_id(note) : nil,
-        vueroute: target.filename
-      }
-    )
-  end
-
-  def build_alert_target_url
-    ::Gitlab::Routing.url_helpers.details_project_alert_management_url(
-      target.project,
-      target
-    )
-  end
-
-  def build_commit_target_url
-    ::Gitlab::Routing.url_helpers.project_commit_url(
-      target.project,
-      target,
-      {
-        anchor: note.present? ? ActionView::RecordIdentifier.dom_id(note) : nil
-      }
-    )
-  end
-
-  def build_project_target_url
-    return unless member_access_requested?
-
-    ::Gitlab::Routing.url_helpers.project_project_members_url(
-      target,
-      tab: 'access_requests'
-    )
-  end
-
-  def build_group_target_url
-    return unless member_access_requested?
-
-    ::Gitlab::Routing.url_helpers.group_group_members_url(
-      target,
-      tab: 'access_requests'
-    )
   end
 end
 

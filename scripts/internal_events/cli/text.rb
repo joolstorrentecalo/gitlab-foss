@@ -152,11 +152,13 @@ module InternalEventsCli
     TEXT
 
     EVENT_IDENTIFIERS_INTRO = <<~TEXT.freeze
-      #{format_info('KEY IDENTIFIERS')}
-      Indicates the attributes recorded when the event occurs. Generally, we want to include every identifier available to us when the event is triggered.
+      #{format_info('EVENT CONTEXT')}
+      Identifies the attributes recorded when the event occurs. Generally, we want to include every identifier available to us when the event is triggered.
 
       #{format_info('BACKEND')}: Attributes must be specified when the event is triggered
         ex) User, project, and namespace are the identifiers available for backend instrumentation:
+          include Gitlab::InternalEventsTracking
+
           track_internal_event(
             '%s',
             user: user,
@@ -169,23 +171,6 @@ module InternalEventsCli
             Because this URL is for a project, we know that all of user/project/namespace are available for the event
 
       #{format_info('NOTE')}: If you're planning to instrument a unique-by-user metric, you should still include project & namespace when possible. This is especially helpful in the data warehouse, where namespace and project can make events relevant for CSM use-cases.
-
-    TEXT
-
-    ADDITIONAL_PROPERTIES_INTRO = <<~TEXT.freeze
-      #{format_info('ADDITIONAL PROPERTIES')}
-      If you provide extra context with each triggered event, extra capabilities are enabled:
-      - Service Ping: filter metrics to a specific subset of events
-      - Snowflake: view/sort/group individual events from GitLab.com
-
-      There are a few specific attributes are available for recording the context of each event. These include 2 strings and 1 numeric value.
-
-      ex) For an event like 'change_merge_request_status', we might want to include:
-
-          Attribute: String 1 (attribute will be named `label`)
-          Description: Status of merge request after update (one of opened, merged, closed)
-
-          This would enable us to create a metric like: Monthly count of unique users who changed an MR status to "closed"
 
     TEXT
 
@@ -218,7 +203,7 @@ module InternalEventsCli
       #{format_info('SELECTED EVENT(S):')}
     TEXT
 
-    METRIC_DESCRIPTION_HELP = <<~TEXT.chomp.freeze
+    METRIC_DESCRIPTION_HELP = <<~TEXT.freeze
       #{format_warning('Required. 10+ words likely, but length may vary.')}
 
          An event description can often be rearranged to work as a metric description.
@@ -228,32 +213,6 @@ module InternalEventsCli
              Metric description: Weekly count of unqiue users who created merge requests
 
          Look at the event descriptions above to get ideas!
-    TEXT
-
-    METRIC_NAME_FILTER_HELP = <<~TEXT.freeze
-      #{format_warning('Required. Max %{count} characters. Only lowercase/numbers/underscores allowed.')}
-
-      Metrics with filters must manually define this portion of their key path.
-
-      Auto-generated key paths for metrics filters results in long & confusing naming. By defining them manually, clarity and discoverability should be better.
-    TEXT
-
-    METRIC_NAME_CONFLICT_HELP = <<~TEXT.freeze
-      #{format_warning('Required. Max %{count} characters. Only lowercase/numbers/underscores allowed.')}
-
-      Conflict! A metric with the same name already exists: %{name}
-    TEXT
-
-    METRIC_NAME_LENGTH_HELP = <<~TEXT.freeze
-      #{format_warning('Required. Max %{count} characters. Only lowercase/numbers/underscores allowed.')}
-
-      Filenames cannot exceed 100 characters. The key path (ID) is not restricted, but keeping them aligned is recommended.
-
-      If needed, you can modify the key path and filename further after saving.
-    TEXT
-
-    METRIC_NAME_ERROR = <<~TEXT.freeze
-      #{format_warning('Input is invalid. Max %{count} characters. Only lowercase/numbers/underscores allowed. Ensure this key path (ID) is not already in use.')}
     TEXT
   end
 end

@@ -10,8 +10,6 @@ code_quality:
     - .use-docker-in-docker
     - .code-quality-cache-push
   stage: lint
-  # P95 duration for this job has been 15min from 2024-06-10 until 2024-07-22
-  timeout: 20m
   artifacts:
     paths:
       - gl-code-quality-report.json  # GitLab-specific
@@ -45,12 +43,14 @@ code_quality cache:
   artifacts:
     paths:
       - gl-sast-report.json  # GitLab-specific
-    access: 'developer'
     expire_in: 1 week  # GitLab-specific
   variables:
     SAST_BRAKEMAN_LEVEL: 2  # GitLab-specific
     SAST_EXCLUDED_PATHS: "qa, spec, doc, ee/spec, config/gitlab.yml.example, tmp"  # GitLab-specific
     SAST_EXCLUDED_ANALYZERS: bandit, flawfinder, phpcs-security-audit, pmd-apex, security-code-scan, spotbugs, eslint, nodejs-scan, sobelow
+
+brakeman-sast:
+  rules: !reference [".reports:rules:brakeman-sast", rules]
 
 semgrep-sast:
   rules: !reference [".reports:rules:semgrep-sast", rules]
@@ -62,7 +62,6 @@ semgrep-sast:
   artifacts:
     paths:
       - gl-secret-detection-report.json  # GitLab-specific
-    access: 'developer'
     expire_in: 1 week  # GitLab-specific
 
 secret_detection:
@@ -81,7 +80,6 @@ secret_detection:
   artifacts:
     paths:
       - gl-dependency-scanning-report.json  # GitLab-specific
-    access: 'developer'
     expire_in: 1 week  # GitLab-specific
 
 gemnasium-dependency_scanning:
@@ -119,7 +117,6 @@ gemnasium-python-dependency_scanning:
   artifacts:
     paths:
       - gl-dependency-scanning-report.json
-    access: 'developer'
     reports:
       dependency_scanning: gl-dependency-scanning-report.json
     expire_in: 1 week
@@ -144,7 +141,7 @@ xray_scan:
     - .reports:rules:x-ray
   stage: lint
   needs: []
-  image: ${REGISTRY_HOST}/${REGISTRY_GROUP}/code-creation/repository-x-ray:rc
+  image: registry.gitlab.com/gitlab-org/code-creation/repository-x-ray:rc
   variables:
     OUTPUT_DIR: reports
   allow_failure: true

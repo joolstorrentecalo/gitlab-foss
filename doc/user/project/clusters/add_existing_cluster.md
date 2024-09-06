@@ -29,8 +29,9 @@ See the prerequisites below to add existing clusters to GitLab.
 To add any cluster to GitLab, you need:
 
 - Either a GitLab.com account or an account for a self-managed installation
+  running GitLab 12.5 or later.
 - The Maintainer role for group-level and project-level clusters.
-- Access to the **Admin** area for instance-level clusters.
+- Access to the Admin Area for instance-level clusters.
 - A Kubernetes cluster.
 - Cluster administration access to the cluster with `kubectl`.
 
@@ -71,7 +72,7 @@ To add a Kubernetes cluster to your project, group, or instance:
 1. Go to your:
    1. Project's **{cloud-gear}** **Operate > Kubernetes clusters** page, for a project-level cluster.
    1. Group's **{cloud-gear}** **Kubernetes** page, for a group-level cluster.
-   1. The **Admin** area's **Kubernetes** page, for an instance-level cluster.
+   1. The Admin Area's **Kubernetes** page, for an instance-level cluster.
 1. On the **Kubernetes clusters** page, select the **Connect with a certificate** option from the **Actions** dropdown list.
 1. On the **Connect a cluster** page, fill in the details:
    1. **Kubernetes cluster name** (required) - The name you wish to give the cluster.
@@ -236,16 +237,10 @@ kubectl create clusterrolebinding permissive-binding \
 
 ## Troubleshooting
 
-### CA certificate and token errors during authentication
+### `There was a problem authenticating with your cluster. Please ensure your CA Certificate and Token are valid`
 
-If you encounter this error while connecting a Kubernetes cluster:
-
-```plaintext
-There was a problem authenticating with your cluster.
-Please ensure your CA Certificate and Token are valid
-```
-
-Ensure you're properly pasting the service token. Some shells may add a line break to the
+If you encounter this error while connecting a Kubernetes cluster, ensure you're
+properly pasting the service token. Some shells may add a line break to the
 service token, making it invalid. Ensure that there are no line breaks by
 pasting your token into an editor and removing any additional spaces.
 

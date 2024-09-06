@@ -45,7 +45,7 @@ Pipelines can be configured in many different ways:
 
 - [Basic pipelines](pipeline_architectures.md#basic-pipelines) run everything in each stage concurrently,
   followed by the next stage.
-- [Pipelines that use the `needs` keyword](../directed_acyclic_graph/index.md) run based on dependencies
+- [Directed Acyclic Graph Pipeline (DAG) pipelines](../directed_acyclic_graph/index.md) are based on relationships
   between jobs and can run more quickly than basic pipelines.
 - [Merge request pipelines](../pipelines/merge_request_pipelines.md) run for merge
   requests only (rather than for every commit).
@@ -200,7 +200,8 @@ For each `var` or `file_var`, a key and value are required.
 [Manual jobs](../jobs/job_control.md#create-a-job-that-must-be-run-manually),
 allow you to require manual interaction before moving forward in the pipeline.
 
-You can do this straight from the pipeline graph. Select **Run** (**{play}**) to execute that particular job.
+You can do this straight from the pipeline graph. Just select the play button
+to execute that particular job.
 
 For example, your pipeline can start automatically, but require a manual action to
 [deploy to production](../environments/index.md#configure-manual-deployments).
@@ -211,7 +212,7 @@ In the example below, the `production` stage has a job with a manual action:
 #### Start all manual jobs in a stage
 
 If a stage contains only manual jobs, you can start all the jobs at the same time
-by selecting **Run all manual** (**{play}**) above the stage. If the stage contains
+by selecting **Play all manual** (**{play}**) above the stage. If the stage contains
 non-manual jobs, the option is not displayed.
 
 ### Skip a pipeline
@@ -219,7 +220,7 @@ non-manual jobs, the option is not displayed.
 To push a commit without triggering a pipeline, add `[ci skip]` or `[skip ci]`, using any
 capitalization, to your commit message.
 
-Alternatively, with Git 2.10 or later, use the `ci.skip` [Git push option](../../topics/git/commit.md#push-options-for-gitlab-cicd).
+Alternatively, with Git 2.10 or later, use the `ci.skip` [Git push option](../../user/project/push_options.md#push-options-for-gitlab-cicd).
 The `ci.skip` push option does not skip merge request pipelines.
 
 ### Delete a pipeline
@@ -350,9 +351,9 @@ running time is:
 To view all the pipelines that ran for your project:
 
 1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Build > Pipelines**.
+1. **Build > Pipelines** page.
 
-You can filter the **Pipelines** page by:
+You can filter the pipeline list by:
 
 - Trigger author
 - Branch name
@@ -399,7 +400,9 @@ by stage configuration, select **stage** in the **Group jobs by** section:
 ![jobs grouped by stage](img/pipeline_stage_view_v16_11.png)
 
 To group the jobs by [`needs`](../yaml/index.md#needs) configuration, select **Job dependencies**.
-You can optionally select **Show dependencies** to render lines between dependent jobs.
+You can optionally select **Show dependencies** to render lines between dependent jobs,
+similar to the [`needs` visualization](../directed_acyclic_graph/index.md#needs-visualization)
+in the pipeline editor:
 
 ![jobs grouped by job dependencies](img/pipeline_dependency_view_v16_11.png)
 
@@ -419,6 +422,8 @@ before the selected job is highlighted:
 ![pipeline dependency view on hover](img/pipeline_dependency_view_on_hover_v16_11.png)
 
 ### Pipeline mini graphs
+
+> - Pipeline mini graph in the pipeline editor [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/337514) in GitLab 14.5.
 
 Pipeline mini graphs take less space and can tell you at a quick glance if all jobs passed
 or something failed. They show all related jobs for a single commit and the net result

@@ -1,4 +1,3 @@
-// Package api provides functionalities for interacting with the API.
 package api
 
 import (
@@ -25,7 +24,7 @@ import (
 )
 
 const (
-	// ResponseContentType for API responses, to catch routing / programming mistakes
+	// Custom content type for API responses, to catch routing / programming mistakes
 	ResponseContentType = "application/vnd.gitlab-workhorse+json"
 
 	failureResponseLimit = 32768
@@ -33,14 +32,12 @@ const (
 	geoProxyEndpointPath = "/api/v4/geo/proxy"
 )
 
-// API represents a client for interacting with an external API.
 type API struct {
 	Client  *http.Client
 	URL     *url.URL
 	Version string
 }
 
-// PreAuthorizeFixedPathError represents an error returned when authorization fails due to fixed path.
 type PreAuthorizeFixedPathError struct {
 	StatusCode int
 	Status     string
@@ -66,7 +63,6 @@ var (
 	)
 )
 
-// NewAPI creates a new API client with the given URL, version, and round tripper.
 func NewAPI(myURL *url.URL, version string, roundTripper http.RoundTripper) *API {
 	return &API{
 		Client:  &http.Client{Transport: roundTripper},
@@ -75,24 +71,20 @@ func NewAPI(myURL *url.URL, version string, roundTripper http.RoundTripper) *API
 	}
 }
 
-// GeoProxyEndpointResponse represents the response structure for geo-proxy endpoint data.
 type GeoProxyEndpointResponse struct {
 	GeoProxyURL       string `json:"geo_proxy_url"`
 	GeoProxyExtraData string `json:"geo_proxy_extra_data"`
 	GeoEnabled        bool   `json:"geo_enabled"`
 }
 
-// GeoProxyData represents data url, extra data and enabled or not.
 type GeoProxyData struct {
 	GeoProxyURL       *url.URL
 	GeoProxyExtraData string
 	GeoEnabled        bool
 }
 
-// HandleFunc defines the signature of functions used to handle HTTP requests.
 type HandleFunc func(http.ResponseWriter, *http.Request, *Response)
 
-// MultipartUploadParams represents parameters for a multipart upload operation.
 type MultipartUploadParams struct {
 	// PartSize is the exact size of each uploaded part. Only the last one can be smaller
 	PartSize int64
@@ -104,14 +96,12 @@ type MultipartUploadParams struct {
 	AbortURL string
 }
 
-// ObjectStorageParams represents parameters for configuring object storage.
 type ObjectStorageParams struct {
 	Provider      string
 	S3Config      config.S3Config
 	GoCloudConfig config.GoCloudConfig
 }
 
-// RemoteObject represents URLs for getting, deleting and storing objects in an object storage service.
 type RemoteObject struct {
 	// GetURL is an S3 GetObject URL
 	GetURL string
@@ -139,7 +129,6 @@ type RemoteObject struct {
 	ObjectStorage *ObjectStorageParams
 }
 
-// Response represents a structure containing various GitLab-related environment variables.
 type Response struct {
 	// GL_ID is an environment variable used by gitlab-shell hooks during 'git
 	// push' and 'git pull'
@@ -187,12 +176,8 @@ type Response struct {
 	UploadHashFunctions []string
 	// NeedAudit indicates whether git events should be audited to rails.
 	NeedAudit bool `json:"NeedAudit"`
-	// Gob contains settings for the GitLab Observability Backend (GOB).
-	Gob GOBSettings `json:"gob"`
 }
 
-// GitalyServer represents configuration parameters for a Gitaly server,
-// including its address, access token, and additional call metadata.
 type GitalyServer struct {
 	Address      string            `json:"address"`
 	Token        string            `json:"token"`
@@ -239,24 +224,24 @@ func joinURLPath(a *url.URL, b string) (path string, rawpath string) {
 }
 
 // rebaseUrl is taken from reverseproxy.go:NewSingleHostReverseProxy
-func rebaseURL(url *url.URL, onto *url.URL, suffix string) *url.URL {
-	newURL := *url
-	newURL.Scheme = onto.Scheme
-	newURL.Host = onto.Host
-	newURL.Path, newURL.RawPath = joinURLPath(url, suffix)
+func rebaseUrl(url *url.URL, onto *url.URL, suffix string) *url.URL {
+	newUrl := *url
+	newUrl.Scheme = onto.Scheme
+	newUrl.Host = onto.Host
+	newUrl.Path, newUrl.RawPath = joinURLPath(url, suffix)
 
-	if onto.RawQuery == "" || newURL.RawQuery == "" {
-		newURL.RawQuery = onto.RawQuery + newURL.RawQuery
+	if onto.RawQuery == "" || newUrl.RawQuery == "" {
+		newUrl.RawQuery = onto.RawQuery + newUrl.RawQuery
 	} else {
-		newURL.RawQuery = onto.RawQuery + "&" + newURL.RawQuery
+		newUrl.RawQuery = onto.RawQuery + "&" + newUrl.RawQuery
 	}
-	return &newURL
+	return &newUrl
 }
 
-func (api *API) newRequest(r *http.Request, suffix string) *http.Request {
+func (api *API) newRequest(r *http.Request, suffix string) (*http.Request, error) {
 	authReq := &http.Request{
 		Method: r.Method,
-		URL:    rebaseURL(r.URL, api.URL, suffix),
+		URL:    rebaseUrl(r.URL, api.URL, suffix),
 		Header: r.Header.Clone(),
 	}
 
@@ -289,10 +274,9 @@ func (api *API) newRequest(r *http.Request, suffix string) *http.Request {
 	// requests not going through gitlab-workhorse.
 	authReq.Host = r.Host
 
-	return authReq
+	return authReq, nil
 }
 
-// GitAuditEventRequest represents a request for auditing a Git events.
 type GitAuditEventRequest struct {
 	Action        string                                  `json:"action"`
 	Protocol      string                                  `json:"protocol"`
@@ -301,7 +285,6 @@ type GitAuditEventRequest struct {
 	PackfileStats *gitalypb.PackfileNegotiationStatistics `json:"packfile_stats,omitempty"`
 }
 
-// SendGitAuditEvent sends a Git audit event using the API client.
 func (api *API) SendGitAuditEvent(ctx context.Context, body GitAuditEventRequest) error {
 	b, err := json.Marshal(body)
 	if err != nil {
@@ -321,7 +304,7 @@ func (api *API) SendGitAuditEvent(ctx context.Context, body GitAuditEventRequest
 	if err != nil {
 		return fmt.Errorf("SendGitAuditEvent: do request: %v", err)
 	}
-	defer func() { _ = httpResponse.Body.Close() }()
+	defer httpResponse.Body.Close()
 
 	if httpResponse.StatusCode != http.StatusOK {
 		return fmt.Errorf("SendGitAuditEvent: response status: %s", httpResponse.Status)
@@ -336,7 +319,7 @@ func (api *API) SendGitAuditEvent(ctx context.Context, body GitAuditEventRequest
 //
 // Only upon successful authorization do we return a non-nil *Response
 func (api *API) PreAuthorize(suffix string, r *http.Request) (_ *http.Response, _ *Response, err error) {
-	authReq := api.newRequest(r, suffix)
+	authReq, err := api.newRequest(r, suffix)
 	if err != nil {
 		return nil, nil, fmt.Errorf("preAuthorizeHandler newUpstreamRequest: %v", err)
 	}
@@ -347,7 +330,7 @@ func (api *API) PreAuthorize(suffix string, r *http.Request) (_ *http.Response, 
 	}
 	defer func() {
 		if err != nil {
-			_ = httpResponse.Body.Close()
+			httpResponse.Body.Close()
 		}
 	}()
 	requestsCounter.WithLabelValues(strconv.Itoa(httpResponse.StatusCode), authReq.Method).Inc()
@@ -387,9 +370,7 @@ func (api *API) PreAuthorizeFixedPath(r *http.Request, method string, path strin
 	// We don't need the contents of failureResponse but we are responsible
 	// for closing it. Part of the reason PreAuthorizeFixedPath exists is to
 	// hide this awkwardness.
-	if err = failureResponse.Body.Close(); err != nil {
-		fmt.Printf("Error closing failureResponse body: %s", err)
-	}
+	failureResponse.Body.Close()
 
 	if apiResponse == nil {
 		return nil, &PreAuthorizeFixedPathError{StatusCode: failureResponse.StatusCode, Status: failureResponse.Status}
@@ -398,12 +379,11 @@ func (api *API) PreAuthorizeFixedPath(r *http.Request, method string, path strin
 	return apiResponse, nil
 }
 
-// PreAuthorizeHandler creates an HTTP handler that pre-authorizes requests.
 func (api *API) PreAuthorizeHandler(next HandleFunc, suffix string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		httpResponse, authResponse, err := api.PreAuthorize(suffix, r)
 		if httpResponse != nil {
-			defer func() { _ = httpResponse.Body.Close() }()
+			defer httpResponse.Body.Close()
 		}
 
 		if err != nil {
@@ -418,7 +398,7 @@ func (api *API) PreAuthorizeHandler(next HandleFunc, suffix string) http.Handler
 			return
 		}
 
-		defer func() { _ = httpResponse.Body.Close() }()
+		httpResponse.Body.Close() // Free up the Puma thread
 
 		copyAuthHeader(httpResponse, w)
 
@@ -465,9 +445,7 @@ func passResponseBack(httpResponse *http.Response, w http.ResponseWriter, r *htt
 		fail.Request(w, r, err)
 		return
 	}
-	if err = httpResponse.Body.Close(); err != nil {
-		fmt.Printf("Error closing response body: %s", err)
-	}
+	httpResponse.Body.Close() // Free up the Puma thread
 	bytesTotal.Add(float64(responseBody.Len()))
 
 	for k, v := range httpResponse.Header {
@@ -502,28 +480,27 @@ func validResponseContentType(resp *http.Response) bool {
 	return helper.IsContentType(ResponseContentType, resp.Header.Get("Content-Type"))
 }
 
-// GetGeoProxyData retrieves Geo proxy data from the API client.
 func (api *API) GetGeoProxyData() (*GeoProxyData, error) {
-	geoProxyAPIURL := *api.URL
-	geoProxyAPIURL.Path, geoProxyAPIURL.RawPath = joinURLPath(api.URL, geoProxyEndpointPath)
-	geoProxyAPIReq := &http.Request{
+	geoProxyApiUrl := *api.URL
+	geoProxyApiUrl.Path, geoProxyApiUrl.RawPath = joinURLPath(api.URL, geoProxyEndpointPath)
+	geoProxyApiReq := &http.Request{
 		Method: "GET",
-		URL:    &geoProxyAPIURL,
+		URL:    &geoProxyApiUrl,
 		Header: make(http.Header),
 	}
 
-	httpResponse, err := api.doRequestWithoutRedirects(geoProxyAPIReq)
+	httpResponse, err := api.doRequestWithoutRedirects(geoProxyApiReq)
 	if err != nil {
 		return nil, fmt.Errorf("GetGeoProxyData: do request: %v", err)
 	}
-	defer func() { _ = httpResponse.Body.Close() }()
+	defer httpResponse.Body.Close()
 
 	if httpResponse.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("GetGeoProxyData: Received HTTP status code: %v", httpResponse.StatusCode)
 	}
 
 	response := &GeoProxyEndpointResponse{}
-	if err = json.NewDecoder(httpResponse.Body).Decode(response); err != nil {
+	if err := json.NewDecoder(httpResponse.Body).Decode(response); err != nil {
 		return nil, fmt.Errorf("GetGeoProxyData: decode response: %v", err)
 	}
 

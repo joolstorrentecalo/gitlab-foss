@@ -27,12 +27,13 @@ RSpec.describe 'Root explore', :saas, feature_category: :shared do
     include_examples 'shows public projects'
   end
 
-  describe 'project language dropdown', :js do
+  describe 'project language dropdown' do
+    let(:has_language_dropdown?) { page.has_selector?('[data-testid="project-language-dropdown"]') }
+
     it 'is conditionally rendered' do
       visit explore_projects_path
-      find_by_testid('filtered-search-term-input').click
 
-      expect(page).to have_link('Language')
+      expect(has_language_dropdown?).to eq(true)
     end
   end
 end

@@ -22,14 +22,11 @@ All of these authentication methods require the minimum scope:
 - For read (pull) access, to be `read_registry`.
 - For write (push) access, to be `write_registry` and `read_registry`.
 
-NOTE:
-[Admin Mode](../../../administration/settings/sign_in_restrictions.md#admin-mode) does not apply during authentication with the container registry. If you are an administrator with Admin Mode enabled, and you create a personal access token without the `admin_mode` scope, that token works even though Admin Mode is enabled.
-
 To authenticate, run the `docker login` command. For example:
 
 ```shell
 TOKEN=<token>
-echo "$TOKEN" | docker login registry.example.com -u <username> --password-stdin
+docker login registry.example.com -u <username> --password-stdin <<<$TOKEN
 ```
 
 ## Use GitLab CI/CD to authenticate
@@ -42,13 +39,13 @@ To use CI/CD to authenticate with the container registry, you can use:
   Its password is also automatically created and available in `CI_REGISTRY_PASSWORD`.
 
   ```shell
-  echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+  docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin <<<$CI_REGISTRY_PASSWORD
   ```
 
 - A [CI job token](../../../ci/jobs/ci_job_token.md).
 
   ```shell
-  echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+  docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin <<<$CI_JOB_TOKEN
   ```
 
 - A [deploy token](../../project/deploy_tokens/index.md#gitlab-deploy-token) with the minimum scope of:
@@ -56,7 +53,7 @@ To use CI/CD to authenticate with the container registry, you can use:
   - For write (push) access, `read_registry` and `write_registry`.
 
   ```shell
-  echo "$CI_DEPLOY_PASSWORD" | docker login $CI_REGISTRY -u $CI_DEPLOY_USER --password-stdin
+  docker login $CI_REGISTRY -u $CI_DEPLOY_USER --password-stdin <<<$CI_DEPLOY_PASSWORD
   ```
 
 - A [personal access token](../../profile/personal_access_tokens.md) with the minimum scope of:
@@ -64,5 +61,5 @@ To use CI/CD to authenticate with the container registry, you can use:
   - For write (push) access, `read_registry` and `write_registry`.
 
   ```shell
-  echo "<access_token>" | docker login $CI_REGISTRY -u <username> --password-stdin
+  docker login $CI_REGISTRY -u <username> -p <access_token>
   ```

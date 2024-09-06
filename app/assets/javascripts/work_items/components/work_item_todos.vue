@@ -4,6 +4,7 @@ import { produce } from 'immer';
 
 import { s__ } from '~/locale';
 import { updateGlobalTodoCount } from '~/sidebar/utils';
+import groupWorkItemByIidQuery from '../graphql/group_work_item_by_iid.query.graphql';
 import workItemByIidQuery from '../graphql/work_item_by_iid.query.graphql';
 import createWorkItemTodosMutation from '../graphql/create_work_item_todos.mutation.graphql';
 import markDoneWorkItemTodosMutation from '../graphql/mark_done_work_item_todos.mutation.graphql';
@@ -28,6 +29,7 @@ export default {
     GlIcon,
     GlButton,
   },
+  inject: ['isGroup'],
   props: {
     workItemId: {
       type: String,
@@ -148,14 +150,14 @@ export default {
     },
     updateWorkItemCurrentTodosWidgetCache({ cache, todos }) {
       const query = {
-        query: workItemByIidQuery,
+        query: this.isGroup ? groupWorkItemByIidQuery : workItemByIidQuery,
         variables: { fullPath: this.workItemFullpath, iid: this.workItemIid },
       };
 
       const sourceData = cache.readQuery(query);
 
       const newData = produce(sourceData, (draftState) => {
-        const { widgets } = draftState.workspace.workItem;
+        const { widgets } = draftState.workspace.workItems.nodes[0];
 
         const widgetCurrentUserTodos = widgets.find(
           (widget) => widget.type === WIDGET_TYPE_CURRENT_USER_TODOS,
@@ -180,6 +182,6 @@ export default {
     :aria-label="buttonLabel"
     @click="onToggle"
   >
-    <gl-icon :class="{ '!gl-fill-blue-500': pendingTodo }" :name="buttonIcon" />
+    <gl-icon :class="{ 'gl-fill-blue-500': pendingTodo }" :name="buttonIcon" />
   </gl-button>
 </template>

@@ -59,4 +59,3 @@ module QA
 end
 
 QA::Page::Group::Show.prepend_mod_with('Page::Component::DuoChatCallout', namespace: QA)
-QA::Page::Group::Show.prepend_mod_with('Page::Alert::FreeTrial', namespace: QA)

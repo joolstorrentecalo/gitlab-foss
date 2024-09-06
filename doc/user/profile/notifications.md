@@ -1,6 +1,6 @@
 ---
-stage: Foundations
-group: Personal Productivity
+stage: Plan
+group: Project Management
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
@@ -21,9 +21,6 @@ You can receive updates about activity in issues, merge requests, epics, and des
 For the tool that GitLab administrators can use to send messages to users, read
 [Email from GitLab](../../administration/email_from_gitlab.md).
 
-In GitLab 17.2 and later, [notifications are rate limited](../../security/rate_limits.md#notification-emails)
-per 24 hours per project or group per user.
-
 ## Who receives notifications
 
 When notifications are enabled for an issue, merge request, or epic, GitLab notifies you of actions
@@ -38,7 +35,7 @@ You might receive notifications for one of the following reasons:
 - You're subscribed to group or project pipeline notifications via the pipeline emails [integration](../project/integrations/index.md).
 
 1. GitLab doesn't send a notification when
-   [a comment is edited to include a user mention](../discussions/index.md#edit-a-comment-to-add-a-mention).
+   [a comment is edited to include a user mention](../discussions/index.md#editing-a-comment-to-add-a-mention).
 
 NOTE:
 Administrators can block notifications, preventing them from being sent.
@@ -119,6 +116,8 @@ Or:
 
 #### Change email address used for group notifications
 
+> - Introduced in GitLab 12.0.
+
 You can select an email address to receive notifications for each group you belong to.
 You can use group notifications, for example, if you work freelance, and want to keep email about clients' projects separate.
 
@@ -161,21 +160,21 @@ Users are notified of the following events:
 | Project moved                            | Project members | Any other than disabled.                                                                                                                |
 | Email changed                            | User            | Security email, always sent.                                                                                                            |
 | Group access level changed               | User            | Sent when user group access level is changed.                                                                                           |
-| New email address added                  | User            | Security email, sent to primary email address.                                                                                          |
+| New email address added                  | User            | Security email, sent to primary email address. _[Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/337635) in GitLab 14.9._     |
 | New email address added                  | User            | Security email, sent to newly-added email address.                                                                                      |
-| New SAML/SCIM user provisioned           | User            | Sent when a user is provisioned through SAML/SCIM.                                                                                      |
+| New SAML/SCIM user provisioned           | User            | Sent when a user is provisioned through SAML/SCIM. _[Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/276018) in GitLab 13.8._ |
 | New SSH key added                        | User            | Security email, always sent.                                                                                                            |
 | New user created                         | User            | Sent on user creation, except for OmniAuth (LDAP).                                                                                      |
 | Password changed                         | User            | Security email, always sent when user changes their own password.                                                                       |
 | Password changed by administrator        | User            | Security email, always sent when an administrator changes the password of another user.                                                 |
 | Personal access tokens expiring soon     | User            | Security email, always sent.                                                                                                            |
-| Personal access tokens have been created | User            | Security email, always sent.                                                                                                            |
+| Personal access tokens have been created | User            | Security email, always sent. _[Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/337591) in GitLab 14.9._                       |
 | Personal access tokens have expired      | User            | Security email, always sent.                                                                                                            |
 | Personal access token has been revoked   | User            | Security email, always sent.  [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/98911) in GitLab 15.5.                 |
-| Group access tokens expiring soon        | Direct Group Owners | Security email, always sent.  [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/367705) in GitLab 16.4.                 |
-| Project access tokens expiring soon      | Direct Project Owners and Maintainers | Security email, always sent.  [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/367706) in GitLab 16.4.                 |
+| Group access tokens expiring soon        | Group owners, maintainers, and administrators | Security email, always sent.  [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/367705) in GitLab 16.4.                 |
+| Project access tokens expiring soon      | Group owners, maintainers, and administrators | Security email, always sent.  [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/367705) in GitLab 16.4.                 |
 | Project access level changed             | User            | Sent when user project access level is changed.                                                                                         |
-| SSH key has expired                      | User            | Security email, always sent.                                                                                                            |
+| SSH key has expired                      | User            | Security email, always sent. _[Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/322637) in GitLab 13.12._                      |
 | Two-factor authentication disabled       | User            | Security email, always sent.                                                                                                            |
 | User added to group                      | User            | Sent when user is added to group.                                                                                                       |
 | User added to project                    | User            | Sent when user is added to project.                                                                                                     |
@@ -201,8 +200,10 @@ In issues, merge requests, and epics, for most events, the notification is sent 
 - Subscribers: anyone who manually subscribed to notifications.
 - Custom: users with notification level "Custom" who turned on notifications for a fitting type of events.
 
-To minimize the number of notifications that do not require any action, eligible
-approvers are not notified for all the activities in their projects. To turn on such notifications, they have
+NOTE:
+To minimize the number of notifications that do not require any action, in
+[GitLab 12.9 and later](https://gitlab.com/gitlab-org/gitlab/-/issues/616), eligible
+approvers are no longer notified for all the activities in their projects. To turn on such notifications, they have
 to change their user notification settings to **Watch** instead.
 
 ### Edit notification settings for issues, merge requests, and epics
@@ -253,7 +254,6 @@ epics:
 | Merge Request | Review requested | Participants, Watchers, Subscribers, Custom notification level with this event selected, and the old reviewer. |
 | Merge Request | Reopened | Subscribers and participants. |
 | Merge Request | Title or description changed | Any new mentions by username. |
-| Merge Request | Added as approver | Custom notification level with this event selected. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/12855) in GitLab 16.7. |
 | Pipeline | Failed | The author of the pipeline. |
 | Pipeline | Fixed | The author of the pipeline. Enabled by default. |
 | Pipeline | Successful | The author of the pipeline, with Custom notification level for successful pipelines. If the pipeline failed previously, a "Fixed pipeline" message is sent for the first successful pipeline after the failure, and then a "Successful pipeline" message for any further successful pipelines. |
@@ -424,25 +424,3 @@ recipients.each { |notify| puts notify.user.username }
 If you receive notifications (through email or Slack) regarding a failed pipeline that no longer
 exists, double-check to see if you have any duplicate GitLab instances that could have triggered the
 message.
-
-### Email notifications are enabled, but not received
-
-If you've enabled email notifications in GitLab, but users aren't receiving notifications as expected, ensure that
-your email provider isn't blocking emails from your GitLab instance. Many email providers (like Outlook) block emails
-coming from lesser-known self-managed mail server IP addresses. To verify, attempt to send an email
-directly from the SMTP server for your instance. For example, a test email from Sendmail might look something like:
-
-```plaintext
-# (echo subject: test; echo) | $(which sendmail) -v -Am -i <valid email address>
-```
-
-If your email provider is blocking the message, you might get output like the following (depending on your email provider and SMTP server):
-
-```plaintext
-Diagnostic-Code: smtp; 550 5.7.1 Unfortunately, messages from [xx.xx.xx.xx]
-weren't sent. For more information, please go to
-http://go.microsoft.com/fwlink/?LinkID=526655 (http://go.microsoft.com/fwlink/?LinkID=526655) AS(900)
-```
-
-Usually this issue can be resolved by adding the IP address of your SMTP server to your
-mail provider's allowlist. Check your mail provider's documentation for instructions.

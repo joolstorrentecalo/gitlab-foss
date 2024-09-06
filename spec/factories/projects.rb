@@ -16,17 +16,7 @@ FactoryBot.define do
     has_external_wiki { false }
 
     # Associations
-    namespace do
-      next group if group
-
-      if @overrides[:organization]
-        association(:namespace, organization: @overrides[:organization])
-      else
-        association(:namespace)
-      end
-    end
-
-    organization { namespace&.organization }
+    namespace
     creator { group ? association(:user) : namespace&.owner }
 
     transient do
@@ -109,7 +99,6 @@ FactoryBot.define do
         name: evaluator.name,
         path: evaluator.path,
         parent: evaluator.namespace,
-        organization: evaluator.organization,
         shared_runners_enabled: evaluator.shared_runners_enabled,
         visibility_level: evaluator.visibility_level
       }
@@ -232,7 +221,7 @@ FactoryBot.define do
     end
 
     trait :with_namespace_settings do
-      association :namespace, :with_namespace_settings
+      namespace factory: [:namespace, :with_namespace_settings]
     end
 
     trait :with_avatar do
@@ -240,15 +229,8 @@ FactoryBot.define do
     end
 
     trait :with_export do
-      transient do
-        export_user { nil }
-      end
-
-      after(:create) do |project, evaluator|
-        export_user = evaluator.export_user || project.creator
-
-        project.add_maintainer(export_user)
-        ProjectExportWorker.new.perform(export_user.id, project.id)
+      after(:create) do |project, _evaluator|
+        ProjectExportWorker.new.perform(project.creator.id, project.id)
       end
     end
 
@@ -442,14 +424,6 @@ FactoryBot.define do
       end
     end
 
-    trait :fork_repository do
-      after(:create) do |project|
-        project.repository.raw.gitaly_repository_client.fork_repository(
-          project.forked_from_project.repository.raw
-        )
-      end
-    end
-
     trait :design_repo do
       after(:create) do |project|
         raise 'Failed to create design repository!' unless project.design_repository.create_if_not_exists
@@ -635,7 +609,7 @@ FactoryBot.define do
   end
 
   trait :in_group do
-    namespace factory: :group
+    namespace factory: [:group]
   end
 
   trait :in_subgroup do
@@ -651,8 +625,14 @@ FactoryBot.define do
 
   trait :allow_runner_registration_token do
     after :create do |project|
-      create(:namespace_settings, namespace: project.namespace) unless project.namespace.namespace_settings
-      project.namespace.namespace_settings.update!(allow_runner_registration_token: true)
+      if project.namespace.namespace_settings.nil?
+        project.namespace.namespace_settings = create(:namespace_settings,
+          namespace: project.namespace,
+          allow_runner_registration_token: true
+        )
+      else
+        project.namespace.allow_runner_registration_token = true
+      end
     end
   end
 end

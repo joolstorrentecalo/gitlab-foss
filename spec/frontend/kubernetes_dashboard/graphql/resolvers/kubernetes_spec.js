@@ -117,23 +117,9 @@ describe('~/frontend/environments/graphql/resolvers', () => {
         mockResolvers.Query.k8sDashboardPods(null, { configuration }, { client }),
       ).rejects.toThrow('API error');
     });
-
-    it('should return a generic error message if the error response is not of JSON type', async () => {
-      jest.spyOn(CoreV1Api.prototype, 'listCoreV1PodForAllNamespaces').mockRejectedValue({
-        response: {
-          headers: new Headers({ 'Content-Type': 'application/pdf' }),
-        },
-      });
-
-      await expect(
-        mockResolvers.Query.k8sDashboardPods(null, { configuration }, { client }),
-      ).rejects.toThrow(
-        'There was a problem fetching cluster information. Refresh the page and try again.',
-      );
-    });
   });
 
-  describe('k8sDashboardDeployments', () => {
+  describe('k8sDeployments', () => {
     const mockWatcher = WatchApi.prototype;
     const mockDeploymentsListWatcherFn = jest.fn().mockImplementation(() => {
       return Promise.resolve(mockWatcher);
@@ -165,7 +151,7 @@ describe('~/frontend/environments/graphql/resolvers', () => {
       });
 
       it('should request all deployments from the cluster_client library and watch the events', async () => {
-        const deployments = await mockResolvers.Query.k8sDashboardDeployments(
+        const deployments = await mockResolvers.Query.k8sDeployments(
           null,
           {
             configuration,
@@ -180,7 +166,7 @@ describe('~/frontend/environments/graphql/resolvers', () => {
       });
 
       it('should update cache with the new data when received from the library', async () => {
-        await mockResolvers.Query.k8sDashboardDeployments(
+        await mockResolvers.Query.k8sDeployments(
           null,
           { configuration, namespace: '' },
           { client },
@@ -203,7 +189,7 @@ describe('~/frontend/environments/graphql/resolvers', () => {
         }),
       );
 
-      await mockResolvers.Query.k8sDashboardDeployments(null, { configuration }, { client });
+      await mockResolvers.Query.k8sDeployments(null, { configuration }, { client });
 
       expect(mockDeploymentsListWatcherFn).not.toHaveBeenCalled();
     });
@@ -214,7 +200,7 @@ describe('~/frontend/environments/graphql/resolvers', () => {
         .mockRejectedValue(new Error('API error'));
 
       await expect(
-        mockResolvers.Query.k8sDashboardDeployments(null, { configuration }, { client }),
+        mockResolvers.Query.k8sDeployments(null, { configuration }, { client }),
       ).rejects.toThrow('API error');
     });
   });

@@ -97,6 +97,7 @@ function bundle_install_script() {
 
   gem --version
   bundle --version
+  gem install bundler --no-document --conservative --version 2.4.11
   test -d jh && bundle config set --local gemfile 'jh/Gemfile'
   bundle config set path "$(pwd)/vendor"
   bundle config set clean 'true'
@@ -121,15 +122,9 @@ function yarn_install_script() {
 
   retry yarn install --frozen-lockfile
 
-  section_end "yarn-install"
-}
-
-function yarn_install_script_storybook() {
-  section_start "yarn-install-storybook" "Installing Yarn packages for Storybook"
-
   retry yarn storybook:install --frozen-lockfile
 
-  section_end "yarn-install-storybook"
+  section_end "yarn-install"
 }
 
 function assets_compile_script() {
@@ -142,8 +137,13 @@ function assets_compile_script() {
 
 function setup_database_yml() {
   if [ "$DECOMPOSED_DB" == "true" ]; then
-    echo "Using decomposed database config (config/database.yml.decomposed-postgresql)"
-    cp config/database.yml.decomposed-postgresql config/database.yml
+    if [ "$CLUSTERWIDE_DB" == "true" ]; then
+      echo "Using decomposed database config, containing clusterwide connection (config/database.yml.decomposed-clusterwide-postgresql)"
+      cp config/database.yml.decomposed-clusterwide-postgresql config/database.yml
+    else
+      echo "Using decomposed database config (config/database.yml.decomposed-postgresql)"
+      cp config/database.yml.decomposed-postgresql config/database.yml
+    fi
   else
     echo "Using two connections, single database config (config/database.yml.postgresql)"
     cp config/database.yml.postgresql config/database.yml
@@ -348,7 +348,7 @@ function fail_pipeline_early() {
   fi
 }
 
-# We're inlining this function in `.gitlab/ci/test-on-omnibus/main.gitlab-ci.yml` so make sure to reflect any changes there
+# We're inlining this function in `.gitlab/ci/package-and-test/main.gitlab-ci.yml` so make sure to reflect any changes there
 function assets_image_tag() {
   local cache_assets_hash_file="cached-assets-hash.txt"
 
@@ -477,16 +477,4 @@ function define_trigger_branch_in_build_env() {
   if [ -f "$BUILD_ENV" ]; then
     echo "TRIGGER_BRANCH=${TRIGGER_BRANCH}" >> $BUILD_ENV
   fi
-}
-
-function log_disk_usage() {
-  caller=$1
-  echo "[log_disk_usage ${caller}] start"
-
-  echo -e "df -h"
-  df -h
-
-  echo -e "du -h -d 1"
-  du -h -d 1
-  echo "[log_disk_usage ${caller}] end"
 }

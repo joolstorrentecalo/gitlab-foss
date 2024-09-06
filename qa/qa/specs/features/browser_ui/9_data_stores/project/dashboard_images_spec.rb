@@ -25,7 +25,7 @@ module QA
       end
     end
 
-    describe 'Check for broken images', :requires_admin, :blocking do
+    describe 'Check for broken images', :requires_admin, :reliable do
       context(
         'when a new user logs in',
         testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/347885'

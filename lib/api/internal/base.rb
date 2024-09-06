@@ -52,11 +52,13 @@ module API
           end
 
           # Stores some Git-specific env thread-safely
-          #
+          env = parse_env
+          Gitlab::Git::HookEnv.set(gl_repository, env) if container
+
           # Snapshot repositories have different relative path than the main repository. For access
           # checks that need quarantined objects the relative path in also sent with Gitaly RPCs
           # calls as a header.
-          Gitlab::Git::HookEnv.set(gl_repository, params[:relative_path], parse_env) if container
+          populate_relative_path(params[:relative_path])
 
           actor.update_last_used_at!
 
@@ -70,8 +72,6 @@ module API
             payload = {
               gl_repository: gl_repository,
               gl_project_path: gl_repository_path,
-              gl_project_id: project&.id,
-              gl_root_namespace_id: project&.root_namespace&.id,
               gl_id: Gitlab::GlId.gl_id(actor.user),
               gl_username: actor.username,
               git_config_options: ["uploadpack.allowFilter=true",
@@ -102,6 +102,12 @@ module API
         end
         # rubocop: enable Metrics/AbcSize
 
+        def populate_relative_path(relative_path)
+          return unless Gitlab::SafeRequestStore.active?
+
+          Gitlab::SafeRequestStore[:gitlab_git_relative_path] = relative_path
+        end
+
         def validate_actor(actor)
           return 'Could not find the given key' unless actor.key
 
@@ -131,19 +137,12 @@ module API
         #   changes - changes as "oldrev newrev ref", see Gitlab::ChangesList
         #   check_ip - optional, only in EE version, may limit access to
         #     group resources based on its IP restrictions
-        #
-        # /internal/allowed
-        #
         post "/allowed", feature_category: :source_code_management do
           # It was moved to a separate method so that EE can alter its behaviour more
           # easily.
           check_allowed(params)
         end
 
-        # Validate LFS authentication request
-        #
-        # /internal/lfs_authenticate
-        #
         post "/lfs_authenticate", feature_category: :source_code_management, urgency: :high do
           not_found! unless container&.lfs_enabled?
 
@@ -156,13 +155,12 @@ module API
           actor.update_last_used_at!
 
           Gitlab::LfsToken
-            .new(actor.key_or_user, container)
+            .new(actor.key_or_user)
             .authentication_payload(lfs_authentication_url(container))
         end
 
-        # Check whether an SSH key is known to GitLab
         #
-        # /internal/authorized_keys
+        # Check whether an SSH key is known to GitLab
         #
         get '/authorized_keys', feature_category: :source_code_management, urgency: :high do
           fingerprint = Gitlab::InsecureKeyFingerprint.new(params.fetch(:key)).fingerprint_sha256
@@ -172,16 +170,13 @@ module API
           present key, with: Entities::SSHKey
         end
 
-        # Discover user by ssh key, user id or username
         #
-        # /internal/discover
+        # Discover user by ssh key, user id or username
         #
         get '/discover', feature_category: :system_access do
           present actor.user, with: Entities::UserSafe
         end
 
-        # /internal/check
-        #
         get '/check', feature_category: :not_owned do # rubocop:todo Gitlab/AvoidFeatureCategoryNotOwned
           {
             api_version: API.version,
@@ -191,8 +186,6 @@ module API
           }
         end
 
-        # /internal/two_factor_recovery_codes
-        #
         post '/two_factor_recovery_codes', feature_category: :system_access do
           status 200
 
@@ -222,8 +215,6 @@ module API
           { success: true, recovery_codes: codes }
         end
 
-        # /internal/personal_access_token
-        #
         post '/personal_access_token', feature_category: :system_access do
           status 200
 
@@ -262,7 +253,7 @@ module API
           end
 
           result = ::PersonalAccessTokens::CreateService.new(
-            current_user: user, target_user: user, organization_id: Current.organization_id, params: { name: params[:name], scopes: params[:scopes], expires_at: expires_at }
+            current_user: user, target_user: user, params: { name: params[:name], scopes: params[:scopes], expires_at: expires_at }
           ).execute
 
           unless result.status == :success
@@ -274,8 +265,6 @@ module API
           { success: true, token: access_token.token, scopes: access_token.scopes, expires_at: access_token.expires_at }
         end
 
-        # /internal/pre_receive
-        #
         post '/pre_receive', feature_category: :source_code_management do
           status 200
 
@@ -284,8 +273,6 @@ module API
           { reference_counter_increased: reference_counter_increased }
         end
 
-        # /internal/post_receive
-        #
         post '/post_receive', feature_category: :source_code_management do
           status 200
 
@@ -299,9 +286,6 @@ module API
         # decided to pursue a different approach, so it's currently not used.
         # We might revive the PAM module though as it provides better user
         # flow.
-        #
-        # /internal/two_factor_config
-        #
         post '/two_factor_config', feature_category: :system_access do
           status 200
 
@@ -324,16 +308,12 @@ module API
           end
         end
 
-        # /internal/two_factor_push_otp_check
-        #
         post '/two_factor_push_otp_check', feature_category: :system_access do
           status 200
 
           two_factor_push_otp_check
         end
 
-        # /internal/two_factor_manual_otp_check
-        #
         post '/two_factor_manual_otp_check', feature_category: :system_access do
           status 200
 

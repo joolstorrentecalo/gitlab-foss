@@ -152,8 +152,8 @@ You can see example adding a new gem: [!121676](https://gitlab.com/gitlab-org/gi
 
 ### Specifying dependencies for the Gem
 
-While the gem has its own `Gemfile`, in the
-actual application the top-level `Gemfile` for the monolith GitLab is
+It is important to note that while the gem has its own `Gemfile`, in the
+actual application the top-level `Gemfile` for the monolith GitLab will be
 used instead of the individual `Gemfile` sitting in the directory of the gem.
 
 This means we should be aware that the `Gemfile` for the gem should not use
@@ -167,7 +167,7 @@ all gems we develop should also be tested against Rack 2, optionally also with
 Rack 3 if a separate `Gemfile` is used in CI. See an
 [example here](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/140463).
 
-This does not limit to just Rack, but any dependencies.
+Note that this does not limit to just Rack, but any dependencies.
 
 ### Examples of Gem extractions
 
@@ -263,8 +263,6 @@ The project for a new Gem should always be created in [`gitlab-org/ruby/gems` na
    gem owner <gem-name> --add gitlab_rubygems
    ```
 
-   - Ping [Rémy Coutable](https://gitlab.com/rymai) to confirm the ownership in the [Rubygems committee project](https://gitlab.com/gitlab-dependency-committees/rubygems-committee/-/issues/).
-
 1. Optional. Add some or all of the following users as co-owners:
    - [Marin Jankovski](https://rubygems.org/profiles/marinjankovski)
    - [Rémy Coutable](https://rubygems.org/profiles/rymai)
@@ -273,34 +271,34 @@ The project for a new Gem should always be created in [`gitlab-org/ruby/gems` na
 1. Visit `https://rubygems.org/gems/<gem-name>` and verify that the gem was published
    successfully and `gitlab_rubygems` is also an owner.
 1. Create a project in the [`gitlab-org/ruby/gems` group](https://gitlab.com/gitlab-org/ruby/gems/) (or in a subgroup of it):
-   1. Follow the [instructions for new projects](https://handbook.gitlab.com/handbook/engineering/gitlab-repositories/#creating-a-new-project).
-   1. Follow the instructions for setting up a [CI/CD configuration](https://handbook.gitlab.com/handbook/engineering/gitlab-repositories/#cicd-configuration).
-   1. Use the [`gem-release` CI component](https://gitlab.com/gitlab-org/components/gem-release)
-      to release and publish new gem versions by adding the following to their `.gitlab-ci.yml`:
+    1. Follow the [instructions for new projects](https://handbook.gitlab.com/handbook/engineering/gitlab-repositories/#creating-a-new-project).
+    1. Follow the instructions for setting up a [CI/CD configuration](https://handbook.gitlab.com/handbook/engineering/gitlab-repositories/#cicd-configuration).
+    1. Use the [`gem-release` CI component](https://gitlab.com/gitlab-org/components/gem-release)
+       to release and publish new gem versions by adding the following to their `.gitlab-ci.yml`:
 
-      ```yaml
-      include:
-        - component: $CI_SERVER_FQDN/gitlab-org/components/gem-release/gem-release@~latest
-      ```
+       ```yaml
+       include:
+         - component: gitlab.com/gitlab-org/components/gem-release/gem-release@~latest
+       ```
 
-      This job will handle building and publishing the gem (it uses a `gitlab_rubygems` Rubygems.org
-      API token inherited from the `gitlab-org/ruby/gems` group, in order to publish the gem
-      package), as well as creating the tag, release and populating its release notes by
-      using the
-      [Generate changelog data](../api/repositories.md#generate-changelog-data)
-      API endpoint.
+       This job will handle building and publishing the gem (it uses a `gitlab_rubygems` Rubygems.org
+       API token inherited from the `gitlab-org/ruby/gems` group, in order to publish the gem
+       package), as well as creating the tag, release and populating its release notes by
+       using the
+       [Generate changelog data](../api/repositories.md#generate-changelog-data)
+       API endpoint.
 
-      For instructions for when and how to generate a changelog entry file, see the
-      dedicated [Changelog entries](changelog.md)
-      page.
-      [To be consistent with the GitLab project](changelog.md),
-      Gem projects could also define a changelog YAML configuration file at
-      `.gitlab/changelog_config.yml` with the same content
-      as [in the `gitlab-styles` gem](https://gitlab.com/gitlab-org/ruby/gems/gitlab-styles/-/blob/master/.gitlab/changelog_config.yml).
-   1. To ease the release process, you could also create a `.gitlab/merge_request_templates/Release.md` MR template with the same content
+       For instructions for when and how to generate a changelog entry file, see the
+       dedicated [Changelog entries](changelog.md)
+       page.
+       [To be consistent with the GitLab project](changelog.md),
+       Gem projects could also define a changelog YAML configuration file at
+       `.gitlab/changelog_config.yml` with the same content
+       as [in the `gitlab-styles` gem](https://gitlab.com/gitlab-org/ruby/gems/gitlab-styles/-/blob/master/.gitlab/changelog_config.yml).
+    1. To ease the release process, you could also create a `.gitlab/merge_request_templates/Release.md` MR template with the same content
       as [in the `gitlab-styles` gem](https://gitlab.com/gitlab-org/ruby/gems/gitlab-styles/-/raw/master/.gitlab/merge_request_templates/Release.md)
       (make sure to replace `gitlab-styles` with the actual gem name).
-   1. Follow the instructions for [publishing a project](https://handbook.gitlab.com/handbook/engineering/gitlab-repositories/#publishing-a-project).
+    1. Follow the instructions for [publishing a project](https://handbook.gitlab.com/handbook/engineering/gitlab-repositories/#publishing-a-project).
 
 Notes: In some cases we may want to move a gem to its own namespace. Some
 examples might be that it will naturally have more than one project
@@ -348,22 +346,12 @@ to store them in monorepo:
   - Those Gems will not be published by us to RubyGems.
   - Those Gems will be referenced via `path:` in `Gemfile`, since we cannot depend on RubyGems.
 
-## Considerations regarding rubygems.org
+## Reserve a gem name
 
-### Reserve a gem name
-
-We may reserve gem names as a precaution **before publishing any public code that contains a new gem**, to avoid name-squatters taking over the name in RubyGems.
+We reserve a gem name as a precaution **before publishing any public code that contains a new gem**, to avoid name-squatters taking over the name in RubyGems.
 
 To reserve a gem name, follow the steps to [Create and publish a Ruby gem](#create-and-publish-a-ruby-gem), with the following changes:
 
 - Use `0.0.0` as the version.
 - Include a single file `lib/NAME.rb` with the content `raise "Reserved for GitLab"`.
 - Perform the `build` and `publish`, and check <https://rubygems.org/gems/> to confirm it succeeded.
-
-### Account creation
-
-In case you are considering the creation of an account on RubyGems.org for the purpose of your work at GitLab, make sure to use your corporate email account.
-
-### Maintainer and Account Changes
-
-All changes such as modifications to account emails or passwords, gem owners, and gem deletion ought to be communicated previously to the directly responsible teams, through issues or Slack (the team's Slack channel, `#rubygems`, `#ruby`, `#development`).

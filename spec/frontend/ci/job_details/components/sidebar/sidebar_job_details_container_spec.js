@@ -36,7 +36,7 @@ describe('Job Sidebar Details Container', () => {
     });
 
     it('should render an empty container', () => {
-      expect(wrapper.find('*').exists()).toBe(false);
+      expect(wrapper.html()).toBe('');
     });
 
     it.each(['duration', 'erased_at', 'finished_at', 'queued_at', 'runner', 'coverage'])(
@@ -73,19 +73,6 @@ describe('Job Sidebar Details Container', () => {
       const tagsComponent = findJobTags();
 
       expect(tagsComponent.text()).toBe('Tags: tag');
-    });
-  });
-
-  describe('when code coverage exists but is zero', () => {
-    it('renders the coverage value', async () => {
-      createWrapper();
-
-      await store.dispatch('receiveJobSuccess', {
-        ...job,
-        coverage: 0,
-      });
-
-      expect(findAllDetailsRow().at(6).text()).toBe('Coverage: 0%');
     });
   });
 
@@ -150,7 +137,7 @@ describe('Job Sidebar Details Container', () => {
       await store.dispatch('receiveJobSuccess', { metadata });
       const detailsRow = findAllDetailsRow();
 
-      expect(wrapper.find('*').exists()).toBe(false);
+      expect(wrapper.html()).toBe('');
       expect(detailsRow.exists()).toBe(false);
     });
 

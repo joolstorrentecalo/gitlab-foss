@@ -53,24 +53,11 @@ sudo -u git -H bundle exec rails console -e production
 
 :::TabTitle Helm chart (Kubernetes)
 
-```shell
-# find the pod
-kubectl get pods --namespace <namespace> -lapp=toolbox
-
-# open the Rails console
-kubectl exec -it -c toolbox <toolbox-pod-name> -- gitlab-rails console
-```
+The console is in the toolbox pod. Refer to our [Kubernetes cheat sheet](https://docs.gitlab.com/charts/troubleshooting/kubernetes_cheat_sheet.html#gitlab-specific-kubernetes-information) for details.
 
 ::EndTabs
 
 To exit the console, type: `quit`.
-
-### Disable autocompletion
-
-Ruby autocompletion can slow down the terminal. If you want to:
-
-- Disable autocompletion, run `Reline.autocompletion = IRB.conf[:USE_AUTOCOMPLETE] = false`.
-- Re-enable autocompletion, run `Reline.autocompletion = IRB.conf[:USE_AUTOCOMPLETE] = true`.
 
 ## Enable Active Record logging
 
@@ -79,14 +66,6 @@ session by running:
 
 ```ruby
 ActiveRecord::Base.logger = Logger.new($stdout)
-```
-
-By default, the previous script logs to the standard output. You can specify a log file to redirect
-output to, by replacing `$stdout` with the desired file path. For example, this code logs everything
-to `/tmp/output.log`:
-
-```ruby
-ActiveRecord::Base.logger = Logger.new('/tmp/output.log')
 ```
 
 This shows information about database queries triggered by any Ruby code
@@ -160,7 +139,7 @@ Enter the following command on the rails console to display
 your command history.
 
 ```ruby
-puts Reline::HISTORY.to_a
+puts Readline::HISTORY.to_a
 ```
 
 You can then copy it to your clipboard and save for future reference.
@@ -342,7 +321,7 @@ D, [2020-03-05T17:03:24.696493 #910] DEBUG -- :   User Load (2.1ms)  SELECT "use
 
 Give the following a try:
 
-- `User.find_by(username: 'root')`
+- `User.find_by(email: 'admin@example.com')`
 - `User.where.not(admin: true)`
 - `User.where('created_at < ?', 7.days.ago)`
 

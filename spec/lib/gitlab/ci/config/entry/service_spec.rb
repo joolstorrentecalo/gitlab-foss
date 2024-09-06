@@ -140,7 +140,7 @@ RSpec.describe Gitlab::Ci::Config::Entry::Service do
             it 'is not valid' do
               expect(entry).not_to be_valid
               expect(entry.errors.first)
-                .to match(/port config contains unknown keys: invalid_key/)
+                .to match /port config contains unknown keys: invalid_key/
             end
           end
         end
@@ -204,7 +204,7 @@ RSpec.describe Gitlab::Ci::Config::Entry::Service do
         it 'is not valid' do
           expect(entry).not_to be_valid
           expect(entry.errors.first)
-            .to match %r{service executor opts object property at `/docker/invalid` is a disallowed additional property}
+            .to match %r{service executor opts '/docker/invalid' must be a valid 'schema'}
         end
       end
     end
@@ -216,7 +216,7 @@ RSpec.describe Gitlab::Ci::Config::Entry::Service do
         it 'is not valid' do
           expect(entry).not_to be_valid
           expect(entry.errors.first)
-            .to match %r{service executor opts value at `/docker/platform` is not a string}
+            .to match %r{service executor opts '/docker/platform' must be a valid 'string'}
         end
       end
     end
@@ -247,7 +247,7 @@ RSpec.describe Gitlab::Ci::Config::Entry::Service do
     describe '#errors' do
       it 'saves errors' do
         expect(entry.errors.first)
-            .to match(/config should be a hash or a string/)
+            .to match /config should be a hash or a string/
       end
     end
 
@@ -264,7 +264,7 @@ RSpec.describe Gitlab::Ci::Config::Entry::Service do
     describe '#errors' do
       it 'saves errors' do
         expect(entry.errors.first)
-            .to match(/config contains unknown keys: non_existing/)
+            .to match /config contains unknown keys: non_existing/
       end
     end
 

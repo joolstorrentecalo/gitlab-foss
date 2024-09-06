@@ -6,20 +6,29 @@ info: For assistance with this Style Guide page, see https://handbook.gitlab.com
 
 # Get started page type
 
-A **Get started** page introduces high-level concepts for a broad feature area.
+A **Get started** page is meant to introduce high-level concepts for a broad feature area.
 While a specific feature might be defined in the feature documentation,
-a **Get started** page gives an introduction to a set of concepts.
-The content should help the user understand how multiple features fit together
-as part of the larger GitLab workflow.
+a **Get started** page is meant to give an introduction to a set of concepts.
+When you group the concepts together, you help the user see how they fit together.
+
+A **Get started** page should familiarize the reader with terms and then quickly
+point them to actions they can take to get started. Hopefully the actions are
+task-based, but the next step can also be to learn more.
 
 ## When to use a Get started page
 
-For now, a **Get started** page should be used only at the highest level of the left navigation.
-For example, you might have a **Get started** page under **Manage your organization** or **Extend GitLab**.
+A **Get started** page should be used only for a larger concept,
+like CI/CD or security. In general, we describe features in concept topics.
+However, if you find you want to explain how multiple concepts fit together,
+then a **Get started** page might be what you need.
 
-A **Get started** page is different from a tutorial. A **Get started** page focuses on high-level
-concepts that are part of a workflow, while a tutorial helps the user achieve a task.
-A **Get started** page should point to tutorials, however, because tutorials are a great way for a user to get started.
+To determine if a **Get started** page makes sense, make a list
+of the common terms you expect to include. If you have more than four or five,
+then this page type might make sense.
+
+A **Get started** page is different from a tutorial. It's conceptual, while
+a tutorial helps the user achieve a task. A **Get started** page should point
+to tutorials, however, because tutorials are a great way for a user to get started.
 
 ## Format
 
@@ -28,43 +37,48 @@ Get started pages should be in this format:
 ```markdown
 # Get started with abc
 
-These features work together in this way. You can use them to achieve these goals.
-Include a paragraph that ties together the features without describing what
-each individual feature does.
+Abc is a thing you use to do xyz. You might use it when you need to blah,
+and it can be helpful for etc.
 
-Then add this sentence and a diagram. Details about the diagram
-file are below.
+## Common terms
 
-The process of <abc> is part of a larger workflow:
+If you're new to abc, start by reviewing some of the most commonly used terms.
 
-![Workflow](img/workflow diagram.png)
+### First term
 
-## Step 1: Do this thing
+This thing is this. Describe what it is, not how to do it.
 
-Each step should group features by workflow. For example, step 1 might be:
+**Get started:**
 
-`## Step 1: Determine your release cadence`
+- [Create your first abc](LINK).
+- [Learn more about abc](LINK).
 
-Then the content can explain milestones, iterations, labels, etc.
-The terms can exist elsewhere in the docs, but the descriptions
-on this page should be relatively brief.
+### Second term
 
-Finally, add links, in this format:
+This thing is this. Describe what it is, not how to do it.
 
-For more information, see:
+**Get started:**
 
-- [Create your first abc](link.md).
-- [Learn more about abc](link.md).
+- [Create your first abc](LINK).
+- [Learn more about abc](LINK).
 
-## Step 2: The next thing
+## Videos
 
-Don't link in the body content. Save links for the `for more information` area.
+- [Video 1](LINK).
+- [Video 2](LINK).
 
-For more information, see:
+## Related topics
 
-- [Create your first abc](link.md).
-- [Learn more about abc](link.md).
+- [Link 1](LINK).
+- [Link 2](LINK).
 ```
+
+- Follow [the video guidance](../styleguide/index.md#link-to-video)
+  for the links in the Video topic.
+- Do not use links inline with content (as part of sentences).
+  Use them where links are specified only.
+- The terms described on this page can exist elsewhere in the docs.
+  However, the term descriptions on this page should be relatively brief.
 
 ## Get started page titles
 
@@ -72,16 +86,7 @@ For the title, use `Get started with topic_name`.
 
 For the left nav, use `Getting started`.
 
-## Get started file location
-
-All **Getting started** files should be in the folder `doc/user/get_started/`.
-You do not need to create a subfolder for each file.
-
-## Diagram files
-
-The diagram files are [in this Google Slides doc](https://docs.google.com/presentation/d/19spBwRAb4QNoTdZofR37TkBBFBPcmh4196ae3lX1ngQ/edit?usp=sharing).
-
 ## Example
 
 For an example of the Get started page type,
-see [Get started learning Git](../../../topics/git/get_started.md).
+see [Get started with GitLab CI/CD](../../../ci/index.md).

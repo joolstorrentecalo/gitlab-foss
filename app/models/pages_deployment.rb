@@ -2,10 +2,7 @@
 
 # PagesDeployment stores a zip archive containing GitLab Pages web-site
 class PagesDeployment < ApplicationRecord
-  include GlobalID::Identification
   include EachBatch
-  include FromUnion
-  include Sortable
   include FileStoreMounter
   include Gitlab::Utils::StrongMemoize
 
@@ -27,11 +24,9 @@ class PagesDeployment < ApplicationRecord
   # serve PagesDeployment which files are already uploaded.
   scope :upload_ready, -> { where(upload_ready: true) }
 
-  scope :active, -> { upload_ready.where(deleted_at: nil) }
-  scope :expired, -> { where('expires_at < ?', Time.now.utc).order(:expires_at, :id) }
+  scope :active, -> { upload_ready.where(deleted_at: nil).order(created_at: :desc) }
   scope :deactivated, -> { where('deleted_at < ?', Time.now.utc) }
   scope :versioned, -> { where.not(path_prefix: [nil, '']) }
-  scope :unversioned, -> { where(path_prefix: [nil, '']) }
 
   validates :file, presence: true
   validates :file_store, presence: true, inclusion: { in: ObjectStorage::SUPPORTED_STORES }
@@ -45,10 +40,6 @@ class PagesDeployment < ApplicationRecord
 
   skip_callback :save, :after, :store_file!
   after_commit :store_file_after_commit!, on: [:create, :update]
-
-  def self.declarative_policy_class
-    'Pages::DeploymentPolicy'
-  end
 
   def self.latest_pipeline_id
     Ci::Build.id_in(pluck(:ci_build_id)).maximum(:commit_id)
@@ -74,34 +65,12 @@ class PagesDeployment < ApplicationRecord
     update(deleted_at: Time.now.utc)
   end
 
-  def self.count_versioned_deployments_for(project_or_namespace, limit)
-    namespace = project_or_namespace.try(:root_ancestor) || project_or_namespace
-
-    project_id_in(namespace.all_projects)
-      .active
-      .versioned
-      .limit(limit)
-      .count
-  end
-
-  def active?
-    deleted_at.nil?
-  end
-
   def url
     base_url = ::Gitlab::Pages::UrlBuilder
       .new(project)
       .pages_url(with_unique_domain: true)
 
     File.join(base_url.to_s, path_prefix.to_s)
-  end
-
-  def deactivate
-    update_attribute(:deleted_at, Time.now.utc)
-  end
-
-  def restore
-    update_attribute(:deleted_at, nil)
   end
 
   private

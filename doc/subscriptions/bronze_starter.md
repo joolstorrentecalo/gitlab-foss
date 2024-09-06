@@ -65,21 +65,22 @@ the tiers are no longer mentioned in GitLab documentation:
 - Merge requests:
   - [Full code quality reports in the code quality tab](../ci/testing/code_quality.md#pipeline-details-view)
   - [Merge request approvals](../user/project/merge_requests/approvals/index.md)
-  - [Multiple assignees](../user/project/merge_requests/index.md#assign-a-user-to-a-merge-request)
+  - [Multiple assignees](../user/project/merge_requests/index.md#assign-multiple-users)
   - [Approval rule information for reviewers](../user/project/merge_requests/reviews/index.md#see-how-reviewers-map-to-approval-rules)
   - [Required Approvals](../user/project/merge_requests/approvals/index.md#required-approvals)
   - [Code Owners as eligible approvers](../user/project/merge_requests/approvals/rules.md#code-owners-as-eligible-approvers)
   - [Approval rules](../user/project/merge_requests/approvals/rules.md) features
   - [Restricting push and merge access to certain users](../user/project/protected_branches.md)
+  - [Visual Reviews (deprecated)](../ci/review_apps/index.md#visual-reviews-deprecated)
 - Metrics and analytics:
   - [Contribution Analytics](../user/group/contribution_analytics/index.md)
   - [Merge Request Analytics](../user/analytics/merge_request_analytics.md)
   - [Code Review Analytics](../user/analytics/code_review_analytics.md)
-  - [Audit events](../administration/audit_event_reports.md)
+  - [Audit Events](../administration/audit_event_reports.md)
 - Rake tasks:
   - [Displaying GitLab license information](../administration/raketasks/maintenance.md#show-gitlab-license-information)
 - Reference Architecture information:
-  - [Zero-downtime upgrades](../administration/reference_architectures/index.md#zero-downtime-upgrades)
+  - [Zero downtime upgrades](../administration/reference_architectures/index.md#zero-downtime-upgrades)
 - Repositories:
   - [Repository size limit](../administration/settings/account_and_limit_settings.md#repository-size-limit)
   - Repository mirroring:
@@ -93,7 +94,7 @@ the tiers are no longer mentioned in GitLab documentation:
     - [Mirror with Perforce Helix with Git Fusion](../user/project/repository/mirror/bidirectional.md#mirror-with-perforce-helix-with-git-fusion)
 - Runners:
   - Run pipelines in the parent project [for merge requests from a forked project](../ci/pipelines/merge_request_pipelines.md#run-pipelines-in-the-parent-project)
-  - [Instance runners compute quota](../ci/pipelines/compute_minutes.md)
+  - [Instance runners compute quota](../ci/pipelines/cicd_minutes.md)
 - [Push rules](../user/project/repository/push_rules.md)
 - SAML for self-managed GitLab instance:
   - [Administrator groups](../integration/saml.md#administrator-groups)
@@ -115,7 +116,7 @@ Bronze-level subscribers:
     - Certain fields in the [group details API](../api/groups.md#details-of-a-group)
     - [syncing groups](../api/groups.md#sync-group-with-ldap)
     - Listing, adding, and deleting [group links](../api/groups.md#list-ldap-group-links)
-    - [Push rules](../api/group_push_rules.md)
+    - [Push rules](../api/groups.md#push-rules)
     - [Audit events](../api/audit_events.md), including
       [group audit events](../api/groups.md#group-audit-events) and
       [project audit events](../api/audit_events.md#project-audit-events)
@@ -129,5 +130,6 @@ Bronze-level subscribers:
   - Fields in the [Merge requests API](../api/merge_requests.md) for [merge request approvals](../user/project/merge_requests/approvals/index.md)
   - Fields in the [Protected branches API](../api/protected_branches.md) that specify users or groups allowed to merge
   - [Merge request approvals API](../api/merge_request_approvals.md)
+  - [Visual review discussions API](../api/visual_review_discussions.md)
 - Development information:
   - [Run Jenkins in a macOS development environment](../development/integrations/jenkins.md)

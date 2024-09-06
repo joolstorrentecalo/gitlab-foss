@@ -73,7 +73,7 @@ Confidential issues are hidden in search results for users without the necessary
 ## Confidential issue indicators
 
 Confidential issues are visually different from regular issues in a few ways.
-In the **Issues** and **Issue boards** pages, you can see the confidential (**{eye-slash}**) icon
+In the issues list and boards, you can see the confidential (**{eye-slash}**) icon
 next to issues marked as confidential.
 
 If you don't have [enough permissions](#who-can-see-confidential-issues),
@@ -101,4 +101,4 @@ Learn how to create [merge requests for confidential issues](../merge_requests/c
 - [Merge requests for confidential issues](../merge_requests/confidential.md)
 - [Make an epic confidential](../../group/epics/manage_epics.md#make-an-epic-confidential)
 - [Add an internal note](../../discussions/index.md#add-an-internal-note)
-- [Security practices for confidential merge requests](https://gitlab.com/gitlab-org/release/docs/blob/master/general/security/engineer.md#security-releases-critical-non-critical-as-a-developer) at GitLab
+- [Security practices for confidential merge requests](https://gitlab.com/gitlab-org/release/docs/blob/master/general/security/developer.md#security-releases-critical-non-critical-as-a-developer) at GitLab

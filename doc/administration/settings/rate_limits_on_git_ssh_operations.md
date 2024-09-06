@@ -2,7 +2,6 @@
 stage: Create
 group: Source Code
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
-description: "Configure rate limits on Git SSH operations on your self-managed GitLab instance."
 ---
 
 # Rate limits on Git SSH operations
@@ -11,7 +10,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
-> - [Available by default](https://gitlab.com/gitlab-org/gitlab/-/issues/367998) in GitLab 15.8. [Feature flag](../feature_flags.md) `rate_limit_gitlab_shell` removed.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/78373) in GitLab 14.7 [with a flag](../feature_flags.md) named `rate_limit_gitlab_shell`. Available by default without a feature flag from 15.8.
 
 GitLab applies rate limits to Git operations that use SSH by user account and project. When the rate limit is exceeded, GitLab rejects
 further connection requests from that user for the project.
@@ -30,7 +29,7 @@ Because the same commands are shared by `git-upload-pack`, `git pull`, and `git 
 
 `Git operations using SSH` is enabled by default. Defaults to 600 per user per minute.
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > Network**.
 1. Expand **Git SSH operations rate limit**.
 1. Enter a value for **Maximum number of Git operations per minute**.

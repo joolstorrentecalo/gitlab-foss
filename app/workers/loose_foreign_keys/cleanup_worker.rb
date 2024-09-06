@@ -20,13 +20,16 @@ module LooseForeignKeys
       lock_ttl = modification_tracker.max_runtime + 10.seconds
 
       in_lock(self.class.name.underscore, ttl: lock_ttl, retries: 0) do
-        stats = ProcessDeletedRecordsService.new(
-          connection: base_model.connection,
-          modification_tracker: modification_tracker,
-          logger: Sidekiq.logger
-        ).execute
-        stats[:connection] = connection_name
-        stats[:turbo_mode] = turbo_mode
+        stats = {}
+
+        Gitlab::Database::SharedModel.using_connection(base_model.connection) do
+          stats = ProcessDeletedRecordsService.new(
+            connection: base_model.connection,
+            modification_tracker: modification_tracker
+          ).execute
+          stats[:connection] = connection_name
+          stats[:turbo_mode] = turbo_mode
+        end
 
         log_extra_metadata_on_done(:stats, stats)
       end

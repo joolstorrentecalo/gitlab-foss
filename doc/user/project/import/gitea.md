@@ -1,5 +1,5 @@
 ---
-stage: Foundations
+stage: Manage
 group: Import and Integrate
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -12,13 +12,8 @@ DETAILS:
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/381902) in GitLab 15.8, GitLab no longer automatically creates namespaces or groups that don't exist. GitLab also no longer falls back to using the user's personal namespace if the namespace or group name is taken.
 > - Ability to import projects with a `.` in their path [added](https://gitlab.com/gitlab-org/gitlab/-/issues/434175) in GitLab 16.11.
-> - An **Imported** badge on some imported items [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/461208) in GitLab 17.2.
 
 Import your projects from Gitea to GitLab.
-
-WARNING:
-Importing from Gitea to GitLab.com is [currently unavailable](https://status.gitlab.com). We don't have an
-estimated time for resolution. For more information, please [contact support](https://about.gitlab.com/support/).
 
 The Gitea importer can import:
 
@@ -29,10 +24,8 @@ The Gitea importer can import:
 - Milestones
 - Labels
 
-When importing:
-
-- Repository public access is retained. If a repository is private in Gitea, it's created as private in GitLab as well.
-- Imported issues, merge requests, and comments have an **Imported** badge in GitLab.
+When importing, repository public access is retained. If a repository is private in Gitea, it's
+created as private in GitLab as well.
 
 ## Known issues
 

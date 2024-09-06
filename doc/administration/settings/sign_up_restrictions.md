@@ -25,32 +25,29 @@ you do not expect public users to sign up for an account.
 
 To disable sign ups:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-up restrictions**.
 1. Clear the **Sign-up enabled** checkbox, then select **Save changes**.
 
-You can also disable new sign ups with the [Rails console](../operations/rails_console.md) by running the following command:
-
-```ruby
-::Gitlab::CurrentSettings.update!(signup_enabled: false)
-```
-
 ## Require administrator approval for new sign ups
 
-This setting is enabled by default for new GitLab instances.
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/4491) in GitLab 13.5.
+> - [Enabled by default](https://gitlab.com/gitlab-org/gitlab/-/issues/267568) in GitLab 13.6.
+
 When this setting is enabled, any user visiting your GitLab domain and signing up for a new account using the registration form
 must be explicitly [approved](../../administration/moderate_users.md#approve-or-reject-a-user-sign-up) by an
-administrator before they can start using their account. It is only applicable if sign ups are enabled.
+administrator before they can start using their account. In GitLab 13.6 and later, this setting is
+enabled by default for new GitLab instances. It is only applicable if sign ups are enabled.
 
 To require administrator approval for new sign ups:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-up restrictions**.
 1. Select the **Require admin approval for new sign-ups** checkbox, then select **Save changes**.
 
-If an administrator disables this setting, the users in pending approval state are
+In [GitLab 13.7 and later](https://gitlab.com/gitlab-org/gitlab/-/issues/273258), if an administrator disables this setting, the users in pending approval state are
 automatically approved in a background job.
 
 NOTE:
@@ -62,6 +59,7 @@ A [user cap](#user-cap) can also be used to enforce approvals for new users.
 
 ## Confirm user email
 
+> - Soft email confirmation [introduced](https://gitlab.com/gitlab-org/gitlab-foss/-/issues/47003) in GitLab 12.2 [with a flag](../../operations/feature_flags.md) named `soft_email_confirmation`.
 > - Soft email confirmation [changed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/107302/diffs) from a feature flag to an application setting in GitLab 15.9.
 
 You can send confirmation emails during sign up and require that users confirm
@@ -69,14 +67,14 @@ their email address before they are allowed to sign in.
 
 To enforce confirmation of the email address used for new sign ups:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-up restrictions**.
 1. Under **Email confirmation settings**, select **Hard**.
 
 The following settings are available:
 
-- **Hard** - Send a confirmation email during sign up. New users must confirm their email address before they can sign in.
+- **Hard** - Send a confirmation email during sign up. New users must confirm their email address before they can log in.
 - **Soft** - Send a confirmation email during sign up. New users can sign in immediately, but must confirm their email in three days. After three days, the user is not able to sign in until they confirm their email.
 - **Off** - New users can sign up without confirming their email address.
 
@@ -111,7 +109,7 @@ Prerequisites:
 
 To set a user cap:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-up restrictions**.
 1. Enter a number in **User cap**.
@@ -130,13 +128,15 @@ Prerequisites:
 
 To remove the user cap:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-up restrictions**.
 1. Remove the number from **User cap**.
 1. Select **Save changes**.
 
 ## Minimum password length limit
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/20661) in GitLab 12.6
 
 You can [change](../../security/password_length_limits.md#modify-minimum-password-length)
 the minimum number of characters a user must have in their password using the GitLab UI.
@@ -157,7 +157,7 @@ You can add additional complexity requirements. Changes to password complexity r
 
 Existing passwords are unaffected. To change password complexity requirements:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-up restrictions**.
 1. Under **Minimum password length (number of characters)**, select additional password complexity requirements. You can require numbers, uppercase letters, lowercase letters,
@@ -186,7 +186,7 @@ reduce the risk of malicious users creating spam accounts with disposable email 
 
 To create an email domain allowlist or denylist:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-up restrictions**.
 1. For the allowlist, you must enter the list manually. For the denylist, you can enter the list

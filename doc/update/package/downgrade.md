@@ -14,16 +14,13 @@ This section contains general information on how to revert to an earlier version
 of a package.
 
 WARNING:
-It is required to revert the schema changes (migrations) made as part of the upgrade.
-You must therefore have at least a database backup created under the exact same version and edition you are
+You must at least have a database backup created under the version you are
 downgrading to. Ideally, you should have a
 [full backup archive](../../administration/backup_restore/index.md)
 on hand.
-Restoring the backup is required to revert the schema changes (migrations) made as part of the upgrade.
-The restore overwrites all newer GitLab database content with the older state.
 
 The example below demonstrates the downgrade procedure when downgrading between minor
-and patch versions (for example, from 15.0.6 to 15.0.5).
+and patch versions (for example, from 13.0.6 to 13.0.5).
 
 When downgrading between major versions, take into account the
 [specific version changes](index.md#version-specific-changes) that occurred when you upgraded
@@ -68,16 +65,16 @@ Steps:
    sudo yum --showduplicates list gitlab-ee
    ```
 
-1. Downgrade GitLab to the desired version (for example, to GitLab 15.0.5):
+1. Downgrade GitLab to the desired version (for example, to GitLab 13.0.5):
 
    ```shell
    # (Replace with gitlab-ce if you have GitLab FOSS installed)
 
    # Ubuntu
-   sudo apt install gitlab-ee=15.0.5-ee.0
+   sudo apt install gitlab-ee=13.0.5-ee.0
 
    # CentOS:
-   sudo yum install gitlab-ee-15.0.5-ee.0.el8
+   sudo yum install gitlab-ee-13.0.5-ee.0.el8
    ```
 
 1. Reconfigure GitLab:

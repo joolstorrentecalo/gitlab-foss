@@ -10,6 +10,10 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/218746) in GitLab 13.4 and GitLab Runner 13.4.
+> - `file` setting [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/250695) in GitLab 14.1 and GitLab Runner 14.1.
+> - `VAULT_NAMESPACE` setting [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/255619) in GitLab 14.9 and GitLab Runner 14.9.
+
 Secrets represent sensitive information your CI job needs to complete work. This
 sensitive information can be items like API tokens, database credentials, or private keys.
 Secrets are sourced from your secrets provider.
@@ -29,7 +33,7 @@ first supported provider, and [KV-V2](https://developer.hashicorp.com/vault/docs
 as the first supported secrets engine.
 
 Use [ID tokens](../yaml/index.md#id_tokens) to [authenticate with Vault](https://developer.hashicorp.com/vault/docs/auth/jwt#jwt-authentication).
-The [Authenticating and Reading Secrets With HashiCorp Vault](hashicorp_vault.md)
+The [Authenticating and Reading Secrets With HashiCorp Vault](../examples/authenticating-with-hashicorp-vault/index.md)
 tutorial has more details about authenticating with ID tokens.
 
 You must [configure your Vault server](#configure-your-vault-server) before you
@@ -49,12 +53,10 @@ is summarized by this diagram:
 1. Runner reads secrets from the HashiCorp Vault.
 
 NOTE:
-Read the [Authenticating and Reading Secrets With HashiCorp Vault](hashicorp_vault.md)
+Read the [Authenticating and Reading Secrets With HashiCorp Vault](../examples/authenticating-with-hashicorp-vault/index.md)
 tutorial for a version of this feature. It's available to all
 subscription levels, supports writing secrets to and deleting secrets from Vault,
 and supports multiple secrets engines.
-
-You must replace the `vault.example.com` URL below with the URL of your Vault server, and `gitlab.example.com` with the URL of your GitLab instance.
 
 ## Vault Secrets Engines
 
@@ -110,13 +112,9 @@ To configure your Vault server:
      If no role is specified, Vault uses the [default role](https://developer.hashicorp.com/vault/api-docs/auth/jwt#default_role)
      specified when the authentication method was configured.
    - `VAULT_AUTH_PATH` - Optional. The path where the authentication method is mounted, default is `jwt`.
-   - `VAULT_NAMESPACE` - Optional. The [Vault Enterprise namespace](https://developer.hashicorp.com/vault/docs/enterprise/namespaces)
-     to use for reading secrets and authentication. With:
-     - Vault, the `root` ("`/`") namespace is used when no namespace is specified.
-     - Vault Open source, the setting is ignored.
-     - [HashiCorp Cloud Platform (HCP)](https://www.hashicorp.com/cloud) Vault, a namespace
-       is required. HCP Vault uses the `admin` namespace as the root namespace by default.
-       For example, `VAULT_NAMESPACE=admin`.
+   - `VAULT_NAMESPACE` - Optional. The [Vault Enterprise namespace](https://developer.hashicorp.com/vault/docs/enterprise/namespaces) to use for reading secrets and authentication.
+     If no namespace is specified, Vault uses the `root` ("`/`") namespace.
+     The setting is ignored by Vault Open Source.
 
    NOTE:
    Support for providing these values in the user interface [is tracked in this issue](https://gitlab.com/gitlab-org/gitlab/-/issues/218677).
@@ -127,6 +125,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/28321) in GitLab 13.4 and GitLab Runner 13.4.
+
 After [configuring your Vault server](#configure-your-vault-server), you can use
 the secrets stored in Vault by defining them with the [`vault` keyword](../yaml/index.md#secretsvault):
 
@@ -134,7 +134,7 @@ the secrets stored in Vault by defining them with the [`vault` keyword](../yaml/
 job_using_vault:
   id_tokens:
     VAULT_ID_TOKEN:
-      aud: https://vault.example.com
+      aud: https://gitlab.com
   secrets:
     DATABASE_PASSWORD:
       vault: production/db/password@ops  # translates to secret `ops/data/production/db`, field `password`
@@ -157,7 +157,7 @@ To overwrite the default behavior, set the `file` option explicitly:
 secrets:
   id_tokens:
     VAULT_ID_TOKEN:
-      aud: https://vault.example.com
+      aud: https://gitlab.com
   DATABASE_PASSWORD:
     vault: production/db/password@ops
     file: false
@@ -178,7 +178,7 @@ For example, to set the secret engine and path for Artifactory:
 job_using_vault:
   id_tokens:
     VAULT_ID_TOKEN:
-      aud: https://vault.example.com
+      aud: https://gitlab.com
   secrets:
     JFROG_TOKEN:
       vault:
@@ -218,7 +218,6 @@ $ vault write auth/jwt/role/myproject-production - <<EOF
   "policies": ["myproject-production"],
   "token_explicit_max_ttl": 60,
   "user_claim": "user_email",
-  "bound_audiences": "https://vault.example.com",
   "bound_claims_type": "glob",
   "bound_claims": {
     "project_id": "42",
@@ -236,8 +235,8 @@ claims like `project_id` or `namespace_id`. Without these restrictions, any JWT
 generated by this GitLab instance may be allowed to authenticate using this role.
 
 For a full list of ID token JWT claims, read the
-[How It Works](hashicorp_vault.md) section of the
-[Authenticating and Reading Secrets With HashiCorp Vault](hashicorp_vault.md) tutorial.
+[How It Works](../examples/authenticating-with-hashicorp-vault/index.md#how-it-works) section of the
+[Authenticating and Reading Secrets With HashiCorp Vault](../examples/authenticating-with-hashicorp-vault/index.md) tutorial.
 
 You can also specify some attributes for the resulting Vault tokens, such as time-to-live,
 IP address range, and number of uses. The full list of options is available in
@@ -272,24 +271,3 @@ You have two options to solve this error:
          - name: VAULT_CACERT
            value: "/home/gitlab-runner/.gitlab-runner/certs/<VAULT_CERTIFICATE>"
        ```
-
-## Troubleshooting
-
-### `resolving secrets: secret not found: MY_SECRET` error
-
-When GitLab is unable to find the secret in the vault, you might receive this error:
-
-```plaintext
-ERROR: Job failed (system failure): resolving secrets: secret not found: MY_SECRET
-```
-
-Check that the `vault` value is [correctly configured in the CI/CD job](#use-vault-secrets-in-a-ci-job).
-
-You can use the [`kv` command with the Vault CLI](https://developer.hashicorp.com/vault/docs/commands/kv)
-to check if the secret is retrievable to help determine the syntax for the `vault`
-value in your CI/CD configuration. For example, to retrieve the secret:
-
-```shell
-$ vault kv get -field=password -namespace=admin -mount=ops "production/db"
-this-is-a-password
-```

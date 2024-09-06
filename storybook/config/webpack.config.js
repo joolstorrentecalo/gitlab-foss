@@ -95,24 +95,22 @@ function sassSmartImporter(url, prev) {
 }
 
 const sassLoaderOptions = {
-  sassOptions: {
-    functions: {
-      'image-url($url)': function sassImageUrlStub() {
-        return new sass.types.String(TRANSPARENT_1X1_PNG);
-      },
-      'asset_path($url)': function sassAssetPathStub() {
-        return new sass.types.String(TRANSPARENT_1X1_PNG);
-      },
-      'asset_url($url)': function sassAssetUrlStub() {
-        return new sass.types.String(TRANSPARENT_1X1_PNG);
-      },
-      'url($url)': function sassUrlStub() {
-        return new sass.types.String(TRANSPARENT_1X1_PNG);
-      },
+  functions: {
+    'image-url($url)': function sassImageUrlStub() {
+      return new sass.types.String(TRANSPARENT_1X1_PNG);
     },
-    includePaths: SASS_INCLUDE_PATHS,
-    importer: sassSmartImporter,
+    'asset_path($url)': function sassAssetPathStub() {
+      return new sass.types.String(TRANSPARENT_1X1_PNG);
+    },
+    'asset_url($url)': function sassAssetUrlStub() {
+      return new sass.types.String(TRANSPARENT_1X1_PNG);
+    },
+    'url($url)': function sassUrlStub() {
+      return new sass.types.String(TRANSPARENT_1X1_PNG);
+    },
   },
+  includePaths: SASS_INCLUDE_PATHS,
+  importer: sassSmartImporter,
 };
 
 // Some dependencies need to be transpiled for webpack to be happy
@@ -149,7 +147,6 @@ module.exports = function storybookWebpackConfig({ config }) {
       loaders: [
         'style-loader',
         'css-loader',
-        'postcss-loader',
         {
           loader: 'sass-loader',
           options: sassLoaderOptions,
@@ -171,11 +168,6 @@ module.exports = function storybookWebpackConfig({ config }) {
     {
       test: /marked\/.*\.js?$/,
       use: transpileDependencyConfig,
-    },
-    {
-      test: /\.mjs$/,
-      include: /node_modules/,
-      type: 'javascript/auto',
     },
   ];
 

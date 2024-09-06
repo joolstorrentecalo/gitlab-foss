@@ -6,7 +6,7 @@ import updateDescription from '~/issues/show/utils/update_description';
 import { sanitize } from '~/lib/dompurify';
 import { convertObjectPropsToCamelCase } from '~/lib/utils/common_utils';
 import Poll from '~/lib/utils/poll';
-import { detectAndConfirmSensitiveTokens, CONTENT_TYPE } from '~/lib/utils/secret_detection';
+import { containsSensitiveToken, confirmSensitiveAction, i18n } from '~/lib/utils/secret_detection';
 import { visitUrl } from '~/lib/utils/url_utility';
 import { __, sprintf } from '~/locale';
 import { ISSUE_TYPE_PATH, INCIDENT_TYPE_PATH, POLLING_DELAY } from '../constants';
@@ -23,15 +23,6 @@ import StickyHeader from './sticky_header.vue';
 import TitleComponent from './title.vue';
 
 const STICKY_HEADER_VISIBLE_CLASS = 'issuable-sticky-header-visible';
-
-function stripClientState(html) {
-  // remove all attributes of details tags
-  return html.replace(/<details[^>]*>/g, '<details>');
-}
-
-function hasDescriptionChanged(oldDesc, newDesc) {
-  return stripClientState(oldDesc) !== stripClientState(newDesc);
-}
 
 export default {
   components: {
@@ -154,11 +145,6 @@ export default {
       required: true,
     },
     isConfidential: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    isImported: {
       type: Boolean,
       required: false,
       default: false,
@@ -365,12 +351,7 @@ export default {
       const details =
         descriptionSection != null && descriptionSection.getElementsByTagName('details');
 
-      const newDescriptionHtml = updateDescription(sanitize(data.description), details);
-
-      if (hasDescriptionChanged(this.state.descriptionHtml, newDescriptionHtml)) {
-        this.state.descriptionHtml = newDescriptionHtml;
-      }
-
+      this.state.descriptionHtml = updateDescription(sanitize(data.description), details);
       this.state.titleHtml = sanitize(data.title);
       this.state.lock_version = data.lock_version;
     },
@@ -441,14 +422,12 @@ export default {
 
       this.alert?.dismiss();
 
-      const confirmSubmit = await detectAndConfirmSensitiveTokens({
-        content: issuablePayload.description,
-        contentType: CONTENT_TYPE.DESCRIPTION,
-      });
-
-      if (!confirmSubmit) {
-        this.setFormState({ updateLoading: false });
-        return false;
+      if (containsSensitiveToken(issuablePayload.description)) {
+        const confirmed = await confirmSensitiveAction(i18n.descriptionPrompt);
+        if (!confirmed) {
+          this.setFormState({ updateLoading: false });
+          return false;
+        }
       }
 
       return this.service
@@ -572,22 +551,18 @@ export default {
         v-if="shouldShowStickyHeader"
         :is-confidential="isConfidential"
         :is-hidden="isHidden"
-        :is-imported="isImported"
         :is-locked="isLocked"
-        :issuable-state="issuableStatus"
+        :issuable-status="issuableStatus"
         :issuable-type="issuableType"
         :show="isStickyHeaderShowing"
         :title="state.titleText"
-        :duplicated-to-issue-url="duplicatedToIssueUrl"
-        :moved-to-issue-url="movedToIssueUrl"
-        :promoted-to-epic-url="promotedToEpicUrl"
         @hide="hideStickyHeader"
         @show="showStickyHeader"
       />
 
       <slot name="header">
         <issue-header
-          class="gl-mt-2 gl-p-0"
+          class="gl-p-0 gl-mt-2"
           :class="headerClasses"
           :author="author"
           :confidential="isConfidential"
@@ -595,7 +570,6 @@ export default {
           :duplicated-to-issue-url="duplicatedToIssueUrl"
           :is-first-contribution="isFirstContribution"
           :is-hidden="isHidden"
-          :is-imported="isImported"
           :is-locked="isLocked"
           :issuable-state="issuableStatus"
           :issuable-type="issuableType"
@@ -631,7 +605,6 @@ export default {
       />
 
       <edited-component
-        class="gl-mt-4"
         :task-completion-status="state.taskCompletionStatus"
         :updated-at="state.updatedAt"
         :updated-by-name="state.updatedByName"

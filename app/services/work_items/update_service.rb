@@ -18,11 +18,12 @@ module WorkItems
       updated_work_item = super
 
       if updated_work_item.valid?
+        publish_event(work_item)
         success(payload(work_item))
       else
         error(updated_work_item.errors.full_messages, :unprocessable_entity, pass_back: payload(updated_work_item))
       end
-    rescue ::WorkItems::Widgets::BaseService::WidgetError, ::Issuable::Callbacks::Base::Error => e
+    rescue ::WorkItems::Widgets::BaseService::WidgetError => e
       error(e.message, :unprocessable_entity)
     end
 
@@ -30,12 +31,13 @@ module WorkItems
 
     attr_reader :extra_params
 
-    override :handle_date_changes
-    def handle_date_changes(work_item)
-      return if work_item.dates_source&.previous_changes.blank? &&
-        work_item.previous_changes.slice('due_date', 'start_date').none?
+    override :handle_quick_actions
+    def handle_quick_actions(work_item)
+      # Do not handle quick actions unless the work item is the default Issue.
+      # The available quick actions for a work item depend on its type and widgets.
+      return unless work_item.work_item_type.default_issue?
 
-      GraphqlTriggers.issuable_dates_updated(work_item)
+      super
     end
 
     def prepare_update_params(work_item)
@@ -55,13 +57,6 @@ module WorkItems
       super
     end
 
-    override :associations_before_update
-    def associations_before_update(work_item)
-      super.merge(
-        work_item_parent_id: work_item.work_item_parent&.id
-      )
-    end
-
     def transaction_update(work_item, opts = {})
       execute_widgets(work_item: work_item, callback: :before_update_in_transaction, widget_params: @widget_params)
 
@@ -73,7 +68,6 @@ module WorkItems
       super
 
       GraphqlTriggers.issuable_title_updated(work_item) if work_item.previous_changes.key?(:title)
-      publish_event(work_item, old_associations)
     end
 
     def payload(work_item)
@@ -88,11 +82,10 @@ module WorkItems
       )
     end
 
-    def publish_event(work_item, old_associations)
+    def publish_event(work_item)
       event = WorkItems::WorkItemUpdatedEvent.new(data: {
         id: work_item.id,
         namespace_id: work_item.namespace_id,
-        previous_work_item_parent_id: old_associations[:work_item_parent_id],
         updated_attributes: work_item.previous_changes&.keys&.map(&:to_s),
         updated_widgets: @widget_params&.keys&.map(&:to_s)
       }.tap(&:compact_blank!))
@@ -100,10 +93,6 @@ module WorkItems
       work_item.run_after_commit_or_now do
         Gitlab::EventStore.publish(event)
       end
-    end
-
-    def parent
-      container
     end
   end
 end

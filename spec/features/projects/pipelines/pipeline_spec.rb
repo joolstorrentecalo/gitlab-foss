@@ -200,6 +200,20 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
             expect(page).not_to have_css('.js-icon-retry')
           end
         end
+
+        context 'when ci_canceling_status is disabled' do
+          before do
+            stub_feature_flags(ci_canceling_status: false)
+          end
+
+          it 'shows retry button', :sidekiq_inline do
+            find('#ci-badge-deploy .ci-action-icon-container').click
+
+            page.within('#ci-badge-deploy') do
+              expect(page).to have_css('.js-icon-retry')
+            end
+          end
+        end
       end
 
       context 'when pipeline has successful builds' do
@@ -284,9 +298,8 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
 
         it 'includes the failure reason' do
           page.within('#ci-badge-test') do
-            # TODO Find way to locate this link with title
-            build_link = find_by_testid('ci-job-item').find('a')
-            expect(build_link['title']).to eq('Failed - (unknown failure)')
+            build_link = page.find('.js-pipeline-graph-job-link')
+            expect(build_link['title']).to eq('test - failed - (unknown failure)')
           end
         end
       end
@@ -311,7 +324,7 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
           find('#ci-badge-manual-build .ci-action-icon-container').click
           wait_for_requests
 
-          expect(page).not_to have_content('Run job')
+          expect(page).not_to have_content('Play job')
           within_testid('pipeline-header') do
             expect(page).to have_selector('[data-testid="ci-icon"]', text: 'Running')
           end
@@ -381,25 +394,42 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
                 expect(page).to have_selector('[data-testid="status_canceled_borderless-icon"]')
                 expect(page).to have_selector('button[aria-label="Retry downstream pipeline"]')
               end
+
+              context 'when ci_canceling_status is disabled' do
+                before do
+                  stub_feature_flags(ci_canceling_status: false)
+                end
+
+                it 'shows the pipeline as canceled with the retry action' do
+                  expect(page).to have_selector('[data-testid="status_canceled_borderless-icon"]')
+                  expect(page).to have_selector('button[aria-label="Retry downstream pipeline"]')
+                end
+              end
             end
           end
 
           context 'with a failed downstream' do
             let(:status) { :failed }
 
-            it 'indicates that pipeline can be retried' do
-              expect(page).to have_selector('button[aria-label="Retry downstream pipeline"]')
-            end
-
-            context 'when retrying' do
+            context 'when ci_canceling_status is disabled' do
               before do
-                find('button[aria-label="Retry downstream pipeline"]').click
-                wait_for_requests
+                stub_feature_flags(ci_canceling_status: false)
               end
 
-              it 'shows running pipeline with the cancel action' do
-                expect(page).to have_selector('[data-testid="status_running_borderless-icon"]')
-                expect(page).to have_selector('button[aria-label="Cancel downstream pipeline"]')
+              it 'indicates that pipeline can be retried' do
+                expect(page).to have_selector('button[aria-label="Retry downstream pipeline"]')
+              end
+
+              context 'when retrying' do
+                before do
+                  find('button[aria-label="Retry downstream pipeline"]').click
+                  wait_for_requests
+                end
+
+                it 'shows running pipeline with the cancel action' do
+                  expect(page).to have_selector('[data-testid="status_running_borderless-icon"]')
+                  expect(page).to have_selector('button[aria-label="Cancel downstream pipeline"]')
+                end
               end
             end
           end
@@ -483,7 +513,7 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
         let(:role) { :guest }
 
         it 'does not show the pipeline details page' do
-          expect(page).to have_content('Page not found')
+          expect(page).to have_content('Not Found')
         end
       end
     end
@@ -551,6 +581,16 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
 
       it 'does not show a "Cancel pipeline" button', :sidekiq_inline do
         expect(page).not_to have_content('Cancel pipeline')
+      end
+
+      context 'when ci_canceling_status disabled' do
+        before do
+          stub_feature_flags(ci_canceling_status: false)
+        end
+
+        it 'does not show a "Cancel pipeline" button', :sidekiq_inline do
+          expect(page).not_to have_content('Cancel pipeline')
+        end
       end
     end
 
@@ -776,7 +816,7 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
       end
 
       it 'does link to job' do
-        expect(page).to have_selector('[data-testid="ci-job-item"]')
+        expect(page).to have_selector('.js-pipeline-graph-job-link')
       end
     end
   end
@@ -864,6 +904,12 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
   end
 
   context 'when build requires resource', :sidekiq_inline do
+    before do
+      allow_next_instance_of(Ci::ResourceGroups::AssignResourceFromResourceGroupService) do |resource_service|
+        allow(resource_service).to receive(:respawn_assign_resource_worker)
+      end
+    end
+
     let_it_be(:project) { create(:project, :repository) }
 
     let(:pipeline) { create(:ci_pipeline, project: project) }
@@ -1030,7 +1076,7 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
       expect(page).to have_content(build_external.id)
       expect(page).to have_content('Retry')
       expect(page).to have_content('Cancel pipeline')
-      expect(page).to have_button('Run')
+      expect(page).to have_button('Play')
     end
 
     context 'page tabs' do
@@ -1076,7 +1122,7 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
     context 'playing manual job' do
       before do
         within_testid 'jobs-tab-table' do
-          click_button('Run')
+          click_button('Play')
 
           wait_for_requests
         end
@@ -1093,7 +1139,7 @@ RSpec.describe 'Pipeline', :js, feature_category: :continuous_integration do
       end
 
       it 'unschedules the delayed job and shows play button as a manual job' do
-        expect(page).to have_button('Run')
+        expect(page).to have_button('Play')
         expect(page).not_to have_button('Unschedule')
       end
     end

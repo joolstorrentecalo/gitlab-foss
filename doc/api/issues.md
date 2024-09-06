@@ -28,6 +28,8 @@ When requested across groups or projects, it's expected to be the same as the `f
 
 ## List issues
 
+> - The `due_date` filters `any`, `today`, and `tomorrow` were [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/78460) in GitLab 14.8.
+
 Get all issues the authenticated user has access to. By default it
 returns only issues created by the current user. To get all issues,
 use parameter `scope=all`.
@@ -69,7 +71,7 @@ Supported attributes:
 | `iteration_id`                  | integer       | No         | Return issues assigned to the given iteration ID. `None` returns issues that do not belong to an iteration. `Any` returns issues that belong to an iteration. Mutually exclusive with `iteration_title`. Premium and Ultimate only. |
 | `iteration_title`               | string        | No       | Return issues assigned to the iteration with the given title. Similar to `iteration_id` and mutually exclusive with `iteration_id`. Premium and Ultimate only. |
 | `labels`                        | string        | No         | Comma-separated list of label names, issues must have all labels to be returned. `None` lists all issues with no labels. `Any` lists all issues with at least one label. `No+Label` (Deprecated) lists all issues with no labels. Predefined names are case-insensitive. |
-| `milestone_id`                  | string        | No         | Returns issues assigned to milestones with a given timebox value (`None`, `Any`, `Upcoming`, and `Started`). `None` lists all issues with no milestone. `Any` lists all issues that have an assigned milestone. `Upcoming` lists all issues assigned to milestones due in the future. `Started` lists all issues assigned to open, started milestones. `milestone` and `milestone_id` are mutually exclusive. |
+| `milestone_id`                  | string        | No         | Returns issues assigned to milestones with a given timebox value (`None`, `Any`, `Upcoming`, and `Started`). `None` lists all issues with no milestone. `Any` lists all issues that have an assigned milestone. `Upcoming` lists all issues assigned to milestones due in the future. `Started` lists all issues assigned to open, started milestones. `milestone` and `milestone_id` are mutually exclusive. _([Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/335939) in GitLab 14.3)_ |
 | `milestone`                     | string        | No         | The milestone title. `None` lists all issues with no milestone. `Any` lists all issues that have an assigned milestone. Using `None` or `Any` will be [deprecated in the future](https://gitlab.com/gitlab-org/gitlab/-/issues/336044). Use `milestone_id` attribute instead. `milestone` and `milestone_id` are mutually exclusive. |
 | `my_reaction_emoji`             | string        | No         | Return issues reacted by the authenticated user by the given `emoji`. `None` returns issues not given a reaction. `Any` returns issues given at least one reaction. |
 | `non_archived`                  | boolean       | No         | Return issues only from non-archived projects. If `false`, the response returns issues from both archived and non-archived projects. Default is `true`. |
@@ -149,8 +151,6 @@ Example response:
       "merge_requests_count": 0,
       "user_notes_count": 1,
       "due_date": "2016-07-22",
-      "imported":false,
-      "imported_from": "none",
       "web_url": "http://gitlab.example.com/my-group/my-project/issues/6",
       "references": {
         "short": "#6",
@@ -259,6 +259,8 @@ The `epic_iid` attribute is deprecated and [scheduled for removal](https://gitla
 Use `iid` of the `epic` attribute instead.
 
 ## List group issues
+
+> - The `due_date` filters `any`, `today`, and `tomorrow` were [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/78460) in GitLab 14.8.
 
 Get a list of a group's issues.
 
@@ -379,8 +381,6 @@ Example response:
       "closed_by" : null,
       "user_notes_count": 1,
       "due_date": null,
-      "imported": false,
-      "imported_from": "none",
       "web_url": "http://gitlab.example.com/my-group/my-project/issues/1",
       "references": {
         "short": "#1",
@@ -466,6 +466,8 @@ The `epic_iid` attribute is deprecated and [scheduled for removal](https://gitla
 Use `iid` of the `epic` attribute instead.
 
 ## List project issues
+
+> - The `due_date` filters `any`, `today`, and `tomorrow` were [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/78460) in GitLab 14.8.
 
 Get a list of a project's issues.
 
@@ -592,8 +594,6 @@ Example response:
       },
       "user_notes_count": 1,
       "due_date": "2016-07-22",
-      "imported": false,
-      "imported_from": "none",
       "web_url": "http://gitlab.example.com/my-group/my-project/issues/1",
       "references": {
         "short": "#1",
@@ -762,8 +762,6 @@ Example response:
   "subscribed": false,
   "user_notes_count": 1,
   "due_date": null,
-  "imported": false,
-  "imported_from": "none",
   "web_url": "http://example.com/my-group/my-project/issues/1",
   "references": {
     "short": "#1",
@@ -933,8 +931,6 @@ Example response:
    "subscribed": false,
    "user_notes_count": 1,
    "due_date": null,
-   "imported": false,
-   "imported_from": "none",
    "web_url": "http://gitlab.example.com/my-group/my-project/issues/1",
    "references": {
      "short": "#1",
@@ -1039,7 +1035,7 @@ Supported attributes:
 | `epic_iid`                                | integer | No | IID of the epic to add the issue to. Valid values are greater than or equal to 0. (deprecated, [scheduled for removal](https://gitlab.com/gitlab-org/gitlab/-/issues/35157) in API version 5). Premium and Ultimate only. |
 | `iid`                                     | integer/string | No       | The internal ID of the project's issue (requires administrator or project owner rights). |
 | `issue_type`                              | string         | No       | The type of issue. One of `issue`, `incident`, `test_case` or `task`. Default is `issue`. |
-| `labels`                                  | string         | No       | Comma-separated label names to assign to the new issue. If a label does not already exist, this creates a new project label and assigns it to the issue.  |
+| `labels`                                  | string         | No       | Comma-separated label names to assign to the new issue. If a label does not already exist, this API request creates a new project label and assigns it to the issue.  |
 | `merge_request_to_resolve_discussions_of` | integer        | No       | The IID of a merge request in which to resolve all issues. This fills out the issue with a default description and mark all discussions as resolved. When passing a description or title, these values take precedence over the default values.|
 | `milestone_id`                            | integer        | No       | The global ID of a milestone to assign issue. To find the `milestone_id` associated with a milestone, view an issue with the milestone assigned and [use the API](#single-project-issue) to retrieve the issue's details. |
 | `title`                                   | string         | Yes      | The title of an issue. |
@@ -1201,7 +1197,7 @@ Supported attributes:
 |----------------|---------|----------|------------------------------------------------------------------------------------------------------------|
 | `id`           | integer/string | Yes | The global ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding) owned by the authenticated user. |
 | `issue_iid`    | integer | Yes      | The internal ID of a project's issue.                                                                       |
-| `add_labels`   | string  | No       | Comma-separated label names to add to an issue. If a label does not already exist, this creates a new project label and assigns it to the issue. |
+| `add_labels`   | string  | No       | Comma-separated label names to add to an issue.                                                            |
 | `assignee_ids` | integer array | No | The ID of the users to assign the issue to. Set to `0` or provide an empty value to unassign all assignees. |
 | `confidential` | boolean | No       | Updates an issue to be confidential.                                                                        |
 | `description`  | string  | No       | The description of an issue. Limited to 1,048,576 characters.        |
@@ -1210,13 +1206,13 @@ Supported attributes:
 | `epic_id`      | integer | No | ID of the epic to add the issue to. Valid values are greater than or equal to 0. Premium and Ultimate only. |
 | `epic_iid`     | integer | No | IID of the epic to add the issue to. Valid values are greater than or equal to 0. (deprecated, [scheduled for removal](https://gitlab.com/gitlab-org/gitlab/-/issues/35157) in API version 5). Premium and Ultimate only. |
 | `issue_type`   | string  | No       | Updates the type of issue. One of `issue`, `incident`, `test_case` or `task`. |
-| `labels`       | string  | No       | Comma-separated label names for an issue. Set to an empty string to unassign all labels. If a label does not already exist, this creates a new project label and assigns it to the issue. |
+| `labels`       | string  | No       | Comma-separated label names for an issue. Set to an empty string to unassign all labels.                   |
 | `milestone_id` | integer | No       | The global ID of a milestone to assign the issue to. Set to `0` or provide an empty value to unassign a milestone.|
 | `remove_labels`| string  | No       | Comma-separated label names to remove from an issue.                                                       |
 | `state_event`  | string  | No       | The state event of an issue. To close the issue, use `close`, and to reopen it, use `reopen`.                      |
 | `title`        | string  | No       | The title of an issue.                                                                                      |
 | `updated_at`   | string  | No       | When the issue was updated. Date time string, ISO 8601 formatted, for example `2016-03-11T03:45:40Z` (requires administrator or project owner rights). Empty string or null values are not accepted.|
-| `weight`       | integer | No       | The weight of the issue. Valid values are greater than or equal to 0. Premium and Ultimate only.           |
+| `weight`       | integer | No | The weight of the issue. Valid values are greater than or equal to 0. Premium and Ultimate only.           |
 
 Example request:
 
@@ -1473,8 +1469,6 @@ Example response:
     "web_url": "https://gitlab.example.com/solon.cremin"
   },
   "due_date": null,
-  "imported": false,
-  "imported_from": "none",
   "web_url": "http://gitlab.example.com/my-group/my-project/issues/11",
   "references": {
     "short": "#11",
@@ -1633,8 +1627,6 @@ Example response:
   "upvotes":0,
   "downvotes":0,
   "due_date":null,
-  "imported":false,
-  "imported_from": "none",
   "confidential":false,
   "discussion_locked":null,
   "issue_type":"issue",

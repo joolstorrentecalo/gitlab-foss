@@ -12,30 +12,14 @@ module Gitlab
       # names for now, because doing that in bulk will be a lot easier.
       KEY_OVERRIDES_PATH = Rails.root.join('lib/gitlab/usage_data_counters/total_counter_redis_key_overrides.yml')
 
-      def increment(redis_counter_key, expiry: nil)
+      def increment(redis_counter_key)
         legacy_redis_counter_key = legacy_key(redis_counter_key)
-
-        Gitlab::Redis::SharedState.with do |redis|
-          redis.incr(legacy_redis_counter_key)
-
-          unless expiry.nil?
-            existing_expiry = redis.ttl(legacy_redis_counter_key) > 0
-            redis.expire(legacy_redis_counter_key, expiry) unless existing_expiry
-          end
-        end
+        Gitlab::Redis::SharedState.with { |redis| redis.incr(legacy_redis_counter_key) }
       end
 
-      def increment_by(redis_counter_key, incr, expiry: nil)
+      def increment_by(redis_counter_key, incr)
         legacy_redis_counter_key = legacy_key(redis_counter_key)
-
-        Gitlab::Redis::SharedState.with do |redis|
-          redis.incrby(legacy_redis_counter_key, incr)
-
-          unless expiry.nil?
-            existing_expiry = redis.ttl(legacy_redis_counter_key) > 0
-            redis.expire(legacy_redis_counter_key, expiry) unless existing_expiry
-          end
-        end
+        Gitlab::Redis::SharedState.with { |redis| redis.incrby(legacy_redis_counter_key, incr) }
       end
 
       def total_count(redis_counter_key)

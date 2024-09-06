@@ -1,6 +1,6 @@
 ---
 stage: Govern
-group: Authorization
+group: Authentication
 info: Any user with at least the Maintainer role can merge updates to this content. For details, see https://docs.gitlab.com/ee/development/development_processes.html#development-guidelines-review.
 ---
 
@@ -17,7 +17,7 @@ Each user can be one of the following types:
 - [Internal users](../internal_users.md) - system created.
 - [Auditor](https://gitlab.com/gitlab-org/gitlab/-/blob/master/ee/app/policies/ee/base_policy.rb#L9):
   - No access to projects or groups settings menu.
-  - No access to **Admin** area.
+  - No access to Admin Area.
   - Read-only access to everything else.
 - [Administrator](https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/policies/base_policy.rb#L6) - read-write access.
 
@@ -57,7 +57,7 @@ Additionally, the following project features can have different visibility level
   - Pipelines
 - Analytics
 - Requirements
-- Security and compliance
+- Security and Compliance
 - Wiki
 - Snippets
 - Pages
@@ -93,7 +93,8 @@ Project membership (where the group membership is already taken into account)
 is stored in the `project_authorizations` table.
 
 NOTE:
-Projects in personal namespaces have a maximum role of Owner.
+In [GitLab 14.9](https://gitlab.com/gitlab-org/gitlab/-/issues/351211) and later, projects in personal namespaces have a maximum role of Owner.
+Because of a [known issue](https://gitlab.com/gitlab-org/gitlab/-/issues/219299) in GitLab 14.8 and earlier, projects in personal namespaces have a maximum role of Maintainer.
 
 #### Guest role
 

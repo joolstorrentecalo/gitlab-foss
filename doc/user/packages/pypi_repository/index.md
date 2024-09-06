@@ -10,6 +10,9 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/208747) in GitLab 12.10.
+> - [Moved](https://gitlab.com/gitlab-org/gitlab/-/issues/221259) from GitLab Premium to GitLab Free in 13.3.
+
 Publish PyPI packages in your project's package registry. Then install the
 packages whenever you need to use them as a dependency.
 
@@ -77,11 +80,10 @@ path (for example, `group%2Fproject`), or the project's ID (for example `42`).
 
 ### Authenticate with a CI job token
 
-To authenticate with [GitLab CI/CD](../../../ci/index.md),
-you must authenticate with a personal access token,
-deploy token, or a `CI_JOB_TOKEN`.
-You only need one authentication method to use PyPI commands in
-a CI/CD job.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/202012) in GitLab 13.4.
+
+To work with PyPI commands within [GitLab CI/CD](../../../ci/index.md), you
+can use `CI_JOB_TOKEN` instead of a personal access token or deploy token.
 
 For example:
 
@@ -204,7 +206,8 @@ more than once, a `400 Bad Request` error occurs.
 
 ## Install a PyPI package
 
-When a PyPI package is not found in the package registry, the request is forwarded to [pypi.org](https://pypi.org/).
+In [GitLab 14.2 and later](https://gitlab.com/gitlab-org/gitlab/-/issues/233413),
+when a PyPI package is not found in the package registry, the request is forwarded to [pypi.org](https://pypi.org/).
 
 Administrators can disable this behavior in the [Continuous Integration settings](../../../administration/settings/continuous_integration.md).
 

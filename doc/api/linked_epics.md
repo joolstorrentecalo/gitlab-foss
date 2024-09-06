@@ -215,6 +215,7 @@ Example response:
 
 ## Create a related epic link
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/352840) in GitLab 14.10.
 > - Minimum required role for the group [changed](https://gitlab.com/gitlab-org/gitlab/-/issues/381308) from Reporter to Guest in GitLab 15.8.
 
 Create a two-way relation between two epics. The user must have at least the Guest role for both groups.
@@ -336,6 +337,7 @@ Example response:
 
 ## Delete a related epic link
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/352840) in GitLab 14.10.
 > - Minimum required role for the group [changed](https://gitlab.com/gitlab-org/gitlab/-/issues/381308) from Reporter to Guest in GitLab 15.8.
 
 Delete a two-way relation between two epics. The user must have at least the Guest role for both groups.

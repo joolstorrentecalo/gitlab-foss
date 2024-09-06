@@ -76,7 +76,7 @@ export default {
     },
   },
   HELP_LABELS_PAGE_PATH: helpPagePath('ci/runners/configure_runners', {
-    anchor: 'control-jobs-that-a-runner-can-run',
+    anchor: 'use-tags-to-control-which-jobs-a-runner-can-run',
   }),
   ACCESS_LEVEL_NOT_PROTECTED,
   ACCESS_LEVEL_REF_PROTECTED,
@@ -104,7 +104,7 @@ export default {
           <gl-sprintf
             :message="
               s__(
-                'Runners|Add tags to specify jobs that the runner can run. %{helpLinkStart}Learn more%{helpLinkEnd}.',
+                'Runners|Add tags to specify jobs that the runner can run. %{helpLinkStart}Learn more.%{helpLinkEnd}',
               )
             "
           >

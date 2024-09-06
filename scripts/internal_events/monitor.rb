@@ -21,10 +21,16 @@
 require 'terminal-table'
 require 'net/http'
 
-require_relative './server'
-require_relative '../../spec/support/helpers/service_ping_helpers'
+module ExtendedTimeFrame
+  def weekly_time_range
+    super.tap { |h| h[:end_date] = 1.week.from_now }
+  end
 
-Gitlab::Usage::TimeFrame.prepend(ServicePingHelpers::CurrentTimeFrame)
+  def monthly_time_range
+    super.tap { |h| h[:end_date] = 1.week.from_now }
+  end
+end
+Gitlab::Usage::TimeFrame.prepend(ExtendedTimeFrame)
 
 def metric_definitions_from_args
   args = ARGV
@@ -37,10 +43,6 @@ def red(text)
   @pastel ||= Pastel.new
 
   @pastel.red(text)
-end
-
-def current_timestamp
-  (Time.now.to_f * 1000).to_i
 end
 
 def snowplow_data
@@ -57,11 +59,11 @@ def extract_standard_context(event)
     next unless context['schema'].start_with?('iglu:com.gitlab/gitlab_standard/jsonschema')
 
     return {
+
       user_id: context["data"]["user_id"],
       namespace_id: context["data"]["namespace_id"],
       project_id: context["data"]["project_id"],
-      plan: context["data"]["plan"],
-      extra: context["data"]["extra"]
+      plan: context["data"]["plan"]
     }
   end
   {}
@@ -69,25 +71,10 @@ end
 
 def generate_snowplow_table
   events = snowplow_data.select { |d| ARGV.include?(d["event"]["se_action"]) }
-            .filter { |e| e['rawEvent']['parameters']['dtm'].to_i > @min_timestamp }
-
   @initial_max_timestamp ||= events.map { |e| e['rawEvent']['parameters']['dtm'].to_i }.max || 0
 
   rows = []
-  rows << [
-    'Event Name',
-    'Collector Timestamp',
-    'Category',
-    'user_id',
-    'namespace_id',
-    'project_id',
-    'plan',
-    'Label',
-    'Property',
-    'Value',
-    'Extra'
-  ]
-
+  rows << ['Event Name', 'Collector Timestamp', 'Category', 'user_id', 'namespace_id', 'project_id', 'plan']
   rows << :separator
 
   events.each do |event|
@@ -100,11 +87,7 @@ def generate_snowplow_table
       standard_context[:user_id],
       standard_context[:namespace_id],
       standard_context[:project_id],
-      standard_context[:plan],
-      event['event']['se_label'],
-      event['event']['se_property'],
-      event['event']['se_value'],
-      standard_context[:extra]
+      standard_context[:plan]
     ]
 
     row.map! { |value| red(value) } if event['rawEvent']['parameters']['dtm'].to_i > @initial_max_timestamp
@@ -166,22 +149,21 @@ def render_screen(paused)
   puts
 
   puts metrics_table
+
   puts events_table
 
   puts
   puts "Press \"p\" to toggle refresh. (It makes it easier to select and copy the tables)"
-  puts "Press \"r\" to reset without exiting the monitor"
   puts "Press \"q\" to quit"
 end
-
-server = nil
-@min_timestamp = current_timestamp
 
 begin
   snowplow_data
 rescue Errno::ECONNREFUSED
-  # Start the mock server if Snowplow Micro is not running
-  server = Thread.start { Server.new.start }
+  puts "Could not connect to Snowplow Micro."
+  puts "Please follow these instruction to set up Snowplow Micro:"
+  puts "https://gitlab.com/gitlab-org/gitlab-development-kit/-/blob/main/doc/howto/snowplow_micro.md"
+  exit 1
 end
 
 reader = TTY::Reader.new
@@ -193,11 +175,7 @@ begin
     when 'p'
       paused = !paused
       render_screen(paused)
-    when 'r'
-      @min_timestamp = current_timestamp
-      @initial_values = {}
     when 'q'
-      server&.exit
       break
     end
 
@@ -206,7 +184,5 @@ begin
     sleep 1
   end
 rescue Interrupt
-  server&.exit
-rescue Errno::ECONNREFUSED
-  # Ignore this error, caused by the server being killed before the loop due to working on a child thread
+  # Quietly shut down
 end

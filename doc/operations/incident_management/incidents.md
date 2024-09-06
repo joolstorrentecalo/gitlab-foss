@@ -1,5 +1,5 @@
 ---
-stage: Monitor
+stage: Service Management
 group: Respond
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -16,7 +16,7 @@ Use GitLab to triage, respond, and remediate incidents.
 
 ## Incidents list
 
-When you [view the incidents list](manage_incidents.md#view-a-list-of-incidents), it contains the following:
+When you [view the incidents list](manage_incidents.md#view-incidents-list), it contains the following:
 
 - **State**: To filter incidents by their state, select **Open**, **Closed**,
   or **All** above the incident list.
@@ -51,6 +51,8 @@ For an example of the incident list in action, see this
 [demo project](https://gitlab.com/gitlab-org/monitor/monitor-sandbox/-/incidents).
 
 ### Sort the incident list
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/229534) in GitLab 13.3: incidents are sorted by created date by default.
 
 The incident list shows incidents sorted by incident created date, showing the newest first.
 
@@ -105,6 +107,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/235994) in GitLab 13.8.
+
 In many cases, incidents are associated to metrics. You can upload screenshots of metric
 charts in the **Metrics** tab:
 
@@ -117,6 +121,8 @@ When you upload an image, you can associate the image with text or a link to the
 If you add a link, you can access the original graph by selecting the hyperlink above the uploaded image.
 
 ### Alert details
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/230847) in GitLab 13.4.
 
 Incidents show the details of linked alerts in a separate tab. To populate this
 tab, the incident must have been created with a linked alert. Incidents
@@ -138,6 +144,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/227836) in GitLab 13.5.
+
 To see the latest updates on an incident, select
 **Turn recent updates view on** (**{history}**) on the comment bar. Comments display
 un-threaded and chronologically, newest to oldest.
@@ -147,6 +155,8 @@ un-threaded and chronologically, newest to oldest.
 DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/241663) in GitLab 13.5.
 
 You can enable the Service Level Agreement Countdown timer on incidents to track
 the Service Level Agreements (SLA) you hold with your customers. The timer is
@@ -177,7 +187,7 @@ label to the incident.
 - [Create an incident](manage_incidents.md#create-an-incident)
 - [Create an incident automatically](alerts.md#trigger-actions-from-alerts)
   whenever an alert is triggered
-- [View incidents list](manage_incidents.md#view-a-list-of-incidents)
+- [View incidents list](manage_incidents.md#view-incidents-list)
 - [Assign to a user](manage_incidents.md#assign-to-a-user)
 - [Change incident severity](manage_incidents.md#change-severity)
 - [Change incident status](manage_incidents.md#change-status)

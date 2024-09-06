@@ -15,7 +15,7 @@ module SystemNoteHelper
     'assignee' => 'user',
     'reviewer' => 'user',
     'title' => 'pencil',
-    'task' => 'todo-done',
+    'task' => 'task-done',
     'label' => 'label',
     'cross_reference' => 'comment-dots',
     'branch' => 'fork',
@@ -47,8 +47,7 @@ module SystemNoteHelper
     'relate_to_child' => 'link',
     'unrelate_from_child' => 'link',
     'relate_to_parent' => 'link',
-    'unrelate_from_parent' => 'link',
-    'requested_changes' => 'error'
+    'unrelate_from_parent' => 'link'
   }.freeze
 
   def system_note_icon_name(note)

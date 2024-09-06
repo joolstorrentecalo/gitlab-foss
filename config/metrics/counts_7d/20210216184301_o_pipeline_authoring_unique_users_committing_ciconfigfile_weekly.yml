@@ -2,6 +2,8 @@
 data_category: operational
 key_path: redis_hll_counters.pipeline_authoring.o_pipeline_authoring_unique_users_committing_ciconfigfile_weekly
 description: Weekly unique user count doing commits which contains the CI config file
+product_section: ops
+product_stage: verify
 product_group: pipeline_authoring
 value_type: number
 status: active
@@ -21,4 +23,3 @@ tier:
 - premium
 - ultimate
 milestone: "<13.9"
-introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/54332

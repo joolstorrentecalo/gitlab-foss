@@ -22,9 +22,9 @@ RSpec.describe Banzai::Filter::References::ProjectReferenceFilter, feature_categ
   it_behaves_like 'user reference or project reference'
 
   it 'ignores invalid projects' do
-    act = "Hey #{invalidate_reference(reference)}"
+    exp = act = "Hey #{invalidate_reference(reference)}"
 
-    expect(reference_filter(act).to_html).to include(CGI.escapeHTML(act))
+    expect(reference_filter(act).to_html).to eq(CGI.escapeHTML(exp))
   end
 
   context 'when invalid reference strings are very long' do
@@ -32,7 +32,7 @@ RSpec.describe Banzai::Filter::References::ProjectReferenceFilter, feature_categ
       it 'fails fast for long strings' do
         # took well under 1 second in CI https://dev.gitlab.org/gitlab/gitlabhq/merge_requests/3267#note_172824
         expect do
-          Timeout.timeout(BANZAI_FILTER_TIMEOUT_MAX) { reference_filter(ref_string).to_html }
+          Timeout.timeout(3.seconds) { reference_filter(ref_string).to_html }
         end.not_to raise_error
       end
     end
@@ -49,8 +49,8 @@ RSpec.describe Banzai::Filter::References::ProjectReferenceFilter, feature_categ
 
   %w[pre code a style].each do |elem|
     it "ignores valid references contained inside '#{elem}' element" do
-      act = "<#{elem}>Hey #{CGI.escapeHTML(reference)}</#{elem}>"
-      expect(reference_filter(act).to_html).to include act
+      exp = act = "<#{elem}>Hey #{CGI.escapeHTML(reference)}</#{elem}>"
+      expect(reference_filter(act).to_html).to eq exp
     end
   end
 
@@ -127,10 +127,5 @@ RSpec.describe Banzai::Filter::References::ProjectReferenceFilter, feature_categ
         reference_filter(markdown)
       end.not_to exceed_all_query_limit(control)
     end
-  end
-
-  it_behaves_like 'limits the number of filtered items' do
-    let(:text) { "#{reference} #{reference} #{reference}" }
-    let(:ends_with) { "</a> #{CGI.escapeHTML(reference)}" }
   end
 end

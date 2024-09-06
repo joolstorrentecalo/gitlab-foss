@@ -47,7 +47,7 @@ Cannot install package gitlab-ee-11.8.3-ee.0.el6.x86_64. It is obsoleted by inst
 To avoid this issue, either:
 
 - Use the same instructions provided in the
-  [Upgrade using a manually-downloaded package](index.md#download-a-package-manually) section.
+  [Upgrade using a manually-downloaded package](index.md#upgrade-using-a-manually-downloaded-package) section.
 - Temporarily disable this checking in yum by adding `--setopt=obsoletes=0` to the options given to the command.
 
 ## 500 error when accessing Project > Settings > Repository
@@ -76,8 +76,16 @@ To fix this issue:
 
 1. Start a database console:
 
+   In GitLab 14.2 and later:
+
    ```shell
    sudo gitlab-rails dbconsole --database main
+   ```
+
+   In GitLab 14.1 and earlier:
+
+   ```shell
+   sudo gitlab-rails dbconsole
    ```
 
 1. Manually add the missing `commit_message_negative_regex` column:
@@ -94,13 +102,6 @@ To fix this issue:
    ```shell
    sudo gitlab-ctl restart
    ```
-
-## 500 errors with `PG::UndefinedColumn: ERROR:..` message in logs
-
-After upgrading, if you start getting `500` errors in the logs showings messages similar to `PG::UndefinedColumn: ERROR:...`, these errors could be cause by either:
-
-- [Database migrations](../background_migrations.md) not being complete. Wait until migrations are completed.
-- Database migrations being complete, but GitLab needing to load the new schema. To load the new schema, [restart GitLab](../../administration/restart_gitlab.md).
 
 ## Error: Failed to connect to the internal GitLab API
 
@@ -176,15 +177,6 @@ Potential causes and fixes:
 - [Remove duplicate sprockets files](#duplicate-sprockets-files)
 - [The installation is incomplete](#incomplete-installation)
 - [NGINX Gzip support is disabled](#nginx-gzip-support)
-
-## ActiveRecord::LockWaitTimeout error, retrying after sleep
-
-In rare cases, Sidekiq is busy and locks the table that migrations is trying to alter.
-To resolve this issue, you should put GitLab in read-only mode and stop Sidekiq.
-
-```shell
-gitlab-ctl stop sidekiq
-```
 
 ### Old processes
 

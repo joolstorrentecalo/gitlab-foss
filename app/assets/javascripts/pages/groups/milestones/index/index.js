@@ -1,3 +1,3 @@
-import InitMoreActionsDropdown from '~/milestones/init_more_actions_dropdown';
+import { initDeleteMilestoneModal } from '~/milestones';
 
-InitMoreActionsDropdown();
+initDeleteMilestoneModal();

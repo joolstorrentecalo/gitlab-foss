@@ -49,12 +49,11 @@ Specifically, GitLab has been tested by vendors and customers on a number of obj
 
 ## Configure a single storage connection for all object types (consolidated form)
 
+> - [Introduced](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/4368) in GitLab 13.2.
+
 Most types of objects, such as CI artifacts, LFS files, and upload attachments
 can be saved in object storage by specifying a single credential for object
 storage with multiple buckets.
-
-NOTE:
-For GitLab Helm Charts, see how to [configure the consolidated form](https://docs.gitlab.com/charts/charts/globals.html#consolidated-object-storage).
 
 Configuring the object storage using the consolidated form has a number of advantages:
 
@@ -98,7 +97,7 @@ common set of parameters.
 | `enabled`         | Enable or disable object storage. |
 | `proxy_download`  | Set to `true` to [enable proxying all files served](#proxy-download). Option allows to reduce egress traffic as this allows clients to download directly from remote storage instead of proxying all data. |
 | `connection`      | Various [connection options](#configure-the-connection-settings) described below. |
-| `storage_options` | Options to use when saving new objects, such as [server side encryption](#server-side-encryption-headers). |
+| `storage_options` | Options to use when saving new objects, such as [server side encryption](#server-side-encryption-headers). Introduced in GitLab 13.3. |
 | `objects`         | [Object-specific configuration](#configure-the-parameters-of-each-object). |
 
 For an example, see how to [use the consolidated form and Amazon S3](#full-example-using-the-consolidated-form-and-amazon-s3).
@@ -119,7 +118,6 @@ The following table lists the valid `objects` that can be used:
 | `dependency_proxy` | [Dependency Proxy](packages/dependency_proxy.md)                    |
 | `terraform_state`  | [Terraform state files](terraform_state.md)                                |
 | `pages`            | [Pages](pages/index.md)                                             |
-| `ci_secure_files`  | [Secure files](secure_files.md)                                            |
 
 Within each object type, three parameters can be defined:
 
@@ -151,8 +149,8 @@ gitlab_rails['artifacts_enabled'] = false
 ## Configure each object type to define its own storage connection (storage-specific form)
 
 With the storage-specific form, every object defines its own object
-storage connection and configuration. You should [use the consolidated form](#transition-to-consolidated-form) instead,
-except for the storage types not supported by the consolidated form. When working with the GitLab Helm charts, refer to how the charts handle [consolidated form for object storage](https://docs.gitlab.com/charts/charts/globals.html#consolidated-object-storage).
+storage connection and configuration. If you're using GitLab 13.2 and later,
+you should [transition to the consolidated form](#transition-to-consolidated-form).
 
 The use of [encrypted S3 buckets](#encrypted-s3-buckets) with non-consolidated form is not supported.
 You may get [ETag mismatch errors](#etag-mismatch) if you use it.
@@ -162,16 +160,16 @@ For the storage-specific form,
 [direct upload may become the default](https://gitlab.com/gitlab-org/gitlab/-/issues/27331)
 because it does not require a shared folder.
 
-For storage types not
+For configuring object storage in GitLab 13.1 and earlier, _or_ for storage types not
 supported by the consolidated form, refer to the following guides:
 
 | Object storage type | Supported by consolidated form? |
 |---------------------|------------------------------------------|
+| [Secure Files](secure_files.md#using-object-storage) | **{dotted-circle}** No |
 | [Backups](../administration/backup_restore/backup_gitlab.md#upload-backups-to-a-remote-cloud-storage) | **{dotted-circle}** No |
 | [Container registry](packages/container_registry.md#use-object-storage) (optional feature) | **{dotted-circle}** No |
 | [Mattermost](https://docs.mattermost.com/configure/file-storage-configuration-settings.html)| **{dotted-circle}** No |
 | [Autoscale runner caching](https://docs.gitlab.com/runner/configuration/autoscale.html#distributed-runners-caching) (optional for improved performance) | **{dotted-circle}** No |
-| [Secure Files](secure_files.md#using-object-storage) | **{check-circle}** Yes |
 | [Job artifacts](job_artifacts.md#using-object-storage) including archived job logs | **{check-circle}** Yes |
 | [LFS objects](lfs/index.md#storing-lfs-objects-in-remote-object-storage) | **{check-circle}** Yes |
 | [Uploads](uploads.md#using-object-storage) | **{check-circle}** Yes |
@@ -249,6 +247,9 @@ To set up an instance profile:
 
 #### Encrypted S3 buckets
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab-workhorse/-/merge_requests/466) in GitLab 13.1 for instance profiles only and [S3 default encryption](https://docs.aws.amazon.com/AmazonS3/latest/dev/bucket-encryption.html).
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/34460) in GitLab 13.2 for static credentials when the [consolidated form](#configure-a-single-storage-connection-for-all-object-types-consolidated-form) and [S3 default encryption](https://docs.aws.amazon.com/AmazonS3/latest/dev/bucket-encryption.html) is used.
+
 When configured either with an instance profile or with the consolidated
 form, GitLab Workhorse properly uploads files to S3
 buckets that have [SSE-S3 or SSE-KMS encryption enabled by default](https://docs.aws.amazon.com/kms/latest/developerguide/services-s3.html).
@@ -256,6 +257,8 @@ AWS KMS keys and SSE-C encryption are
 [not supported since this requires sending the encryption keys in every request](https://gitlab.com/gitlab-org/gitlab/-/issues/226006).
 
 #### Server-side encryption headers
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/38240) in GitLab 13.3.
 
 Setting a default encryption on an S3 bucket is the easiest way to
 enable encryption, but you may want to
@@ -329,6 +332,8 @@ gitlab_rails['object_store']['connection'] = {
 
 #### GCS example with ADC
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/275979) in GitLab 13.6.
+
 Google Cloud Application Default Credentials (ADC) are typically
 used with GitLab to use the default service account. This eliminates the
 need to supply credentials for the instance. For example, in the consolidated form:
@@ -353,6 +358,8 @@ If you use ADC, be sure that:
   ```
 
 ### Azure Blob storage
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/25877) in GitLab 13.4.
 
 Although Azure uses the word `container` to denote a collection of
 blobs, GitLab standardizes on the term `bucket`. Be sure to configure
@@ -431,7 +438,7 @@ For more information, see [issue #4419](https://gitlab.com/gitlab-org/gitlab/-/i
 ### Hitachi Vantara HCP
 
 NOTE:
-Connections to HCP may return an error stating `SignatureDoesNotMatch - The request signature we calculated does not match the signature you provided. Check your HCP Secret Access key and signing method.` In these cases, set the `endpoint` to the URL of the tenant instead of the namespace, and ensure bucket paths are configured as `<namespace_name>/<bucket_name>`.
+Connections to HCP may return an error stating `SigntureDoesNotMatch - The request signature we calculated does not match the signature you provided. Check your HCP Secret Access key and signing method.` In these cases, set the `endpoint` to the URL of the tenant instead of the namespace, and ensure bucket paths are configured as `<namespace_name>/<bucket_name>`.
 
 [HCP](https://docs.hitachivantara.com/r/en-us/content-platform-for-cloud-scale/2.6.x/mk-hcpcs008/getting-started/introducing-hcp-for-cloud-scale/support-for-the-amazon-s3-api) provides an S3-compatible API. Use the following configuration example:
 
@@ -484,7 +491,6 @@ The following example uses AWS S3 to enable object storage for all supported ser
    gitlab_rails['object_store']['objects']['packages']['bucket'] = 'gitlab-packages'
    gitlab_rails['object_store']['objects']['dependency_proxy']['bucket'] = 'gitlab-dependency-proxy'
    gitlab_rails['object_store']['objects']['terraform_state']['bucket'] = 'gitlab-terraform-state'
-   gitlab_rails['object_store']['objects']['ci_secure_files']['bucket'] = 'gitlab-ci-secure-files'
    gitlab_rails['object_store']['objects']['pages']['bucket'] = 'gitlab-pages'
    ```
 
@@ -751,11 +757,12 @@ To migrate existing local data to object storage see the following guides:
 
 ## Transition to consolidated form
 
-In storage-specific configuration:
+Prior to GitLab 13.2:
 
 - Object storage configuration for all types of objects such as CI/CD artifacts, LFS
-  files, and upload attachments is configured independently.
-- Object store connection parameters such as passwords and endpoint URLs is duplicated for each type.
+  files, and upload attachments had to be configured independently.
+- Object store connection parameters such as passwords and endpoint URLs had to be
+  duplicated for each type.
 
 For example, a Linux package installation might have the following configuration:
 
@@ -844,7 +851,7 @@ See the following additional guides:
 
 ### Objects are not included in GitLab backups
 
-As noted in [the backup documentation](../administration/backup_restore/backup_gitlab.md#object-storage),
+As noted in [the backup documentation](../administration/backup_restore/index.md),
 objects are not included in GitLab backups. You can enable backups with
 your object storage provider instead.
 
@@ -873,12 +880,6 @@ with the Fog library that GitLab uses. Symptoms include an error in `production.
 ```plaintext
 411 Length Required
 ```
-
-### Artifacts always downloaded with filename `download`
-
-Downloaded artifact filenames are set via the `response-content-disposition` header in the
-[GetObject request](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html).
-If the S3 provider does not support this header, the downloaded file is always saved as `download`.
 
 ### Proxy Download
 
@@ -1004,36 +1005,36 @@ In some situations, it may be helpful to test object storage settings using the 
 1. Start a [Rails console](operations/rails_console.md).
 1. Set up the object storage connection, using the same parameters you set up in `/etc/gitlab/gitlab.rb`, in the following example format:
 
-   Example connection using access keys:
+Example connection using access keys:
 
-   ```ruby
-   connection = Fog::Storage.new(
-     {
-       provider: 'AWS',
-       region: `eu-central-1`,
-       aws_access_key_id: '<AWS_ACCESS_KEY_ID>',
-       aws_secret_access_key: '<AWS_SECRET_ACCESS_KEY>'
-     }
-   )
-   ```
+  ```ruby
+  connection = Fog::Storage.new(
+    {
+      provider: 'AWS',
+      region: `eu-central-1`,
+      aws_access_key_id: '<AWS_ACCESS_KEY_ID>',
+      aws_secret_access_key: '<AWS_SECRET_ACCESS_KEY>'
+    }
+  )
+  ```
 
-   Example connection using AWS IAM Profiles:
+Example connection using AWS IAM Profiles:
 
-   ```ruby
-   connection = Fog::Storage.new(
-     {
-       provider: 'AWS',
-       use_iam_profile: true,
-       region: 'us-east-1'
-     }
-   )
-   ```
+  ```ruby
+  connection = Fog::Storage.new(
+    {
+      provider: 'AWS',
+      use_iam_profile: true,
+      region: 'us-east-1'
+    }
+  )
+  ```
 
 1. Specify the bucket name to test against, write, and finally read a test file.
 
-   ```ruby
-   dir = connection.directories.new(key: '<bucket-name-here>')
-   f = dir.files.create(key: 'test.txt', body: 'test')
-   pp f
-   pp dir.files.head('test.txt')
-   ```
+  ```ruby
+  dir = connection.directories.new(key: '<bucket-name-here>')
+  f = dir.files.create(key: 'test.txt', body: 'test')
+  pp f
+  pp dir.files.head('test.txt')
+  ```

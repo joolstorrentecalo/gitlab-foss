@@ -191,49 +191,29 @@ RSpec.describe Banzai::Filter::FrontMatterFilter, feature_category: :team_planni
 
   describe 'protects against malicious backtracking' do
     it 'fails fast for strings with many spaces' do
-      content = "coding:" + (" " * 50_000) + ";"
+      content = "coding:" + " " * 50_000 + ";"
 
       expect do
-        Timeout.timeout(BANZAI_FILTER_TIMEOUT_MAX) { filter(content) }
+        Timeout.timeout(3.seconds) { filter(content) }
       end.not_to raise_error
     end
 
     it 'fails fast for strings with many newlines' do
-      content = "coding:\n" + ";;;" + ("\n" * 10_000) + "x"
+      content = "coding:\n" + ";;;" + "\n" * 10_000 + "x"
 
       expect do
-        Timeout.timeout(BANZAI_FILTER_TIMEOUT_MAX) { filter(content) }
+        Timeout.timeout(3.seconds) { filter(content) }
       end.not_to raise_error
     end
 
     it 'fails fast for strings with many `coding:`' do
-      content = ("coding:" * 120_000) + ("\n" * 80_000) + ";"
+      content = "coding:" * 120_000 + "\n" * 80_000 + ";"
 
       expect do
-        Timeout.timeout(BANZAI_FILTER_TIMEOUT_MAX) { filter(content) }
+        Timeout.timeout(3.seconds) { filter(content) }
       end.not_to raise_error
     end
   end
 
   it_behaves_like 'pipeline timing check'
-
-  it_behaves_like 'limits the number of filtered items' do
-    let(:text) do
-      <<~MD
-        ---
-        foo: :foo_symbol
-        ---
-
-        ---
-        bar: :bar_symbol
-        ---
-
-        ---
-        fubar: :fubar_symbol
-        ---
-      MD
-    end
-
-    let(:ends_with) { "```\n\n---\nfubar: :fubar_symbol\n---\n" }
-  end
 end

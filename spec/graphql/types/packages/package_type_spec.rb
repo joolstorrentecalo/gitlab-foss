@@ -13,7 +13,8 @@ RSpec.describe GitlabSchema.types['Package'], feature_category: :package_registr
       created_at updated_at
       project
       tags pipelines metadata
-      status user_permissions
+      status can_destroy
+      user_permissions
     ]
 
     expect(described_class).to include_graphql_fields(*expected_fields)

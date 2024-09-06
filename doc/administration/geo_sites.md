@@ -4,7 +4,7 @@ group: Geo
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
-# Geo sites Admin area
+# Geo sites Admin Area
 
 DETAILS:
 **Tier:** Premium, Ultimate
@@ -15,7 +15,7 @@ You can configure various settings for GitLab Geo sites. For more information, s
 
 On either the primary or secondary site:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Geo > Sites**.
 
 ## Common settings
@@ -37,7 +37,7 @@ the **primary** node is listed first as `Primary site`.
 
 | Setting                   | Description |
 |---------------------------|-------------|
-| Selective synchronization | Enable Geo [selective sync](../administration/geo/replication/selective_synchronization.md) for this **secondary** site. |
+| Selective synchronization | Enable Geo [selective sync](../administration/geo/replication/configuration.md#selective-synchronization) for this **secondary** site. |
 | Repository sync capacity  | Number of concurrent requests this **secondary** site makes to the **primary** site when backfilling repositories. |
 | File sync capacity        | Number of concurrent requests this **secondary** site makes to the **primary** site when backfilling files. |
 
@@ -61,26 +61,27 @@ you can decrease them.
 
 ## Set up the internal URLs
 
+> - Setting up internal URLs in secondary sites was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/77179) in GitLab 14.7.
+
 You can set up a different URL for synchronization between the primary and secondary site.
 
-The **primary** site's Internal URL is used by **secondary** sites to contact
-it. For example, to sync repositories. The name Internal URL distinguishes it from
+The **primary** site's Internal URL is used by **secondary** sites to contact it
+(to sync repositories, for example). The name Internal URL distinguishes it from
 [External URL](https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab),
 which is used by users. Internal URL does not need to be a private address.
 
-The Internal URL of a **secondary** site is used by the **primary** site to
-contact it. For example, to retrieve sync or verification tracking metadata for
-display in the Admin Area at **Geo > Sites > Project Repositories**.
+When [Geo secondary proxying](../administration/geo/secondary_proxy/index.md) is enabled,
+the primary uses the secondary's internal URL to contact it directly.
 
 The internal URL defaults to external URL. To change it:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Geo > Sites**.
 1. Select **Edit** on the site you want to customize.
 1. Edit the internal URL.
 1. Select **Save changes**.
 
-When enabled, the **Admin** area for Geo shows replication details for each site directly
+When enabled, the Admin Area for Geo shows replication details for each site directly
 from the primary site's UI, and through the Geo secondary proxy, if enabled.
 
 WARNING:
@@ -88,6 +89,24 @@ We recommend using an HTTPS connection while configuring the Geo sites. To avoid
 breaking communication between **primary** and **secondary** sites when using
 HTTPS, customize your Internal URL to point to a load balancer with TLS
 terminated at the load balancer.
+
+WARNING:
+Starting with GitLab 13.3 and [until 13.11](https://gitlab.com/gitlab-org/gitlab/-/issues/325522),
+if you use an internal URL that is not accessible to the users, the
+OAuth authorization flow does not work properly, because users are redirected
+to the internal URL instead of the external one.
+
+## Multiple secondary sites behind a load balancer
+
+**Secondary** sites can use identical external URLs if
+a unique `name` is set for each Geo site. The `gitlab.rb` setting
+`gitlab_rails['geo_node_name']` must:
+
+- Be set for each GitLab instance that runs `puma`, `sidekiq`, or `geo_logcursor`.
+- Match a Geo site name.
+
+The load balancer must use sticky sessions to avoid authentication
+failures and cross-site request errors.
 
 <!-- ## Troubleshooting
 

@@ -27,6 +27,8 @@ for details on which headers and token types are supported. Undocumented authent
 
 ## Download a chart index
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/62757) in GitLab 14.1.
+
 Download a chart index:
 
 ```plaintext
@@ -53,6 +55,8 @@ curl --user <username>:<personal_access_token> \
 
 ## Download a chart
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/61014) in GitLab 14.0.
+
 Download a chart:
 
 ```plaintext
@@ -72,6 +76,8 @@ curl --user <username>:<personal_access_token> \
 ```
 
 ## Upload a chart
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/64814) in GitLab 14.1.
 
 Upload a chart:
 

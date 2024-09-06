@@ -18,7 +18,9 @@ module BulkImports
 
     PERFORM_DELAY = 5.seconds
 
-    def perform(entity_id)
+    # Keep `_current_stage` parameter for backwards compatibility.
+    # The parameter will be remove in https://gitlab.com/gitlab-org/gitlab/-/issues/426311
+    def perform(entity_id, _current_stage = nil)
       @entity = ::BulkImports::Entity.find(entity_id)
 
       return unless @entity.started?
@@ -78,14 +80,6 @@ module BulkImports
             pipeline_tracker.stage,
             entity.id
           )
-
-          if Import::BulkImports::EphemeralData.new(entity.bulk_import.id).importer_user_mapping_enabled?
-            Import::LoadPlaceholderReferencesWorker.perform_async(
-              Import::SOURCE_DIRECT_TRANSFER,
-              entity.bulk_import.id,
-              'current_user_id' => entity.bulk_import.user_id
-            )
-          end
         end
       end
     end

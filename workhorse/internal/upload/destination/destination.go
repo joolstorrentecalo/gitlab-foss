@@ -1,4 +1,4 @@
-// Package destination handles uploading to a specific destination (delegates
+// The destination package handles uploading to a specific destination (delegates
 // to filestore or objectstore packages) based on options from the pre-authorization
 // API and finalizing the upload.
 package destination
@@ -21,7 +21,6 @@ import (
 	"gitlab.com/gitlab-org/gitlab/workhorse/internal/upload/destination/objectstore"
 )
 
-// SizeError represents an error related to the size of a file or data.
 type SizeError error
 
 // ErrEntityTooLarge means that the uploaded content is bigger then maximum allowed size
@@ -131,12 +130,12 @@ func Upload(ctx context.Context, reader io.Reader, size int64, name string, opts
 	switch {
 	// This case means Workhorse is acting as an upload proxy for Rails and buffers files
 	// to disk in a temporary location, see:
-	// https://docs.gitlab.com/ee/development/uploads/#rails-controller-upload
+	// https://docs.gitlab.com/ee/development/uploads/background.html#moving-disk-buffering-to-workhorse
 	case opts.IsLocalTempFile():
 		clientMode = "local_tempfile"
 		uploadDestination, err = fh.newLocalFile(ctx, opts)
 	// All cases below mean we are doing a direct upload to remote i.e. object storage, see:
-	// https://docs.gitlab.com/ee/development/uploads/#direct-upload
+	// https://docs.gitlab.com/ee/development/uploads/background.html#moving-to-object-storage-and-direct-uploads
 	case opts.UseWorkhorseClientEnabled() && opts.ObjectStorageConfig.IsGoCloud():
 		clientMode = fmt.Sprintf("go_cloud:%s", opts.ObjectStorageConfig.Provider)
 		p := &objectstore.GoCloudObjectParams{
@@ -239,9 +238,7 @@ func (fh *FileHandler) newLocalFile(ctx context.Context, opts *UploadOpts) (cons
 
 	go func() {
 		<-ctx.Done()
-		if err := os.Remove(file.Name()); err != nil {
-			fmt.Printf("newLocalFile: remove file %q: %v", file.Name(), err)
-		}
+		os.Remove(file.Name())
 	}()
 
 	fh.LocalPath = file.Name()

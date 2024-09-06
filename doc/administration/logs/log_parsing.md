@@ -13,7 +13,7 @@ DETAILS:
 We recommend using log aggregation and search tools like Kibana and Splunk whenever possible,
 but if they are not available you can still quickly parse
 [GitLab logs](../logs/index.md) in JSON format
-using [`jq`](https://stedolan.github.io/jq/).
+(the default in GitLab 12.0 and later) using [`jq`](https://stedolan.github.io/jq/).
 
 NOTE:
 Specifically for summarizing error events and basic usage statistics,
@@ -190,8 +190,10 @@ jq --raw-output 'select(.remote_ip != "127.0.0.1") | [.remote_ip, .username, .ro
 ```
 
 This example shows a custom tool or script causing an unexpectedly high number of requests.
-User agents in this situation can be specialized [third-party clients](../../api/rest/index.md#third-party-clients),
-or general tools like `curl`.
+User agents in this situation can be:
+
+- Third party libraries like `python-requests` or `curl`.
+- [GitLab CLI clients](https://about.gitlab.com/partners/technology-partners/#cli-clients).
 
 You can also [use `fast-stats top`](#parsing-gitlab-logs-with-jq) to extract performance statistics for those users or bots.
 
@@ -204,7 +206,7 @@ To troubleshoot [project imports](../../administration/raketasks/project_import_
 jq 'select(.project_path == "<namespace>/<project>").error_messages' importer.log
 ```
 
-For common issues, see [troubleshooting](../../administration/raketasks/import_export_rake_tasks_troubleshooting.md).
+For common issues, see [troubleshooting](../../administration/raketasks/project_import_export.md#troubleshooting).
 
 ### Parsing `gitlab-workhorse/current`
 
@@ -313,7 +315,7 @@ grep "fatal: " current |
 
 ### Parsing `gitlab-shell/gitlab-shell.log`
 
-For investigating Git calls via SSH.
+For investigating Git calls via SSH, from [GitLab 12.10](https://gitlab.com/gitlab-org/gitlab-shell/-/merge_requests/367).
 
 Find the top 20 calls by project and user:
 

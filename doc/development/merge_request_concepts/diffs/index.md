@@ -2,7 +2,6 @@
 stage: Create
 group: Code Review
 info: Any user with at least the Maintainer role can merge updates to this content. For details, see https://docs.gitlab.com/ee/development/development_processes.html#development-guidelines-review.
-description: "Developer documentation for how diffs are generated and rendered in GitLab."
 ---
 
 # Working with diffs
@@ -18,14 +17,14 @@ We rely on different sources to present diffs. These include:
 
 ## Deep Dive
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 In January 2019, Oswaldo Ferreira hosted a Deep Dive (GitLab team members only:
 `https://gitlab.com/gitlab-org/create-stage/-/issues/1`) on GitLab Diffs and Commenting on Diffs
 functionality to share domain-specific knowledge with anyone who works in this part of the
 codebase in the future:
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 - <i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
   [Recording on YouTube](https://www.youtube.com/watch?v=K6G3gMcFyek)
@@ -170,7 +169,7 @@ The merge request diff still contains the `file_a` removal while the actual diff
 `main`'s `HEAD` has only the `file_b` removal. The diff with such redundant
 changes is harder to review.
 
-To display an up-to-date diff we
+In order to display an up-to-date diff, in GitLab 12.9 we
 [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/27008) merge request
 diffs compared against `HEAD` of the target branch: the
 target branch is artificially merged into the source branch, then the resulting

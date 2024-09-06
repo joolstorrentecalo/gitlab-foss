@@ -2,9 +2,9 @@
 
 require 'spec_helper'
 
-RSpec.describe Onboarding::Progress, feature_category: :onboarding do
+RSpec.describe Onboarding::Progress do
   let(:namespace) { create(:namespace) }
-  let(:action) { :merge_request_created }
+  let(:action) { :subscription_created }
 
   describe 'associations' do
     it { is_expected.to belong_to(:namespace).required }
@@ -143,14 +143,6 @@ RSpec.describe Onboarding::Progress, feature_category: :onboarding do
       end
 
       it { is_expected.to eq true }
-
-      context 'when onboarding has ended' do
-        before do
-          described_class.last.update!(ended_at: Time.current)
-        end
-
-        it { is_expected.to eq false }
-      end
     end
 
     context 'when not onboarding' do
@@ -172,19 +164,19 @@ RSpec.describe Onboarding::Progress, feature_category: :onboarding do
         end
 
         it 'does not override timestamp', :aggregate_failures do
-          expect(described_class.find_by_namespace_id(namespace.id).merge_request_created_at).to be_nil
+          expect(described_class.find_by_namespace_id(namespace.id).subscription_created_at).to be_nil
           register_action
-          expect(described_class.find_by_namespace_id(namespace.id).merge_request_created_at).not_to be_nil
+          expect(described_class.find_by_namespace_id(namespace.id).subscription_created_at).not_to be_nil
           expect do
             described_class.register(namespace, action)
-          end.not_to change { described_class.find_by_namespace_id(namespace.id).merge_request_created_at }
+          end.not_to change { described_class.find_by_namespace_id(namespace.id).subscription_created_at }
         end
 
         context 'when the action does not exist' do
           let(:action) { :foo }
 
           it 'does not register the action for the namespace' do
-            expect { register_action }.not_to change { described_class.completed?(namespace, action) }.from(false)
+            expect { register_action }.not_to change { described_class.completed?(namespace, action) }.from(nil)
           end
         end
       end
@@ -231,7 +223,7 @@ RSpec.describe Onboarding::Progress, feature_category: :onboarding do
           it 'does not register any action for the namespace' do
             expect { register_action }.not_to change {
               [described_class.completed?(namespace, action1), described_class.completed?(namespace, action2)]
-            }.from([false, false])
+            }.from([false, nil])
           end
         end
       end
@@ -298,6 +290,6 @@ RSpec.describe Onboarding::Progress, feature_category: :onboarding do
   describe '.column_name' do
     subject { described_class.column_name(action) }
 
-    it { is_expected.to eq(:merge_request_created_at) }
+    it { is_expected.to eq(:subscription_created_at) }
   end
 end

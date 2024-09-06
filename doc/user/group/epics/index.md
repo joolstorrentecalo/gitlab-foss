@@ -10,35 +10,18 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-An epic in GitLab represents a significant body of work that can be broken down into smaller,
-manageable parts.
-Epics help organize user stories and features into a high-level theme or goal, making them a flexible
-tool for managing projects of all sizes.
+When [issues](../../project/issues/index.md) share a theme across projects and
+milestones, you can manage them by using epics.
 
-Epics often span multiple iterations or a longer period of time, reaching their conclusion when the
-defined goals are met.
-Teams use epics to stay focused and aligned with their project timelines.
+You can also create child epics and assign start and end dates, which creates
+a visual roadmap for you to view progress.
 
-In the Ultimate tier, create hierarchical structures to align with various agile frameworks using
-[nested epics](manage_epics.md#multi-level-child-epics).
-Break down complex projects into more manageable child epics, which can further contain their own
-sets of issues and tasks.
-This nested structure helps maintain clarity and ensures all aspects of a project are covered without
-losing sight of the overarching goals.
+Use epics:
 
-Use epics to:
-
-- Break down large features into smaller deliverables that incrementally add user value.
-- Track the progress of a group of related issues, specifying when the work is scheduled to start
-  and end.
-- Facilitate high-level discussions and collaboration on feature ideas and scope, ensuring alignment
-  with the broader project objectives.
-- Organize complex projects into a hierarchy of work with nested epics, providing a clear structure
-- while connecting items to the larger goals of the project.
-- Collect smaller issues (user stories) for detailed tracking and efficient task management.
-
-By using epics effectively, teams can create visual roadmaps, monitor progress, and achieve their
-goals in the set time frames, driving successful project outcomes.
+- When your team is working on a large feature that involves multiple discussions
+  in different issues in different projects in a [group](../index.md).
+- To track when the work for the group of issues is targeted to begin and end.
+- To discuss and collaborate on feature ideas and scope at a high level.
 
 <div class="video-fallback">
   See the video: <a href="https://www.youtube.com/watch?v=c0EwYYUZppw">GitLab Epics - Setting up your Organization with GitLab</a>.
@@ -55,14 +38,13 @@ The possible relationships between epics and issues are:
 - An epic is the parent of one or more [child epics](manage_epics.md#multi-level-child-epics). Ultimate only.
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph TD
-accTitle: Epics and issues
-accDescr: How issues and child epics relate to parent epics
     Parent_epic --> Issue1
     Parent_epic --> Child_epic
     Child_epic --> Issue2
 ```
+
+Also, read more about possible [planning hierarchies](../planning_hierarchy/index.md).
 
 ### Child issues from different group hierarchies
 
@@ -85,14 +67,6 @@ have a start or due date, a visual
 [roadmap](../roadmap/index.md) of the child epics is listed under the parent epic.
 
 ![Child epics roadmap](img/epic_view_roadmap_v12_9.png)
-
-<!-- When epics as work items are GA, the steps below should be the only ones here. -->
-
-If your administrator [enabled the new look for epics](epic_work_items.md):
-
-- On the Child issues and epics section header, select **More actions** (**{ellipsis_v}**) **> View on a roadmap**.
-
-A roadmap filtered for the parent epic opens.
 
 ## Related topics
 

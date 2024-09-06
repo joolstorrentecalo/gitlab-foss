@@ -2,7 +2,6 @@
 import { GlLoadingIcon, GlAlert, GlDrawer } from '@gitlab/ui';
 import { DRAWER_Z_INDEX } from '~/lib/utils/constants';
 import { getContentWrapperHeight } from '~/lib/utils/dom_utils';
-import eventHub from '~/environments/event_hub';
 import WorkloadStats from './workload_stats.vue';
 import WorkloadTable from './workload_table.vue';
 import WorkloadDetails from './workload_details.vue';
@@ -45,30 +44,20 @@ export default {
     return {
       showDetailsDrawer: false,
       selectedItem: {},
-      filterOption: '',
     };
   },
   computed: {
     getDrawerHeaderHeight() {
       return getContentWrapperHeight();
     },
-    filteredItems() {
-      if (!this.filterOption) return this.items;
-
-      return this.items.filter((item) => item.status === this.filterOption);
-    },
   },
   methods: {
     closeDetailsDrawer() {
-      eventHub.$emit('closeDetailsDrawer');
       this.showDetailsDrawer = false;
     },
     onItemSelect(item) {
       this.selectedItem = item;
       this.showDetailsDrawer = true;
-    },
-    filterItems(status) {
-      this.filterOption = status;
     },
   },
   DRAWER_Z_INDEX,
@@ -80,9 +69,9 @@ export default {
     {{ errorMessage }}
   </gl-alert>
   <div v-else>
-    <workload-stats :stats="stats" @select="filterItems" />
+    <workload-stats :stats="stats" />
     <workload-table
-      :items="filteredItems"
+      :items="items"
       :fields="fields"
       class="gl-mt-8"
       @select-item="onItemSelect"
@@ -96,7 +85,7 @@ export default {
       @close="closeDetailsDrawer"
     >
       <template #title>
-        <h4 class="gl-m-0 gl-text-size-h2 gl-font-bold gl-break-anywhere">
+        <h4 class="gl-font-weight-bold gl-font-size-h2 gl-m-0 gl-word-break-word">
           {{ selectedItem.name }}
         </h4>
       </template>

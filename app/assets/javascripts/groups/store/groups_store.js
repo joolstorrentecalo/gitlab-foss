@@ -1,6 +1,5 @@
 import { isEmpty } from 'lodash';
 import { normalizeHeaders, parseIntPagination } from '~/lib/utils/common_utils';
-import { convertToGraphQLId } from '~/graphql_shared/utils';
 import { getGroupItemMicrodata } from './utils';
 
 export default class GroupsStore {
@@ -106,15 +105,11 @@ export default class GroupsStore {
       archived: rawGroupItem.archived,
     };
 
-    if (!isEmpty(rawGroupItem.compliance_management_frameworks)) {
+    if (!isEmpty(rawGroupItem.compliance_management_framework)) {
       groupItem.complianceFramework = {
-        id: convertToGraphQLId(
-          'ComplianceManagement::Framework',
-          rawGroupItem.compliance_management_frameworks[0].id,
-        ),
-        name: rawGroupItem.compliance_management_frameworks[0].name,
-        color: rawGroupItem.compliance_management_frameworks[0].color,
-        description: rawGroupItem.compliance_management_frameworks[0].description,
+        name: rawGroupItem.compliance_management_framework.name,
+        color: rawGroupItem.compliance_management_framework.color,
+        description: rawGroupItem.compliance_management_framework.description,
       };
     }
 

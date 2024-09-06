@@ -45,8 +45,7 @@ Example response:
     "created_at": "2019-05-25T18:55:13.252Z",
     "updated_at": "2019-05-27T18:55:13.252Z",
     "enable_advanced_logs_querying": false,
-    "logs_api_path": "/project/-/logs/k8s.json?environment_name=review%2Ffix-foo",
-    "auto_stop_at": "2019-06-03T18:55:13.252Z"
+    "logs_api_path": "/project/-/logs/k8s.json?environment_name=review%2Ffix-foo"
   }
 ]
 ```
@@ -80,7 +79,6 @@ Example of response
   "updated_at": "2019-05-27T18:55:13.252Z",
   "enable_advanced_logs_querying": false,
   "logs_api_path": "/project/-/logs/k8s.json?environment_name=review%2Ffix-foo",
-  "auto_stop_at": "2019-06-03T18:55:13.252Z",
   "last_deployment": {
     "id": 100,
     "iid": 34,
@@ -163,21 +161,6 @@ Example of response
       "runner": null,
       "artifacts_expire_at": null
     }
-  },
-  "cluster_agent": {
-    "id": 1,
-    "name": "agent-1",
-    "config_project": {
-      "id": 20,
-      "description": "",
-      "name": "test",
-      "name_with_namespace": "Administrator / test",
-      "path": "test",
-      "path_with_namespace": "root/test",
-      "created_at": "2022-03-20T20:42:40.221Z"
-    },
-    "created_at": "2022-04-20T20:42:40.221Z",
-    "created_by_user_id": 42
   }
 }
 ```
@@ -276,6 +259,8 @@ curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://git
 ```
 
 ## Delete multiple stopped review apps
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/296625) in GitLab 14.2.
 
 It schedules for deletion multiple environments that have already been
 [stopped](../ci/environments/index.md#stopping-an-environment) and

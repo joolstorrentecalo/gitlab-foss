@@ -116,7 +116,7 @@ set up GitLab to create a new account when a Kerberos user tries to sign in.
 If you're an administrator, you can link a Kerberos account to an
 existing GitLab account. To do so:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Overview > Users**.
 1. Select a user, then select the **Identities** tab.
 1. From the **Provider** dropdown list, select **Kerberos**.
@@ -157,7 +157,7 @@ With that information at hand:
       ```
 
       1. As an administrator, you can confirm the new, blocked account:
-         1. On the left sidebar, at the bottom, select **Admin**.
+         1. On the left sidebar, at the bottom, select **Admin Area**.
          1. On the left sidebar, select **Overview > Users** and review the **Blocked** tab.
       1. You can enable the user.
    1. If `block_auto_created_users` is false, the Kerberos user is
@@ -187,6 +187,8 @@ Kerberos usernames are of the form `foo@AD.EXAMPLE.COM` and their
 LDAP Distinguished Names look like `sAMAccountName=foo,dc=ad,dc=example,dc=com`.
 
 ### Custom allowed realms
+
+[Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/9962) in GitLab 13.5.
 
 You can configure custom allowed realms when the user's Kerberos realm doesn't
 match the domain from the user's LDAP DN. The configuration value must specify
@@ -309,7 +311,53 @@ Kerberos ticket-based authentication.
 In previous versions of GitLab users had to submit their
 Kerberos username and password to GitLab when signing in.
 
-We [removed](https://gitlab.com/gitlab-org/gitlab/-/issues/2908) password-based Kerberos sign-ins in GitLab 15.0.
+We [deprecated](../update/deprecations.md#omniauth-kerberos-gem) password-based
+Kerberos sign-ins in GitLab 14.3 and [removed](https://gitlab.com/gitlab-org/gitlab/-/issues/2908)
+it in GitLab 15.0. You must switch to ticket-based sign in.
+
+Depending on your existing GitLab configuration, **Sign in with:
+Kerberos** may already be visible on your GitLab sign-in page.
+If not, then add the settings [described above](#configuration).
+
+To disable password-based Kerberos sign-ins, remove the OmniAuth provider
+`kerberos` from your `gitlab.yml`/`gitlab.rb` file.
+
+::Tabs
+
+:::TabTitle Linux package (Omnibus)
+
+1. Edit `/etc/gitlab/gitlab.rb` and remove the `{ "name" => "kerberos" }` line
+   under `gitlab_rails['omniauth_providers']`:
+
+   ```ruby
+   gitlab_rails['omniauth_providers'] = [
+     { "name" => "kerberos" } # <-- remove this entry
+   ]
+   ```
+
+1. [Reconfigure GitLab](../administration/restart_gitlab.md#reconfigure-a-linux-package-installation) for the changes to take effect.
+
+:::TabTitle Self-compiled (source)
+
+1. Edit [`gitlab.yml`](https://gitlab.com/gitlab-org/gitlab/-/blob/master/config/gitlab.yml.example) and remove the `- { name: 'kerberos' }` line under OmniAuth
+   providers:
+
+   ```yaml
+   omniauth:
+     # Rest of configuration omitted
+     # ...
+     providers:
+       - { name: 'kerberos' }  # <-- remove this line
+   ```
+
+1. [Restart GitLab](../administration/restart_gitlab.md#self-compiled-installations) for the changes to take effect.
+
+::EndTabs
+
+NOTE:
+Removing the `kerberos` OmniAuth provider can also resolve a rare
+`Krb5Auth::Krb5::Exception (No credentials cache found)` error (`500` error in GitLab)
+when trying to clone via HTTPS.
 
 ## Support for Active Directory Kerberos environments
 

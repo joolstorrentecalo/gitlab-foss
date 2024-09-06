@@ -41,7 +41,7 @@ You can use the UI or the API to enforce 2FA for all users.
 
 ### Use the UI
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-in restrictions**:
    - Select **Enforce two-factor authentication** to enable this feature.
@@ -67,12 +67,12 @@ DETAILS:
 
 Administrators can enforce 2FA for administrator users in a self-managed instance.
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. On the left sidebar, select **Settings > General**.
 1. Expand the **Sign-in restrictions** section:
-   1. Select **Require administrators to enable 2FA**.
-   1. In **Two-factor grace period**, enter a number of hours. If you want to
-     enforce 2FA on the next sign-in attempt, enter `0`.
+    - Select **Require administrators to enable 2FA**.
+    - In **Two-factor grace period**, enter a number of hours. If you want to
+      enforce 2FA on the next sign-in attempt, enter `0`.
 1. Select **Save changes**.
 
 NOTE:
@@ -83,6 +83,8 @@ If you are using an external provider to sign in into GitLab, this setting will 
 DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/24965) in GitLab 12.0, 2FA settings for a group are also applied to subgroups.
 
 Prerequisites:
 
@@ -123,7 +125,7 @@ their members.
 
 ### 2FA in projects
 
-If a project belonging to a group that enables or enforces 2FA is [shared](../user/project/members/sharing_projects_groups.md)
+If a project belonging to a group that enables or enforces 2FA is [shared](../user/project/members/share_project_with_groups.md)
 with a group that does not enable or enforce 2FA, members of the non-2FA group can access that project
 without using 2FA. For example:
 
@@ -131,7 +133,7 @@ without using 2FA. For example:
 - If a project, *P*, that belongs to group *A* is shared with group *B*, members
   of group *B* can access project *P* without 2FA.
 
-To ensure this does not occur, [prevent sharing of projects](../user/project/members/sharing_projects_groups.md#prevent-a-project-from-being-shared-with-groups)
+To ensure this does not occur, [prevent sharing of projects](../user/group/access_and_permissions.md#prevent-a-project-from-being-shared-with-groups)
 for the 2FA group.
 
 If you add members to a project in a group or subgroup that has 2FA
@@ -157,7 +159,7 @@ when they next sign in to GitLab.
 
 #### Administrators
 
-It is possible to use the [Rails console](../administration/operations/rails_console.md)
+In GitLab 13.5 and later, use the [Rails console](../administration/operations/rails_console.md)
 to disable 2FA for a single administrator:
 
 ```ruby
@@ -201,6 +203,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** Self-managed
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/270554) in GitLab 13.7.
+> - [Moved](https://gitlab.com/gitlab-org/gitlab/-/issues/299088) from GitLab Free to GitLab Premium in 13.9.
 > - It's deployed behind a feature flag, disabled by default.
 > - Push notification support [introduced](https://gitlab.com/gitlab-org/gitlab-shell/-/issues/506) in GitLab 15.3.
 

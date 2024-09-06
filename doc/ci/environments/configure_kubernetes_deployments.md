@@ -6,9 +6,8 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 # Configure Kubernetes deployments (deprecated)
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** GitLab.com, Self-managed, GitLab Dedicated
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/27630) in GitLab 12.6.
+> - [Deprecated](https://gitlab.com/groups/gitlab-org/configure/-/epics/8) in GitLab 14.5.
 
 WARNING:
 This feature was [deprecated](https://gitlab.com/groups/gitlab-org/configure/-/epics/8) in GitLab 14.5.
@@ -46,7 +45,7 @@ When you use the GitLab Kubernetes integration to deploy to a Kubernetes cluster
 you can view cluster and namespace information. On the deployment
 job page, it's displayed above the job trace:
 
-![Deployment cluster information with cluster and namespace.](../img/environments_deployment_cluster_v12_8.png)
+![Deployment cluster information](../img/environments_deployment_cluster_v12_8.png)
 
 ## Configure incremental rollouts
 

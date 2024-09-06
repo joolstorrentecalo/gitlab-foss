@@ -1,6 +1,6 @@
 ---
 stage: Govern
-group: Authentication
+group: Compliance
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
@@ -14,6 +14,8 @@ You can read more about [personal access tokens](../user/profile/personal_access
 
 ## List personal access tokens
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/227264) in GitLab 13.3.
+> - [Moved](https://gitlab.com/gitlab-org/gitlab/-/issues/270200) from GitLab Ultimate to GitLab Free in 13.6.
 > - `created_after`, `created_before`, `last_used_after`, `last_used_before`, `revoked`, `search` and `state` filters were [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/362248) in GitLab 15.5.
 
 Get all personal access tokens the authenticated user has access to. By default, returns an unfiltered list of:
@@ -335,6 +337,9 @@ Revoke a personal access token by either:
 
 ### Using a personal access token ID
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/216004) in GitLab 13.3.
+> - [Moved](https://gitlab.com/gitlab-org/gitlab/-/issues/270200) from GitLab Ultimate to GitLab Free in 13.6.
+
 Revoke a personal access token using its ID.
 
 ```plaintext
@@ -356,8 +361,6 @@ curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://git
 
 - `204: No Content` if successfully revoked.
 - `400: Bad Request` if not revoked successfully.
-- `401: Unauthorized` if the access token is invalid.
-- `403: Forbidden` if the access token does not have the required permissions.
 
 ### Using a request header
 
@@ -381,87 +384,6 @@ curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://git
 
 - `204: No Content` if successfully revoked.
 - `400: Bad Request` if not revoked successfully.
-- `401: Unauthorized` if the access token is invalid.
-
-## List token associations
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/466046) in GitLab 17.4.
-
-Returns an unfiltered list of all groups, subgroups, and projects the current authenticated user can access.
-
-```plaintext
-GET /personal_access_tokens/self/associations
-GET /personal_access_tokens/self/associations?page=2
-GET /personal_access_tokens/self/associations?min_access_level=40
-```
-
-Supported attributes:
-
-| Attribute           | Type     | Required | Description                                                              |
-|---------------------|----------|----------|--------------------------------------------------------------------------|
-| `min_access_level`  | integer  | No       | Limit by current user minimal [role (`access_level`)](members.md#roles). |
-| `page`              | integer  | No       | Page to retrieve. Defaults to `1`.                                       |
-| `per_page`          | integer  | No       | Number of records to return per page. Defaults to `20`.                  |
-
-Example request:
-
-```shell
-curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/personal_access_tokens/self/associations"
-```
-
-Example response:
-
-```json
-{
-    "groups": [
-        {
-        "id": 1,
-        "web_url": "http://gitlab.example.com/groups/test",
-        "name": "Test",
-        "parent_id": null,
-        "organization_id": 1,
-        "access_levels": 20,
-        "visibility": "public"
-        },
-        {
-        "id": 3,
-        "web_url": "http://gitlab.example.com/groups/test/test_private",
-        "name": "Test Private",
-        "parent_id": 1,
-        "organization_id": 1,
-        "access_levels": 50,
-        "visibility": "test_private"
-        }
-    ],
-    "projects": [
-        {
-            "id": 1337,
-            "description": "Leet.",
-            "name": "Test Project",
-            "name_with_namespace": "Test / Test Project",
-            "path": "test-project",
-            "path_with_namespace": "Test/test-project",
-            "created_at": "2024-07-02T13:37:00.123Z",
-            "access_levels": {
-                "project_access_level": null,
-                "group_access_level": 20
-            },
-            "visibility": "private",
-            "web_url": "http://gitlab.example.com/test/test_project",
-            "namespace": {
-                "id": 1,
-                "name": "Test",
-                "path": "Test",
-                "kind": "group",
-                "full_path": "Test",
-                "parent_id": null,
-                "avatar_url": null,
-                "web_url": "http://gitlab.example.com/groups/test"
-            }
-        }
-    ]
-}
-```
 
 ## Create a personal access token (administrator only)
 
@@ -475,7 +397,3 @@ DETAILS:
 
 See the [Users API documentation](users.md#create-a-personal-access-token-with-limited-scopes-for-the-currently-authenticated-user)
 for information on creating a personal access token for the currently authenticated user.
-
-## Troubleshooting access tokens
-
-To troubleshoot access token issues, see the [token troubleshooting guide](../security/tokens/token_troubleshooting.md).

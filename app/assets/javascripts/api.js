@@ -27,7 +27,6 @@ const Api = {
   projectPackagePath: '/api/:version/projects/:id/packages/:package_id',
   projectPackageFilePath:
     '/api/:version/projects/:id/packages/:package_id/package_files/:package_file_id',
-  projectGroupsPath: '/api/:version/projects/:id/groups.json',
   groupProjectsPath: '/api/:version/groups/:id/projects.json',
   groupSharePath: '/api/:version/groups/:id/share',
   projectsPath: '/api/:version/projects.json',
@@ -132,20 +131,6 @@ const Api = {
     return axios.get(url);
   },
 
-  projectGroups(id, options) {
-    const url = Api.buildUrl(this.projectGroupsPath).replace(':id', encodeURIComponent(id));
-
-    return axios
-      .get(url, {
-        params: {
-          ...options,
-        },
-      })
-      .then(({ data }) => {
-        return data;
-      });
-  },
-
   deleteProjectPackage(projectId, packageId) {
     const url = this.buildProjectPackageUrl(projectId, packageId);
     return axios.delete(url);
@@ -167,17 +152,6 @@ const Api = {
 
   groupMembers(id, options) {
     const url = Api.buildUrl(this.groupMembersPath).replace(':id', encodeURIComponent(id));
-
-    return axios.get(url, {
-      params: {
-        per_page: DEFAULT_PER_PAGE,
-        ...options,
-      },
-    });
-  },
-
-  groupSubgroups(id, options) {
-    const url = Api.buildUrl(this.subgroupsPath).replace(':id', encodeURIComponent(id));
 
     return axios.get(url, {
       params: {
@@ -443,7 +417,6 @@ const Api = {
     return axios.get(url, { params });
   },
 
-  // eslint-disable-next-line max-params
   newLabel(namespacePath, projectPath, data, callback) {
     let url;
     let payload;
@@ -475,7 +448,6 @@ const Api = {
   },
 
   // Return group projects list. Filtered by query
-  // eslint-disable-next-line max-params
   groupProjects(groupId, query, options, callback = () => {}) {
     const url = Api.buildUrl(Api.groupProjectsPath).replace(':id', groupId);
     const defaults = {
@@ -499,7 +471,6 @@ const Api = {
       expires_at: options.expires_at,
       group_access: options.group_access,
       group_id: options.group_id,
-      member_role_id: options.member_role_id,
     });
   },
 
@@ -555,7 +526,6 @@ const Api = {
     return axios.get(url);
   },
 
-  // eslint-disable-next-line max-params
   projectTemplate(id, type, key, options, callback) {
     const url = Api.buildUrl(this.projectTemplatePath)
       .replace(':id', encodeURIComponent(id))
@@ -569,7 +539,6 @@ const Api = {
     });
   },
 
-  // eslint-disable-next-line max-params
   projectTemplates(id, type, params = {}, callback) {
     const url = Api.buildUrl(this.projectTemplatesPath)
       .replace(':id', encodeURIComponent(id))
@@ -582,7 +551,6 @@ const Api = {
     });
   },
 
-  // eslint-disable-next-line max-params
   issueTemplate(namespacePath, projectPath, key, type, callback) {
     const url = this.buildIssueTemplateUrl(
       Api.issuableTemplatePath,
@@ -596,7 +564,6 @@ const Api = {
       .catch(callback);
   },
 
-  // eslint-disable-next-line max-params
   issueTemplates(namespacePath, projectPath, type, callback) {
     const url = this.buildIssueTemplateUrl(
       Api.issuableTemplatesPath,
@@ -610,7 +577,6 @@ const Api = {
       .catch(callback);
   },
 
-  // eslint-disable-next-line max-params
   buildIssueTemplateUrl(path, type, projectPath, namespacePath) {
     return Api.buildUrl(path)
       .replace(':type', type)
@@ -668,7 +634,6 @@ const Api = {
    * @deprecated This method will be removed soon. Use the
    * `getUserProjects` method in `~/rest_api` instead.
    */
-  // eslint-disable-next-line max-params
   userProjects(userId, query, options, callback) {
     const url = Api.buildUrl(Api.userProjectsPath).replace(':id', userId);
     const defaults = {
@@ -727,11 +692,7 @@ const Api = {
       .replace(':id', encodeURIComponent(id))
       .replace(':merge_request_iid', mergeRequestId);
 
-    const params = {
-      async: true,
-    };
-
-    return axios.post(url, params);
+    return axios.post(url);
   },
 
   releases(id, options = {}) {
@@ -853,7 +814,6 @@ const Api = {
     return axios.delete(url, { data });
   },
 
-  // eslint-disable-next-line max-params
   getRawFile(id, path, params = {}, options = {}) {
     const url = Api.buildUrl(this.rawFilePath)
       .replace(':id', encodeURIComponent(id))

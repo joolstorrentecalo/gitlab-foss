@@ -46,10 +46,6 @@ module Gitlab
         end
         strong_memoize_attr :sha
 
-        def invalid_usage_for_latest?
-          @version == LATEST && project && project.catalog_resource.nil?
-        end
-
         private
 
         attr_reader :version
@@ -58,12 +54,6 @@ module Gitlab
           return find_latest_sha if version == LATEST
 
           sha_by_shorthand_semver(version) || sha_by_released_tag(version) || sha_by_ref(version)
-        end
-
-        def find_latest_sha
-          return unless project.catalog_resource
-
-          project.catalog_resource.versions.latest&.sha
         end
 
         def sha_by_shorthand_semver(version)
@@ -80,6 +70,14 @@ module Gitlab
 
         def sha_by_ref(version)
           project.commit(version)&.id
+        end
+
+        def find_latest_sha
+          if project.catalog_resource
+            project.catalog_resource.versions.latest&.sha
+          else
+            project.releases.latest&.sha
+          end
         end
 
         def find_project_by_component_path(path)

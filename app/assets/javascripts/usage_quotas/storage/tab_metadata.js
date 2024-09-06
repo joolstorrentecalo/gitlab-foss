@@ -62,7 +62,6 @@ export const getStorageTabMetadata = ({
   const storageTabMetadata = {
     title: __('Storage'),
     hash: '#storage-quota-tab',
-    testid: 'storage-tab',
     component: {
       name: 'NamespaceStorageTab',
       provide: parseProvideData(el),

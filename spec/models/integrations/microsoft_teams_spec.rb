@@ -9,7 +9,7 @@ RSpec.describe Integrations::MicrosoftTeams, feature_category: :integrations do
 
     let(:payload) do
       {
-        attachments: be_present
+        summary: be_present
       }
     end
   end
@@ -224,7 +224,11 @@ RSpec.describe Integrations::MicrosoftTeams, feature_category: :integrations do
 
         chat_integration.execute(data)
 
-        expect(WebMock).to have_requested(:post, webhook_url).once
+        message = Integrations::ChatMessage::PipelineMessage.new(data)
+
+        expect(WebMock).to have_requested(:post, webhook_url)
+          .with(body: hash_including({ summary: message.summary }))
+          .once
       end
     end
 
@@ -232,7 +236,6 @@ RSpec.describe Integrations::MicrosoftTeams, feature_category: :integrations do
       before do
         chat_integration.branches_to_be_notified = branches_to_be_notified if branches_to_be_notified
       end
-
       it 'does not call Microsoft Teams API for pipeline events' do
         data = Gitlab::DataBuilder::Pipeline.build(pipeline)
         result = chat_integration.execute(data)

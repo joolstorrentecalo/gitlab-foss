@@ -37,7 +37,7 @@ module Gitlab
                    end
 
         request = Gitaly::OptimizeRepositoryRequest.new(repository: @gitaly_repo,
-          strategy: strategy)
+                                                        strategy: strategy)
         gitaly_client_call(@storage, :repository_service, :optimize_repository, request, timeout: GitalyClient.long_timeout)
       end
 
@@ -63,6 +63,13 @@ module Gitlab
         response = gitaly_client_call(@storage, :repository_service, :get_object_directory_size, request, timeout: GitalyClient.medium_timeout)
 
         response.size
+      end
+
+      def apply_gitattributes(revision)
+        request = Gitaly::ApplyGitattributesRequest.new(repository: @gitaly_repo, revision: encode_binary(revision))
+        gitaly_client_call(@storage, :repository_service, :apply_gitattributes, request, timeout: GitalyClient.fast_timeout)
+      rescue GRPC::InvalidArgument => ex
+        raise Gitlab::Git::Repository::InvalidRef, ex
       end
 
       def info_attributes
@@ -206,12 +213,30 @@ module Gitlab
         )
       end
 
+      def backup_custom_hooks(save_path)
+        gitaly_fetch_stream_to_file(
+          save_path,
+          :backup_custom_hooks,
+          Gitaly::BackupCustomHooksRequest,
+          GitalyClient.default_timeout
+        )
+      end
+
       def create_from_bundle(bundle_path)
         gitaly_repo_stream_request(
           bundle_path,
           :create_repository_from_bundle,
           Gitaly::CreateRepositoryFromBundleRequest,
           GitalyClient.long_timeout
+        )
+      end
+
+      def restore_custom_hooks(custom_hooks_path)
+        gitaly_repo_stream_request(
+          custom_hooks_path,
+          :restore_custom_hooks,
+          Gitaly::RestoreCustomHooksRequest,
+          GitalyClient.default_timeout
         )
       end
 
@@ -276,7 +301,7 @@ module Gitlab
         gitaly_client_call(@storage, :repository_service, :remove_repository, request, timeout: GitalyClient.long_timeout)
       end
 
-      def replicate(source_repository, partition_hint: "")
+      def replicate(source_repository)
         request = Gitaly::ReplicateRepositoryRequest.new(
           repository: @gitaly_repo,
           source: source_repository.gitaly_repository
@@ -289,9 +314,7 @@ module Gitlab
           request,
           remote_storage: source_repository.storage,
           timeout: GitalyClient.long_timeout
-        ) do |kwargs|
-          kwargs.deep_merge(metadata: { 'gitaly-partitioning-hint': partition_hint })
-        end
+        )
       end
 
       def object_pool

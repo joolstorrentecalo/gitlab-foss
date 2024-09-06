@@ -5,6 +5,7 @@ import errorTrackingStore from '~/error_tracking/store';
 import { apolloProvider } from '~/graphql_shared/issuable_client';
 import { TYPE_INCIDENT, TYPE_ISSUE } from '~/issues/constants';
 import { convertObjectPropsToCamelCase, parseBoolean } from '~/lib/utils/common_utils';
+import { scrollToTargetOnResize } from '~/lib/utils/resize_observer';
 import initLinkedResources from '~/linked_resources';
 import IssueApp from './components/app.vue';
 import DescriptionComponent from './components/description.vue';
@@ -45,7 +46,6 @@ export function initIssuableApp(store) {
     issuableId,
     issueType,
     hasIterationsFeature,
-    imported,
     // for issue
     registerPath,
     signInPath,
@@ -71,6 +71,8 @@ export function initIssuableApp(store) {
   };
 
   bootstrapApollo({ ...issueState, issueType });
+
+  scrollToTargetOnResize();
 
   if (issueType === TYPE_INCIDENT) {
     initLinkedResources();
@@ -127,7 +129,6 @@ export function initIssuableApp(store) {
           descriptionComponent: issueType === TYPE_INCIDENT ? IncidentTabs : DescriptionComponent,
           isConfidential: this.getNoteableData?.confidential,
           isLocked: this.getNoteableData?.discussion_locked,
-          isImported: imported,
           issuableStatus: this.getNoteableData?.state,
           issuableType: issueType,
           issueId: this.getNoteableData?.id?.toString(),

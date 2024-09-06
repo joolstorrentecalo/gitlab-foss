@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Groups::DependencyProxyAuthController, feature_category: :container_registry do
+RSpec.describe Groups::DependencyProxyAuthController do
   include DependencyProxyHelpers
 
   describe 'GET #authenticate' do
@@ -33,15 +33,13 @@ RSpec.describe Groups::DependencyProxyAuthController, feature_category: :contain
         end
 
         context 'group bot user' do
-          let_it_be(:bot_user) { create(:user, :project_bot) }
-          let_it_be(:user) { create(:personal_access_token, user: bot_user) }
+          let_it_be(:user) { create(:user, :project_bot) }
 
           it { is_expected.to have_gitlab_http_status(:success) }
         end
 
         context 'service account user' do
-          let_it_be(:service_account_user) { create(:user, :service_account) }
-          let_it_be(:user) { create(:personal_access_token, user: service_account_user) }
+          let_it_be(:user) { create(:user, :service_account) }
 
           it { is_expected.to have_gitlab_http_status(:success) }
         end

@@ -15,7 +15,7 @@ user.
 
 A service account:
 
-- Does not use a licensed seat, but is not available on [trial versions](https://gitlab.com/-/trial_registrations/new?glm_source=docs.gitlab.com?&glm_content=free-user-limit-faq/ee/user/free_user_limit.html) on GitLab.com. It is available on trial versions on GitLab self-managed.
+- Does not use a licensed seat, but is not available on [trial versions](https://gitlab.com/-/trial_registrations/new?glm_source=docs.gitlab.com?&glm_content=free-user-limit-faq/ee/user/free_user_limit.html).
 - Is not a:
   - Billable user.
   - Bot user.
@@ -29,13 +29,6 @@ You can authenticate as a service account with a [personal access token](persona
 Service account users with a personal access token have the same abilities as a standard user.
 This includes interacting with [registries](../packages/index.md) and using the personal access
 token for [Git operations](personal_access_tokens.md#clone-repository-using-personal-access-token).
-
-[Rate limits](../../security/rate_limits.md) apply to service accounts:
-
-- On GitLab.com, there are [GitLab.com-specific rate limits](../gitlab_com/index.md#gitlabcom-specific-rate-limits).
-- On self-managed GitLab and GitLab Dedicated, there are both:
-  - [Configurable rate limits](../../security/rate_limits.md#configurable-limits).
-  - [Non-configurable rate limits](../../security/rate_limits.md#non-configurable-limits).
 
 ## Create a service account
 
@@ -54,18 +47,16 @@ Prerequisites:
 
 - You must have the Owner role in a top-level group.
 
-1. [Create a service account](../../api/group_service_accounts.md#create-a-service-account-user).
+1. [Create a service account](../../api/groups.md#create-service-account-user).
 
    This service account is associated only with your top-level group.
 
-1. [List all service account users](../../api/group_service_accounts.md#list-service-account-users).
-
-1. [Create a personal access token](../../api/group_service_accounts.md#create-a-personal-access-token-for-a-service-account-user)
+1. [Create a personal access token](../../api/groups.md#create-personal-access-token-for-service-account-user)
    for the service account user.
 
    You define the scopes for the service account by [setting the scopes for the personal access token](personal_access_tokens.md#personal-access-token-scopes).
 
-   Optional. You can [create a personal access token with no expiry date](personal_access_tokens.md#access-token-expiration).
+   Optional. You can [create a personal access token with no expiry date](personal_access_tokens.md#when-personal-access-tokens-expire).
 
    The response includes the personal access token value.
 
@@ -83,14 +74,12 @@ Prerequisites:
    This service account is associated with the entire instance, not a specific group
    or project in the instance.
 
-1. [List all service account users](../../api/users.md#list-service-account-users).
-
 1. [Create a personal access token](../../api/users.md#create-a-personal-access-token)
    for the service account user.
 
    You define the scopes for the service account by [setting the scopes for the personal access token](personal_access_tokens.md#personal-access-token-scopes).
 
-   Optional. You can [create a personal access token with no expiry date](personal_access_tokens.md#access-token-expiration).
+   Optional. You can [create a personal access token with no expiry date](personal_access_tokens.md#when-personal-access-tokens-expire).
 
    The response includes the personal access token value.
 
@@ -144,44 +133,11 @@ Prerequisites:
 - For GitLab.com, you must have the Owner role in a top-level group.
 - For self-managed GitLab, you must be an administrator for your self-managed instance.
 
-Use the groups API to [rotate the personal access token](../../api/group_service_accounts.md#rotate-a-personal-access-token-for-a-service-account-user) for a service account user.
-
-### Revoke a personal access token
-
-Prerequisites:
-
-- You must be signed in as the service account user.
-
-To revoke a personal access token, use the [personal access tokens API](../../api/personal_access_tokens.md#revoke-a-personal-access-token). You can use either of the following methods:
-
-- Use a [personal access token ID](../../api/personal_access_tokens.md#using-a-personal-access-token-id-1). The token used to perform the revocation must have the [`admin_mode`](personal_access_tokens.md#personal-access-token-scopes) scope.
-- Use a [request header](../../api/personal_access_tokens.md#using-a-request-header-1). The token used to perform the request is revoked.
-
-### Delete a service account
-
-#### GitLab.com
-
-Prerequisites:
-
-- You must have the Owner role in a top-level group.
-
-To delete a service account, [use the service accounts API to delete the service account user](../../api/group_service_accounts.md#delete-a-service-account-user).
-
-#### Self-managed GitLab
-
-Prerequisites:
-
-- You must be an administrator for the instance the service account is associated with.
-
-To delete a service account, [use the users API to delete the service account user](../../api/users.md#user-deletion).
+Use the groups API to [rotate the personal access token](../../api/groups.md#rotate-a-personal-access-token-for-service-account-user) for a service account user.
 
 ### Disable a service account
 
-Prerequisites:
-
-- You must have the Owner role for the group the service account is associated with.
-
-If you are not an administrator for the instance or group a service account is associated with, you cannot directly delete that service account. Instead:
+You cannot directly disable or delete a service account. Instead, you must:
 
 1. Remove the service account as a member of all subgroups and projects:
 
@@ -191,10 +147,12 @@ If you are not an administrator for the instance or group a service account is a
 
    For more information, see the [API documentation on removing a member from a group or project](../../api/members.md#remove-a-member-from-a-group-or-project).
 
+1. Revoke the personal access token using the [UI](personal_access_tokens.md#revoke-a-personal-access-token) or the [API](../../api/personal_access_tokens.md#revoke-a-personal-access-token).
+
 ## Related topics
 
 - [Billable users](../../subscriptions/self_managed/index.md#billable-users)
 - [Associated records](account/delete_account.md#associated-records)
 - [Project access tokens - bot users](../project/settings/project_access_tokens.md#bot-users-for-projects)
 - [Group access tokens - bot users](../group/settings/group_access_tokens.md#bot-users-for-groups)
-- [Internal users](../../administration/internal_users.md#internal-users)
+- [Internal users](../../development/internal_users.md#internal-users)

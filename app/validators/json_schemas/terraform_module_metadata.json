@@ -23,7 +23,9 @@
         },
         "additionalProperties": false,
         "required": [
-          "name"
+          "name",
+          "description",
+          "type"
         ]
       }
     },
@@ -41,43 +43,32 @@
         },
         "additionalProperties": false,
         "required": [
-          "name"
+          "name",
+          "description"
         ]
       }
     },
-    "dependency": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "source": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "name"
-      ]
-    },
     "dependencies": {
-      "type": "object",
-      "properties": {
-        "providers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/dependency"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
           }
         },
-        "modules": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/dependency"
-          }
-        }
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "source",
+          "version"
+        ]
       }
     },
     "resources": {
@@ -91,7 +82,7 @@
     "root": {
       "type": "object",
       "properties": {
-        "readme": {
+        "description": {
           "type": "string"
         },
         "inputs": {
@@ -110,49 +101,57 @@
       "additionalProperties": false
     },
     "submodules": {
-      "type": "object",
-      "patternProperties": {
-        "^[a-zA-Z0-9_-]+$": {
-          "type": "object",
-          "properties": {
-            "readme": {
-              "type": "string"
-            },
-            "inputs": {
-              "$ref": "#/definitions/inputs"
-            },
-            "outputs": {
-              "$ref": "#/definitions/outputs"
-            },
-            "dependencies": {
-              "$ref": "#/definitions/dependencies"
-            },
-            "resources": {
-              "$ref": "#/definitions/resources"
-            }
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
           },
-          "additionalProperties": false
-        }
+          "description": {
+            "type": "string"
+          },
+          "inputs": {
+            "$ref": "#/definitions/inputs"
+          },
+          "outputs": {
+            "$ref": "#/definitions/outputs"
+          },
+          "dependencies": {
+            "$ref": "#/definitions/dependencies"
+          },
+          "resources": {
+            "$ref": "#/definitions/resources"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
       }
     },
     "examples": {
-      "type": "object",
-      "patternProperties": {
-        "^[a-zA-Z0-9_-]+$": {
-          "type": "object",
-          "properties": {
-            "readme": {
-              "type": "string"
-            },
-            "inputs": {
-              "$ref": "#/definitions/inputs"
-            },
-            "outputs": {
-              "$ref": "#/definitions/outputs"
-            }
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
           },
-          "additionalProperties": false
-        }
+          "description": {
+            "type": "string"
+          },
+          "inputs": {
+            "$ref": "#/definitions/inputs"
+          },
+          "outputs": {
+            "$ref": "#/definitions/outputs"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
       }
     }
   },

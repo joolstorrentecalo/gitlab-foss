@@ -7,7 +7,7 @@ module Gitlab
         include Gitlab::Import::MergeRequestHelpers
 
         attr_reader :pull_request, :project, :client, :user_finder,
-          :milestone_finder, :issuable_finder
+                    :milestone_finder, :issuable_finder
 
         # pull_request - An instance of
         #                `Gitlab::GithubImport::Representation::PullRequest`.
@@ -58,8 +58,7 @@ module Gitlab
             milestone_id: milestone_finder.id_for(pull_request),
             author_id: author_id,
             created_at: pull_request.created_at,
-            updated_at: pull_request.updated_at,
-            imported_from: ::Import::HasImportSource::IMPORT_SOURCES[:github]
+            updated_at: pull_request.updated_at
           }
 
           mr = project.merge_requests.new(attributes.merge(importing: true))

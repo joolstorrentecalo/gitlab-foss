@@ -68,9 +68,10 @@ RSpec.describe API::ProjectPackages, feature_category: :package_registry do
             expect(json_response).to include(a_hash_including('package_type' => 'terraform_module'))
           end
 
-          it 'returns the terraform module package with the terraform module registry web_path' do
+          it 'returns the terraform module package with the infrastructure registry web_path' do
             subject
-            expect(json_response).to include(a_hash_including('_links' => a_hash_including('web_path' => include('terraform_module_registry'))))
+
+            expect(json_response).to include(a_hash_including('_links' => a_hash_including('web_path' => include('infrastructure_registry'))))
           end
         end
 
@@ -244,21 +245,19 @@ RSpec.describe API::ProjectPackages, feature_category: :package_registry do
     end
 
     context 'without the need for a license' do
-      context 'without build info' do
-        it 'does not include the pipeline attributes' do
-          subject
-
-          expect(json_response).not_to include('pipeline', 'pipelines')
-        end
-      end
-
       context 'with build info' do
-        let_it_be(:package1) { create(:npm_package, :with_build, project: project) }
+        it 'does not result in additional queries', quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/439528' do # rubocop:disable Layout/LineLength -- We prefer to keep it on a single line, for simplicity sake
+          control = ActiveRecord::QueryRecorder.new do
+            get api(package_url, user)
+          end
 
-        it 'returns an empty array for the pipelines attribute' do
-          subject
+          pipeline = create(:ci_pipeline, user: user, project: project)
+          create(:ci_build, user: user, pipeline: pipeline, project: project)
+          create(:package_build_info, package: package1, pipeline: pipeline)
 
-          expect(json_response['pipelines']).to be_empty
+          expect do
+            get api(package_url, user)
+          end.not_to exceed_query_limit(control).with_threshold(4)
         end
       end
 

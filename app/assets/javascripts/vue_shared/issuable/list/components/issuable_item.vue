@@ -16,7 +16,6 @@ import { __, n__, sprintf } from '~/locale';
 import IssuableAssignees from '~/issuable/components/issue_assignees.vue';
 import timeagoMixin from '~/vue_shared/mixins/timeago';
 import WorkItemTypeIcon from '~/work_items/components/work_item_type_icon.vue';
-import WorkItemPrefetch from '~/work_items/components/work_item_prefetch.vue';
 import { STATE_OPEN, STATE_CLOSED } from '~/work_items/constants';
 import { isAssigneesWidget, isLabelsWidget } from '~/work_items/utils';
 
@@ -30,7 +29,6 @@ export default {
     GlSprintf,
     IssuableAssignees,
     WorkItemTypeIcon,
-    WorkItemPrefetch,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -86,9 +84,6 @@ export default {
     },
     issuableIid() {
       return this.issuable.iid;
-    },
-    workItemFullPath() {
-      return this.issuable.namespace?.fullPath;
     },
     author() {
       return this.issuable.author || {};
@@ -243,11 +238,7 @@ export default {
         return;
       }
       e.preventDefault();
-      this.$emit('select-issuable', {
-        iid: this.issuableIid,
-        webUrl: this.issuable.webUrl,
-        fullPath: this.workItemFullPath,
-      });
+      this.$emit('select-issuable', { iid: this.issuableIid, webUrl: this.issuableLinkHref });
     },
   },
 };
@@ -256,7 +247,7 @@ export default {
 <template>
   <li
     :id="`issuable_${issuableId}`"
-    class="issue !gl-flex !gl-px-5"
+    class="issue gl-display-flex! gl-px-5!"
     :class="{ closed: issuable.closedAt, 'gl-bg-blue-50': isActive }"
     :data-labels="labelIdsString"
     :data-qa-issue-id="issuableId"
@@ -264,6 +255,7 @@ export default {
   >
     <gl-form-checkbox
       v-if="showCheckbox"
+      class="issue-check gl-mr-0"
       :checked="checked"
       :data-id="issuableId"
       :data-iid="issuableIid"
@@ -273,7 +265,7 @@ export default {
       <span class="gl-sr-only">{{ issuable.title }}</span>
     </gl-form-checkbox>
     <div class="issuable-main-info">
-      <div data-testid="issuable-title" class="issue-title title gl-font-size-0">
+      <div data-testid="issuable-title" class="issue-title title">
         <work-item-type-icon
           v-if="showWorkItemTypeIcon"
           class="gl-mr-2"
@@ -286,7 +278,6 @@ export default {
           name="eye-slash"
           :title="__('Confidential')"
           :aria-label="__('Confidential')"
-          class="gl-mr-2"
         />
         <gl-icon
           v-if="issuable.hidden"
@@ -295,46 +286,20 @@ export default {
           :title="__('This issue is hidden because its author has been banned.')"
           :aria-label="__('Hidden')"
         />
-        <template v-if="preventRedirect">
-          <work-item-prefetch
-            :work-item-iid="issuableIid"
-            :work-item-full-path="workItemFullPath"
-            data-testid="issuable-prefetch-trigger"
-          >
-            <template #default="{ prefetchWorkItem, clearPrefetching }">
-              <gl-link
-                class="issue-title-text gl-text-base"
-                dir="auto"
-                :href="issuableLinkHref"
-                data-testid="issuable-title-link"
-                v-bind="issuableTitleProps"
-                @click="handleIssuableItemClick"
-                @mouseover.native="prefetchWorkItem(issuableIid)"
-                @mouseout.native="clearPrefetching"
-              >
-                {{ issuable.title }}
-                <gl-icon v-if="isIssuableUrlExternal" name="external-link" class="gl-ml-2" />
-              </gl-link>
-            </template>
-          </work-item-prefetch>
-        </template>
-        <template v-else>
-          <gl-link
-            class="issue-title-text gl-text-base"
-            dir="auto"
-            :href="issuableLinkHref"
-            data-testid="issuable-title-link"
-            v-bind="issuableTitleProps"
-            @click="handleIssuableItemClick"
-          >
-            {{ issuable.title }}
-            <gl-icon v-if="isIssuableUrlExternal" name="external-link" class="gl-ml-2" />
-          </gl-link>
-        </template>
-        <slot v-if="hasSlotContents('title-icons')" name="title-icons"></slot>
+        <gl-link
+          class="issue-title-text"
+          dir="auto"
+          :href="issuableLinkHref"
+          data-testid="issuable-title-link"
+          v-bind="issuableTitleProps"
+          @click="handleIssuableItemClick"
+        >
+          {{ issuable.title }}
+          <gl-icon v-if="isIssuableUrlExternal" name="external-link" class="gl-ml-2" />
+        </gl-link>
         <span
           v-if="taskStatus"
-          class="task-status gl-ml-2 gl-hidden gl-text-sm sm:!gl-inline-block"
+          class="task-status gl-display-none gl-sm-display-inline-block! gl-ml-2 gl-font-sm"
           data-testid="task-status"
         >
           {{ taskStatus }}
@@ -345,7 +310,7 @@ export default {
         <span v-else data-testid="issuable-reference" class="issuable-reference">
           {{ reference }}
         </span>
-        <span class="gl-hidden sm:gl-inline">
+        <span class="gl-display-none gl-sm-display-inline">
           <span aria-hidden="true">&middot;</span>
           <span class="issuable-authored gl-mr-3">
             <gl-sprintf v-if="author.name" :message="__('created %{timeAgo} by %{author}')">
@@ -371,7 +336,7 @@ export default {
                   :data-avatar-url="author.avatarUrl"
                   :href="author.webPath"
                   data-testid="issuable-author"
-                  class="author-link js-user-link gl-text-sm !gl-text-gray-500"
+                  class="author-link js-user-link gl-font-sm gl-text-gray-500!"
                 >
                   <span class="author">{{ author.name }}</span>
                 </gl-link>
@@ -395,7 +360,7 @@ export default {
           v-if="labels.length"
           role="group"
           :aria-label="__('Labels')"
-          class="gl-mb-0 gl-mt-1 gl-flex gl-flex-wrap gl-gap-2"
+          class="gl-mt-1 gl-mb-0 gl-display-flex gl-flex-wrap gl-gap-2"
         >
           <gl-label
             v-for="(label, index) in labels"
@@ -405,48 +370,51 @@ export default {
             :description="label.description"
             :scoped="scopedLabel(label)"
             :target="labelTarget(label)"
+            size="sm"
           />
         </p>
       </div>
     </div>
     <div class="issuable-meta">
-      <ul v-if="showIssuableMeta" class="controls gl-gap-3">
+      <ul v-if="showIssuableMeta" class="controls">
         <!-- eslint-disable-next-line @gitlab/vue-prefer-dollar-scopedslots -->
-        <li v-if="$slots.status" data-testid="issuable-status" class="!gl-mr-0">
-          <gl-badge v-if="isNotOpen" :variant="statusBadgeVariant">
+        <li v-if="$slots.status" data-testid="issuable-status">
+          <gl-badge v-if="isNotOpen" size="sm" :variant="statusBadgeVariant">
             <slot name="status"></slot>
           </gl-badge>
           <slot v-else name="status"></slot>
         </li>
-        <slot name="approval-status"></slot>
         <slot name="pipeline-status"></slot>
-        <li v-if="assignees.length" class="!gl-mr-0">
+        <li v-if="assignees.length">
           <issuable-assignees
             :assignees="assignees"
             :icon-size="16"
             :max-visible="4"
-            class="gl-flex gl-items-center"
+            img-css-classes="gl-mr-2!"
+            class="gl-align-items-center gl-display-flex"
           />
         </li>
+        <slot name="statistics"></slot>
         <li
-          v-if="showDiscussions && notesCount"
-          class="!gl-mr-0 gl-hidden sm:gl-block"
+          v-if="showDiscussions"
+          class="gl-display-none gl-sm-display-block"
           data-testid="issuable-comments"
         >
-          <div
+          <gl-link
             v-gl-tooltip.top
             :title="__('Comments')"
-            class="gl-flex gl-items-center !gl-text-inherit"
+            :href="issuableNotesLink"
+            :class="{ 'no-comments': !notesCount }"
+            class="gl-reset-color!"
           >
-            <gl-icon name="comments" class="gl-mr-2" />
+            <gl-icon name="comments" />
             {{ notesCount }}
-          </div>
+          </gl-link>
         </li>
-        <slot name="statistics"></slot>
       </ul>
       <div
         v-gl-tooltip.bottom
-        class="gl-hidden gl-text-gray-500 sm:gl-inline-block"
+        class="gl-text-gray-500 gl-display-none gl-sm-display-inline-block"
         :title="tooltipTitle(timestamp)"
         data-testid="issuable-timestamp"
       >

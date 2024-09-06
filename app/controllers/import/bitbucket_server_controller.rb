@@ -35,7 +35,7 @@ class Import::BitbucketServerController < Import::BaseController
       return render json: { errors: _("Project %{project_repo} could not be found") % { project_repo: "#{@project_key}/#{@repo_slug}" } }, status: :unprocessable_entity
     end
 
-    result = Import::BitbucketServerService.new(client, current_user, params.merge({ organization_id: Current.organization_id })).execute(credentials)
+    result = Import::BitbucketServerService.new(client, current_user, params).execute(credentials)
 
     if result[:status] == :success
       render json: ProjectSerializer.new.represent(result[:project], serializer: :import)
@@ -104,8 +104,7 @@ class Import::BitbucketServerController < Import::BaseController
     return render_validation_error('Missing project key') unless @project_key.present? && @repo_slug.present?
     return render_validation_error('Missing repository slug') unless @repo_slug.present?
     return render_validation_error('Invalid project key') unless VALID_BITBUCKET_PROJECT_CHARS.match?(@project_key)
-
-    render_validation_error('Invalid repository slug') unless VALID_BITBUCKET_CHARS.match?(@repo_slug)
+    return render_validation_error('Invalid repository slug') unless VALID_BITBUCKET_CHARS.match?(@repo_slug)
   end
 
   def render_validation_error(message)

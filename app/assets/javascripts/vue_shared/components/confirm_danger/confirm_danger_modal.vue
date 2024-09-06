@@ -61,11 +61,6 @@ export default {
       required: false,
       default: false,
     },
-    modalTitle: {
-      type: String,
-      required: false,
-      default: CONFIRM_DANGER_MODAL_TITLE,
-    },
   },
   data() {
     return { confirmationPhrase: '' };
@@ -124,7 +119,7 @@ export default {
     :visible="visible"
     :modal-id="modalId"
     :data-testid="modalId"
-    :title="modalTitle"
+    :title="$options.i18n.CONFIRM_DANGER_MODAL_TITLE"
     :action-primary="actionPrimary"
     :action-cancel="actionCancel"
     size="sm"
@@ -144,17 +139,16 @@ export default {
         {{ confirmDangerMessage }}
       </span>
     </gl-alert>
-    <slot name="modal-body">
-      <p data-testid="confirm-danger-warning">
-        {{ additionalInformation }}
-      </p>
-    </slot>
-    <div class="gl-flex gl-flex-wrap">
-      <label data-testid="confirm-danger-phrase" for="confirm_name_input" class="gl-mb-1 gl-w-full">
-        <gl-sprintf :message="$options.i18n.CONFIRM_DANGER_PHRASE_TEXT" />
-      </label>
-      <code class="gl-max-w-fit">{{ phrase }}</code>
-    </div>
+    <p data-testid="confirm-danger-warning">
+      {{ additionalInformation }}
+    </p>
+    <p data-testid="confirm-danger-phrase" class="gl-mb-1">
+      <gl-sprintf :message="$options.i18n.CONFIRM_DANGER_PHRASE_TEXT">
+        <template #phrase_code>
+          <code>{{ phrase }}</code>
+        </template>
+      </gl-sprintf>
+    </p>
     <gl-form-group :state="isValid" class="gl-mb-0">
       <gl-form-input
         id="confirm_name_input"
@@ -165,6 +159,5 @@ export default {
         type="text"
       />
     </gl-form-group>
-    <slot name="modal-footer"></slot>
   </gl-modal>
 </template>

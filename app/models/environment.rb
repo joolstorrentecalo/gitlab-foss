@@ -26,6 +26,7 @@ class Environment < ApplicationRecord
   has_many :deployments, -> { visible }
   has_many :successful_deployments, -> { success }, class_name: 'Deployment'
   has_many :active_deployments, -> { active }, class_name: 'Deployment'
+  has_many :prometheus_alerts, inverse_of: :environment
   has_many :alert_management_alerts, class_name: 'AlertManagement::Alert', inverse_of: :environment
 
   # NOTE: If you preload multiple last deployments of environments, use Preloaders::Environments::DeploymentPreloader.
@@ -44,7 +45,7 @@ class Environment < ApplicationRecord
       class_name: 'Deployment', inverse_of: :environment
   end
 
-  has_one :latest_opened_most_severe_alert, -> { open_order_by_severity }, class_name: 'AlertManagement::Alert', inverse_of: :environment
+  has_one :latest_opened_most_severe_alert, -> { order_severity_with_open_prometheus_alert }, class_name: 'AlertManagement::Alert', inverse_of: :environment
 
   before_validation :generate_slug, if: ->(env) { env.slug.blank? }
   before_validation :ensure_environment_tier
@@ -103,13 +104,13 @@ class Environment < ApplicationRecord
   scope :order_by_name, -> { order('environments.name ASC') }
 
   scope :in_review_folder, -> { where(environment_type: "review") }
-  scope :for_name, ->(name) { where(name: name) }
+  scope :for_name, -> (name) { where(name: name) }
   scope :preload_project, -> { preload(:project) }
-  scope :auto_stoppable, ->(limit) { available.where('auto_stop_at < ?', Time.zone.now).limit(limit) }
-  scope :auto_deletable, ->(limit) { stopped.where('auto_delete_at < ?', Time.zone.now).limit(limit) }
+  scope :auto_stoppable, -> (limit) { available.where('auto_stop_at < ?', Time.zone.now).limit(limit) }
+  scope :auto_deletable, -> (limit) { stopped.where('auto_delete_at < ?', Time.zone.now).limit(limit) }
   scope :long_stopping,  -> { with_state(:stopping).where('updated_at < ?', LONG_STOP.ago) }
 
-  scope :deployed_and_updated_before, ->(project_id, before) do
+  scope :deployed_and_updated_before, -> (project_id, before) do
     # this query joins deployments and filters out any environment that has recent deployments
     joins = %(
     LEFT JOIN "deployments" on "deployments".environment_id = "environments".id
@@ -121,46 +122,46 @@ class Environment < ApplicationRecord
                .group('id', 'deployments.id')
                .having('deployments.id IS NULL')
   end
-  scope :without_protected, ->(project) {} # no-op when not in EE mode
+  scope :without_protected, -> (project) {} # no-op when not in EE mode
 
-  scope :without_names, ->(names) do
+  scope :without_names, -> (names) do
     where.not(name: names)
   end
-  scope :without_tiers, ->(tiers) do
+  scope :without_tiers, -> (tiers) do
     where.not(tier: tiers)
   end
 
   ##
   # Search environments which have names like the given query.
   # Do not set a large limit unless you've confirmed that it works on gitlab.com scale.
-  scope :for_name_like, ->(query, limit: 5) do
+  scope :for_name_like, -> (query, limit: 5) do
     top_level = 'LOWER(environments.name) LIKE LOWER(?) || \'%\''
 
     where(top_level, sanitize_sql_like(query)).limit(limit)
   end
 
-  scope :for_name_like_within_folder, ->(query, limit: 5) do
+  scope :for_name_like_within_folder, -> (query, limit: 5) do
     within_folder_name = "LOWER(ltrim(ltrim(environments.name, environments.environment_type), '/'))"
 
     where("#{within_folder_name} LIKE (LOWER(?) || '%')", sanitize_sql_like(query)).limit(limit)
   end
 
-  scope :for_project, ->(project) { where(project_id: project) }
-  scope :for_tier, ->(tier) { where(tier: tier).where.not(tier: nil) }
-  scope :for_type, ->(type) { where(environment_type: type) }
+  scope :for_project, -> (project) { where(project_id: project) }
+  scope :for_tier, -> (tier) { where(tier: tier).where.not(tier: nil) }
+  scope :for_type, -> (type) { where(environment_type: type) }
   scope :unfoldered, -> { where(environment_type: nil) }
   scope :with_rank, -> do
     select('environments.*, rank() OVER (PARTITION BY project_id ORDER BY id DESC)')
   end
 
-  scope :with_deployment, ->(sha, status: nil) do
+  scope :with_deployment, -> (sha, status: nil) do
     deployments = Deployment.select(1).where('deployments.environment_id = environments.id').where(sha: sha)
     deployments = deployments.where(status: status) if status
 
     where('EXISTS (?)', deployments)
   end
 
-  scope :stopped_review_apps, ->(before, limit) do
+  scope :stopped_review_apps, -> (before, limit) do
     stopped
       .in_review_folder
       .where("created_at < ?", before)
@@ -266,6 +267,18 @@ class Environment < ApplicationRecord
     last_deployment&.deployable
   end
 
+  # TODO: remove this method when environment_stop_actions_include_all_finished_deployments FF is removed
+  #       - https://gitlab.com/gitlab-org/gitlab/-/issues/435132
+  def last_deployment_pipeline
+    last_deployable&.pipeline
+  end
+
+  # TODO: remove this method when environment_stop_actions_include_all_finished_deployments FF is removed
+  #       - https://gitlab.com/gitlab-org/gitlab/-/issues/435132
+  def latest_successful_jobs
+    last_deployment_pipeline&.latest_successful_jobs
+  end
+
   def last_finished_deployable
     last_finished_deployment&.deployable
   end
@@ -276,6 +289,19 @@ class Environment < ApplicationRecord
 
   def latest_finished_jobs
     last_finished_pipeline&.latest_finished_jobs
+  end
+
+  # This method returns the deployment records of the last deployment pipeline, that successfully executed to this environment.
+  # e.g.
+  # A pipeline contains
+  #   - deploy job A => production environment
+  #   - deploy job B => production environment
+  # In this case, `last_deployment_group` returns both deployments, whereas `last_deployable` returns only B.
+  def legacy_last_deployment_group
+    return Deployment.none unless last_deployment_pipeline
+
+    successful_deployments.where(
+      deployable_id: last_deployment_pipeline.latest_builds.pluck(:id))
   end
 
   def last_visible_deployable
@@ -376,12 +402,20 @@ class Environment < ApplicationRecord
   end
 
   def stop_actions
-    last_finished_deployment_group.map(&:stop_action).compact
+    if Feature.enabled?(:environment_stop_actions_include_all_finished_deployments, project, type: :gitlab_com_derisk)
+      return last_finished_deployment_group.map(&:stop_action).compact
+    end
+
+    last_deployment_group.map(&:stop_action).compact
   end
   strong_memoize_attr :stop_actions
 
   def last_finished_deployment_group
     Deployment.last_finished_deployment_group_for_environment(self)
+  end
+
+  def last_deployment_group
+    Deployment.last_deployment_group_for_environment(self)
   end
 
   def reset_auto_stop

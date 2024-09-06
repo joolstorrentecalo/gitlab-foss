@@ -41,19 +41,12 @@ RSpec.describe Ci::RunnerManager, feature_category: :fleet_visibility, type: :mo
     end
   end
 
-  describe 'status scopes', :freeze_time do
-    before_all do
-      freeze_time # Freeze time before `let_it_be` runs, so that runner statuses are frozen during execution
-    end
-
-    after :all do
-      unfreeze_time
-    end
-
+  describe 'status scopes' do
     let_it_be(:runner) { create(:ci_runner, :instance) }
+
+    let_it_be(:offline_runner_manager) { create(:ci_runner_machine, runner: runner, contacted_at: 2.hours.ago) }
+    let_it_be(:online_runner_manager) { create(:ci_runner_machine, runner: runner, contacted_at: 1.second.ago) }
     let_it_be(:never_contacted_runner_manager) { create(:ci_runner_machine, :unregistered, runner: runner) }
-    let_it_be(:offline_runner_manager) { create(:ci_runner_machine, :offline, runner: runner) }
-    let_it_be(:online_runner_manager) { create(:ci_runner_machine, :almost_offline, runner: runner) }
 
     describe '.online' do
       subject(:runner_managers) { described_class.online }
@@ -206,33 +199,21 @@ RSpec.describe Ci::RunnerManager, feature_category: :fleet_visibility, type: :mo
     end
   end
 
-  describe '.with_executing_builds' do
-    subject(:scope) { described_class.with_executing_builds }
+  describe '.with_running_builds' do
+    subject(:scope) { described_class.with_running_builds }
 
     let_it_be(:runner) { create(:ci_runner) }
-    let_it_be(:runner_managers_by_status) do
-      Ci::HasStatus::AVAILABLE_STATUSES.index_with { |_status| create(:ci_runner_machine, runner: runner) }
+    let_it_be(:runner_manager1) { create(:ci_runner_machine, runner: runner) }
+    let_it_be(:runner_manager2) { create(:ci_runner_machine, runner: runner) }
+
+    before_all do
+      create(:ci_runner_machine_build, runner_manager: runner_manager1,
+        build: create(:ci_build, :success, runner: runner))
+      create(:ci_runner_machine_build, runner_manager: runner_manager2,
+        build: create(:ci_build, :running, runner: runner))
     end
 
-    let_it_be(:busy_runner_managers) do
-      Ci::HasStatus::EXECUTING_STATUSES.map { |status| runner_managers_by_status[status] }
-    end
-
-    context 'with no builds running' do
-      it { is_expected.to be_empty }
-    end
-
-    context 'with builds' do
-      before_all do
-        Ci::HasStatus::AVAILABLE_STATUSES.each do |status|
-          runner_manager = runner_managers_by_status[status]
-          build = create(:ci_build, status, runner: runner)
-          create(:ci_runner_machine_build, runner_manager: runner_manager, build: build)
-        end
-      end
-
-      it { is_expected.to match_array(busy_runner_managers) }
-    end
+    it { is_expected.to contain_exactly runner_manager2 }
   end
 
   describe '.order_id_desc' do
@@ -243,17 +224,6 @@ RSpec.describe Ci::RunnerManager, feature_category: :fleet_visibility, type: :mo
 
     specify { expect(described_class.all).to eq([runner_manager1, runner_manager2]) }
     it { is_expected.to eq([runner_manager2, runner_manager1]) }
-  end
-
-  describe '.order_contacted_at_desc', :freeze_time do
-    subject(:scope) { described_class.order_contacted_at_desc }
-
-    let_it_be(:runner_manager1) { create(:ci_runner_machine, contacted_at: 1.second.ago) }
-    let_it_be(:runner_manager2) { create(:ci_runner_machine, contacted_at: 3.seconds.ago) }
-    let_it_be(:runner_manager3) { create(:ci_runner_machine, contacted_at: nil) }
-    let_it_be(:runner_manager4) { create(:ci_runner_machine, contacted_at: 2.seconds.ago) }
-
-    it { is_expected.to eq([runner_manager1, runner_manager4, runner_manager2, runner_manager3]) }
   end
 
   describe '.with_upgrade_status' do
@@ -362,37 +332,31 @@ RSpec.describe Ci::RunnerManager, feature_category: :fleet_visibility, type: :mo
     subject { runner_manager.status }
 
     context 'if never connected' do
-      let(:runner_manager) { build(:ci_runner_machine, :unregistered, :stale) }
+      let(:runner_manager) { build(:ci_runner_machine, :unregistered, created_at: 8.days.ago) }
 
       it { is_expected.to eq(:stale) }
 
       context 'if created recently' do
-        let(:runner_manager) { build(:ci_runner_machine, :unregistered, :created_within_stale_deadline) }
+        let(:runner_manager) { build(:ci_runner_machine, :unregistered, created_at: 1.day.ago) }
 
         it { is_expected.to eq(:never_contacted) }
       end
     end
 
-    context 'if contacted just now' do
-      let(:runner_manager) { build(:ci_runner_machine, :online) }
-
-      it { is_expected.to eq(:online) }
-    end
-
-    context 'if almost offline' do
-      let(:runner_manager) { build(:ci_runner_machine, :almost_offline) }
+    context 'if contacted 1s ago' do
+      let(:runner_manager) { build(:ci_runner_machine, contacted_at: 1.second.ago) }
 
       it { is_expected.to eq(:online) }
     end
 
     context 'if contacted recently' do
-      let(:runner_manager) { build(:ci_runner_machine, :offline) }
+      let(:runner_manager) { build(:ci_runner_machine, contacted_at: 2.hours.ago) }
 
       it { is_expected.to eq(:offline) }
     end
 
     context 'if contacted long time ago' do
-      let(:runner_manager) { build(:ci_runner_machine, :stale) }
+      let(:runner_manager) { build(:ci_runner_machine, created_at: 8.days.ago, contacted_at: 7.days.ago) }
 
       it { is_expected.to eq(:stale) }
     end
@@ -523,7 +487,7 @@ RSpec.describe Ci::RunnerManager, feature_category: :fleet_visibility, type: :mo
           expect(Ci::Runners::ProcessRunnerVersionUpdateWorker).not_to have_received(:perform_async)
         end
 
-        described_class::EXECUTOR_NAME_TO_TYPES.each_key do |executor|
+        Ci::Runner::EXECUTOR_NAME_TO_TYPES.each_key do |executor|
           context "with #{executor} executor" do
             let(:executor) { executor }
 
@@ -580,12 +544,12 @@ RSpec.describe Ci::RunnerManager, feature_category: :fleet_visibility, type: :mo
     it { is_expected.to be_empty }
 
     context 'with an existing build' do
-      let!(:existing_build) { create(:ci_build) }
+      let!(:build) { create(:ci_build) }
       let!(:runner_machine_build) do
-        create(:ci_runner_machine_build, runner_manager: runner_manager, build: existing_build)
+        create(:ci_runner_machine_build, runner_manager: runner_manager, build: build)
       end
 
-      it { is_expected.to contain_exactly existing_build }
+      it { is_expected.to contain_exactly build }
     end
   end
 end

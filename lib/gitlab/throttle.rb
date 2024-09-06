@@ -13,7 +13,7 @@ module Gitlab
       Gitlab::CurrentSettings.current_application_settings
     end
 
-    # Returns true if we should use the Admin area protected paths throttle
+    # Returns true if we should use the Admin Area protected paths throttle
     def self.protected_paths_enabled?
       self.settings.throttle_protected_paths_enabled?
     end
@@ -67,13 +67,6 @@ module Gitlab
     def self.protected_paths_options
       limit_proc = proc { |req| settings.throttle_protected_paths_requests_per_period }
       period_proc = proc { |req| settings.throttle_protected_paths_period_in_seconds.seconds }
-
-      { limit: limit_proc, period: period_proc }
-    end
-
-    def self.throttle_unauthenticated_git_http_options
-      limit_proc = proc { |req| settings.throttle_unauthenticated_git_http_requests_per_period }
-      period_proc = proc { |req| settings.throttle_unauthenticated_git_http_period_in_seconds.seconds }
 
       { limit: limit_proc, period: period_proc }
     end

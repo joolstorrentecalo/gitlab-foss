@@ -18,11 +18,8 @@ You can [comment on](#comment-on-snippets), [clone](#clone-snippets), and
 [syntax highlighting](#filenames), [embedding](#embed-snippets), [downloading](#download-snippets),
 and you can maintain your snippets with the [snippets API](../api/snippets.md).
 
-You can create and manage your snippets with:
-
-- The GitLab user interface.
-- The [GitLab Workflow extension for VS Code](../editor_extensions/visual_studio_code/index.md).
-- The [`glab` CLI](../editor_extensions/gitlab_cli/index.md).
+You can create and manage your snippets through the GitLab user interface, or by
+using the [GitLab Workflow VS Code extension](../editor_extensions/visual_studio_code/index.md).
 
 ![Example of a snippet](img/snippet_sample_v16_6.png)
 
@@ -50,10 +47,7 @@ You can create snippets in multiple ways, depending on whether you want to creat
        **New snippet**.
      - From a project: On the left sidebar, select **Create new** (**{plus}**). Below **In GitLab**, select **New snippet**.
      - From any other page: On the left sidebar, select **Create new** (**{plus}**) and then **New snippet**.
-     - From the `glab` CLI, using the
-       [`glab snippet create`](https://gitlab.com/gitlab-org/cli/-/blob/main/docs/source/snippet/create.md) command.
-       For full instructions, see the command's documentation.
-     - If you installed the [GitLab Workflow extension for VS Code](../editor_extensions/visual_studio_code/index.md),
+     - If you installed the [GitLab Workflow VS Code extension](../editor_extensions/visual_studio_code/index.md),
        use the [`Gitlab: Create snippet` command](https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow#create-snippet).
    - **To create a project snippet**: Go to your project's page. Select
      **Create new** (**{plus}**). Below **In this project**, select **New snippet**.
@@ -68,7 +62,7 @@ You can create snippets in multiple ways, depending on whether you want to creat
 1. Select a visibility level, and select **Create snippet**.
 
 After you create a snippet, you can still [add more files to it](#add-or-remove-multiple-files).
-Snippets are [versioned by default](#versioned-snippets).
+In GitLab 13.0 and later, snippets are [versioned by default](#versioned-snippets).
 
 ## Discover snippets
 
@@ -104,13 +98,19 @@ default visibility:
 
 ## Versioned snippets
 
-Both personal and project snippets use version control by default.
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/239) in GitLab 13.0.
+
+In GitLab 13.0 and later, snippets (both personal and project snippets)
+have version control enabled by default.
 
 This means that all snippets get their own underlying repository initialized with
 a default branch at the moment the snippet is created. Whenever a change to the snippet is saved, a
 new commit to the default branch is recorded. Commit messages are automatically
 generated. The snippet's repository has only one branch. You can't delete this branch,
 or create other branches.
+
+Existing snippets were automatically migrated in GitLab 13.0. Their current
+content was saved as the initial commit to the snippets' repository.
 
 ## Filenames
 
@@ -132,6 +132,8 @@ repository. As snippets are stored by ID, changing their filenames breaks
 direct or embedded links to the snippet.
 
 ## Add or remove multiple files
+
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/2829) in GitLab 13.5.
 
 A single snippet can support up to 10 files, which helps keep related files together, such as:
 
@@ -249,7 +251,6 @@ GitLab forwards the spam to Akismet.
 
 ### Snippet limitations
 
-- No limits exist as to how many snippets you can create.
 - Binary files are not supported.
 - Creating or deleting branches is not supported. Only the default branch is used.
 - Git tags are not supported in snippet repositories.
@@ -257,7 +258,8 @@ GitLab forwards the spam to Akismet.
   than 10 files results in an error.
 - Revisions are not visible to the user on the GitLab UI, but [an issue exists](https://gitlab.com/gitlab-org/gitlab/-/issues/39271)
   for updates.
-- The default [maximum size for a snippet](../administration/snippets/index.md) and current (as of 2024-04-17) is 50 MB.
+- The default [maximum size for a snippet](../administration/snippets/index.md)
+  is 50 MB.
 - Git LFS is not supported.
 
 ### Reduce snippets repository size

@@ -69,9 +69,7 @@ module Gitlab
           {
             allowed_to_push: [{ 'access_level' => Gitlab::Access::DEVELOPER }],
             allowed_to_merge: [{ 'access_level' => Gitlab::Access::DEVELOPER }],
-            allow_force_push: true,
-            code_owner_approval_required: false,
-            developer_can_initial_push: false
+            allow_force_push: true
           }
         end
 
@@ -79,8 +77,7 @@ module Gitlab
           {
             allowed_to_push: [{ 'access_level' => Gitlab::Access::DEVELOPER }],
             allowed_to_merge: [{ 'access_level' => Gitlab::Access::MAINTAINER }],
-            allow_force_push: false,
-            developer_can_initial_push: false
+            allow_force_push: false
           }
         end
 
@@ -88,8 +85,7 @@ module Gitlab
           {
             allowed_to_push: [{ 'access_level' => Gitlab::Access::MAINTAINER }],
             allowed_to_merge: [{ 'access_level' => Gitlab::Access::MAINTAINER }],
-            allow_force_push: false,
-            developer_can_initial_push: false
+            allow_force_push: false
           }
         end
 
@@ -97,8 +93,7 @@ module Gitlab
           {
             allowed_to_push: [{ 'access_level' => Gitlab::Access::MAINTAINER }],
             allowed_to_merge: [{ 'access_level' => Gitlab::Access::DEVELOPER }],
-            allow_force_push: false,
-            developer_can_initial_push: false
+            allow_force_push: false
           }
         end
 
@@ -107,7 +102,6 @@ module Gitlab
             allowed_to_push: [{ 'access_level' => Gitlab::Access::MAINTAINER }],
             allowed_to_merge: [{ 'access_level' => Gitlab::Access::MAINTAINER }],
             allow_force_push: false,
-            code_owner_approval_required: false,
             developer_can_initial_push: true
           }
         end

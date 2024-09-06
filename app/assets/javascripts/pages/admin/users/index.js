@@ -1,13 +1,7 @@
-import {
-  initAdminUsersFilterApp,
-  initAdminUserActions,
-  initAdminUsersApp,
-  initDeleteUserModals,
-} from '~/admin/users';
+import { initAdminUsersApp, initDeleteUserModals, initAdminUserActions } from '~/admin/users';
 import initConfirmModal from '~/confirm_modal';
 
-initAdminUsersFilterApp();
-initAdminUserActions();
 initAdminUsersApp();
+initAdminUserActions();
 initDeleteUserModals();
 initConfirmModal();

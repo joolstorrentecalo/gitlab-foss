@@ -19,8 +19,8 @@ export default {
     },
   },
   computed: {
-    commitTitle() {
-      return this.commit?.title;
+    commitMessage() {
+      return this.commit?.message;
     },
     commitAuthorPath() {
       return this.commit?.author?.path || `mailto:${escape(this.commit?.authorEmail)}`;
@@ -32,18 +32,23 @@ export default {
       return this.commit?.author?.name || this.commit?.authorName;
     },
     commitPath() {
-      return this.commit?.webPath || this.commit?.commitPath;
+      return this.commit?.commitPath;
     },
   },
 };
 </script>
 <template>
-  <div data-testid="deployment-commit" class="gl-flex gl-items-center">
+  <div data-testid="deployment-commit" class="gl-display-flex gl-align-items-center">
     <gl-avatar-link v-gl-tooltip :title="commitAuthor" :href="commitAuthorPath">
       <gl-avatar :size="16" :src="commitAuthorAvatar" />
     </gl-avatar-link>
-    <gl-link v-gl-tooltip :title="commitTitle" :href="commitPath" class="gl-str-truncated gl-ml-3">
-      {{ commitTitle }}
+    <gl-link
+      v-gl-tooltip
+      :title="commitMessage"
+      :href="commitPath"
+      class="gl-ml-3 gl-str-truncated"
+    >
+      {{ commitMessage }}
     </gl-link>
   </div>
 </template>

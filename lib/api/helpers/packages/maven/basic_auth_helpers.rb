@@ -12,7 +12,7 @@ module API
           # basic auth.
           override :find_user_from_job_token
           def find_user_from_job_token
-            super || find_user_from_job_token_basic_auth
+            super || find_user_from_basic_auth_job
           end
         end
       end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class IndexIdentitiesOnProvider < Gitlab::Database::Migration[2.2]
-  milestone '17.0'
+  milestone '16.11'
 
   disable_ddl_transaction!
 

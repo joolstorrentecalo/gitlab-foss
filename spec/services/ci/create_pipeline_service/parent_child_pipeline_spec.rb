@@ -2,10 +2,10 @@
 
 require 'spec_helper'
 
-RSpec.describe Ci::CreatePipelineService, '#execute', :ci_config_feature_flag_correctness,
+RSpec.describe Ci::CreatePipelineService, '#execute', :yaml_processor_feature_flag_corectness,
   feature_category: :continuous_integration do
   let_it_be(:project) { create(:project, :repository) }
-  let_it_be(:user) { create(:user, developer_of: project) }
+  let_it_be(:user) { create(:user) }
 
   let(:ref_name) { 'master' }
 
@@ -16,6 +16,10 @@ RSpec.describe Ci::CreatePipelineService, '#execute', :ci_config_feature_flag_co
                commits: [{ message: 'some commit' }] }
 
     described_class.new(project, user, params)
+  end
+
+  before do
+    project.add_developer(user)
   end
 
   it_behaves_like 'creating a pipeline with environment keyword' do
@@ -127,6 +131,12 @@ RSpec.describe Ci::CreatePipelineService, '#execute', :ci_config_feature_flag_co
       end
 
       context 'when sidekiq processes the job', :sidekiq_inline do
+        before do
+          allow_next_instance_of(Ci::ResourceGroups::AssignResourceFromResourceGroupService) do |resource_service|
+            allow(resource_service).to receive(:respawn_assign_resource_worker)
+          end
+        end
+
         it 'transitions to pending status and triggers a downstream pipeline' do
           pipeline = create_pipeline!
 

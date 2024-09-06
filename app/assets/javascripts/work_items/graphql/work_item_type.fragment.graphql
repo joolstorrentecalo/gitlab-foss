@@ -1,7 +1,0 @@
-fragment WorkItemTypeFragment on WorkItemType {
-  id
-  name
-  widgetDefinitions {
-    type
-  }
-}

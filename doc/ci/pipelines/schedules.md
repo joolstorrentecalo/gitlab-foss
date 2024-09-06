@@ -19,7 +19,7 @@ For a scheduled pipeline to run:
 - The schedule owner must have the Developer role. For pipelines on protected branches,
   the schedule owner must be [allowed to merge](../../user/project/protected_branches.md#add-protection-to-existing-branches)
   to the branch.
-- The `.gitlab-ci.yml` file must have valid syntax.
+- The [`.gitlab-ci.yml` file](../index.md#the-gitlab-ciyml-file) must have valid syntax.
 
 Otherwise, the pipeline is not created. No error message is displayed.
 
@@ -62,7 +62,7 @@ the next scheduled time:
 1. On the left sidebar, select **Search or go to** and find your project.
 1. Select **Build > Pipeline schedules**.
 1. On the right of the list, for
-   the pipeline you want to run, select **Run** (**{play}**).
+   the pipeline you want to run, select **Play** (**{play}**).
 
 You can manually run scheduled pipelines once per minute.
 
@@ -88,52 +88,32 @@ You need at least the Maintainer role to take ownership of a pipeline created by
 ## Related topics
 
 - [Pipeline schedules API](../../api/pipeline_schedules.md)
-- [Run jobs for scheduled pipelines](../jobs/job_rules.md#run-jobs-for-scheduled-pipelines)
+- [Adding jobs to scheduled pipelines](../jobs/job_control.md#run-jobs-for-scheduled-pipelines)
+
+<!-- ## Troubleshooting
+
+Include any troubleshooting steps that you can foresee. If you know beforehand what issues
+one might have when setting this up, or when something is changed, or on upgrading, it's
+important to describe those, too. Think of things that may go wrong and include them here.
+This is important to minimize requests for support, and to avoid doc comments with
+questions that you know someone might ask.
+
+Each scenario can be a third-level heading, for example `### Getting error message X`.
+If you have none to add when creating a doc, leave this section in place
+but commented out to help encourage others to add to it in the future. -->
 
 ## Troubleshooting
 
-When working with pipeline schedules, you might encounter the following issues.
+### Short refs are expanded to Full refs
 
-### Short refs are expanded to full refs
+This behavior is normal and it introduced in order to enforce explicit resources.
+The API still accepts both `short` (e.g. `main`) and `full` (e.g. `refs/heads/main` or `refs/tags/main`) refs and expands any `short`
+ref provided, to a `full` ref.
 
-When you provide a short `ref` to the API, it is automatically expanded to a full `ref`.
-This behavior is intended and ensures explicit resource identification.
+### Ambiguous Refs
 
-The API accepts both short refs (such as `main`) and full refs (such as `refs/heads/main` or `refs/tags/main`).
+When a ref is being expanded, there can be cases where the full ref can't be automatically inferred.
+Such cases can be:
 
-### Ambiguous refs
-
-In some cases, the API can't automatically expand a short `ref` to a full `ref`. This can happen when:
-
-- You provide a short `ref` (such as `main`), but both a branch and a tag exist with that name.
-- You provide a short `ref`, but no branch or tag with that name exists.
-
-To resolve this issue, provide the full `ref` to ensure the correct resource is identified.
-
-### View and optimize pipeline schedules
-
-To prevent [excessive load](pipeline_efficiency.md) caused by too many pipelines starting simultaneously,
-you can review and optimize your pipeline schedules.
-
-To get an overview of all existing schedules and identify opportunities to distribute them more evenly:
-
-1. Run this command to extract and format schedule data:
-
-   ```shell
-   outfile=/tmp/gitlab_ci_schedules.tsv
-   sudo gitlab-psql --command "
-    COPY (SELECT
-        ci_pipeline_schedules.cron,
-        projects.path   AS project,
-        users.email
-    FROM ci_pipeline_schedules
-    JOIN projects ON projects.id = ci_pipeline_schedules.project_id
-    JOIN users    ON users.id    = ci_pipeline_schedules.owner_id
-    ) TO '$outfile' CSV HEADER DELIMITER E'\t' ;"
-   sort  "$outfile" | uniq -c | sort -n
-   ```
-
-1. Review the output to identify popular `cron` patterns.
-   For example, you might see many schedules set to run at the start of each hour (`0 * * * *`).
-1. Adjust the schedules to create a staggered [`cron` pattern](../../topics/cron/index.md#cron-syntax), especially for large repositories.
-   For example, instead of multiple schedules running at the start of each hour, distribute them throughout the hour (`5 * * * *`, `15 * * * *`, `25 * * * *`).
+- A `short` ref is provided (e.g. `main`) but **both** a branch and a tag exist with the provided `short` ref name
+- A `short` ref is provided, but **neither** a branch or tag with the provided `short` ref name exist

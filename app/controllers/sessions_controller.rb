@@ -3,7 +3,6 @@
 class SessionsController < Devise::SessionsController
   include InternalRedirect
   include AuthenticatesWithTwoFactor
-  include CheckInitialSetup
   include Devise::Controllers::Rememberable
   include Recaptcha::Adapters::ViewMethods
   include Recaptcha::Adapters::ControllerMethods
@@ -16,7 +15,6 @@ class SessionsController < Devise::SessionsController
   include PreferredLanguageSwitcher
   include SkipsAlreadySignedInMessage
   include AcceptsPendingInvitations
-  include SynchronizeBroadcastMessageDismissals
   extend ::Gitlab::Utils::Override
 
   skip_before_action :check_two_factor_requirement, only: [:destroy]
@@ -40,7 +38,7 @@ class SessionsController < Devise::SessionsController
   after_action :log_failed_login, if: :action_new_and_failed_login?
   after_action :verify_known_sign_in, only: [:create]
 
-  helper_method :captcha_enabled?, :captcha_on_login_required?, :onboarding_status_tracking_label
+  helper_method :captcha_enabled?, :captcha_on_login_required?
 
   # protect_from_forgery is already prepended in ApplicationController but
   # authenticate_with_two_factor which signs in the user is prepended before
@@ -80,27 +78,18 @@ class SessionsController < Devise::SessionsController
 
       accept_pending_invitations
 
-      synchronize_broadcast_message_dismissals
-
       log_audit_event(current_user, resource, with: authentication_method)
       log_user_activity(current_user)
     end
   end
 
   def destroy
-    headers['Clear-Site-Data'] = '"cache", "storage", "executionContexts", "clientHints"'
+    headers['Clear-Site-Data'] = '"*"'
+
     Gitlab::AppLogger.info("User Logout: username=#{current_user.username} ip=#{request.remote_ip}")
-
     super
-
     # hide the signed_out notice
     flash[:notice] = nil
-
-    # cookies must be deleted after super call
-    # Warden sets some cookies for deletion, this will not override those settings
-    cookies.each do |cookie|
-      cookies.delete(cookie[0])
-    end
   end
 
   private
@@ -192,9 +181,18 @@ class SessionsController < Devise::SessionsController
   # Handle an "initial setup" state, where there's only one user, it's an admin,
   # and they require a password change.
   def check_initial_setup
-    return unless in_initial_setup_state?
+    return unless User.limit(2).count == 1 # Count as much 2 to know if we have exactly one
 
-    redirect_to new_admin_initial_setup_path
+    user = User.admins.last
+
+    return unless user && user.require_password_creation_for_web?
+
+    Users::UpdateService.new(current_user, user: user).execute do |user|
+      @token = user.generate_reset_token
+    end
+
+    redirect_to edit_user_password_path(reset_password_token: @token),
+      notice: _("Please create a password for your new account.")
   end
 
   def ensure_password_authentication_enabled!
@@ -316,9 +314,6 @@ class SessionsController < Devise::SessionsController
   def set_invite_params
     @invite_email = ActionController::Base.helpers.sanitize(params[:invite_email])
   end
-
-  # overridden by EE module
-  def onboarding_status_tracking_label; end
 end
 
 SessionsController.prepend_mod_with('SessionsController')

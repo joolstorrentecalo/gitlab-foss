@@ -8,7 +8,7 @@ import { createAlert } from '~/alert';
 import axios from '~/lib/utils/axios_utils';
 import { isLoggedIn, handleLocationHash } from '~/lib/utils/common_utils';
 import { __ } from '~/locale';
-import { visitUrl, getLocationHash } from '~/lib/utils/url_utility';
+import { redirectTo, getLocationHash } from '~/lib/utils/url_utility'; // eslint-disable-line import/no-deprecated
 import CodeIntelligence from '~/code_navigation/components/app.vue';
 import LineHighlighter from '~/blob/line_highlighter';
 import blobInfoQuery from 'shared_queries/repository/blob_info.query.graphql';
@@ -39,7 +39,6 @@ export default {
     explainCodeAvailable: { default: false },
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     projectInfo: {
       query: projectInfoQuery,
       variables() {
@@ -60,7 +59,7 @@ export default {
       variables() {
         const queryVariables = {
           projectPath: this.projectPath,
-          filePath: [this.path],
+          filePath: this.path,
           ref: this.currentRef,
           refType: this.refType?.toUpperCase() || null,
           shouldFetchRawText: true,
@@ -175,22 +174,13 @@ export default {
 
       return pathLock ? pathLock.user : null;
     },
-    canFork() {
-      const { createMergeRequestIn, forkProject } = this.userPermissions;
-
-      return this.isLoggedIn && !this.isUsingLfs && createMergeRequestIn && forkProject;
-    },
-    showSingleFileEditorForkSuggestion() {
-      const { canModifyBlob } = this.blobInfo;
-      return this.canFork && !canModifyBlob;
-    },
-    showWebIdeForkSuggestion() {
-      const { canModifyBlobWithWebIde } = this.blobInfo;
-
-      return this.canFork && !canModifyBlobWithWebIde;
-    },
     showForkSuggestion() {
-      return this.showSingleFileEditorForkSuggestion || this.showWebIdeForkSuggestion;
+      const { createMergeRequestIn, forkProject } = this.userPermissions;
+      const { canModifyBlob } = this.blobInfo;
+
+      return (
+        this.isLoggedIn && !this.isUsingLfs && !canModifyBlob && createMergeRequestIn && forkProject
+      );
     },
     forkPath() {
       const forkPaths = {
@@ -275,24 +265,14 @@ export default {
       if (this.$route?.query?.plain === plain) return;
       this.$router.push({ path: this.$route.path, query: { ...this.$route.query, plain } });
     },
-    isIdeTarget(target) {
-      return target === 'ide';
-    },
-    forkSuggestionForSelectedEditor(target) {
-      return this.isIdeTarget(target)
-        ? this.showWebIdeForkSuggestion
-        : this.showSingleFileEditorForkSuggestion;
-    },
     editBlob(target) {
-      const { ideEditPath, editBlobPath } = this.blobInfo;
-      const isIdeTarget = this.isIdeTarget(target);
-      const showForkSuggestionForSelectedEditor = this.forkSuggestionForSelectedEditor(target);
-
-      if (showForkSuggestionForSelectedEditor) {
+      if (this.showForkSuggestion) {
         this.setForkTarget(target);
-      } else {
-        visitUrl(isIdeTarget ? ideEditPath : editBlobPath);
+        return;
       }
+
+      const { ideEditPath, editBlobPath } = this.blobInfo;
+      redirectTo(target === 'ide' ? ideEditPath : editBlobPath); // eslint-disable-line import/no-deprecated
     },
     setForkTarget(target) {
       this.forkTarget = target;
@@ -331,8 +311,7 @@ export default {
         :has-render-error="hasRenderError"
         :show-path="false"
         :override-copy="true"
-        :show-fork-suggestion="showSingleFileEditorForkSuggestion"
-        :show-web-ide-fork-suggestion="showWebIdeForkSuggestion"
+        :show-fork-suggestion="showForkSuggestion"
         :show-blame-toggle="true"
         :project-path="projectPath"
         :project-id="projectId"
@@ -355,7 +334,7 @@ export default {
             :project-path="projectPath"
             :is-locked="Boolean(pathLockedByUser)"
             :can-lock="canLock"
-            :show-fork-suggestion="showSingleFileEditorForkSuggestion"
+            :show-fork-suggestion="showForkSuggestion"
             :is-using-lfs="isUsingLfs"
             @fork="setForkTarget('view')"
           />

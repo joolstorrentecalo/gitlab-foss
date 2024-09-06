@@ -22,6 +22,8 @@ module Resolvers
       private
 
       def related_work_items(args)
+        return WorkItem.none unless work_item.resource_parent.linked_work_items_feature_flag_enabled?
+
         offset_pagination(
           work_item.linked_work_items(authorize: false, link_type: args[:filter])
         )

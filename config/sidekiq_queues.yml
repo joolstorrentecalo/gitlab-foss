@@ -43,16 +43,6 @@
   - 1
 - - analytics_usage_trends_counter_job
   - 1
-- - anti_abuse_new_abuse_report
-  - 1
-- - anti_abuse_spam_abuse_events
-  - 1
-- - anti_abuse_trust_score
-  - 1
-- - anti_abuse_trust_score_cleanup
-  - 1
-- - app_sec_container_scanning_scan_image
-  - 1
 - - app_sec_dast_scanner_profiles_builds_consistency
   - 1
 - - app_sec_dast_scans_consistency
@@ -129,8 +119,6 @@
   - 1
 - - bitbucket_server_import_import_pull_request
   - 1
-- - bitbucket_server_import_import_pull_request_note
-  - 1
 - - bitbucket_server_import_import_pull_request_notes
   - 1
 - - bitbucket_server_import_stage_finish_import
@@ -167,8 +155,6 @@
   - 1
 - - bulk_imports_transform_references
   - 1
-- - bulk_imports_user_contributions_export
-  - 1
 - - chaos
   - 2
 - - chat_notification
@@ -176,8 +162,6 @@
 - - ci_cancel_pipeline
   - 1
 - - ci_cancel_redundant_pipelines
-  - 1
-- - ci_click_house_finished_pipelines_sync
   - 1
 - - ci_delete_objects
   - 1
@@ -195,8 +179,6 @@
   - 1
 - - ci_unlock_pipelines_in_queue
   - 1
-- - ci_update_approval_rules_for_related_mrs
-  - 1
 - - ci_update_build_names
   - 1
 - - ci_upstream_projects_subscriptions_cleanup
@@ -204,8 +186,6 @@
 - - ci_user_cancel_pipeline
   - 1
 - - click_house_audit_event_partition_sync
-  - 1
-- - click_house_buffer_sync
   - 1
 - - click_house_ci_finished_builds_sync
   - 1
@@ -218,10 +198,6 @@
 - - compliance_management_merge_requests_compliance_violations
   - 1
 - - compliance_management_pending_status_check
-  - 1
-- - compliance_management_pipl_update_user_country_access_logs
-  - 1
-- - compliance_management_pipl_user_paid_status_check
   - 1
 - - compliance_management_project_framework_export_mailer
   - 1
@@ -252,6 +228,12 @@
 - - compliance_management_update_default_framework
   - 1
 - - compliance_management_violation_export_mailer
+  - 1
+- - container_registry_migration_enqueuer
+  - 1
+- - container_registry_migration_guard
+  - 1
+- - container_registry_migration_observer
   - 1
 - - container_repository
   - 1
@@ -347,10 +329,6 @@
   - 1
 - - export_csv
   - 1
-- - export_segmented_export
-  - 1
-- - export_segmented_export_finalisation
-  - 1
 - - external_service_reactive_caching
   - 1
 - - file_hook
@@ -401,8 +379,6 @@
   - 1
 - - groups_export_memberships
   - 1
-- - groups_reset_seat_callouts
-  - 1
 - - groups_schedule_bulk_repository_shard_moves
   - 1
 - - groups_update_repository_storage
@@ -411,16 +387,8 @@
   - 1
 - - groups_update_two_factor_requirement_for_members
   - 1
-- - import_bulk_imports_source_users_attributes
-  - 1
-- - import_delete_placeholder_user
-  - 1
 - - import_issues_csv
   - 2
-- - import_load_placeholder_references
-  - 1
-- - import_reassign_placeholder_user_records
-  - 1
 - - import_refresh_import_jid
   - 1
 - - incident_management
@@ -447,14 +415,10 @@
   - 1
 - - integrations_irker
   - 1
-- - integrations_propagate_integration_descendant
-  - 1
 - - integrations_slack_event
   - 1
 - - invalid_gpg_signature_update
   - 2
-- - issuable_create_reminder
-  - 1
 - - issuable_export_csv
   - 1
 - - issuable_label_links_destroy
@@ -479,7 +443,13 @@
   - 2
 - - llm_completion
   - 1
+- - llm_embedding_gitlab_documentation_create_db_embeddings_per_doc_file
+  - 1
+- - llm_embedding_gitlab_documentation_set_embeddings_on_the_record
+  - 1
 - - llm_namespace_access_cache_reset
+  - 1
+- - llm_vertex_ai_access_token_refresh
   - 1
 - - mail_scheduler
   - 2
@@ -488,10 +458,6 @@
 - - members_destroyer_clean_up_group_protected_branch_rules
   - 1
 - - members_expiring_email_notification
-  - 1
-- - members_groups_base_memberships_export
-  - 1
-- - members_groups_export_detailed_memberships
   - 1
 - - merge
   - 5
@@ -525,6 +491,8 @@
   - 1
 - - merge_requests_notify_approvers
   - 1
+- - merge_requests_process_approval_auto_merge
+  - 1
 - - merge_requests_process_auto_merge_from_event
   - 1
 - - merge_requests_remove_user_approval_rules
@@ -542,8 +510,6 @@
 - - migrate_external_diffs
   - 1
 - - ml_experiment_tracking_associate_ml_candidate_to_package
-  - 1
-- - namespaces_cascade_duo_features_enabled
   - 1
 - - namespaces_free_user_cap_group_over_limit_notification
   - 1
@@ -569,8 +535,6 @@
   - 1
 - - onboarding_create_iterable_trigger
   - 1
-- - onboarding_create_iterable_triggers
-  - 1
 - - onboarding_issue_created
   - 1
 - - onboarding_pipeline_created
@@ -584,6 +548,8 @@
 - - package_metadata_global_advisory_scan
   - 1
 - - package_repositories
+  - 1
+- - packages_composer_cache_update
   - 1
 - - pages
   - 1
@@ -610,8 +576,6 @@
 - - process_commit
   - 3
 - - product_analytics_initialize_snowplow_product_analytics
-  - 1
-- - product_analytics_move_funnels
   - 1
 - - product_analytics_post_push
   - 1
@@ -711,8 +675,6 @@
   - 1
 - - sbom_process_transfer_events
   - 1
-- - sbom_process_vulnerabilities
-  - 1
 - - sbom_reports
   - 1
 - - sbom_sync_archived_status
@@ -720,8 +682,6 @@
 - - sbom_sync_project_traversal_ids
   - 1
 - - search_elastic_default_branch_changed
-  - 1
-- - search_elastic_delete
   - 1
 - - search_elastic_group_association_deletion
   - 1
@@ -737,19 +697,9 @@
   - 1
 - - search_zoekt_delete_project
   - 1
-- - search_zoekt_delete_project_event
-  - 1
-- - search_zoekt_indexing_task
-  - 1
 - - search_zoekt_namespace_indexer
   - 1
-- - search_zoekt_namespace_initial_indexing
-  - 1
 - - search_zoekt_project_transfer
-  - 1
-- - secrets_management_provision_project_secrets_manager
-  - 1
-- - security_create_security_policy_project
   - 1
 - - security_delete_orchestration_configuration
   - 1
@@ -775,17 +725,11 @@
   - 1
 - - security_scan_result_policies_add_approvers_to_rules
   - 1
-- - security_scan_result_policies_delete_scan_result_policy_reads
-  - 1
-- - security_scan_result_policies_fallback_behavior_tracking
-  - 1
 - - security_scan_result_policies_sync_any_merge_request_approval_rules
   - 1
 - - security_scan_result_policies_sync_merge_request_approvals
   - 1
 - - security_scan_result_policies_sync_project
-  - 1
-- - security_scan_result_policies_unblock_fail_open_approval_rules
   - 1
 - - security_scans
   - 2
@@ -839,10 +783,6 @@
   - 1
 - - upload_checksum
   - 1
-- - users_experimental_communication_opt_in
-  - 1
-- - users_record_last_activity
-  - 1
 - - users_track_namespace_visits
   - 1
 - - vulnerabilities_mark_dropped_as_resolved
@@ -873,15 +813,9 @@
   - 1
 - - wikis_git_garbage_collect
   - 1
-- - work_items_copy_timelogs
-  - 1
 - - work_items_import_work_items_csv
   - 1
-- - work_items_rolledup_dates_bulk_update_handler
-  - 1
-- - work_items_rolledup_dates_update_milestone_related_work_item_dates_event_handler
-  - 1
-- - work_items_rolledup_dates_update_multiple_rolledup_dates
+- - work_items_rolledup_dates_update_parent_rolledup_dates_event_handler
   - 1
 - - work_items_rolledup_dates_update_rolledup_dates
   - 1

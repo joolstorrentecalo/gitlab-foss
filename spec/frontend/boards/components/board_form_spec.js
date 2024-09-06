@@ -1,4 +1,4 @@
-import { GlModal, GlForm } from '@gitlab/ui';
+import { GlModal } from '@gitlab/ui';
 import Vue from 'vue';
 import VueApollo from 'vue-apollo';
 import setWindowLocation from 'helpers/set_window_location_helper';
@@ -48,8 +48,6 @@ describe('BoardForm', () => {
   const findFormWrapper = () => wrapper.findByTestId('board-form-wrapper');
   const findDeleteConfirmation = () => wrapper.findByTestId('delete-confirmation-message');
   const findInput = () => wrapper.find('#board-new-name');
-  const findInputFormWrapper = () => wrapper.findComponent(GlForm);
-  const findDeleteButton = () => wrapper.findByTestId('delete-board-button');
 
   const defaultHandlers = {
     createBoardMutationHandler: jest.fn().mockResolvedValue({
@@ -85,12 +83,7 @@ describe('BoardForm', () => {
     ]);
   };
 
-  const createComponent = ({
-    props,
-    provide,
-    handlers = defaultHandlers,
-    stubs = { GlForm },
-  } = {}) => {
+  const createComponent = ({ props, provide, handlers = defaultHandlers } = {}) => {
     wrapper = shallowMountExtended(BoardForm, {
       apolloProvider: createMockApolloProvider(handlers),
       propsData: { ...defaultProps, ...props },
@@ -101,7 +94,6 @@ describe('BoardForm', () => {
         ...provide,
       },
       attachTo: document.body,
-      stubs,
     });
   };
 
@@ -121,7 +113,7 @@ describe('BoardForm', () => {
     });
 
     it('displays board scope title', () => {
-      expect(findModal().attributes('title')).toBe('Board configuration');
+      expect(findModal().attributes('title')).toBe('Board scope');
     });
 
     it('does not display a form', () => {
@@ -183,14 +175,14 @@ describe('BoardForm', () => {
       const fillForm = () => {
         findInput().value = 'Test name';
         findInput().trigger('input');
-        findInputFormWrapper().trigger('submit');
+        findInput().trigger('keyup.enter', { metaKey: true });
       };
 
       it('does not call API if board name is empty', async () => {
         createComponent({
           props: { canAdminBoard: true, currentPage: formType.new },
         });
-        findInputFormWrapper().trigger('submit');
+        findInput().trigger('keyup.enter', { metaKey: true });
 
         await waitForPromises();
 
@@ -250,7 +242,7 @@ describe('BoardForm', () => {
       });
 
       it('shows a correct title about creating a board', () => {
-        expect(findModal().attributes('title')).toBe('Configure board');
+        expect(findModal().attributes('title')).toBe('Edit board');
       });
 
       it('passes correct primary action text and variant', () => {
@@ -265,19 +257,6 @@ describe('BoardForm', () => {
       it('renders form wrapper', () => {
         expect(findFormWrapper().exists()).toBe(true);
       });
-      it('emits showBoardModal with delete when clicking on delete board button', () => {
-        createComponent({
-          props: {
-            currentPage: formType.edit,
-            showDelete: true,
-            canAdminBoard: true,
-          },
-          stubs: { GlModal },
-        });
-
-        findDeleteButton().vm.$emit('click');
-        expect(wrapper.emitted('showBoardModal')).toEqual([[formType.delete]]);
-      });
     });
 
     it('calls GraphQL mutation with correct parameters when issues are not grouped', async () => {
@@ -286,7 +265,7 @@ describe('BoardForm', () => {
         props: { canAdminBoard: true, currentPage: formType.edit },
       });
 
-      findInputFormWrapper().trigger('submit');
+      findInput().trigger('keyup.enter', { metaKey: true });
 
       await waitForPromises();
 
@@ -315,7 +294,7 @@ describe('BoardForm', () => {
         props: { canAdminBoard: true, currentPage: formType.edit },
       });
 
-      findInputFormWrapper().trigger('submit');
+      findInput().trigger('keyup.enter', { metaKey: true });
 
       await waitForPromises();
 
@@ -338,7 +317,7 @@ describe('BoardForm', () => {
         },
       });
 
-      findInputFormWrapper().trigger('submit');
+      findInput().trigger('keyup.enter', { metaKey: true });
 
       await waitForPromises();
 

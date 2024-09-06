@@ -21,7 +21,6 @@ export default {
   },
   inject: ['fullPath', 'commitSha'],
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     project: {
       query: commitReferencesQuery,
       variables() {
@@ -108,7 +107,7 @@ export default {
 </script>
 
 <template>
-  <div class="gl-border-t">
+  <div>
     <refs-list
       v-if="hasBranches"
       :has-containing-refs="hasContainingBranches"

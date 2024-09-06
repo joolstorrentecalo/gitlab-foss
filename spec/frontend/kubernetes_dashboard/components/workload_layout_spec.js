@@ -1,11 +1,9 @@
 import { shallowMount } from '@vue/test-utils';
-import { nextTick } from 'vue';
 import { GlLoadingIcon, GlAlert, GlDrawer } from '@gitlab/ui';
 import WorkloadLayout from '~/kubernetes_dashboard/components/workload_layout.vue';
 import WorkloadStats from '~/kubernetes_dashboard/components/workload_stats.vue';
 import WorkloadTable from '~/kubernetes_dashboard/components/workload_table.vue';
 import WorkloadDetails from '~/kubernetes_dashboard/components/workload_details.vue';
-import eventHub from '~/environments/event_hub';
 import { mockPodStats, mockPodsTableItems } from '../graphql/mock_data';
 
 let wrapper;
@@ -99,27 +97,16 @@ describe('Workload layout component', () => {
       expect(findErrorAlert().exists()).toBe(false);
     });
 
+    it('renders workload-stats component with the correct props', () => {
+      expect(findWorkloadStats().props('stats')).toBe(mockPodStats);
+    });
+
     it('renders workload-table component with the correct props', () => {
       expect(findWorkloadTable().props('items')).toBe(mockPodsTableItems);
     });
 
     it('renders a drawer', () => {
       expect(findDrawer().exists()).toBe(true);
-    });
-
-    describe('stats', () => {
-      it('renders workload-stats component with the correct props', () => {
-        expect(findWorkloadStats().props('stats')).toBe(mockPodStats);
-      });
-
-      it('filters items when receives a stat select event', async () => {
-        const status = 'Failed';
-        findWorkloadStats().vm.$emit('select', status);
-        await nextTick();
-
-        const filteredItems = mockPodsTableItems.filter((item) => item.status === status);
-        expect(findWorkloadTable().props('items')).toMatchObject(filteredItems);
-      });
     });
 
     describe('drawer', () => {
@@ -133,25 +120,19 @@ describe('Workload layout component', () => {
       });
 
       it('is closed when clicked on a cross button', async () => {
-        const eventHubSpy = jest.spyOn(eventHub, '$emit');
-
         await findWorkloadTable().vm.$emit('select-item', mockPodsTableItems[0]);
         expect(findDrawer().props('open')).toBe(true);
 
         await findDrawer().vm.$emit('close');
         expect(findDrawer().props('open')).toBe(false);
-        expect(eventHubSpy).toHaveBeenCalledWith('closeDetailsDrawer');
       });
 
       it('is closed on remove-selection event', async () => {
-        const eventHubSpy = jest.spyOn(eventHub, '$emit');
-
         await findWorkloadTable().vm.$emit('select-item', mockPodsTableItems[0]);
         expect(findDrawer().props('open')).toBe(true);
 
         await findWorkloadTable().vm.$emit('remove-selection');
         expect(findDrawer().props('open')).toBe(false);
-        expect(eventHubSpy).toHaveBeenCalledWith('closeDetailsDrawer');
       });
 
       it('renders a title with the selected item name', async () => {

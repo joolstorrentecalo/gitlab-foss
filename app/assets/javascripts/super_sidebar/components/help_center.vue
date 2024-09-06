@@ -1,18 +1,24 @@
 <script>
-import { GlBadge, GlButton, GlDisclosureDropdown, GlDisclosureDropdownGroup } from '@gitlab/ui';
+import {
+  GlBadge,
+  GlButton,
+  GlIcon,
+  GlDisclosureDropdown,
+  GlDisclosureDropdownGroup,
+} from '@gitlab/ui';
 import GitlabVersionCheckBadge from '~/gitlab_version_check/components/gitlab_version_check_badge.vue';
 import { helpPagePath } from '~/helpers/help_page_helper';
-import { FORUM_URL, PROMO_URL } from '~/constants';
-import { __ } from '~/locale';
+import { FORUM_URL, DOCS_URL, PROMO_URL } from 'jh_else_ce/lib/utils/url_utility';
+import { __, s__ } from '~/locale';
 import { STORAGE_KEY } from '~/whats_new/utils/notification';
 import Tracking from '~/tracking';
-import { DROPDOWN_Y_OFFSET, HELP_MENU_TRACKING_DEFAULTS, duoChatGlobalState } from '../constants';
+import { DROPDOWN_Y_OFFSET, HELP_MENU_TRACKING_DEFAULTS, helpCenterState } from '../constants';
 
 export default {
   components: {
     GlBadge,
     GlButton,
-
+    GlIcon,
     GlDisclosureDropdown,
     GlDisclosureDropdownGroup,
     GitlabVersionCheckBadge,
@@ -29,10 +35,8 @@ export default {
     shortcuts: __('Keyboard shortcuts'),
     version: __('Your GitLab version'),
     whatsnew: __("What's new"),
-    terms: __('Terms and privacy'),
-    privacy: __('Privacy statement'),
+    chat: s__('DuoChat|GitLab Duo Chat'),
   },
-  inject: ['isSaas'],
   props: {
     sidebarData: {
       type: Object,
@@ -42,7 +46,7 @@ export default {
   data() {
     return {
       showWhatsNewNotification: this.shouldShowWhatsNewNotification(),
-      duoChatGlobalState,
+      helpCenterState,
       toggleWhatsNewDrawer: null,
     };
   },
@@ -63,9 +67,17 @@ export default {
         },
         helpLinks: {
           items: [
+            this.sidebarData.show_tanuki_bot && {
+              icon: 'tanuki-ai',
+              text: this.$options.i18n.chat,
+              action: this.showTanukiBotChat,
+              extraAttrs: {
+                ...this.trackingAttrs('tanuki_bot_help_dropdown'),
+                'data-testid': 'duo-chat-menu-item',
+              },
+            },
             {
               text: this.$options.i18n.help,
-              // eslint-disable-next-line local-rules/require-valid-help-page-path
               href: helpPagePath(),
               extraAttrs: {
                 ...this.trackingAttrs('help'),
@@ -80,7 +92,7 @@ export default {
             },
             {
               text: this.$options.i18n.docs,
-              href: this.sidebarData.docs_path,
+              href: DOCS_URL,
               extraAttrs: {
                 ...this.trackingAttrs('gitlab_documentation'),
               },
@@ -101,7 +113,7 @@ export default {
             },
             {
               text: this.$options.i18n.contribute,
-              href: helpPagePath('', { anchor: 'contribute-to-gitlab' }),
+              href: helpPagePath('', { anchor: 'contributing-to-gitlab' }),
               extraAttrs: {
                 ...this.trackingAttrs('contribute_to_gitlab'),
               },
@@ -113,21 +125,6 @@ export default {
                 ...this.trackingAttrs('submit_feedback'),
               },
             },
-            this.isSaas && {
-              text: this.$options.i18n.privacy,
-              href: `${PROMO_URL}/privacy`,
-              extraAttrs: {
-                ...this.trackingAttrs('privacy'),
-              },
-            },
-            this.sidebarData.terms &&
-              !this.isSaas && {
-                text: this.$options.i18n.terms,
-                href: this.sidebarData.terms,
-                extraAttrs: {
-                  ...this.trackingAttrs('terms'),
-                },
-              },
           ].filter(Boolean),
         },
         helpActions: {
@@ -172,6 +169,10 @@ export default {
         return false;
       }
       return true;
+    },
+
+    showTanukiBotChat() {
+      this.helpCenterState.showTanukiBotChatDrawer = true;
     },
 
     async showWhatsNew() {
@@ -232,14 +233,14 @@ export default {
       :group="itemGroups.versionCheck"
     >
       <template #list-item="{ item }">
-        <span class="gl-flex gl-flex-col gl-leading-24">
-          <span class="gl-text-sm gl-font-bold">
+        <span class="gl-display-flex gl-flex-direction-column gl-line-height-24">
+          <span class="gl-font-sm gl-font-weight-bold">
             {{ item.text }}
             <gl-emoji data-name="rocket" />
           </span>
           <span>
             <span class="gl-mr-2">{{ item.version }}</span>
-            <gitlab-version-check-badge v-if="updateSeverity" :status="updateSeverity" />
+            <gitlab-version-check-badge v-if="updateSeverity" :status="updateSeverity" size="sm" />
           </span>
         </span>
       </template>
@@ -248,13 +249,22 @@ export default {
     <gl-disclosure-dropdown-group
       :group="itemGroups.helpLinks"
       :bordered="sidebarData.show_version_check"
-    />
+    >
+      <template #list-item="{ item }">
+        <span class="gl-display-flex gl-justify-content-space-between gl-align-items-center">
+          {{ item.text }}
+          <gl-icon v-if="item.icon" :name="item.icon" class="gl-text-gray-500" />
+        </span>
+      </template>
+    </gl-disclosure-dropdown-group>
 
     <gl-disclosure-dropdown-group :group="itemGroups.helpActions" bordered>
       <template #list-item="{ item }">
-        <span class="-gl-my-1 gl-flex gl-items-center gl-justify-between">
+        <span
+          class="gl-display-flex gl-justify-content-space-between gl-align-items-center gl-my-n1"
+        >
           {{ item.text }}
-          <gl-badge v-if="item.count" pill variant="info">{{ item.count }}</gl-badge>
+          <gl-badge v-if="item.count" pill size="sm" variant="info">{{ item.count }}</gl-badge>
           <kbd v-else-if="item.shortcut" class="flat">?</kbd>
         </span>
       </template>

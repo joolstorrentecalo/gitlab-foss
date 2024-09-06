@@ -77,14 +77,10 @@ increase this value if you have more **secondary** sites.
 Be sure to restart PostgreSQL for this to take effect. See the
 [PostgreSQL replication setup](../../setup/database.md#postgresql-replication) guide for more details.
 
-### Message: `replication slot "geo_secondary_my_domain_com" does not exist`
+### Message: `FATAL:  could not start WAL streaming: ERROR:  replication slot "geo_secondary_my_domain_com" does not exist`?
 
-This error occurs when PostgreSQL does not have a replication slot for the
-**secondary** site by that name:
-
-```plaintext
-FATAL:  could not start WAL streaming: ERROR:  replication slot "geo_secondary_my_domain_com" does not exist
-```
+This occurs when PostgreSQL does not have a replication slot for the
+**secondary** site by that name.
 
 You may want to rerun the [replication process](../../setup/database.md) on the **secondary** site .
 
@@ -147,13 +143,7 @@ sudo gitlab-ctl reconfigure
 To help us resolve this problem, consider commenting on
 [the issue](https://gitlab.com/gitlab-org/gitlab/-/issues/4489).
 
-### Message: `server certificate for "PostgreSQL" does not match host name`
-
-If you see this error:
-
-```plaintext
-FATAL:  could not connect to the primary server: server certificate for "PostgreSQL" does not match host name
-```
+### Message: `FATAL:  could not connect to the primary server: server certificate for "PostgreSQL" does not match host name`
 
 This happens because the PostgreSQL certificate that the Linux package automatically creates contains
 the Common Name `PostgreSQL`, but the replication is connecting to a different host and GitLab attempts to use
@@ -192,11 +182,14 @@ This happens when you have added IP addresses without a subnet mask in `postgres
 To fix this, add the subnet mask in `/etc/gitlab/gitlab.rb` under `postgresql['md5_auth_cidr_addresses']`
 to respect the CIDR format (for example, `10.0.0.1/32`).
 
-### Message: `Found data in the gitlabhq_production database`
+### Message: `Found data in the gitlabhq_production database!` when running `gitlab-ctl replicate-geo-database`
 
-If you receive the error `Found data in the gitlabhq_production database!` when running
-`gitlab-ctl replicate-geo-database`, data was detected in the `projects` table. When one or more projects are detected, the operation
+This happens if data is detected in the `projects` table. When one or more projects are detected, the operation
 is aborted to prevent accidental data loss. To bypass this message, pass the `--force` option to the command.
+
+In GitLab 13.4, a seed project is added when GitLab is first installed. This makes it necessary to pass `--force` even
+on a new Geo secondary site. There is an [issue to account for seed projects](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/5618)
+when checking the database.
 
 ### Message: `FATAL:  could not map anonymous shared memory: Cannot allocate memory`
 
@@ -237,14 +230,13 @@ The following Geo data types exist:
   - `Upload`
   - `DependencyProxy::Manifest`
   - `DependencyProxy::Blob`
-- **Git Repository types:**
+- **Repository types:**
+  - `ContainerRepositoryRegistry`
   - `DesignManagement::Repository`
   - `ProjectRepository`
   - `ProjectWikiRepository`
   - `SnippetRepository`
   - `GroupWikiRepository`
-- **Other types:**
-  - `ContainerRepository`
 
 The main kinds of classes are Registry, Model, and Replicator. If you have an instance of one of these classes, you can get the others. The Registry and Model mostly manage PostgreSQL DB state. The Replicator knows how to replicate/verify (or it can call a service to do it):
 
@@ -283,29 +275,6 @@ to enact the following, basic troubleshooting steps:
     Geo::PackageFileRegistry.failed
     ```
 
-    The term registry records, in this case, refers to registry tables in the
-    Geo tracking database. Each record, or row, tracks a single replicable in the
-    main GitLab database, such as an LFS file, or a project Git repository. Here
-    are some other Rails models that correspond to Geo registry tables that can
-    be queried like the above:
-
-    ```plaintext
-    CiSecureFileRegistry
-    ContainerRepositoryRegistry
-    DependencyProxyBlobRegistry
-    DependencyProxyManifestRegistry
-    JobArtifactRegistry
-    LfsObjectRegistry
-    MergeRequestDiffRegistry
-    PackageFileRegistry
-    PagesDeploymentRegistry
-    PipelineArtifactRegistry
-    ProjectWikiRepositoryRegistry
-    SnippetRepositoryRegistry
-    TerraformStateVersionRegistry
-    UploadRegistry
-    ```
-
   - Find registry records that are missing on the primary site:
 
     ```ruby
@@ -316,14 +285,14 @@ to enact the following, basic troubleshooting steps:
 
     ```ruby
     model_record = Packages::PackageFile.find(id)
-    model_record.replicator.sync
+    model_record.replicator.send(:download)
     ```
 
   - Resync a package file, synchronously, given a registry ID:
 
     ```ruby
     registry = Geo::PackageFileRegistry.find(registry_id)
-    registry.replicator.sync
+    registry.replicator.send(:download)
     ```
 
   - Resync a package file, asynchronously, given a registry ID.
@@ -348,14 +317,14 @@ to enact the following, basic troubleshooting steps:
 
     ```ruby
     model_record = Geo::SnippetRepositoryRegistry.find(id)
-    model_record.replicator.sync
+    model_record.replicator.sync_repository
     ```
 
   - Resync a snippet repository, synchronously, given a registry ID
 
     ```ruby
     registry = Geo::SnippetRepositoryRegistry.find(registry_id)
-    registry.replicator.sync
+    registry.replicator.sync_repository
     ```
 
   - Resync a snippet repository, asynchronously, given a registry ID.
@@ -377,7 +346,7 @@ to enact the following, basic troubleshooting steps:
 #### Resync and reverify multiple components
 
 NOTE:
-There is an [issue to implement this functionality in the **Admin** area UI](https://gitlab.com/gitlab-org/gitlab/-/issues/364729).
+There is an [issue to implement this functionality in the Admin Area UI](https://gitlab.com/gitlab-org/gitlab/-/issues/364729).
 
 WARNING:
 Commands that change data can cause damage if not run correctly or under the right conditions. Always run commands in a test environment first and have a backup instance ready to restore.
@@ -411,6 +380,8 @@ This iterates over all package files on the secondary, looking at the
 and then calculate this value on the secondary to check if they match. This
 does not change anything in the UI.
 
+For GitLab 14.4 and later:
+
 ```ruby
 # Run on secondary
 status = {}
@@ -418,6 +389,28 @@ status = {}
 Packages::PackageFile.find_each do |package_file|
   primary_checksum = package_file.verification_checksum
   secondary_checksum = Packages::PackageFile.sha256_hexdigest(package_file.file.path)
+  verification_status = (primary_checksum == secondary_checksum)
+
+  status[verification_status.to_s] ||= []
+  status[verification_status.to_s] << package_file.id
+end
+
+# Count how many of each value we get
+status.keys.each {|key| puts "#{key} count: #{status[key].count}"}
+
+# See the output in its entirety
+status
+```
+
+For GitLab 14.3 and earlier:
+
+```ruby
+# Run on secondary
+status = {}
+
+Packages::PackageFile.find_each do |package_file|
+  primary_checksum = package_file.verification_checksum
+  secondary_checksum = Packages::PackageFile.hexdigest(package_file.file.path)
   verification_status = (primary_checksum == secondary_checksum)
 
   status[verification_status.to_s] ||= []
@@ -468,90 +461,6 @@ begin
 end
 p "#{uploads_deleted} remote objects were destroyed."
 ```
-
-### Error: `Error syncing repository: 13:fatal: could not read Username`
-
-The `last_sync_failure` error
-`Error syncing repository: 13:fatal: could not read Username for 'https://gitlab.example.com': terminal prompts disabled`
-indicates that JWT authentication is failing during a Geo clone or fetch request.
-See [Geo (development) > Authentication](../../../../development/geo.md#authentication) for more context.
-
-First, check that system clocks are synced. Run the [Health check Rake task](common.md#health-check-rake-task), or
-manually check that `date`, on all Sidekiq nodes on the secondary site and all Puma nodes on the primary site, are the
-same.
-
-If system clocks are synced, then the JWT token may be expiring while Git fetch is performing calculations between its
-two separate HTTP requests. See [issue 464101](https://gitlab.com/gitlab-org/gitlab/-/issues/464101), which existed in
-all GitLab versions until it was fixed in GitLab 17.1.0, 17.0.5, and 16.11.7.
-
-To validate if you are experiencing this issue:
-
-1. Monkey patch the code in a [Rails console](../../../operations/rails_console.md#starting-a-rails-console-session) to increase the validity period of the token from 1 minute to 10 minutes. Run
-   this in Rails console on the secondary site:
-
-   ```ruby
-   module Gitlab; module Geo; class BaseRequest
-     private
-     def geo_auth_token(message)
-       signed_data = Gitlab::Geo::SignedData.new(geo_node: requesting_node, validity_period: 10.minutes).sign_and_encode_data(message)
-
-       "#{GITLAB_GEO_AUTH_TOKEN_TYPE} #{signed_data}"
-     end
-   end;end;end
-   ```
-
-1. In the same Rails console, resync an affected project:
-
-   ```ruby
-   Project.find_by_full_path('mygroup/mysubgroup/myproject').replicator.resync
-   ```
-
-1. Look at the sync state:
-
-   ```ruby
-   Project.find_by_full_path('mygroup/mysubgroup/myproject').replicator.registry
-   ```
-
-1. If `last_sync_failure` no longer includes the error `fatal: could not read Username`, then you are
-   affected by this issue. The state should now be `2`, meaning "synced". If so, then you should upgrade to
-   a GitLab version with the fix. You may also wish to upvote or comment on
-   [issue 466681](https://gitlab.com/gitlab-org/gitlab/-/issues/466681) which would have reduced the severity of this
-   issue.
-
-To workaround the issue, you must hot-patch all Sidekiq nodes in the secondary site to extend the JWT expiration time:
-
-1. Edit `/opt/gitlab/embedded/service/gitlab-rails/ee/lib/gitlab/geo/signed_data.rb`.
-1. Find `Gitlab::Geo::SignedData.new(geo_node: requesting_node)` and add `, validity_period: 10.minutes` to it:
-
-   ```diff
-   - Gitlab::Geo::SignedData.new(geo_node: requesting_node)
-   + Gitlab::Geo::SignedData.new(geo_node: requesting_node, validity_period: 10.minutes)
-   ```
-
-1. Restart Sidekiq:
-
-   ```shell
-   sudo gitlab-ctl restart sidekiq
-   ```
-
-1. Unless you upgrade to a version containing the fix, you would have to repeat this workaround after every GitLab upgrade.
-
-### Error: `fetch remote: signal: terminated: context deadline exceeded` at exactly 3 hours
-
-If Git fetch fails at exactly three hours while syncing a Git repository:
-
-1. Edit `/etc/gitlab/gitlab.rb` to increase the Git timeout from the default of 10800 seconds:
-
-   ```ruby
-   # Git timeout in seconds
-   gitlab_rails['gitlab_shell_git_timeout'] = 21600
-   ```
-
-1. Reconfigure GitLab:
-
-   ```shell
-   sudo gitlab-ctl reconfigure
-   ```
 
 ## Investigate causes of database replication lag
 
@@ -608,55 +517,13 @@ to start again from scratch, there are a few steps that can help you:
    gitlab-ctl tail sidekiq
    ```
 
-1. Clear Gitaly/Gitaly Cluster data.
-
-   ::Tabs
-
-   :::TabTitle Gitaly
+1. Rename repository storage folders and create new ones. If you are not concerned about possible orphaned directories and files, you can skip this step.
 
    ```shell
    mv /var/opt/gitlab/git-data/repositories /var/opt/gitlab/git-data/repositories.old
-   sudo gitlab-ctl reconfigure
+   mkdir -p /var/opt/gitlab/git-data/repositories
+   chown git:git /var/opt/gitlab/git-data/repositories
    ```
-
-   :::TabTitle Gitaly Cluster
-
-   1. Optional. Disable the Praefect internal load balancer.
-   1. Stop Praefect on each Praefect server:
-
-      ```shell
-      sudo gitlab-ctl stop praefect
-      ```
-
-   1. Reset the Praefect database:
-
-      ```shell
-      sudo /opt/gitlab/embedded/bin/psql -U praefect -d template1 -h localhost -c "DROP DATABASE praefect_production WITH (FORCE);"
-      sudo /opt/gitlab/embedded/bin/psql -U praefect -d template1 -h localhost -c "CREATE DATABASE praefect_production WITH OWNER=praefect ENCODING=UTF8;"
-      ```
-
-   1. Rename/delete repository data from each Gitaly node:
-
-      ```shell
-      sudo mv /var/opt/gitlab/git-data/repositories /var/opt/gitlab/git-data/repositories.old
-      sudo gitlab-ctl reconfigure
-      ```
-
-   1. On your Praefect deploy node run reconfigure to set up the database:
-
-      ```shell
-      sudo gitlab-ctl reconfigure
-      ```
-
-   1. Start Praefect on each Praefect server:
-
-      ```shell
-      sudo gitlab-ctl start praefect
-      ```
-
-   1. Optional. If you disabled it, reactivate the Praefect internal load balancer.
-
-   ::EndTabs
 
    NOTE:
    You may want to remove the `/var/opt/gitlab/git-data/repositories.old` in the future

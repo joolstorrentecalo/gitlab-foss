@@ -1,8 +1,9 @@
-- title = _("Repository analytics")
-- page_title title
+- page_title _("Repository Analytics")
 - add_page_specific_style 'page_bundles/graph_charts'
 
-= render ::Layouts::PageHeadingComponent.new(title)
+.mb-3
+  %h3
+    = _("Repository Analytics")
 
 .repo-charts
   %h4.sub-header
@@ -17,8 +18,10 @@
   .repo-charts.my-5
     #js-code-coverage-chart{ data: project_coverage_chart_data_attributes(@daily_coverage_options, @ref) }
 
-.repo-charts.gl-border-t
-  .row.tree-ref-header.gl-pt-5
+.repo-charts
+  .sub-header-block.border-top
+
+  .row.tree-ref-header
     .col-md-6
       %h4
         - start_time = capture do

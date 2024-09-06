@@ -166,7 +166,7 @@ class Import::GithubController < Import::BaseController
   end
 
   def authorize_owner_access!
-    render_404 unless current_user.can?(:owner_access, project)
+    return render_404 unless current_user.can?(:owner_access, project)
   end
 
   def import_params

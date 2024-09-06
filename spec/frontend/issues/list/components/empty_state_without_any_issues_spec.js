@@ -1,8 +1,12 @@
 import { GlDisclosureDropdown, GlEmptyState, GlLink } from '@gitlab/ui';
 import { mountExtended } from 'helpers/vue_test_utils_helper';
+import { stubExperiments } from 'helpers/experimentation_helper';
 import CsvImportExportButtons from '~/issuable/components/csv_import_export_buttons.vue';
 import EmptyStateWithoutAnyIssues from '~/issues/list/components/empty_state_without_any_issues.vue';
+import EmptyStateWithoutAnyIssuesExperiment from '~/issues/list/components/empty_state_without_any_issues_experiment.vue';
 import NewResourceDropdown from '~/vue_shared/components/new_resource_dropdown/new_resource_dropdown.vue';
+import { i18n } from '~/issues/list/constants';
+import GitlabExperiment from '~/experimentation/components/gitlab_experiment.vue';
 
 describe('EmptyStateWithoutAnyIssues component', () => {
   let wrapper;
@@ -14,8 +18,10 @@ describe('EmptyStateWithoutAnyIssues component', () => {
 
   const defaultProvide = {
     canCreateProjects: false,
+    emptyStateSvgPath: 'empty/state/svg/path',
     fullPath: 'full/path',
     isSignedIn: true,
+    jiraIntegrationPath: 'jira/integration/path',
     newIssuePath: 'new/issue/path',
     newProjectPath: 'new/project/path',
     showNewIssueLink: false,
@@ -24,17 +30,18 @@ describe('EmptyStateWithoutAnyIssues component', () => {
     isProject: false,
   };
 
+  const findSignedInEmptyStateBlock = () => wrapper.findByTestId('signed-in-empty-state-block');
   const findCsvImportExportButtons = () => wrapper.findComponent(CsvImportExportButtons);
   const findCsvImportExportDropdown = () => wrapper.findComponent(GlDisclosureDropdown);
   const findGlEmptyState = () => wrapper.findComponent(GlEmptyState);
   const findGlLink = () => wrapper.findComponent(GlLink);
   const findIssuesHelpPageLink = () =>
-    wrapper.findByRole('link', { name: 'Learn more about issues.' });
+    wrapper.findByRole('link', { name: i18n.noIssuesDescription });
   const findJiraDocsLink = () =>
     wrapper.findByRole('link', { name: 'Enable the Jira integration' });
   const findNewResourceDropdown = () => wrapper.findComponent(NewResourceDropdown);
-  const findNewIssueLink = () => wrapper.findByRole('link', { name: 'New issue' });
-  const findNewProjectLink = () => wrapper.findByRole('link', { name: 'New project' });
+  const findNewIssueLink = () => wrapper.findByRole('link', { name: i18n.newIssueLabel });
+  const findNewProjectLink = () => wrapper.findByRole('link', { name: i18n.newProjectLabel });
 
   const mountComponent = ({ props = {}, provide = {} } = {}) => {
     wrapper = mountExtended(EmptyStateWithoutAnyIssues, {
@@ -47,6 +54,7 @@ describe('EmptyStateWithoutAnyIssues component', () => {
         ...provide,
       },
       stubs: {
+        GitlabExperiment,
         NewResourceDropdown: true,
       },
     });
@@ -57,9 +65,10 @@ describe('EmptyStateWithoutAnyIssues component', () => {
       it('renders empty state', () => {
         mountComponent();
 
-        expect(findGlEmptyState().props('title')).toBe(
-          'Use issues to collaborate on ideas, solve problems, and plan work',
-        );
+        expect(findGlEmptyState().props()).toMatchObject({
+          title: i18n.noIssuesTitle,
+          svgPath: defaultProvide.emptyStateSvgPath,
+        });
       });
 
       describe('description', () => {
@@ -76,9 +85,7 @@ describe('EmptyStateWithoutAnyIssues component', () => {
             it('renders', () => {
               mountComponent({ provide: { canCreateProjects: true } });
 
-              expect(findGlEmptyState().text()).toContain(
-                'Issues exist in projects, so to create an issue, first create a project.',
-              );
+              expect(findGlEmptyState().text()).toContain(i18n.noGroupIssuesSignedInDescription);
             });
           });
 
@@ -87,7 +94,7 @@ describe('EmptyStateWithoutAnyIssues component', () => {
               mountComponent({ provide: { canCreateProjects: false } });
 
               expect(findGlEmptyState().text()).not.toContain(
-                'Issues exist in projects, so to create an issue, first create a project.',
+                i18n.noGroupIssuesSignedInDescription,
               );
             });
           });
@@ -172,6 +179,89 @@ describe('EmptyStateWithoutAnyIssues component', () => {
           });
         });
       });
+
+      describe('tracking', () => {
+        const experimentTracking = { 'data-track-experiment': 'issues_mrs_empty_state' };
+
+        const emptyStateBlockTracking = {
+          'data-track-action': 'render_project_issues_empty_list_page',
+          'data-track-label': 'project_issues_empty_list',
+        };
+
+        const issueHelpLinkTracking = {
+          'data-track-action': 'click_learn_more_project_issues_empty_list_page',
+          'data-track-label': 'learn_more_project_issues_empty_list',
+        };
+
+        const jiraDocsLinkTracking = {
+          'data-track-action': 'click_jira_int_project_issues_empty_list_page',
+          'data-track-label': 'jira_int_project_issues_empty_list',
+        };
+
+        it('tracks new issue link', () => {
+          mountComponent({ provide: { showNewIssueLink: true } });
+
+          expect(findNewIssueLink().attributes()).toMatchObject({
+            'data-track-action': 'click_new_issue_project_issues_empty_list_page',
+            'data-track-label': 'new_issue_project_issues_empty_list',
+            ...experimentTracking,
+          });
+        });
+
+        describe('when the isProject=true', () => {
+          beforeEach(() => {
+            mountComponent({ provide: { isProject: true } });
+          });
+
+          it('tracks empty state block', () => {
+            expect(findSignedInEmptyStateBlock().attributes()).toMatchObject({
+              ...emptyStateBlockTracking,
+              ...experimentTracking,
+            });
+          });
+
+          it('tracks issue help link', () => {
+            expect(findIssuesHelpPageLink().attributes()).toMatchObject({
+              ...issueHelpLinkTracking,
+              ...experimentTracking,
+            });
+          });
+
+          it('tracks Jira docs link', () => {
+            expect(findJiraDocsLink().attributes()).toMatchObject({
+              ...jiraDocsLinkTracking,
+              ...experimentTracking,
+            });
+          });
+        });
+
+        describe('when the isProject=false', () => {
+          beforeEach(() => {
+            mountComponent();
+          });
+
+          it('does not track empty state block', () => {
+            expect(findSignedInEmptyStateBlock().attributes()).not.toMatchObject({
+              ...emptyStateBlockTracking,
+              ...experimentTracking,
+            });
+          });
+
+          it('does not track issue help link', () => {
+            expect(findIssuesHelpPageLink().attributes()).not.toMatchObject({
+              ...issueHelpLinkTracking,
+              ...experimentTracking,
+            });
+          });
+
+          it('does not track Jira docs link', () => {
+            expect(findJiraDocsLink().attributes()).not.toMatchObject({
+              ...jiraDocsLinkTracking,
+              ...experimentTracking,
+            });
+          });
+        });
+      });
     });
 
     describe('Jira section', () => {
@@ -181,17 +271,28 @@ describe('EmptyStateWithoutAnyIssues component', () => {
 
       it('shows Jira integration information', () => {
         const paragraphs = wrapper.findAll('p');
-        expect(paragraphs.at(1).text()).toContain('Using Jira for issue tracking?');
-        expect(paragraphs.at(2).text()).toMatchInterpolatedText(
-          'Enable the Jira integration to view your Jira issues in GitLab.',
-        );
-        expect(paragraphs.at(3).text()).toContain('This feature requires a Premium plan.');
+        expect(paragraphs.at(1).text()).toContain(i18n.jiraIntegrationTitle);
+        expect(paragraphs.at(2).text()).toMatchInterpolatedText(i18n.jiraIntegrationMessage);
+        expect(paragraphs.at(3).text()).toContain(i18n.jiraIntegrationSecondaryMessage);
       });
 
       it('renders Jira integration docs link', () => {
-        expect(findJiraDocsLink().attributes('href')).toBe(
-          '/help/integration/jira/configure#view-jira-issues',
-        );
+        expect(findJiraDocsLink().attributes('href')).toBe(defaultProvide.jiraIntegrationPath);
+      });
+    });
+
+    describe('when issues_mrs_empty_state candidate experiment', () => {
+      beforeEach(() => {
+        stubExperiments({ issues_mrs_empty_state: 'candidate' });
+      });
+
+      it('renders EmptyStateWithoutAnyIssuesExperiment', () => {
+        mountComponent();
+
+        expect(wrapper.findComponent(EmptyStateWithoutAnyIssuesExperiment).props()).toEqual({
+          showCsvButtons: false,
+          showIssuableByEmail: false,
+        });
       });
     });
   });
@@ -203,15 +304,16 @@ describe('EmptyStateWithoutAnyIssues component', () => {
 
     it('renders empty state', () => {
       expect(findGlEmptyState().props()).toMatchObject({
-        title: 'Use issues to collaborate on ideas, solve problems, and plan work',
-        primaryButtonText: 'Register / Sign In',
+        title: i18n.noIssuesTitle,
+        svgPath: defaultProvide.emptyStateSvgPath,
+        primaryButtonText: i18n.noIssuesSignedOutButtonText,
         primaryButtonLink: defaultProvide.signInPath,
       });
     });
 
     it('renders issues docs link', () => {
       expect(findGlLink().attributes('href')).toBe(EmptyStateWithoutAnyIssues.issuesHelpPagePath);
-      expect(findGlLink().text()).toBe('Learn more about issues.');
+      expect(findGlLink().text()).toBe(i18n.noIssuesDescription);
     });
   });
 });

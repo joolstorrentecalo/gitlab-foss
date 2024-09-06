@@ -66,7 +66,7 @@
 
   .dropdown-toggle,
   .dropdown-menu-toggle {
-    border-color: $gray-200;
+    border-color: $gray-darkest;
   }
 
   [data-toggle='dropdown'] {
@@ -130,7 +130,7 @@
   }
 
   &:hover {
-    border-color: $gray-200;
+    border-color: $gray-darkest;
   }
 
   &:focus:active {
@@ -152,7 +152,7 @@
   width: 160px;
 
   &:hover {
-    @apply gl-shadow-inner-1-gray-400;
+    @include gl-inset-border-1-gray-400;
   }
 
   &:hover,
@@ -190,7 +190,7 @@
 }
 
 @mixin dropdown-item-hover {
-  background-color: $gray-50;
+  background-color: $gray-darker;
   color: $gl-text-color;
   outline: 0;
 }

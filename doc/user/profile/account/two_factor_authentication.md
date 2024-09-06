@@ -52,16 +52,21 @@ git-credential-oauth is an open-source project supported by the community.
 
 ## Enable two-factor authentication
 
+> - Account email confirmation requirement [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/35102) in GitLab 14.3. [Deployed behind the `ensure_verified_primary_email_for_2fa` flag](../../../administration/feature_flags.md), enabled by default.
+> - Account email confirmation requirement generally available and [feature flag `ensure_verified_primary_email_for_2fa` removed](https://gitlab.com/gitlab-org/gitlab/-/issues/340151) in GitLab 14.4.
+
 You can enable 2FA using a:
 
 - One-time password authenticator. After you enable 2FA, back up your [recovery codes](#recovery-codes).
 - WebAuthn device.
 
-Your account email must be confirmed to enable 2FA.
+In GitLab 14.3 and later, your account email must be confirmed to enable 2FA.
 
 ### Enable one-time password
 
 To enable 2FA with a one-time password:
+
+<!-- vale gitlab.Substitutions = NO -->
 
 1. **In GitLab:**
    1. Access your [**User settings**](../index.md#access-your-user-settings).
@@ -86,14 +91,19 @@ To enable 2FA with a one-time password:
    1. Enter your current password.
    1. Select **Submit**.
 
+<!-- vale gitlab.Substitutions = YES -->
+
 If you entered the correct pin, GitLab displays a list of [recovery codes](#recovery-codes). Download them and keep them
 in a safe place.
 
 ### Enable one-time password using FortiAuthenticator
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/212312) in GitLab 13.5 [with a flag](../../../administration/feature_flags.md) named `forti_authenticator`. Disabled by default.
+
+FLAG:
 On self-managed GitLab, by default this feature is not available. To make it available per user, an administrator can
-[enable the feature flag](../../../administration/feature_flags.md) named `forti_authenticator`.
-On GitLab.com and GitLab Dedicated, this feature is not available.
+[enable the feature flag](../../../administration/feature_flags.md) named `forti_authenticator`. On GitLab.com and GitLab Dedicated, this
+feature is not available.
 
 You can use FortiAuthenticator as a one-time password (OTP) provider in GitLab. Users must:
 
@@ -103,7 +113,7 @@ You can use FortiAuthenticator as a one-time password (OTP) provider in GitLab. 
 You need a username and access token for FortiAuthenticator. The `access_token` shown below is the FortAuthenticator
 access key. To get the token, see the REST API Solution Guide at
 [Fortinet Document Library](https://docs.fortinet.com/document/fortiauthenticator/6.2.0/rest-api-solution-guide/158294/the-fortiauthenticator-api).
-Tested with FortAuthenticator version 6.2.0.
+GitLab 13.5 has been tested with FortAuthenticator version 6.2.0.
 
 Configure FortiAuthenticator in GitLab. On your GitLab server:
 
@@ -150,6 +160,8 @@ Configure FortiAuthenticator in GitLab. On your GitLab server:
    (Linux package installations) or [restart](../../../administration/restart_gitlab.md#self-compiled-installations)
    (self-compiled installations).
 
+<!-- vale gitlab.Substitutions = NO -->
+
 ### Enable one-time password using Cisco Duo
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/15760) in GitLab 15.10.
@@ -173,6 +185,8 @@ For more information, see the [Cisco Duo API documentation](https://duo.com/docs
 GitLab 15.10 has been tested with Cisco Duo version D261.14
 
 #### Configure Cisco Duo in GitLab
+
+<!-- vale gitlab.Substitutions = YES -->
 
 On your GitLab server:
 
@@ -221,11 +235,12 @@ On your GitLab server:
 DETAILS:
 **Offering:** Self-managed
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/212313) in GitLab 13.7 [with a flag](../../../administration/feature_flags.md) named `forti_token_cloud`. Disabled by default.
+
 FLAG:
 On self-managed GitLab, by default this feature is not available. To make it available per user, an administrator can
-[enable the feature flag](../../../administration/feature_flags.md) named `forti_token_cloud`.
-On GitLab.com and GitLab Dedicated, this feature is not available.
-This feature is not ready for production use.
+[enable the feature flag](../../../administration/feature_flags.md) named `forti_token_cloud`. On GitLab.com and GitLab Dedicated, this
+feature is not available. This feature is not ready for production use.
 
 You can use FortiToken Cloud as a one-time password (OTP) provider in GitLab. Users must:
 
@@ -277,7 +292,15 @@ Configure FortiToken Cloud in GitLab. On your GitLab server:
 
 ### Set up a WebAuthn device
 
-> - Optional one-time password authentication for WebAuthn devices [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/378844) in GitLab 15.10 [with a flag](../../../administration/feature_flags.md) named `webauthn_without_totp`. [Enabled on GitLab.com and self-managed by default](https://gitlab.com/gitlab-org/gitlab/-/issues/232671).
+> - WebAuthn devices [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/22506) in GitLab 13.4 [with a flag](../../../administration/feature_flags.md) named `webauthn`. Disabled by default.
+> - WebAuthn devices [enabled on GitLab.com and self-managed](https://gitlab.com/gitlab-org/gitlab/-/issues/232671) in GitLab 14.6.
+> - Optional one-time password authentication for WebAuthn devices [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/378844) in GitLab 15.10 [with a flag](../../../administration/feature_flags.md) named `webauthn_without_topt`. [Enabled on GitLab.com and self-managed by default](https://gitlab.com/gitlab-org/gitlab/-/issues/232671).
+
+FLAG:
+On self-managed GitLab, by default, WebAuthn devices are available. To disable the feature, an administrator can
+[disable the feature flag](../../../administration/feature_flags.md) named `webauthn`. If you disable the WebAuthn
+feature flag after WebAuthn devices have been registered, these devices are not usable until you re-enable this feature.
+On GitLab.com, WebAuthn devices are available.
 
 FLAG:
 On self-managed GitLab, by default, optional one-time password authentication for WebAuthn devices is not available. To enable the feature, an administrator can [enable the feature flag](../../../administration/feature_flags.md) named `webauthn_without_totp`.
@@ -325,6 +348,8 @@ You can lose access to your account if you clear your browser data.
 
 ## Recovery codes
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/267730) in GitLab 13.7, **Copy codes** and **Print codes** buttons.
+
 Immediately after successfully enabling 2FA with a one-time password, you're prompted to download
 a set of generated recovery codes. If you ever lose access to your one-time password authenticator, you can use one of
 these recovery codes to sign in to your account.
@@ -341,7 +366,7 @@ Recovery codes are not generated for WebAuthn devices.
 If you lose the recovery codes, or want to generate new ones, you can use either:
 
 - The [2FA account settings](#regenerate-two-factor-authentication-recovery-codes) page.
-- [SSH](two_factor_authentication_troubleshooting.md#generate-new-recovery-codes-using-ssh).
+- [SSH](#generate-new-recovery-codes-using-ssh).
 
 ### Regenerate two-factor authentication recovery codes
 
@@ -350,8 +375,7 @@ To regenerate 2FA recovery codes, you need access to a desktop browser:
 1. Access your [**User settings**](../index.md#access-your-user-settings).
 1. Select **Account > Two-Factor Authentication (2FA)**.
 1. If you've already configured 2FA, select **Manage two-factor authentication**.
-1. In the **Disable two-factor authentication** section, enter your current password in the **Current password** text box
-   and select **Regenerate recovery codes**.
+1. In the **Register Two-Factor Authenticator** pane, enter your current password and select **Regenerate recovery codes**.
 
 NOTE:
 If you regenerate 2FA recovery codes, save them. You can't use any previously created 2FA codes.
@@ -363,7 +387,7 @@ and you're presented with a second prompt, depending on which type of 2FA you've
 
 ### Sign in using a one-time password
 
-When asked, enter the pin from your one-time password authenticator application or a recovery code to sign in.
+When asked, enter the pin from your one-time password authenticator's application or a recovery code to sign in.
 
 ### Sign in using a WebAuthn device
 
@@ -380,10 +404,88 @@ To disable 2FA:
 1. Access your [**User settings**](../index.md#access-your-user-settings).
 1. Select **Account**.
 1. Select **Manage two-factor authentication**.
-1. In the **Disable two-factor authentication** section, enter your current password in the **Current password** text box
-   and select **Disable two-factor authentication**.
+1. Under **Register Two-Factor Authenticator**, enter your current password and select **Disable two-factor
+   authentication**.
 
 This clears all your 2FA registrations, including mobile applications and WebAuthn devices.
+
+## Recovery options
+
+If you don't have access to your code generation device, you can recover access to your account:
+
+- [Use a saved recovery code](#use-a-saved-recovery-code), if you saved them when you enabled two-factor
+  authentication.
+- [Generate new recovery codes using SSH](#generate-new-recovery-codes-using-ssh), if you didn't save your original
+  recovery codes but have an SSH key.
+- [Have 2FA disabled on your account](#have-two-factor-authentication-disabled-on-your-account), if you don't have your
+  recovery codes or an SSH key.
+
+### Use a saved recovery code
+
+To use a recovery code:
+
+1. Enter your username or email, and password, on the GitLab sign-in page.
+1. When prompted for a two-factor code, enter the recovery code.
+
+After you use a recovery code, you cannot re-use it. You can still use the other recovery codes you saved.
+
+### Generate new recovery codes using SSH
+
+If you forget to save your recovery codes when enabling 2FA, and you added an SSH key to your GitLab account, you can generate a new set of recovery codes with SSH:
+
+1. In a terminal, run:
+
+   ```shell
+   ssh git@gitlab.com 2fa_recovery_codes
+   ```
+
+   On self-managed instances, replace **`gitlab.com`** in the command above with the GitLab server hostname (`gitlab.example.com`).
+
+1. You are prompted to confirm that you want to generate new codes. This process invalidates previously-saved codes. For
+   example:
+
+   ```shell
+   Are you sure you want to generate new two-factor recovery codes?
+   Any existing recovery codes you saved will be invalidated. (yes/no)
+
+   yes
+
+   Your two-factor authentication recovery codes are:
+
+   119135e5a3ebce8e
+   11f6v2a498810dcd
+   3924c7ab2089c902
+   e79a3398bfe4f224
+   34bd7b74adbc8861
+   f061691d5107df1a
+   169bf32a18e63e7f
+   b510e7422e81c947
+   20dbed24c5e74663
+   df9d3b9403b9c9f0
+
+   During sign in, use one of the codes above when prompted for your
+   two-factor code. Then, visit your Profile Settings and add a new device
+   so you do not lose access to your account again.
+   ```
+
+1. Go to the GitLab sign-in page and enter your username or email, and password. When prompted for a two-factor code,
+   enter one of the recovery codes obtained from the command-line output.
+
+After signing in, immediately set up 2FA with a new device.
+
+### Have two-factor authentication disabled on your account
+
+DETAILS:
+**Tier:** Premium, Ultimate
+**Offering:** GitLab.com
+
+If other methods are unavailable, have a GitLab support contact submit a [support ticket](https://support.gitlab.com) to request
+a GitLab global administrator disable 2FA for your account:
+
+- This service is only available for accounts that have a GitLab.com subscription. For more information, see our
+  [blog post](https://about.gitlab.com/blog/2020/08/04/gitlab-support-no-longer-processing-mfa-resets-for-free-users/).
+- Disabling this setting temporarily leaves your account in a less secure state. You should sign in and re-enable two-factor
+  authentication as soon as possible.
 
 ## Information for GitLab administrators
 
@@ -406,3 +508,60 @@ DETAILS:
     the WebAuthn key has only been registered on `first.host.xyz`.
 
 - To enforce 2FA at the system or group levels see, [Enforce two-factor authentication](../../../security/two_factor_authentication.md).
+
+## Troubleshooting
+
+### Error: "HTTP Basic: Access denied. The provided password or token ..."
+
+When making a request, you can receive the following error:
+
+```plaintext
+HTTP Basic: Access denied. The provided password or token is incorrect or your account has 2FA enabled and you must use a personal
+access token instead of a password.
+```
+
+This error occurs in the following scenarios:
+
+- You have 2FA enabled and have attempted to authenticate with a username and
+  password.
+- You do not have 2FA enabled and have sent an incorrect username or password
+  with your request.
+- You do not have 2FA enabled but an administrator has enabled the
+  [enforce 2FA for all users](../../../security/two_factor_authentication.md#enforce-2fa-for-all-users) setting.
+- You do not have 2FA enabled, but an administrator has disabled the
+  [password authentication enabled for Git over HTTP(S)](../../../administration/settings/sign_in_restrictions.md#password-authentication-enabled)
+  setting.
+
+Instead you can authenticate:
+
+- Using a [personal access token](../personal_access_tokens.md) (PAT):
+  - For Git requests over HTTP(S), a PAT with `read_repository` or `write_repository` scope is required.
+  - For [GitLab container registry](../../packages/container_registry/authenticate_with_container_registry.md) requests, a PAT
+    with `read_registry` or `write_registry` scope is required.
+  - For [Dependency Proxy](../../packages/dependency_proxy/index.md#authenticate-with-the-dependency-proxy) requests, a PAT with
+    `read_registry` and `write_registry` scopes is required.
+- If you have configured LDAP, using an [LDAP password](../../../administration/auth/ldap/index.md)
+- Using an [OAuth credential helper](#oauth-credential-helpers).
+
+### Error: "invalid pin code"
+
+If you receive an `invalid pin code` error, this can indicate that there is a time sync issue between the authentication
+application and the GitLab instance itself. To avoid the time sync issue, enable time synchronization in the device that
+generates the codes. For example:
+
+- For Android (Google Authenticator):
+  1. Go to the Main Menu in Google Authenticator.
+  1. Select Settings.
+  1. Select the Time correction for the codes.
+  1. Select Sync now.
+- For iOS:
+  1. Go to Settings.
+  1. Select General.
+  1. Select Date & Time.
+  1. Enable Set Automatically. If it's already enabled, disable it, wait a few seconds, and re-enable.
+
+### Error: "Permission denied (publickey)" when regenerating recovery codes
+
+If you receive a `Permission denied (publickey)` error when attempting to [generate new recovery codes using an SSH key](#generate-new-recovery-codes-using-ssh)
+and you are using a non-default SSH key pair file path,
+you might need to [manually register your private SSH key](../../ssh.md#configure-ssh-to-point-to-a-different-directory) using `ssh-agent`.

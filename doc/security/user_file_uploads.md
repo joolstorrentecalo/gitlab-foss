@@ -15,15 +15,11 @@ Users can upload files to:
 - Issues or merge requests in a project.
 - Epics in a group.
 
-GitLab generates direct URLs for these uploaded files with a random 32-character ID to prevent unauthorized users from guessing the URLs. This randomization offers some security for files containing sensitive information.
-
-Files uploaded by users to GitLab issues, merge requests, and epics contain `/uploads/<32-character-id>` in the URL path.
-
-WARNING:
-Exercise caution in downloading files uploaded by unknown or untrusted sources, especially if the file is an executable or script.
+GitLab generates direct URLs for these images with a random 32-character ID to prevent unauthorized users from guessing the URLs. This randomization offers some security for images containing sensitive information.
 
 ## Access control for uploaded files
 
+> - Enforced authorization checks [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/80117) in GitLab 14.8 [with a flag](../administration/feature_flags.md) named `enforce_auth_checks_on_uploads`. Disabled by default.
 > - Enforced authorization checks became [generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/352291) in GitLab 15.3. Feature flag `enforce_auth_checks_on_uploads` removed.
 > - Project settings in the user interface [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/88567) in GitLab 15.3.
 
@@ -65,7 +61,6 @@ You cannot select this option for public projects.
 ## Delete uploaded files
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/92791) in GitLab 15.3.
-> - REST API [added](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/157066) support in GitLab 17.2.
 
 You should delete an uploaded file when that file contains sensitive or confidential information. When you have deleted that file, users cannot access the file and the direct URL returns a 404 error.
 
@@ -87,8 +82,6 @@ mutation{
 ```
 
 Project members that do not have the Owner or Maintainer role cannot access this GraphQL endpoint.
-
-You can also use the REST API for [projects](../api/projects.md#delete-an-uploaded-file) or [groups](../api/groups.md#delete-an-uploaded-file) to delete an uploaded file.
 
 <!-- ## Troubleshooting
 

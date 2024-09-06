@@ -52,8 +52,8 @@ RSpec.describe 'User views diffs', :js, feature_category: :code_review_workflow 
     find('.js-show-diff-settings').click
 
     expect(page).to have_css('.tab-content #diffs.active')
-    expect(page).to have_selector('li', text: 'Side-by-side')
-    expect(page).to have_selector('li', text: 'Inline')
+    expect(page).to have_css('#parallel-diff-btn', count: 1)
+    expect(page).to have_css('#inline-diff-btn', count: 1)
   end
 
   it 'hides loading spinner after load' do
@@ -83,11 +83,11 @@ RSpec.describe 'User views diffs', :js, feature_category: :code_review_workflow 
     end
 
     it 'toggles container class' do
-      expect(page).not_to have_css('.content-wrapper > .project-highlight-puc.container-fluid.container-limited')
+      expect(page).not_to have_css('.content-wrapper > .container-fluid.container-limited')
 
       click_link 'Commits'
 
-      expect(page).to have_css('.content-wrapper > .project-highlight-puc.container-fluid.container-limited')
+      expect(page).to have_css('.content-wrapper > .container-fluid.container-limited')
     end
 
     include_examples 'unfold diffs'

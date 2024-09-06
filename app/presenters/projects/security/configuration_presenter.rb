@@ -20,12 +20,9 @@ module Projects
           gitlab_ci_present: project.has_ci_config_file?,
           gitlab_ci_history_path: gitlab_ci_history_path,
           security_training_enabled: project.security_training_available?,
+          continuous_vulnerability_scans_enabled: continuous_vulnerability_scans_enabled,
           container_scanning_for_registry_enabled: container_scanning_for_registry_enabled,
-          pre_receive_secret_detection_available:
-            Gitlab::CurrentSettings.current_application_settings.pre_receive_secret_detection_enabled,
-          pre_receive_secret_detection_enabled: pre_receive_secret_detection_enabled,
-          user_is_project_admin: user_is_project_admin?,
-          secret_detection_configuration_path: secret_detection_configuration_path
+          pre_receive_secret_detection_enabled: pre_receive_secret_detection_enabled
         }
       end
 
@@ -40,12 +37,8 @@ module Projects
 
       def can_enable_auto_devops?
         feature_available?(:builds, current_user) &&
-          user_is_project_admin? &&
+          can?(current_user, :admin_project, self) &&
           !archived?
-      end
-
-      def user_is_project_admin?
-        can?(current_user, :admin_project, self)
       end
 
       def gitlab_ci_history_path
@@ -63,14 +56,6 @@ module Projects
         # These scans are "fake" (non job) entries. Add them manually.
         scans << scan(:corpus_management, configured: true)
         scans << scan(:dast_profiles, configured: true)
-
-        # Add pre-receive before secret detection
-        if dedicated_instance? || pre_receive_secret_detection_feature_flag_enabled?
-          secret_detection_index = scans.index { |scan| scan[:type] == :secret_detection } || -1
-          scans.insert(secret_detection_index, scan(:pre_receive_secret_detection, configured: true))
-        end
-
-        scans
       end
 
       def latest_pipeline_path
@@ -98,22 +83,13 @@ module Projects
         ::Security::SecurityJobsFinder.allowed_job_types + ::Security::LicenseComplianceJobsFinder.allowed_job_types
       end
 
-      def dedicated_instance?
-        ::Gitlab::CurrentSettings.gitlab_dedicated_instance?
-      end
-
-      def pre_receive_secret_detection_feature_flag_enabled?
-        project.licensed_feature_available?(:pre_receive_secret_detection) &&
-          Feature.enabled?(:pre_receive_secret_detection_push_check, project)
-      end
-
       def project_settings
         project.security_setting
       end
 
+      def continuous_vulnerability_scans_enabled; end
       def container_scanning_for_registry_enabled; end
       def pre_receive_secret_detection_enabled; end
-      def secret_detection_configuration_path; end
     end
   end
 end

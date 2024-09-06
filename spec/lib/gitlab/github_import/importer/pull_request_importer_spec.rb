@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redis_shared_state, feature_category: :importers do
+RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redis_cache, feature_category: :importers do
   let(:project) { create(:project, :repository) }
   let(:client) { double(:client) }
   let(:user) { create(:user) }
@@ -14,7 +14,6 @@ RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitla
   let(:target_commit) { project.repository.commit('master') }
   let(:milestone) { create(:milestone, project: project) }
   let(:state) { :closed }
-  let_it_be(:imported_from) { ::Import::HasImportSource::IMPORT_SOURCES[:github] }
 
   let(:pull_request) do
     alice = Gitlab::GithubImport::Representation::User.new(id: 4, login: 'alice')
@@ -119,8 +118,7 @@ RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitla
               milestone_id: milestone.id,
               author_id: user.id,
               created_at: created_at,
-              updated_at: updated_at,
-              imported_from: imported_from
+              updated_at: updated_at
             },
             project.merge_requests
           )
@@ -160,8 +158,7 @@ RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitla
                 milestone_id: milestone.id,
                 author_id: user.id,
                 created_at: created_at,
-                updated_at: updated_at,
-                imported_from: imported_from
+                updated_at: updated_at
               },
               project.merge_requests
             )
@@ -217,8 +214,7 @@ RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitla
               milestone_id: milestone.id,
               author_id: project.creator_id,
               created_at: created_at,
-              updated_at: updated_at,
-              imported_from: imported_from
+              updated_at: updated_at
             },
             project.merge_requests
           )

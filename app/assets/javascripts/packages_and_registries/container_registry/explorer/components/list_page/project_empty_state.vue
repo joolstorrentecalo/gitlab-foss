@@ -29,7 +29,7 @@ export default {
       `ContainerRegistry|With the Container Registry, every project can have its own space to store its Docker images. %{docLinkStart}More Information%{docLinkEnd}`,
     ),
     notLoggedInMessage: s__(
-      `ContainerRegistry|If you are not already logged in, you need to authenticate to the Container Registry by using your GitLab username and password. If you have %{twofaDocLinkStart}Two-Factor Authentication%{twofaDocLinkEnd} enabled, use a %{personalAccessTokensDocLinkStart}personal access token%{personalAccessTokensDocLinkEnd} instead of a password.`,
+      `ContainerRegistry|If you are not already logged in, you need to authenticate to the Container Registry by using your GitLab username and password. If you have %{twofaDocLinkStart}Two-Factor Authentication%{twofaDocLinkEnd} enabled, use a %{personalAccessTokensDocLinkStart}Personal Access Token%{personalAccessTokensDocLinkEnd} instead of a password.`,
     ),
     addImageText: s__(
       'ContainerRegistry|You can add an image to this registry with the following commands:',
@@ -69,13 +69,13 @@ export default {
           :value="dockerLoginCommand"
           readonly
           type="text"
-          class="!gl-font-monospace"
+          class="gl-font-monospace!"
         />
         <template #append>
           <clipboard-button
             :text="dockerLoginCommand"
             :title="$options.i18n.copyLoginTitle"
-            class="!gl-m-0"
+            class="gl-m-0!"
           />
         </template>
       </gl-form-input-group>
@@ -87,23 +87,23 @@ export default {
           :value="dockerBuildCommand"
           readonly
           type="text"
-          class="!gl-font-monospace"
+          class="gl-font-monospace!"
         />
         <template #append>
           <clipboard-button
             :text="dockerBuildCommand"
             :title="$options.i18n.copyBuildTitle"
-            class="!gl-m-0"
+            class="gl-m-0!"
           />
         </template>
       </gl-form-input-group>
       <gl-form-input-group>
-        <gl-form-input :value="dockerPushCommand" readonly type="text" class="!gl-font-monospace" />
+        <gl-form-input :value="dockerPushCommand" readonly type="text" class="gl-font-monospace!" />
         <template #append>
           <clipboard-button
             :text="dockerPushCommand"
             :title="$options.i18n.copyPushTitle"
-            class="!gl-m-0"
+            class="gl-m-0!"
           />
         </template>
       </gl-form-input-group>

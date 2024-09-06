@@ -390,53 +390,52 @@ RSpec.describe Groups::UpdateService, feature_category: :groups_and_projects do
     end
   end
 
-  context 'when updating #max_artifacts_size' do
-    let(:params) { { max_artifacts_size: 10 } }
+  context 'when updating #emails_disabled' do
+    context 'when emails_disabled is true' do
+      let(:service) { described_class.new(internal_group, user, emails_disabled: true) }
 
-    let(:service) do
-      described_class.new(internal_group, user, **params)
-    end
+      it 'updates email_enabled to false' do
+        internal_group.add_member(user, Gitlab::Access::OWNER)
 
-    before do
-      internal_group.add_owner(user)
-    end
+        service.execute
 
-    context 'for users who have the ability to update max_artifacts_size', :enable_admin_mode do
-      let(:user) { create(:admin) }
-
-      it 'updates max_artifacts_size' do
-        expect { service.execute }.to change { internal_group.max_artifacts_size }.from(nil).to(10)
+        expect(internal_group.emails_enabled).to be(false)
       end
     end
 
-    context 'for users who do not have the ability to update max_artifacts_size' do
-      it 'does not update max_artifacts_size' do
-        expect { service.execute }.not_to change { internal_group.max_artifacts_size }
-      end
-    end
-  end
+    context 'when emails_disabled is false' do
+      let(:service) { described_class.new(internal_group, user, emails_disabled: false) }
 
-  context 'when updating #allow_runner_registration_token' do
-    let(:params) { { allow_runner_registration_token: false } }
-    let!(:internal_group) { create(:group, :internal, :allow_runner_registration_token) }
+      it 'email_enabled is set to true' do
+        internal_group.add_member(user, Gitlab::Access::OWNER)
 
-    let(:service) do
-      described_class.new(internal_group, user, **params)
-    end
+        service.execute
 
-    context 'for users who have the ability to update allow_runner_registration_token' do
-      before do
-        internal_group.add_owner(user)
-      end
-
-      it 'updates allow_runner_registration_token' do
-        expect { service.execute }.to change { internal_group.allow_runner_registration_token }.from(true).to(false)
+        expect(internal_group.emails_enabled).to be(true)
       end
     end
 
-    context 'for users who do not have the ability to update allow_runner_registration_token' do
-      it 'does not update allow_runner_registration_token' do
-        expect { service.execute }.not_to change { internal_group.allow_runner_registration_token }
+    context 'when emails_disabled is nil' do
+      let(:service) { described_class.new(internal_group, user, emails_disabled: nil) }
+
+      it 'email_enabled is set to the default value of true' do
+        internal_group.add_member(user, Gitlab::Access::OWNER)
+
+        service.execute
+
+        expect(internal_group.emails_enabled).to be(true)
+      end
+    end
+
+    context 'when emails_disabled is the string "true"' do
+      let(:service) { described_class.new(internal_group, user, emails_disabled: "true") }
+
+      it 'email_enabled is set to the default value of true' do
+        internal_group.add_member(user, Gitlab::Access::OWNER)
+
+        service.execute
+
+        expect(internal_group.emails_enabled).to be(false)
       end
     end
   end
@@ -475,23 +474,23 @@ RSpec.describe Groups::UpdateService, feature_category: :groups_and_projects do
 
   context 'updating default_branch_protection' do
     let(:service) do
-      described_class.new(internal_group, user, default_branch_protection: Gitlab::Access::PROTECTION_DEV_CAN_PUSH)
+      described_class.new(internal_group, user, default_branch_protection: Gitlab::Access::PROTECTION_NONE)
     end
 
     let(:settings) { internal_group.namespace_settings }
-    let(:expected_settings) { Gitlab::Access::BranchProtection.protection_partial.stringify_keys }
+    let(:expected_settings) { Gitlab::Access::BranchProtection.protection_none.stringify_keys }
 
     context 'for users who have the ability to update default_branch_protection' do
       it 'updates default_branch_protection attribute' do
         internal_group.add_owner(user)
 
-        expect { service.execute }.to change { internal_group.default_branch_protection }.from(Gitlab::Access::PROTECTION_FULL).to(Gitlab::Access::PROTECTION_DEV_CAN_PUSH)
+        expect { service.execute }.to change { internal_group.default_branch_protection }.from(Gitlab::Access::PROTECTION_FULL).to(Gitlab::Access::PROTECTION_NONE)
       end
 
       it 'updates default_branch_protection_defaults to match default_branch_protection' do
         internal_group.add_owner(user)
 
-        expect { service.execute }.to change { settings.default_branch_protection_defaults  }.from(Gitlab::Access::BranchProtection.protection_none.stringify_keys).to(expected_settings)
+        expect { service.execute }.to change { settings.default_branch_protection_defaults  }.from({}).to(expected_settings)
       end
     end
 
@@ -517,7 +516,7 @@ RSpec.describe Groups::UpdateService, feature_category: :groups_and_projects do
       it 'updates default_branch_protection attribute' do
         internal_group.add_owner(user)
 
-        expect { service.execute }.to change { internal_group.default_branch_protection_defaults }.from(Gitlab::Access::BranchProtection.protection_none.deep_stringify_keys).to(expected_settings)
+        expect { service.execute }.to change { internal_group.default_branch_protection_defaults }.from({}).to(expected_settings)
       end
     end
 

@@ -165,7 +165,7 @@ DETAILS:
 
 - `pg_upgrade` fails to upgrade the bundled PostregSQL database to version 13. See
   [the details and workaround](#pg_upgrade-fails-to-upgrade-the-bundled-postregsql-database-to-version-13).
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ## 15.9.0
 
@@ -215,7 +215,7 @@ DETAILS:
 
 - `pg_upgrade` fails to upgrade the bundled PostregSQL database to version 13. See
   [the details and workaround](#pg_upgrade-fails-to-upgrade-the-bundled-postregsql-database-to-version-13).
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ## 15.8.2
 
@@ -259,7 +259,7 @@ DETAILS:
 - We discovered an issue where [replication and verification of projects and wikis was not keeping up](https://gitlab.com/gitlab-org/gitlab/-/issues/387980) on small number of Geo installations. Your installation may be affected if you see some projects and/or wikis persistently in the "Queued" state for verification. This can lead to data loss after a failover.
   - Affected versions: GitLab versions 15.6.x, 15.7.x, and 15.8.0 - 15.8.2.
   - Versions containing fix: GitLab 15.8.3 and later.
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ## 15.7.6
 
@@ -396,7 +396,7 @@ DETAILS:
   contents printed. For example, if they were printed in an echo output. For more information,
   see [Understanding the file type variable expansion change in GitLab 15.7](https://about.gitlab.com/blog/2023/02/13/impact-of-the-file-type-variable-change-15-7/).
 - Due to [a bug introduced in GitLab 15.4](https://gitlab.com/gitlab-org/gitlab/-/issues/390155), if one or more Git repositories in Gitaly Cluster is [unavailable](../../administration/gitaly/recovery.md#unavailable-repositories), then [Repository checks](../../administration/repository_checks.md#repository-checks) and [Geo replication and verification](../../administration/geo/index.md) stop running for all project or project wiki repositories in the affected Gitaly Cluster. The bug was fixed by [reverting the change in GitLab 15.9.0](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/110823). Before upgrading to this version, check if you have any "unavailable" repositories. See [the bug issue](https://gitlab.com/gitlab-org/gitlab/-/issues/390155) for more information.
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ### Geo installations
 
@@ -550,7 +550,7 @@ DETAILS:
   - Affected versions: GitLab versions 15.6.x, 15.7.x, and 15.8.0 - 15.8.2.
   - Versions containing fix: GitLab 15.8.3 and later.
 - Due to [a bug introduced in GitLab 15.4](https://gitlab.com/gitlab-org/gitlab/-/issues/390155), if one or more Git repositories in Gitaly Cluster is [unavailable](../../administration/gitaly/recovery.md#unavailable-repositories), then [Repository checks](../../administration/repository_checks.md#repository-checks) and [Geo replication and verification](../../administration/geo/index.md) stop running for all project or project wiki repositories in the affected Gitaly Cluster. The bug was fixed by [reverting the change in GitLab 15.9.0](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/110823). Before upgrading to this version, check if you have any "unavailable" repositories. See [the bug issue](https://gitlab.com/gitlab-org/gitlab/-/issues/390155) for more information.
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ## 15.5.5
 
@@ -562,7 +562,7 @@ DETAILS:
 
 ## 15.5.3
 
-- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](https://archives.docs.gitlab.com/17.0/ee/administration/sidekiq/processing_specific_job_classes.html#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
+- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](../../administration/sidekiq/processing_specific_job_classes.md#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
   - The default routing rule has been reverted in 15.5.4, so upgrading to that version or later will return to the previous behavior.
   - If a GitLab instance now listens only to the `default` queue (which is not currently recommended), it will be required to add this routing rule back in `/etc/gitlab/gitlab.rb`:
 
@@ -574,7 +574,7 @@ DETAILS:
 
 ## 15.5.2
 
-- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](https://archives.docs.gitlab.com/17.0/ee/administration/sidekiq/processing_specific_job_classes.html#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
+- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](../../administration/sidekiq/processing_specific_job_classes.md#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
   - The default routing rule has been reverted in 15.5.4, so upgrading to that version or later will return to the previous behavior.
   - If a GitLab instance now listens only to the `default` queue (which is not currently recommended), it will be required to add this routing rule back in `/etc/gitlab/gitlab.rb`:
 
@@ -586,7 +586,7 @@ DETAILS:
 
 ## 15.5.1
 
-- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](https://archives.docs.gitlab.com/17.0/ee/administration/sidekiq/processing_specific_job_classes.html#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
+- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](../../administration/sidekiq/processing_specific_job_classes.md#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
   - The default routing rule has been reverted in 15.5.4, so upgrading to that version or later will return to the previous behavior.
   - If a GitLab instance now listens only to the `default` queue (which is not currently recommended), it will be required to add this routing rule back in `/etc/gitlab/gitlab.rb`:
 
@@ -598,7 +598,7 @@ DETAILS:
 
 ## 15.5.0
 
-- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](https://archives.docs.gitlab.com/17.0/ee/administration/sidekiq/processing_specific_job_classes.html#queueselectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
+- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](../../administration/sidekiq/processing_specific_job_classes.md#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
   - The default routing rule has been reverted in 15.5.4, so upgrading to that version or later will return to the previous behavior.
   - If a GitLab instance now listens only to the `default` queue (which is not currently recommended), it will be required to add this routing rule back in `/etc/gitlab/gitlab.rb`:
 
@@ -616,7 +616,7 @@ DETAILS:
 
 - `pg_upgrade` fails to upgrade the bundled PostregSQL database to version 13. See
   [the details and workaround](#pg_upgrade-fails-to-upgrade-the-bundled-postregsql-database-to-version-13).
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ## 15.4.6
 
@@ -662,7 +662,7 @@ DETAILS:
 - By default, Gitaly and Praefect nodes use the time server at `pool.ntp.org`. If your instance can not connect to `pool.ntp.org`,
   [configure the `NTP_HOST` variable](../../administration/gitaly/praefect.md#customize-time-server-setting) otherwise, there can be `ntp: read udp ... i/o timeout` errors
   in the logs and the output of `gitlab-rake gitlab:gitaly:check`. However, if the Gitaly hosts' times are in sync, these errors can be ignored.
-- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](https://archives.docs.gitlab.com/17.0/ee/administration/sidekiq/processing_specific_job_classes.html#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
+- GitLab 15.4.0 introduced a default [Sidekiq routing rule](../../administration/sidekiq/processing_specific_job_classes.md#routing-rules) that routes all jobs to the `default` queue. For instances using [queue selectors](../../administration/sidekiq/processing_specific_job_classes.md#queue-selectors-deprecated), this causes [performance problems](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/1991) as some Sidekiq processes will be idle.
   - The default routing rule has been reverted in 15.4.5, so upgrading to that version or later will return to the previous behavior.
   - If a GitLab instance now listens only to the `default` queue (which is not currently recommended), it will be required to add this routing rule back in `/etc/gitlab/gitlab.rb`:
 
@@ -695,7 +695,7 @@ DETAILS:
 
 - `pg_upgrade` fails to upgrade the bundled PostregSQL database to version 13. See
   [the details and workaround](#pg_upgrade-fails-to-upgrade-the-bundled-postregsql-database-to-version-13).
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ## 15.3.4
 
@@ -790,7 +790,7 @@ This issue is resolved in GitLab 15.3.3, so customers with the following configu
 - LFS is enabled.
 - LFS objects are being replicated across Geo sites.
 - Repositories are being pulled by using a Geo secondary site.
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 #### Incorrect object storage LFS file deletion on secondary sites
 
@@ -851,7 +851,7 @@ DETAILS:
   [the details and workaround](#lfs-transfers-redirect-to-primary-from-secondary-site-mid-session).
 - Incorrect object storage LFS files deletion on Geo secondary sites. See
   [the details and workaround](#incorrect-object-storage-lfs-file-deletion-on-secondary-sites).
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ## 15.1.0
 
@@ -889,12 +889,12 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** Self-managed
 
-- [Geo proxying](../../administration/geo/secondary_proxy/index.md) was [enabled by default for different URLs](https://gitlab.com/gitlab-org/gitlab/-/issues/346112) in 15.1. This may be a breaking change. If needed, you may [disable Geo proxying](../../administration/geo/secondary_proxy/index.md#disable-secondary-site-http-proxying). If you are using SAML with different URLs, you must modify your SAML configuration and your Identity Provider configuration. For more information, see the [Geo with Single Sign-On (SSO) documentation](../../administration/geo/replication/single_sign_on.md).
+- [Geo proxying](../../administration/geo/secondary_proxy/index.md) was [enabled by default for different URLs](https://gitlab.com/gitlab-org/gitlab/-/issues/346112) in 15.1. This may be a breaking change. If needed, you may [disable Geo proxying](../../administration/geo/secondary_proxy/index.md#disable-geo-proxying). If you are using SAML with different URLs, you must modify your SAML configuration and your Identity Provider configuration. For more information, see the [Geo with Single Sign-On (SSO) documentation](../../administration/geo/replication/single_sign_on.md).
 - LFS transfers can redirect to the primary from secondary site mid-session. See
   [the details and workaround](#lfs-transfers-redirect-to-primary-from-secondary-site-mid-session).
 - Incorrect object storage LFS files deletion on Geo secondary sites. See
   [the details and workaround](#incorrect-object-storage-lfs-file-deletion-on-secondary-sites).
-- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site).
+- Cloning LFS objects from secondary site downloads from the primary site even when secondary is fully synced. See [the details and workaround](gitlab_16_changes.md#cloning-lfs-objects-from-secondary-site-downloads-from-the-primary-site-even-when-secondary-is-fully-synced).
 
 ## 15.0.0
 
@@ -923,7 +923,8 @@ DETAILS:
   Gitaly. The previous implementation in GitLab Shell was removed in GitLab 15.0. With this change, global server hooks are stored only inside a subdirectory named after the
   hook type. Global server hooks can no longer be a single hook file in the root of the custom hooks directory. For example, you must use `<custom_hooks_dir>/<hook_name>.d/*` rather
   than `<custom_hooks_dir>/<hook_name>`.
-  - Use `gitaly['custom_hooks_dir']` in `gitlab.rb` for Omnibus GitLab. This replaces `gitlab_shell['custom_hooks_dir']`.
+  - Use `gitaly['custom_hooks_dir']` in `gitlab.rb` ([introduced in 14.3](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/4208))
+    for Omnibus GitLab. This replaces `gitlab_shell['custom_hooks_dir']`.
 - PostgreSQL 13.6 is being shipped as the default version for fresh installs and
   12.10 for upgrades. You can manually upgrade to PostgreSQL 13.6 following the
   [upgrade docs](https://docs.gitlab.com/omnibus/settings/database.html#upgrade-packaged-postgresql-server) with:

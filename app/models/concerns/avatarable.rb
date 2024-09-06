@@ -61,8 +61,8 @@ module Avatarable
       return uncached_avatar_path(only_path: only_path, size: size)
     end
 
-    if self.try(:should_use_security_policy_bot_avatar?)
-      return self.security_policy_bot_static_avatar_path(size)
+    if self.try(:static_avatar_path?)
+      return self.static_avatar_path(size)
     end
 
     # Cache this avatar path only within the request because avatars in

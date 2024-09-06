@@ -38,9 +38,9 @@ export default {
 </script>
 
 <template>
-  <div class="gl-truncate">
+  <div class="gl-text-truncate">
     <span v-if="adminUrl">
-      <runner-type-icon :type="runnerType" class="gl-align-middle" />
+      <runner-type-icon :type="runnerType" class="gl-vertical-align-middle" />
       <gl-link :href="adminUrl" data-testid="job-runner-link"> {{ description }} </gl-link>
     </span>
     <span v-else data-testid="empty-runner-text"> {{ $options.i18n.emptyRunnerText }}</span>

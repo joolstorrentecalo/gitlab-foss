@@ -18,9 +18,9 @@
 
   %td
     - if can?(current_user, :read_build, job)
-      = link_to job.name, project_job_path(job.project, job), class: '!gl-text-blue-600'
+      = link_to job.name, project_job_path(job.project, job), class: 'gl-text-blue-600!'
     - else
-      %span{ class: '!gl-text-blue-600' }
+      %span.gl-text-blue-600!
         = job.name
 
   %td.branch-commit.gl-text-gray-900
@@ -28,7 +28,7 @@
 
     - if ref
       - if job.ref
-        .icon-container.gl-inline-block
+        .icon-container.gl-display-inline-block
           = job.tag? ? sprite_icon('label', css_class: 'sprite') : sprite_icon('fork', css_class: 'sprite')
         = link_to job.ref, project_ref_path(job.project, job.ref), class: "ref-name"
       - else
@@ -50,15 +50,15 @@
     .label-container
       - if job.tags.any?
         - job.tags.each do |tag|
-          = gl_badge_tag tag, variant: :info
+          = gl_badge_tag tag, variant: :info, size: :sm
       - if job.try(:trigger_request)
-        = gl_badge_tag _('triggered'), variant: :info
+        = gl_badge_tag _('triggered'), variant: :info, size: :sm
       - if job.try(:allow_failure) && !job.success?
-        = gl_badge_tag _('allowed to fail'), variant: :warning
+        = gl_badge_tag _('allowed to fail'), variant: :warning, size: :sm
       - if job.schedulable?
-        = gl_badge_tag s_('DelayedJobs|delayed'), variant: :info
+        = gl_badge_tag s_('DelayedJobs|delayed'), variant: :info, size: :sm
       - elsif job.action?
-        = gl_badge_tag _('manual'), variant: :info
+        = gl_badge_tag _('manual'), variant: :info, size: :sm
 
   - if pipeline_link
     %td
@@ -125,6 +125,6 @@
               icon: 'time-out'
           - elsif allow_retry
             - if job.playable? && !admin
-              = link_button_to nil, play_project_job_path(job.project, job, return_to: request.original_url), method: :post, title: _('Run'), icon: 'play'
+              = link_button_to nil, play_project_job_path(job.project, job, return_to: request.original_url), method: :post, title: _('Play'), icon: 'play'
             - elsif job.retryable?
               = link_button_to nil, retry_project_job_path(job.project, job, return_to: request.original_url), method: :post, title: _('Retry'), icon: 'retry'

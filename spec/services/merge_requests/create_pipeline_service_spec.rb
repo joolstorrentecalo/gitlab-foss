@@ -6,11 +6,15 @@ RSpec.describe MergeRequests::CreatePipelineService, :clean_gitlab_redis_cache, 
   include ProjectForksHelper
 
   let_it_be(:project, refind: true) { create(:project, :repository) }
-  let_it_be(:user) { create(:user, developer_of: project) }
+  let_it_be(:user) { create(:user) }
 
   let(:service) { described_class.new(project: project, current_user: actor, params: params) }
   let(:actor) { user }
   let(:params) { {} }
+
+  before do
+    project.add_developer(user)
+  end
 
   describe '#execute' do
     subject(:response) { service.execute(merge_request) }

@@ -28,7 +28,7 @@ Upgrading Geo sites involves performing:
 
 NOTE:
 These general upgrade steps require downtime in a multi-node setup.
-If you want to avoid downtime, consider using [zero-downtime upgrades](../../../update/zero_downtime.md#multi-node--ha-deployment-with-geo).
+If you want to avoid downtime, consider using [zero downtime upgrades](../../../update/zero_downtime.md#multi-node--ha-deployment-with-geo).
 
 To upgrade the Geo sites when a new GitLab version is released, upgrade **primary**
 and all **secondary** sites:
@@ -68,4 +68,4 @@ everything is working correctly:
 1. Test the data replication by pushing code to the **primary** site and see if it
    is received by **secondary** sites.
 
-If you encounter any issues, see the [Geo troubleshooting guide](troubleshooting/index.md).
+If you encounter any issues, see the [Geo troubleshooting guide](troubleshooting.md).

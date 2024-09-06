@@ -92,16 +92,13 @@ module Deployments
     end
 
     def link_fast_forward_merge_requests(commits)
+      return if Feature.disabled?(:link_fast_forward_merge_requests_to_deployment, project, type: :gitlab_com_derisk)
+
       deployment.link_merge_requests(merge_requests_by_head_commit_sha(commits))
-      deployment.link_merge_requests(merge_requests_by_squash_commit_sha(commits))
     end
 
     def merge_requests_by_merge_commit_sha(commits)
       project.merge_requests.merged.by_merge_commit_sha(commits)
-    end
-
-    def merge_requests_by_squash_commit_sha(commits)
-      project.merge_requests.merged.by_squash_commit_sha(commits)
     end
 
     def merge_requests_by_head_commit_sha(commits)

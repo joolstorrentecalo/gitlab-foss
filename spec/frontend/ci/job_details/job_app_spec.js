@@ -9,7 +9,7 @@ import EnvironmentsBlock from '~/ci/job_details/components/environments_block.vu
 import ErasedBlock from '~/ci/job_details/components/erased_block.vue';
 import JobApp from '~/ci/job_details/job_app.vue';
 import JobLog from '~/ci/job_details/components/log/log.vue';
-import JobLogTopBar from 'ee_else_ce/ci/job_details/components/job_log_top_bar.vue';
+import JobLogTopBar from 'ee_else_ce/ci/job_details/components/job_log_controllers.vue';
 import Sidebar from '~/ci/job_details/components/sidebar/sidebar.vue';
 import StuckBlock from '~/ci/job_details/components/stuck_block.vue';
 import UnmetPrerequisitesBlock from '~/ci/job_details/components/unmet_prerequisites_block.vue';
@@ -163,11 +163,8 @@ describe('Job App', () => {
               label: 'failed',
               text: 'failed',
               details_path: 'path',
-              action: {
-                confirmation_message: null,
-              },
               illustration: {
-                content: 'Run this job again in order to create the necessary resources.',
+                content: 'Retry this job in order to create the necessary resources.',
                 image: 'path',
                 size: 'svg-430',
                 title: 'Failed to create resources',

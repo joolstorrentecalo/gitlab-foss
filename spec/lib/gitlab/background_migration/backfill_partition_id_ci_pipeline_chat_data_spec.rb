@@ -4,10 +4,10 @@ require 'spec_helper'
 
 RSpec.describe Gitlab::BackgroundMigration::BackfillPartitionIdCiPipelineChatData,
   feature_category: :continuous_integration do
-  let(:ci_pipelines_table) { table(:ci_pipelines, primary_key: :id, database: :ci) }
+  let(:ci_pipelines_table) { table(:ci_pipelines, database: :ci) }
   let(:ci_pipeline_chat_data_table) { table(:ci_pipeline_chat_data, database: :ci) }
-  let!(:pipeline1) { ci_pipelines_table.create!(id: 1, partition_id: 100, project_id: 1) }
-  let!(:pipeline2) { ci_pipelines_table.create!(id: 2, partition_id: 101, project_id: 1) }
+  let!(:pipeline1) { ci_pipelines_table.create!(id: 1, partition_id: 100) }
+  let!(:pipeline2) { ci_pipelines_table.create!(id: 2, partition_id: 101) }
   let!(:invalid_ci_pipeline_chat_data) do
     ci_pipeline_chat_data_table.create!(
       id: 1,
@@ -36,26 +36,11 @@ RSpec.describe Gitlab::BackgroundMigration::BackfillPartitionIdCiPipelineChatDat
       batch_column: :id,
       sub_batch_size: 1,
       pause_ms: 0,
-      connection: connection
+      connection: Ci::ApplicationRecord.connection
     }
   end
 
   let!(:migration) { described_class.new(**migration_attrs) }
-  let(:connection) { Ci::ApplicationRecord.connection }
-
-  around do |example|
-    connection.transaction do
-      connection.execute(<<~SQL)
-        ALTER TABLE ci_pipelines DISABLE TRIGGER ALL;
-      SQL
-
-      example.run
-
-      connection.execute(<<~SQL)
-        ALTER TABLE ci_pipelines ENABLE TRIGGER ALL;
-      SQL
-    end
-  end
 
   describe '#perform' do
     context 'when second partition does not exist' do

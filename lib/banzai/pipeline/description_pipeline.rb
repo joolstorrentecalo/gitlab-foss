@@ -9,8 +9,8 @@ module Banzai
 
       def self.transform_context(context)
         super(context).merge(
-          allowlist: ALLOWLIST,   # SanitizationFilter
-          no_header_anchors: true # header elements not allowed
+          # SanitizationFilter
+          allowlist: ALLOWLIST
         )
       end
     end

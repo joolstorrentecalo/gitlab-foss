@@ -6,7 +6,7 @@ import { parsePikadayDate, pikadayToString } from '~/lib/utils/datetime_utility'
 import { queryToObject, objectToQuery } from '~/lib/utils/url_utility';
 import UsersSelect from '~/users_select';
 import ZenMode from '~/zen_mode';
-import { detectAndConfirmSensitiveTokens, CONTENT_TYPE } from '~/lib/utils/secret_detection';
+import { containsSensitiveToken, confirmSensitiveAction, i18n } from '~/lib/utils/secret_detection';
 import { trackSavedUsingEditor } from '~/vue_shared/components/markdown/tracking';
 import { EDITING_MODE_CONTENT_EDITOR } from '~/vue_shared/constants';
 import { ISSUE_NOTEABLE_TYPE, MERGE_REQUEST_NOTEABLE_TYPE } from '~/notes/constants';
@@ -58,7 +58,6 @@ function getIssuableType() {
 }
 
 export default class IssuableForm {
-  // eslint-disable-next-line max-params
   static addAutosave(map, id, element, searchTerm, fallbackKey) {
     if (!element) return;
     map.set(
@@ -163,17 +162,14 @@ export default class IssuableForm {
     const form = event.target;
     const descriptionText = this.descriptionField().val();
 
-    const confirmSubmit = await detectAndConfirmSensitiveTokens({
-      content: descriptionText,
-      contentType: CONTENT_TYPE.DESCRIPTION,
-    });
-
-    if (!confirmSubmit) {
-      this.submitButton.removeAttr('disabled');
-      this.submitButton.removeClass('disabled');
-      return false;
+    if (containsSensitiveToken(descriptionText)) {
+      const confirmed = await confirmSensitiveAction(i18n.descriptionPrompt);
+      if (!confirmed) {
+        this.submitButton.removeAttr('disabled');
+        this.submitButton.removeClass('disabled');
+        return false;
+      }
     }
-
     form.submit();
     return this.resetAutosave();
   }

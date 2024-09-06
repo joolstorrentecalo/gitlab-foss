@@ -6,15 +6,15 @@ class Projects::JobsController < Projects::ApplicationController
   include ContinueParams
   include ProjectStatsRefreshConflictsGuard
 
-  urgency :low, [:index, :show, :trace, :retry, :play, :cancel, :unschedule, :erase, :viewer, :raw, :test_report_summary]
+  urgency :low, [:index, :show, :trace, :retry, :play, :cancel, :unschedule, :erase, :raw, :test_report_summary]
 
   before_action :find_job_as_build, except: [:index, :play, :retry, :show]
   before_action :find_job_as_processable, only: [:play, :retry, :show]
-  before_action :authorize_read_build_trace!, only: [:trace, :viewer, :raw]
+  before_action :authorize_read_build_trace!, only: [:trace, :raw]
   before_action :authorize_read_build!, except: [:test_report_summary]
   before_action :authorize_read_build_report_results!, only: [:test_report_summary]
   before_action :authorize_update_build!,
-    except: [:index, :show, :viewer, :raw, :trace, :erase, :cancel, :unschedule, :test_report_summary]
+    except: [:index, :show, :raw, :trace, :erase, :cancel, :unschedule, :test_report_summary]
   before_action :authorize_cancel_build!, only: [:cancel]
   before_action :authorize_erase_build!, only: [:erase]
   before_action :authorize_use_build_terminal!, only: [:terminal, :terminal_websocket_authorize]
@@ -22,7 +22,7 @@ class Projects::JobsController < Projects::ApplicationController
   before_action :authorize_create_proxy_build!, only: :proxy_websocket_authorize
   before_action :verify_proxy_request!, only: :proxy_websocket_authorize
   before_action :reject_if_build_artifacts_size_refreshing!, only: [:erase]
-  before_action :push_filter_by_name, only: [:index]
+  before_action :push_ai_build_failure_cause, only: [:show]
   layout 'project'
 
   feature_category :continuous_integration
@@ -42,15 +42,7 @@ class Projects::JobsController < Projects::ApplicationController
 
         render json: Ci::JobSerializer
           .new(project: @project, current_user: @current_user)
-          .represent(
-            @build.present(current_user: current_user),
-            {
-              # Pipeline will show all failed builds by default if not using disable_failed_builds
-              disable_coverage: true,
-              disable_failed_builds: true
-            },
-            BuildDetailsEntity
-          )
+          .represent(@build.present(current_user: current_user), {}, BuildDetailsEntity)
       end
     end
   end
@@ -144,7 +136,7 @@ class Projects::JobsController < Projects::ApplicationController
   def raw
     if @build.trace.archived?
       workhorse_set_content_type!
-      send_upload(@build.job_artifacts_trace.file, send_params: raw_send_params, redirect_params: raw_redirect_params, proxy: params[:proxy])
+      send_upload(@build.job_artifacts_trace.file, send_params: raw_send_params, redirect_params: raw_redirect_params)
     else
       @build.trace.read do |stream|
         if stream.file?
@@ -161,8 +153,6 @@ class Projects::JobsController < Projects::ApplicationController
       end
     end
   end
-
-  def viewer; end
 
   def test_report_summary
     return not_found unless @build.report_results.present?
@@ -196,27 +186,27 @@ class Projects::JobsController < Projects::ApplicationController
   attr_reader :build
 
   def authorize_read_build_report_results!
-    access_denied! unless can?(current_user, :read_build_report_results, build)
+    return access_denied! unless can?(current_user, :read_build_report_results, build)
   end
 
   def authorize_update_build!
-    access_denied! unless can?(current_user, :update_build, @build)
+    return access_denied! unless can?(current_user, :update_build, @build)
   end
 
   def authorize_cancel_build!
-    access_denied! unless can?(current_user, :cancel_build, @build)
+    return access_denied! unless can?(current_user, :cancel_build, @build)
   end
 
   def authorize_erase_build!
-    access_denied! unless can?(current_user, :erase_build, @build)
+    return access_denied! unless can?(current_user, :erase_build, @build)
   end
 
   def authorize_use_build_terminal!
-    access_denied! unless can?(current_user, :create_build_terminal, @build)
+    return access_denied! unless can?(current_user, :create_build_terminal, @build)
   end
 
   def authorize_create_proxy_build!
-    access_denied! unless can?(current_user, :create_build_service_proxy, @build)
+    return access_denied! unless can?(current_user, :create_build_service_proxy, @build)
   end
 
   def verify_api_request!
@@ -286,9 +276,7 @@ class Projects::JobsController < Projects::ApplicationController
     ::Gitlab::Workhorse.channel_websocket(service)
   end
 
-  def push_filter_by_name
-    push_frontend_feature_flag(:populate_and_use_build_names_table, @project)
+  def push_ai_build_failure_cause
+    push_frontend_feature_flag(:ai_build_failure_cause, @project)
   end
 end
-
-Projects::JobsController.prepend_mod_with('Projects::JobsController')

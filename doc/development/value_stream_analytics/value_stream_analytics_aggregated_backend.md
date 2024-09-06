@@ -6,11 +6,14 @@ info: Any user with at least the Maintainer role can merge updates to this conte
 
 # Aggregated Value Stream Analytics
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/335391) in GitLab 14.7.
+
 DISCLAIMER:
 This page contains information related to upcoming products, features, and functionality.
 It is important to note that the information presented is for informational purposes only.
 Please do not rely on this information for purchasing or planning purposes.
-The development, release, and timing of any products, features, or functionality may be subject to change or delay and remain at the
+As with all projects, the items mentioned on this page are subject to change or delay.
+The development, release, and timing of any products, features, or functionality remain at the
 sole discretion of GitLab Inc.
 
 This page provides a high-level overview of the aggregated backend for
@@ -107,7 +110,7 @@ the service performs operations in batches and enforces strict application limit
 - Stop processing when a limit is reached, schedule a background job to continue the processing later.
 - Continue processing data from a specific point.
 
-The data loading is done manually. Once the feature is ready, the service is
+As of GitLab 14.7, the data loading is done manually. Once the feature is ready, the service is
 invoked periodically by the system via a cron job (this part is not implemented yet).
 
 #### Record iteration
@@ -212,7 +215,7 @@ consistency is ensured by a background job (eventually consistent).
 The base query always includes the following filters:
 
 - `stage_event_hash_id` - partition key
-- `project_id` or `group_id` - depending on whether it's a project or group query
+- `project_id` or `group_id` - depending if it's a project or group level query
 - `end_event_timestamp` - date range filter (last 30 days)
 
 Example: Selecting review stage duration for the GitLab project

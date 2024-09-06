@@ -13,5 +13,3 @@ module BulkImports
     end
   end
 end
-
-BulkImports::Projects::Pipelines::IssuesPipeline.prepend_mod

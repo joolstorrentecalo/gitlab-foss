@@ -1,9 +1,9 @@
 import Vue from 'vue';
 import VueApollo from 'vue-apollo';
-import { shallowMount } from '@vue/test-utils';
+import { GlBadge } from '@gitlab/ui';
 import createMockApollo from 'helpers/mock_apollo_helper';
-import KubernetesConnectionStatusBadge from '~/environments/environment_details/components/kubernetes/kubernetes_connection_status_badge.vue';
 import KubernetesConnectionStatus from '~/environments/environment_details/components/kubernetes/kubernetes_connection_status.vue';
+import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
 import waitForPromises from 'helpers/wait_for_promises';
 import {
   connectionStatus,
@@ -28,10 +28,7 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_co
   const defaultProps = {
     configuration,
     namespace: kubernetesNamespace,
-    resourceTypeParam: {
-      resourceType: k8sResourceType.k8sPods,
-      connectionParams: null,
-    },
+    resourceType: k8sResourceType.k8sPods,
   };
 
   const defaultK8sConnectionState = {
@@ -64,85 +61,106 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_co
     return createMockApollo([], mockResolvers);
   };
 
-  function createComponent(props = defaultProps, scopedSlots) {
+  function createComponent(props = defaultProps) {
     const apolloProvider = createApolloProvider();
-    wrapper = shallowMount(KubernetesConnectionStatus, {
+    wrapper = shallowMountExtended(KubernetesConnectionStatus, {
       propsData: {
         ...props,
       },
-      scopedSlots,
       apolloProvider,
     });
   }
 
-  const findStatusBadge = () => wrapper.findComponent(KubernetesConnectionStatusBadge);
+  const findReconnectBadge = () => wrapper.findComponent(GlBadge);
+  const findReconnectTooltip = () => wrapper.findByTestId('connection-status-tooltip');
 
   beforeEach(() => {
     setUpMocks();
   });
 
-  describe('when a default slot is rendered', () => {
-    describe.each([
-      [connectionStatus.connected],
-      [connectionStatus.connecting],
-      [connectionStatus.disconnected],
-    ])('when %s to cluster', (status) => {
-      beforeEach(async () => {
-        k8sConnectionQueryMock.mockResolvedValue({
-          ...defaultK8sConnectionState,
-          [k8sResourceType.k8sPods]: { connectionStatus: status },
-        });
-        createComponent();
-        await waitForPromises();
+  describe('when not connected to cluster', () => {
+    beforeEach(async () => {
+      k8sConnectionQueryMock.mockResolvedValue({
+        ...defaultK8sConnectionState,
+        [k8sResourceType.k8sPods]: { connectionStatus: connectionStatus.disconnected },
       });
+      createComponent();
+      await waitForPromises();
+    });
 
-      it('renders status badge with correct props', () => {
-        const badge = findStatusBadge();
-        expect(badge.props().popoverId).toBe(k8sResourceType.k8sPods);
-        expect(badge.props().connectionStatus).toBe(status);
-      });
+    it('renders the disconnected icon', () => {
+      const badge = findReconnectBadge();
+      expect(badge.props().variant).toBe('warning');
+      expect(badge.props().icon).toBe('retry');
+      expect(badge.attributes().href).toBe('#');
+    });
 
-      it('when reconnect event is emitted, it calls the reconnectToCluster mutation', async () => {
-        const badge = findStatusBadge();
-        badge.vm.$emit('reconnect');
-        await waitForPromises();
-        expect(reconnectToClusterMutationMock).toHaveBeenCalledWith(
-          {},
-          {
-            ...defaultProps,
-          },
-          expect.anything(),
-          expect.anything(),
-        );
-      });
+    it('renders the correct tooltip', () => {
+      const tooltip = findReconnectTooltip();
+      expect(tooltip.attributes('title')).toBe('Refresh to sync new data');
+    });
+
+    it('when the button is clicked, it calls the reconnectToCluster mutation', async () => {
+      const badge = findReconnectBadge();
+      badge.trigger('click');
+      await waitForPromises();
+      expect(reconnectToClusterMutationMock).toHaveBeenCalledWith(
+        {},
+        {
+          ...defaultProps,
+        },
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 
-  describe('when a custom slot is rendered', () => {
-    const scopedSlotSpy = jest.fn();
+  describe('when connected to cluster', () => {
+    beforeEach(async () => {
+      createComponent();
+      await waitForPromises();
+    });
 
-    describe.each([
-      [connectionStatus.connected],
-      [connectionStatus.connecting],
-      [connectionStatus.disconnected],
-    ])('when %s to cluster', (status) => {
-      beforeEach(async () => {
-        k8sConnectionQueryMock.mockResolvedValue({
-          ...defaultK8sConnectionState,
-          [k8sResourceType.k8sPods]: { connectionStatus: status },
-        });
-        createComponent(defaultProps, { default: scopedSlotSpy });
-        await waitForPromises();
-      });
+    it('renders the connected icon', () => {
+      const badge = findReconnectBadge();
+      expect(badge.props().variant).toBe('success');
+      expect(badge.props().icon).toBe('connected');
+      expect(badge.attributes().href).toBeUndefined();
+    });
 
-      it('correctly passes scoped slot props', () => {
-        expect(scopedSlotSpy).toHaveBeenCalledWith({
-          connectionProps: {
-            connectionStatus: status,
-            reconnect: expect.any(Function),
-          },
-        });
+    it('renders the correct tooltip', () => {
+      const tooltip = findReconnectTooltip();
+      expect(tooltip.attributes('title')).toBe('Dashboard is up to date');
+    });
+
+    it('when the button is clicked, it does not call the reconnectToCluster mutation', async () => {
+      const badge = findReconnectBadge();
+      badge.trigger('click');
+      await waitForPromises();
+      expect(reconnectToClusterMutationMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('when connecting to cluster', () => {
+    beforeEach(async () => {
+      k8sConnectionQueryMock.mockResolvedValue({
+        ...defaultK8sConnectionState,
+        [k8sResourceType.k8sPods]: { connectionStatus: connectionStatus.connecting },
       });
+      createComponent();
+      await waitForPromises();
+    });
+
+    it('renders the correct tooltip', () => {
+      const tooltip = findReconnectTooltip();
+      expect(tooltip.attributes('title')).toBe('Updating dashboard');
+    });
+
+    it('renders the loading icon', () => {
+      const badge = findReconnectBadge();
+      expect(badge.props().variant).toBe('muted');
+      expect(badge.props().icon).toBe('spinner');
+      expect(badge.attributes().href).toBeUndefined();
     });
   });
 });

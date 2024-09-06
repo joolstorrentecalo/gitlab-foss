@@ -9,25 +9,22 @@ import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import getIssuesQuery from 'ee_else_ce/issues/dashboard/queries/get_issues.query.graphql';
 import IssueCardStatistics from 'ee_else_ce/issues/list/components/issue_card_statistics.vue';
 import IssueCardTimeInfo from 'ee_else_ce/issues/list/components/issue_card_time_info.vue';
+import { STATUS_ALL, STATUS_CLOSED, STATUS_OPEN } from '~/issues/constants';
+import { defaultTypeTokenOptions, i18n, PARAM_STATE, urlSortParams } from '~/issues/list/constants';
+import setSortPreferenceMutation from '~/issues/list/queries/set_sort_preference.mutation.graphql';
 import {
   convertToApiParams,
   convertToSearchQuery,
   convertToUrlParams,
   deriveSortKey,
-  getDefaultWorkItemTypes,
   getFilterTokens,
   getInitialPageParams,
   getSortOptions,
-  getTypeTokenOptions,
-} from 'ee_else_ce/issues/list/utils';
-import { STATUS_ALL, STATUS_CLOSED, STATUS_OPEN } from '~/issues/constants';
-import { i18n, PARAM_STATE, urlSortParams } from '~/issues/list/constants';
-import setSortPreferenceMutation from '~/issues/list/queries/set_sort_preference.mutation.graphql';
+} from '~/issues/list/utils';
 import { fetchPolicies } from '~/lib/graphql';
 import axios from '~/lib/utils/axios_utils';
 import { scrollUp } from '~/lib/utils/scroll_utils';
 import { getParameterByName } from '~/lib/utils/url_utility';
-import { __ } from '~/locale';
 import {
   OPERATORS_IS,
   OPERATORS_IS_NOT_OR,
@@ -92,14 +89,19 @@ export default {
     'hasIssuableHealthStatusFeature',
     'hasIssueDateFilterFeature',
     'hasIssueWeightsFeature',
-    'hasOkrsFeature',
-    'hasQualityManagementFeature',
     'hasScopedLabelsFeature',
     'initialSort',
     'isPublicVisibilityRestricted',
     'isSignedIn',
     'rssPath',
   ],
+  props: {
+    eeTypeTokenOptions: {
+      type: Array,
+      required: false,
+      default: () => [],
+    },
+  },
   data() {
     const state = getParameterByName(PARAM_STATE);
 
@@ -159,22 +161,14 @@ export default {
     apiFilterParams() {
       return convertToApiParams(this.filterTokens);
     },
-    defaultWorkItemTypes() {
-      return getDefaultWorkItemTypes({
-        hasOkrsFeature: this.hasOkrsFeature,
-        hasQualityManagementFeature: this.hasQualityManagementFeature,
-      });
-    },
     dropdownItems() {
       return [
-        { href: this.rssPath, text: __('Subscribe to RSS feed') },
-        { href: this.calendarPath, text: __('Subscribe to calendar') },
+        { href: this.rssPath, text: i18n.rssLabel },
+        { href: this.calendarPath, text: i18n.calendarLabel },
       ];
     },
     emptyStateDescription() {
-      return this.hasSearch
-        ? __('To widen your search, change or remove filters above')
-        : undefined;
+      return this.hasSearch ? this.$options.i18n.noSearchResultsDescription : undefined;
     },
     emptyStateSvgPath() {
       return this.hasSearch
@@ -183,8 +177,8 @@ export default {
     },
     emptyStateTitle() {
       return this.hasSearch
-        ? __('Sorry, your filter produced no results')
-        : __('Please select at least one filter to see results');
+        ? this.$options.i18n.noSearchResultsTitle
+        : this.$options.i18n.noSearchNoFilterTitle;
     },
     hasSearch() {
       return Boolean(this.searchQuery || Object.keys(this.urlFilterParams).length);
@@ -208,7 +202,6 @@ export default {
         state: this.state,
         ...this.pageParams,
         ...this.apiFilterParams,
-        types: this.apiFilterParams.types || this.defaultWorkItemTypes,
       };
     },
     renderedIssues() {
@@ -365,10 +358,7 @@ export default {
       };
     },
     typeTokenOptions() {
-      return getTypeTokenOptions({
-        hasOkrsFeature: this.hasOkrsFeature,
-        hasQualityManagementFeature: this.hasQualityManagementFeature,
-      });
+      return [...defaultTypeTokenOptions, ...this.eeTypeTokenOptions];
     },
     urlFilterParams() {
       return convertToUrlParams(this.filterTokens);

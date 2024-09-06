@@ -83,14 +83,13 @@ module MarkupHelper
     render_links(text)
   end
 
-  def markdown(text, context = {}, postprocess = {})
+  def markdown(text, context = {})
     return '' unless text.present?
 
     context[:project] ||= @project
     context[:group] ||= @group
 
-    html = Markup::RenderingService.new(text, context: context,
-      postprocess_context: postprocess_context.merge!(postprocess)).execute
+    html = Markup::RenderingService.new(text, context: context, postprocess_context: postprocess_context).execute
 
     Hamlit::RailsHelpers.preserve(html)
   end
@@ -185,10 +184,7 @@ module MarkupHelper
       next unless node.name == 'a'
       next node.remove if node.children.empty?
       next node.replace(node.children) if node['data-reference-type'] != 'user'
-
-      if defined?(current_user) && current_user && node['data-user'] == current_user.id.to_s
-        next node.append_class('current-user')
-      end
+      next node.append_class('current-user') if current_user && node['data-user'] == current_user.id.to_s
     end
 
     sanitize text, scrubber: scrubber

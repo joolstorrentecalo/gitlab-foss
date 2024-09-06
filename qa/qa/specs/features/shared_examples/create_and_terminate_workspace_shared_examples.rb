@@ -7,7 +7,11 @@ module QA
       workspace_name = ""
 
       QA::EE::Page::Workspace::List.perform do |list|
-        workspace_name = list.create_workspace(kubernetes_agent.name, devfile_project.name)
+        existing_workspaces = list.get_workspaces_list
+        list.create_workspace(kubernetes_agent.name, devfile_project.name)
+        updated_workspaces = list.get_workspaces_list
+        workspace_name = (updated_workspaces - existing_workspaces).fetch(0, '').to_s
+        raise "Workspace name is empty" if workspace_name == ''
 
         expect(list).to have_workspace_state(workspace_name, "Creating")
         list.wait_for_workspaces_creation(workspace_name)
@@ -27,7 +31,6 @@ module QA
       end
 
       QA::EE::Page::Workspace::List.perform do |list_item|
-        list_item.click_terminated_tab
         expect(list_item).to have_workspace_state(workspace_name, "Terminated")
       end
     end

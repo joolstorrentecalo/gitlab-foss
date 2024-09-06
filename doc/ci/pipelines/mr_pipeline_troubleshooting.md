@@ -6,17 +6,13 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 # Merge request pipeline troubleshooting
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** GitLab.com, Self-managed, GitLab Dedicated
-
 When working with merge request pipelines, you might encounter the following issues.
 
 ## Two pipelines when pushing to a branch
 
 If you get duplicate pipelines in merge requests, your pipeline might be configured
 to run for both branches and merge requests at the same time. Adjust your pipeline
-configuration to [avoid duplicate pipelines](../jobs/job_rules.md#avoid-duplicate-pipelines).
+configuration to [avoid duplicate pipelines](../jobs/job_control.md#avoid-duplicate-pipelines).
 
 You can add `workflow:rules` to [switch from branch pipelines to merge request pipelines](../yaml/workflow.md#switch-between-branch-pipelines-and-merge-request-pipelines).
 After a merge request is open on the branch, the pipeline switches to a merge request pipeline.
@@ -39,7 +35,7 @@ It's possible to have both branch pipelines and merge request pipelines in the
 **Pipelines** tab of a single merge request. This might be [by configuration](../yaml/workflow.md#switch-between-branch-pipelines-and-merge-request-pipelines),
 or [by accident](#two-pipelines-when-pushing-to-a-branch).
 
-When the project has [**Pipelines must succeed**](../../user/project/merge_requests/auto_merge.md#require-a-successful-pipeline-for-merge) enabled
+When the project has [**Pipelines must succeed**](../../user/project/merge_requests/merge_when_pipeline_succeeds.md#require-a-successful-pipeline-for-merge) enabled
 and both pipelines types are present, the merge request pipelines are checked,
 not the branch pipelines.
 

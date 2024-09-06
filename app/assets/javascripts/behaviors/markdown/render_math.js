@@ -1,6 +1,5 @@
-import { GlAlert } from '@gitlab/ui';
 import { escape } from 'lodash';
-import Vue from 'vue';
+import { spriteIcon } from '~/lib/utils/common_utils';
 import { differenceInMilliseconds } from '~/lib/utils/datetime_utility';
 import { s__, sprintf } from '~/locale';
 
@@ -15,7 +14,6 @@ const MAX_MATH_CHARS = 1000;
 const MAX_MACRO_EXPANSIONS = 1000;
 const MAX_USER_SPECIFIED_EMS = 20;
 const MAX_RENDER_TIME_MS = 2000;
-const LAZY_ALERT_SHOWN_CLASS = 'lazy-alert-shown';
 
 // Wait for the browser to reflow the layout. Reflowing SVG takes time.
 // This has to wrap the inner function, otherwise IE/Edge throw "invalid calling object".
@@ -76,6 +74,7 @@ class SafeMathRenderer {
 
     this.renderElement = this.renderElement.bind(this);
     this.render = this.render.bind(this);
+    this.attachEvents = this.attachEvents.bind(this);
     this.pageName = document.querySelector('body').dataset.page;
   }
 
@@ -87,30 +86,48 @@ class SafeMathRenderer {
     const el = chosenEl || this.queue.shift();
     const forceRender = Boolean(chosenEl) || !gon.math_rendering_limits_enabled;
     const text = el.textContent;
-    const isTextTooLong = text.length > MAX_MATH_CHARS;
 
     el.removeAttribute('style');
-    if (!forceRender && (this.totalMS >= MAX_RENDER_TIME_MS || isTextTooLong)) {
-      if (!el.classList.contains(LAZY_ALERT_SHOWN_CLASS)) {
-        el.classList.add(LAZY_ALERT_SHOWN_CLASS);
+    if (!forceRender && (this.totalMS >= MAX_RENDER_TIME_MS || text.length > MAX_MATH_CHARS)) {
+      // Show un-rendered math code
+      const codeElement = document.createElement('pre');
 
-        // Show un-rendered math code
-        const codeElement = document.createElement('pre');
-        codeElement.className = 'code';
-        codeElement.textContent = el.textContent;
-        codeElement.dataset.mathStyle = el.dataset.mathStyle;
-        el.replaceChildren(codeElement);
+      codeElement.className = 'code';
+      codeElement.textContent = el.textContent;
+      codeElement.dataset.mathStyle = el.dataset.mathStyle;
 
-        this.renderAlert({
-          // We do not want to put the alert in the <copy-code> element's nearest
-          // positioned ancestor, otherwise it will display over the alert instead of
-          // the code block. Instead, put the alert *before* that ancestor.
-          mountBeforeEl: el.closest('.js-markdown-code'),
-          isTextTooLong,
-          onDisplayAnyway: () => {
-            this.renderElement(codeElement);
-          },
-        });
+      let message;
+      if (text.length > MAX_MATH_CHARS) {
+        message = sprintf(
+          s__(
+            'math|This math block exceeds %{maxMathChars} characters, and may cause performance issues on this page.',
+          ),
+          { maxMathChars: MAX_MATH_CHARS },
+        );
+      } else {
+        message = s__('math|Displaying this math block may cause performance issues on this page.');
+      }
+
+      const html = `
+          <div class="alert gl-alert gl-alert-warning alert-dismissible lazy-render-math-container js-lazy-render-math-container fade show" role="alert">
+            ${spriteIcon('warning', 'gl-text-orange-600 s16 gl-alert-icon')}
+            <div class="display-flex gl-alert-content">
+              <div>${message}</div>
+              <div class="gl-alert-actions">
+                <button class="js-lazy-render-math btn gl-alert-action btn-confirm btn-md gl-button">Display anyway</button>
+              </div>
+            </div>
+            <button type="button" class="close js-close" aria-label="Close">
+              ${spriteIcon('close', 's16')}
+            </button>
+          </div>
+          `;
+
+      if (!el.classList.contains('lazy-alert-shown')) {
+        // eslint-disable-next-line no-unsanitized/property
+        el.innerHTML = html;
+        el.append(codeElement);
+        el.classList.add('lazy-alert-shown');
       }
 
       // Render the next math
@@ -177,45 +194,27 @@ class SafeMathRenderer {
     setTimeout(this.renderElement, 400);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  renderAlert({ mountBeforeEl, isTextTooLong, onDisplayAnyway }) {
-    let alert;
+  attachEvents() {
+    document.body.addEventListener('click', (event) => {
+      const alert = event.target.closest('.js-lazy-render-math-container');
 
-    const dismiss = () => {
-      alert.$destroy();
-      alert.$el.remove();
-    };
+      if (!alert) {
+        return;
+      }
 
-    const displayAnyway = () => {
-      dismiss();
-      onDisplayAnyway();
-    };
+      // Handle alert close
+      if (event.target.closest('.js-close')) {
+        alert.remove();
+        return;
+      }
 
-    const message = isTextTooLong
-      ? sprintf(
-          s__(
-            'math|This math block exceeds %{maxMathChars} characters, and may cause performance issues on this page.',
-          ),
-          { maxMathChars: MAX_MATH_CHARS },
-        )
-      : s__('math|Displaying this math block may cause performance issues on this page.');
-
-    alert = new Vue({
-      render(h) {
-        return h(
-          GlAlert,
-          {
-            class: 'gl-mb-5',
-            props: { variant: 'warning', primaryButtonText: s__('math|Display anyway') },
-            on: { dismiss, primaryAction: displayAnyway },
-          },
-          message,
-        );
-      },
+      // Handle "render anyway"
+      if (event.target.classList.contains('js-lazy-render-math')) {
+        const pre = alert.nextElementSibling;
+        alert.remove();
+        this.renderElement(pre);
+      }
     });
-
-    alert.$mount();
-    mountBeforeEl.before(alert.$el);
   }
 }
 
@@ -228,6 +227,7 @@ export default function renderMath(elements) {
     .then(([katex]) => {
       const renderer = new SafeMathRenderer(elements, katex);
       renderer.render();
+      renderer.attachEvents();
     })
     .catch(() => {});
 }

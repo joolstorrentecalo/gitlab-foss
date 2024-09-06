@@ -10,11 +10,14 @@
     border-radius: 2px 2px 0 0;
     color: var(--orange-600, $orange-600);
     background-color: var(--orange-50, $orange-50);
-    border: 1px solid var(--gl-border-color-default);
+    border: 1px solid var(--border-color, $border-color);
   }
 
   .top-bar {
-    @include job-log-top-bar;
+    @include build-log-top-bar(50px);
+    z-index: 2;
+    border-radius: $border-radius-default $border-radius-default 0 0;
+    box-shadow: 0 -4px 0 0 var(--white);
 
     &.has-archived-block {
       top: calc(#{$calc-application-header-height} + 28px);
@@ -42,9 +45,9 @@
   }
 
   .environment-information {
-    border: 1px solid var(--gl-border-color-default);
+    border: 1px solid var(--border-color, $border-color);
     padding: 8px $gl-padding 12px;
-    border-radius: $gl-border-radius-base;
+    border-radius: $border-radius-default;
   }
 
   .build-loader-animation {
@@ -61,7 +64,7 @@
 
   .header-content {
     a {
-      color: var(--gl-text-color-default);
+      color: var(--gl-text-color, $gl-text-color);
 
       &:hover {
         color: var(--blue-600, $blue-600);
@@ -171,7 +174,7 @@
   word-break: break-all;
   word-wrap: break-word;
   color: color-yiq($builds-log-bg);
-  border-radius: 0 0 $gl-border-radius-base $gl-border-radius-base;
+  border-radius: 0 0 $border-radius-default $border-radius-default;
   @include gl-min-h-8;
   background-color: $builds-log-bg;
 }
@@ -185,16 +188,17 @@
 }
 
 .job-log-line {
-  display: flex;
-  padding: 0 $gl-padding-8;
+  padding: 1px $gl-padding-8 1px $job-log-line-padding;
+  min-height: $gl-line-height-20;
 }
 
 .job-log-line-number {
   color: $gray-500;
-  padding-right: $gl-padding-8;
-  margin-right: $gl-padding-8;
+  padding: 0 1em 0 $gl-padding-8;
   min-width: $job-line-number-width;
+  margin-left: -$job-line-number-margin;
   user-select: none;
+  display: inline-block;
   text-align: right;
 
   &:hover,
@@ -202,30 +206,6 @@
   &:visited {
     text-decoration: underline;
     color: $gray-500;
-  }
-}
-
-.job-log-time {
-  padding-right: $gl-padding-8;
-  margin-right: $gl-padding-8;
-  color: $gray-500;
-  user-select: none;
-  flex-shrink: 0;
-
-  display: none;
-  @include media-breakpoint-up(sm) {
-    display: block;
-  }
-}
-
-.job-log-line-content {
-  flex-grow: 1;
-  white-space: pre-wrap;
-
-  span {
-    // Our default 1.5 line-height leave gaps between lines with `xterm-bg` backgrounds classes.
-    // Add extra padding to fill the line. Helps with ANSI art.
-    padding: 1.25px 0;
   }
 }
 
@@ -239,7 +219,7 @@
   }
 
   .arrow {
-    left: 0;
+    margin-left: -$job-arrow-margin;
   }
 }
 

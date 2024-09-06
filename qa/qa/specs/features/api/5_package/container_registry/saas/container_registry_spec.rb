@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'airborne'
+
 module QA
   RSpec.describe 'Package', only: { subdomain: %i[staging staging-canary pre] },
     product_group: :container_registry do
@@ -9,14 +11,17 @@ module QA
 
     describe 'SaaS Container Registry API' do
       let(:api_client) { Runtime::API::Client.new(:gitlab) }
-      let(:executor) { "qa-runner-#{Faker::Alphanumeric.alphanumeric(number: 8)}" }
 
       let(:project) do
         create(:project, name: 'project-with-registry-api', template_name: 'express', api_client: api_client)
       end
 
       let!(:runner) do
-        create(:project_runner, project: project, name: executor, tags: [executor], executor: :docker)
+        Resource::ProjectRunner.fabricate! do |runner|
+          runner.project = project
+          runner.name = "runner-for-#{project.name}"
+          runner.tags = ["runner-for-#{project.name}"]
+        end
       end
 
       let!(:project_access_token) { create(:project_access_token, project: project) }
@@ -54,7 +59,7 @@ module QA
           image: #{ci_test_image}
           stage: test
           script:
-            - 'id=$(curl --header "PRIVATE-TOKEN: #{masked_token}" "https://${CI_SERVER_HOST}/api/v4/projects/#{project.id}/registry/repositories" | tac | jq ".[0].id")'
+            - 'id=$(curl --header "PRIVATE-TOKEN: #{masked_token}" "https://${CI_SERVER_HOST}/api/v4/projects/#{project.id}/registry/repositories" | jq ".[0].id")'
             - echo $id
             - 'tag_count=$(curl --header "PRIVATE-TOKEN: #{masked_token}" "https://${CI_SERVER_HOST}/api/v4/projects/#{project.id}/registry/repositories/$id/tags" | jq ". | length")'
             - if [ $tag_count -ne 1 ]; then exit 1; fi;

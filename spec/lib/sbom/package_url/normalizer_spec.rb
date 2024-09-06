@@ -25,15 +25,6 @@ RSpec.describe Sbom::PackageUrl::Normalizer, feature_category: :dependency_manag
       end
     end
 
-    context 'with golang url' do
-      let(:type) { 'golang' }
-      let(:text) { 'github.com/Docker/docker' }
-
-      it 'downcases text' do
-        is_expected.to eq('github.com/docker/docker')
-      end
-    end
-
     context 'with pypi url' do
       let(:type) { 'pypi' }
 

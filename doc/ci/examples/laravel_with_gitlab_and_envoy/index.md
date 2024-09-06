@@ -129,7 +129,7 @@ We'll use this variable in the `.gitlab-ci.yml` later, to easily connect to our 
 
 ![variables page](img/variables_page.png)
 
-We also need to add the public key to **Project** > **Settings** > **Repository** as a [deploy key](../../../user/project/deploy_keys/index.md), which gives us the ability to access our repository from the server through the SSH protocol.
+We also need to add the public key to **Project** > **Settings** > **Repository** as a [Deploy Key](../../../user/project/deploy_keys/index.md), which gives us the ability to access our repository from the server through the SSH protocol.
 
 ```shell
 # As the deployer user on the server
@@ -208,7 +208,7 @@ It should execute the `list` task we defined earlier, which connects to the serv
 
 Envoy is not a dependency of Laravel, therefore you can use it for any PHP application.
 
-### Zero-downtime deployment
+### Zero downtime deployment
 
 Every time we deploy to the production server, Envoy downloads the latest release of our app from GitLab repository and replace it with preview's release.
 Envoy does this without any [downtime](https://en.wikipedia.org/wiki/Downtime),
@@ -589,7 +589,7 @@ unit_test:
 #### Deploy to production
 
 The job `deploy_production` will deploy the app to the production server.
-To deploy our app with Envoy, we had to set up the `$SSH_PRIVATE_KEY` variable as an [SSH private key](../../jobs/ssh_keys.md#ssh-keys-when-using-the-docker-executor).
+To deploy our app with Envoy, we had to set up the `$SSH_PRIVATE_KEY` variable as an [SSH private key](../../ssh_keys/index.md#ssh-keys-when-using-the-docker-executor).
 If the SSH keys have added successfully, we can run Envoy.
 
 As mentioned before, GitLab supports [Continuous Delivery](https://about.gitlab.com/blog/2016/08/05/continuous-integration-delivery-and-deployment-with-gitlab/#continuous-delivery) methods as well.
@@ -632,7 +632,7 @@ Select it to see the runner's output.
 
 ![pipeline page](img/pipeline_page.png)
 
-After our code passed through the pipeline successfully, we can deploy to our production server by selecting **Run** (**{play}**) on the right side.
+After our code passed through the pipeline successfully, we can deploy to our production server by selecting the **play** button on the right side.
 
 ![pipelines page deploy button](img/pipelines_page_deploy_button.png)
 

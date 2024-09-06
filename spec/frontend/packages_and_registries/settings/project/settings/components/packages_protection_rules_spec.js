@@ -7,7 +7,7 @@ import waitForPromises from 'helpers/wait_for_promises';
 import { getBinding } from 'helpers/vue_mock_directive';
 import PackagesProtectionRules from '~/packages_and_registries/settings/project/components/packages_protection_rules.vue';
 import PackagesProtectionRuleForm from '~/packages_and_registries/settings/project/components/packages_protection_rule_form.vue';
-import SettingsSection from '~/vue_shared/components/settings/settings_section.vue';
+import SettingsBlock from '~/packages_and_registries/shared/components/settings_block.vue';
 import packagesProtectionRuleQuery from '~/packages_and_registries/settings/project/graphql/queries/get_packages_protection_rules.query.graphql';
 import deletePackagesProtectionRuleMutation from '~/packages_and_registries/settings/project/graphql/mutations/delete_packages_protection_rule.mutation.graphql';
 import updatePackagesProtectionRuleMutation from '~/packages_and_registries/settings/project/graphql/mutations/update_packages_protection_rule.mutation.graphql';
@@ -30,12 +30,13 @@ describe('Packages protection rules project settings', () => {
 
   const $toast = { show: jest.fn() };
 
-  const findSettingsBlock = () => wrapper.findComponent(SettingsSection);
+  const findSettingsBlock = () => wrapper.findComponent(SettingsBlock);
   const findTable = () =>
     extendedWrapper(wrapper.findByRole('table', { name: /protected packages/i }));
   const findTableBody = () => extendedWrapper(findTable().findAllByRole('rowgroup').at(1));
   const findTableRow = (i) => extendedWrapper(findTableBody().findAllByRole('row').at(i));
-  const findTableRowButtonDelete = (i) => findTableRow(i).findByRole('button', { name: /delete/i });
+  const findTableRowButtonDelete = (i) =>
+    findTableRow(i).findByRole('button', { name: /delete rule/i });
   const findTableLoadingIcon = () => wrapper.findComponent(GlLoadingIcon);
   const findProtectionRuleForm = () => wrapper.findComponent(PackagesProtectionRuleForm);
   const findAddProtectionRuleButton = () =>
@@ -46,7 +47,7 @@ describe('Packages protection rules project settings', () => {
   const mountComponent = (mountFn = mountExtended, provide = defaultProvidedValues, config) => {
     wrapper = mountFn(PackagesProtectionRules, {
       stubs: {
-        SettingsSection,
+        SettingsBlock,
         GlModal: true,
       },
       mocks: {
@@ -260,10 +261,10 @@ describe('Packages protection rules project settings', () => {
       });
     });
 
-    describe('column "Minimum access level for push" with selectbox (combobox)', () => {
+    describe('column "Push protected up to access level" with selectbox (combobox)', () => {
       const findComboboxInTableRow = (i) =>
         extendedWrapper(
-          findTableRow(i).findByRole('combobox', { name: /minimum access level for push/i }),
+          findTableRow(i).findByRole('combobox', { name: /push protected up to access level/i }),
         );
 
       it('contains combobox with respective access level', async () => {
@@ -274,7 +275,7 @@ describe('Packages protection rules project settings', () => {
         expect(findComboboxInTableRow(0).isVisible()).toBe(true);
         expect(findComboboxInTableRow(0).attributes('disabled')).toBeUndefined();
         expect(findComboboxInTableRow(0).element.value).toBe(
-          packagesProtectionRulesData[0].minimumAccessLevelForPush,
+          packagesProtectionRulesData[0].pushProtectedUpToAccessLevel,
         );
       });
 
@@ -283,7 +284,7 @@ describe('Packages protection rules project settings', () => {
 
         await waitForPromises();
 
-        ['Maintainer', 'Owner', 'Administrator'].forEach((optionName) => {
+        ['Developer', 'Maintainer', 'Owner'].forEach((optionName) => {
           const selectOption = findComboboxInTableRow(0).findByRole('option', { name: optionName });
           expect(selectOption.exists()).toBe(true);
         });
@@ -292,7 +293,7 @@ describe('Packages protection rules project settings', () => {
       describe('when value changes', () => {
         const accessLevelValueOwner = 'OWNER';
         const accessLevelValueMaintainer = 'MAINTAINER';
-        const accessLevelValueAdmin = 'ADMIN';
+        const accessLevelValueDeveloper = 'DEVELOPER';
 
         it('only changes the value of the selectbox in the same row', async () => {
           createComponent();
@@ -304,8 +305,8 @@ describe('Packages protection rules project settings', () => {
           expect(findComboboxInTableRow(0).props('value')).toBe(accessLevelValueOwner);
 
           expect(findComboboxInTableRow(1).props('value')).toBe(accessLevelValueMaintainer);
-          await findComboboxInTableRow(1).setValue(accessLevelValueAdmin);
-          expect(findComboboxInTableRow(1).props('value')).toBe(accessLevelValueAdmin);
+          await findComboboxInTableRow(1).setValue(accessLevelValueDeveloper);
+          expect(findComboboxInTableRow(1).props('value')).toBe(accessLevelValueDeveloper);
 
           expect(findComboboxInTableRow(0).props('value')).toBe(accessLevelValueOwner);
         });
@@ -325,7 +326,7 @@ describe('Packages protection rules project settings', () => {
           expect(updatePackagesProtectionRuleMutationResolver).toHaveBeenCalledWith({
             input: {
               id: packagesProtectionRulesData[0].id,
-              minimumAccessLevelForPush: accessLevelValueOwner,
+              pushProtectedUpToAccessLevel: accessLevelValueOwner,
             },
           });
         });
@@ -425,19 +426,19 @@ describe('Packages protection rules project settings', () => {
         });
 
         describe('when button is clicked', () => {
-          it('renders the "delete container protection rule" confirmation modal', async () => {
+          it('binds modal "confirmation for delete action"', async () => {
             createComponent();
 
             await waitForPromises();
 
-            await findTableRowButtonDelete(0).trigger('click');
-
             const modalId = getBinding(findTableRowButtonDelete(0).element, 'gl-modal');
 
             expect(findModal().props('modal-id')).toBe(modalId);
-            expect(findModal().props('title')).toBe('Delete package protection rule?');
-            expect(findModal().text()).toContain(
-              'Users with at least the Developer role for this project will be able to publish, edit, and delete packages with this package name.',
+            expect(findModal().props('title')).toBe(
+              'Are you sure you want to delete the package protection rule?',
+            );
+            expect(findModal().text()).toBe(
+              'Users with at least the Developer role for this project will be able to publish, edit, and delete packages.',
             );
           });
         });
@@ -597,11 +598,11 @@ describe('Packages protection rules project settings', () => {
       });
 
       it('renders form "add package protection"', () => {
-        expect(findProtectionRuleForm().exists()).toBe(true);
+        expect(findProtectionRuleForm().isVisible()).toBe(true);
       });
 
-      it('hides the button "add protection rule"', () => {
-        expect(findAddProtectionRuleButton().exists()).toBe(false);
+      it('disables the button "add protection rule"', () => {
+        expect(findAddProtectionRuleButton().attributes('disabled')).toBeDefined();
       });
     });
   });

@@ -34,14 +34,6 @@ module Gitlab
         def self.all
           TASKS.values
         end
-
-        def self.build_each(**init_args)
-          return enum_for(__method__, **init_args) unless block_given?
-
-          all.each do |task_class|
-            yield(task_class.new(**init_args))
-          end
-        end
       end
     end
   end

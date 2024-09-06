@@ -55,7 +55,7 @@ module Gitlab
         token = current_request.params[:token].presence || current_request.headers['X-Gitlab-Static-Object-Token'].presence
         return unless token
 
-        User.find_by_static_object_token(token.to_s) || raise(UnauthorizedError)
+        User.find_by_static_object_token(token) || raise(UnauthorizedError)
       end
 
       def find_user_from_feed_token(request_format)
@@ -77,11 +77,30 @@ module Gitlab
 
       def find_user_from_job_token
         return unless route_authentication_setting[:job_token_allowed]
+        return find_user_from_basic_auth_job if route_authentication_setting[:job_token_allowed] == :basic_auth
 
-        user = find_user_from_job_token_basic_auth if can_authenticate_job_token_basic_auth?
-        return user if user
+        token = current_request.params[JOB_TOKEN_PARAM].presence ||
+          current_request.params[RUNNER_JOB_TOKEN_PARAM].presence ||
+          current_request.env[JOB_TOKEN_HEADER].presence
+        return unless token
 
-        find_user_from_job_token_query_params_or_header if can_authenticate_job_token_request?
+        job = find_valid_running_job_by_token!(token)
+        @current_authenticated_job = job # rubocop:disable Gitlab/ModuleWithInstanceVariables
+
+        job.user
+      end
+
+      def find_user_from_basic_auth_job
+        return unless has_basic_credentials?(current_request)
+
+        login, password = user_name_and_password(current_request)
+        return unless login.present? && password.present?
+        return unless ::Gitlab::Auth::CI_JOB_USER == login
+
+        job = find_valid_running_job_by_token!(password)
+        @current_authenticated_job = job # rubocop:disable Gitlab/ModuleWithInstanceVariables
+
+        job.user
       end
 
       def find_user_from_basic_auth_password
@@ -90,16 +109,16 @@ module Gitlab
         login, password = user_name_and_password(current_request)
         return if ::Gitlab::Auth::CI_JOB_USER == login
 
-        Gitlab::Auth.find_with_user_password(login.to_s, password.to_s)
+        Gitlab::Auth.find_with_user_password(login, password)
       end
 
       def find_user_from_lfs_token
         return unless has_basic_credentials?(current_request)
 
         login, token = user_name_and_password(current_request)
-        user = User.find_by_login(login.to_s)
+        user = User.find_by_login(login)
 
-        user if user && Gitlab::LfsToken.new(user, nil).token_valid?(token.to_s)
+        user if user && Gitlab::LfsToken.new(user).token_valid?(token)
       end
 
       def find_user_from_personal_access_token
@@ -110,7 +129,7 @@ module Gitlab
         access_token&.user || raise(UnauthorizedError)
       end
 
-      # We allow private access tokens with `api` scope to be used by web
+      # We allow Private Access Tokens with `api` scope to be used by web
       # requests on RSS feeds or ICS files for backwards compatibility.
       # It is also used by GraphQL/API requests.
       # And to allow accessing /archive programatically as it was a big pain point
@@ -150,7 +169,7 @@ module Gitlab
           _, token = user_name_and_password(current_request)
         end
 
-        deploy_token = DeployToken.active.find_by_token(token.to_s)
+        deploy_token = DeployToken.active.find_by_token(token)
         @current_authenticated_deploy_token = deploy_token # rubocop:disable Gitlab/ModuleWithInstanceVariables
 
         deploy_token
@@ -158,20 +177,11 @@ module Gitlab
 
       def cluster_agent_token_from_authorization_token
         return unless route_authentication_setting[:cluster_agent_token_allowed]
+        return unless current_request.authorization.present?
 
-        # We are migrating from the `Authorization` header to one specific to cluster
-        # agents, `Gitlab-Agentk-Api-Request`. Both must be supported until KAS has
-        # been updated to use the new header, and then this first lookup can be removed.
-        # See https://gitlab.com/gitlab-org/gitlab/-/issues/406582.
-        token, _ = if current_request.authorization.present?
-                     token_and_options(current_request)
-                   else
-                     current_request.headers[Gitlab::Kas::INTERNAL_API_AGENTK_REQUEST_HEADER]
-                   end
+        authorization_token, _options = token_and_options(current_request)
 
-        return unless token.present?
-
-        ::Clusters::AgentToken.active.find_by_token(token.to_s)
+        ::Clusters::AgentToken.active.find_by_token(authorization_token)
       end
 
       def find_runner_from_token
@@ -180,7 +190,7 @@ module Gitlab
         token = current_request.params[RUNNER_TOKEN_PARAM].presence
         return unless token
 
-        ::Ci::Runner.find_by_token(token.to_s) || raise(UnauthorizedError)
+        ::Ci::Runner.find_by_token(token) || raise(UnauthorizedError)
       end
 
       def validate_and_save_access_token!(scopes: [], save_auth_context: true)
@@ -278,7 +288,7 @@ module Gitlab
         return unless token
 
         # Expiration, revocation and scopes are verified in `validate_access_token!`
-        PersonalAccessToken.find_by_token(token.to_s) || raise(UnauthorizedError)
+        PersonalAccessToken.find_by_token(token) || raise(UnauthorizedError)
       end
 
       def find_oauth_access_token
@@ -301,11 +311,10 @@ module Gitlab
         return unless has_basic_credentials?(current_request)
 
         _username, password = user_name_and_password(current_request)
-        PersonalAccessToken.find_by_token(password.to_s)
+        PersonalAccessToken.find_by_token(password)
       end
 
       def find_feed_token_user(token)
-        token = token.to_s
         find_user_from_path_feed_token(token) || User.find_by_feed_token(token)
       end
 
@@ -327,41 +336,6 @@ module Gitlab
         return unless ActiveSupport::SecurityUtils.secure_compare(digest, our_digest)
 
         user
-      end
-
-      def can_authenticate_job_token_basic_auth?
-        setting = route_authentication_setting[:job_token_allowed]
-        Array.wrap(setting).include?(:basic_auth)
-      end
-
-      def can_authenticate_job_token_request?
-        setting = route_authentication_setting[:job_token_allowed]
-        setting == true || Array.wrap(setting).include?(:request)
-      end
-
-      def find_user_from_job_token_query_params_or_header
-        token = current_request.params[JOB_TOKEN_PARAM].presence ||
-          current_request.params[RUNNER_JOB_TOKEN_PARAM].presence ||
-          current_request.env[JOB_TOKEN_HEADER].presence
-        return unless token
-
-        job = find_valid_running_job_by_token!(token.to_s)
-        @current_authenticated_job = job # rubocop:disable Gitlab/ModuleWithInstanceVariables
-
-        job.user
-      end
-
-      def find_user_from_job_token_basic_auth
-        return unless has_basic_credentials?(current_request)
-
-        login, password = user_name_and_password(current_request)
-        return unless login.present? && password.present?
-        return unless ::Gitlab::Auth::CI_JOB_USER == login
-
-        job = find_valid_running_job_by_token!(password.to_s)
-        @current_authenticated_job = job # rubocop:disable Gitlab/ModuleWithInstanceVariables
-
-        job.user
       end
 
       def parsed_oauth_token
@@ -471,47 +445,6 @@ module Gitlab
       def access_token_rotation_request?
         current_request.path.match(%r{access_tokens/\d+/rotate$}) ||
           current_request.path.match(%r{/personal_access_tokens/self/rotate$})
-      end
-
-      # To prevent Rack Attack from incorrectly rate limiting
-      # authenticated Git activity, we need to authenticate the user
-      # from other means (e.g. HTTP Basic Authentication) only if the
-      # request originated from a Git or Git LFS
-      # request. Repositories::GitHttpClientController or
-      # Repositories::LfsApiController normally does the authentication,
-      # but Rack Attack runs before those controllers.
-      def find_user_for_git_or_lfs_request
-        return unless git_or_lfs_request?
-
-        find_user_from_lfs_token || find_user_from_basic_auth_password
-      end
-
-      def find_user_from_personal_access_token_for_api_or_git
-        return unless api_request? || git_or_lfs_request?
-
-        find_user_from_personal_access_token
-      end
-
-      def find_user_from_dependency_proxy_token
-        return unless dependency_proxy_request?
-
-        token, _ = ActionController::HttpAuthentication::Token.token_and_options(current_request)
-
-        return unless token
-
-        user_or_deploy_token = ::DependencyProxy::AuthTokenService.user_or_deploy_token_from_jwt(token)
-
-        # Do not return deploy tokens
-        # See https://gitlab.com/gitlab-org/gitlab/-/issues/342481
-        return unless user_or_deploy_token.is_a?(::User)
-
-        user_or_deploy_token
-      rescue ActiveRecord::RecordNotFound
-        nil # invalid id used return no user
-      end
-
-      def dependency_proxy_request?
-        Gitlab::PathRegex.dependency_proxy_route_regex.match?(current_request.path)
       end
     end
   end

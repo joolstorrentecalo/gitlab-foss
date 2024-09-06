@@ -45,15 +45,20 @@ export default {
       return `${cleanOrderBy}_${this.sorting?.sort}`.toUpperCase();
     },
   },
+  watch: {
+    $route(newValue, oldValue) {
+      if (newValue.fullPath !== oldValue.fullPath) {
+        this.updateDataFromUrl();
+        this.emitUpdate();
+      }
+    },
+  },
   mounted() {
-    this.updateDataFromUrlAndEmitUpdate();
+    this.updateDataFromUrl();
     this.mountRegistrySearch = true;
+    this.emitUpdate();
   },
   methods: {
-    updateDataFromUrlAndEmitUpdate() {
-      this.updateDataFromUrl();
-      this.emitUpdate();
-    },
     updateDataFromUrl() {
       const queryParams = getQueryParams(window.location.search);
       const { sorting, filters } = extractFilterAndSorting(queryParams);
@@ -90,7 +95,7 @@ export default {
 </script>
 
 <template>
-  <url-sync @popstate="updateDataFromUrlAndEmitUpdate">
+  <url-sync>
     <template #default="{ updateQuery }">
       <registry-search
         v-if="mountRegistrySearch"

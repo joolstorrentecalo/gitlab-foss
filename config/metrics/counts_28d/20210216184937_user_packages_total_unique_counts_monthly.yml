@@ -2,33 +2,28 @@
 data_category: operational
 key_path: redis_hll_counters.user_packages.user_packages_total_unique_counts_monthly
 description: A monthly count of users that have published a package to the registry
+product_section: ops
+product_stage: package
 product_group: package_registry
 value_type: number
 status: active
 time_frame: 28d
 data_source: redis_hll
-instrumentation_class: RedisHLLMetric
-events:
-- name: i_package_composer_user
-  unique: user.id
-- name: i_package_conan_user
-  unique: user.id
-- name: i_package_generic_user
-  unique: user.id
-- name: i_package_helm_user
-  unique: user.id
-- name: i_package_maven_user
-  unique: user.id
-- name: i_package_npm_user
-  unique: user.id
-- name: i_package_nuget_user
-  unique: user.id
-- name: i_package_pypi_user
-  unique: user.id
-- name: i_package_rubygems_user
-  unique: user.id
-- name: i_package_terraform_module_user
-  unique: user.id
+instrumentation_class: AggregatedMetric
+options:
+  aggregate:
+    attribute: user.id
+  events:
+  - i_package_composer_user
+  - i_package_conan_user
+  - i_package_generic_user
+  - i_package_helm_user
+  - i_package_maven_user
+  - i_package_npm_user
+  - i_package_nuget_user
+  - i_package_pypi_user
+  - i_package_rubygems_user
+  - i_package_terraform_module_user
 distribution:
 - ee
 - ce
@@ -41,4 +36,3 @@ performance_indicator_type:
 - gmau
 - customer_health_score
 milestone: "<13.9"
-introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/54332

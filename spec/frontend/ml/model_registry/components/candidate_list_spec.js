@@ -35,7 +35,7 @@ describe('ml/model_registry/components/candidate_list.vue', () => {
     wrapper = mount(CandidateList, {
       apolloProvider,
       propsData: {
-        modelId: 'gid://gitlab/Ml::Model/2',
+        modelId: 2,
         ...props,
       },
     });
@@ -109,10 +109,6 @@ describe('ml/model_registry/components/candidate_list.vue', () => {
       await waitForPromises();
     });
 
-    it('calls query only once on setup', () => {
-      expect(resolver).toHaveBeenCalledTimes(1);
-    });
-
     it('when list emits fetch-page fetches the next set of records', async () => {
       findSearchableList().vm.$emit('fetch-page', {
         after: 'eyJpZCI6IjIifQ',
@@ -122,11 +118,9 @@ describe('ml/model_registry/components/candidate_list.vue', () => {
 
       await waitForPromises();
 
-      expect(resolver).toHaveBeenLastCalledWith({
-        after: graphqlPageInfo.endCursor,
-        first: GRAPHQL_PAGE_SIZE,
-        id: 'gid://gitlab/Ml::Model/2',
-      });
+      expect(resolver).toHaveBeenLastCalledWith(
+        expect.objectContaining({ after: graphqlPageInfo.endCursor, first: GRAPHQL_PAGE_SIZE }),
+      );
     });
   });
 });

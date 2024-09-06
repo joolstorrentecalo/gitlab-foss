@@ -30,10 +30,10 @@ module Gitlab
             target.dump(backup_output, backup_id)
           end
 
-          def restore!(archive_directory)
-            archived_data_location = Pathname(archive_directory).join(destination_path)
-
-            target.restore(archived_data_location, nil)
+          def restore!(backup_path, backup_id)
+            # TODO: enable this when building the restore functionality
+            # https://gitlab.com/gitlab-org/gitlab/-/issues/428505
+            raise NotImplementedError
           end
 
           # Key string that identifies the task
@@ -68,34 +68,11 @@ module Gitlab
             enabled
           end
 
-          def config
-            Gitlab::Backup::Cli::SourceContext.new.config(id)
-          end
-
-          def object_storage?
-            return false unless config
-            return false unless config.respond_to?(:object_store) && config.object_store.enabled
-
-            return false unless Gitlab::Backup::Cli::Targets::ObjectStorage::SUPPORTED_PROVIDERS.include?(
-              config.object_store.connection.provider
-            )
-
-            true
-          end
-
           private
 
           # The target factory method
           def target
             raise NotImplementedError
-          end
-
-          def check_object_storage(file_target)
-            if object_storage?
-              ::Gitlab::Backup::Cli::Targets::ObjectStorage.find_task(id, options, config)
-            else
-              file_target
-            end
           end
         end
       end

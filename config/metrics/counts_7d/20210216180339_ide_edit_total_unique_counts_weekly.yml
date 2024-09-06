@@ -2,19 +2,21 @@
 data_category: optional
 key_path: redis_hll_counters.ide_edit.ide_edit_total_unique_counts_weekly
 description: Weekly number of users editing a file using the Web IDE
-product_group: remote_development
+product_section: dev
+product_stage: create
+product_group: ide
 value_type: number
 status: active
 time_frame: 7d
-instrumentation_class: RedisHLLMetric
+instrumentation_class: AggregatedMetric
 data_source: redis_hll
-events:
-- name: g_edit_by_web_ide
-  unique: user.id
-- name: g_edit_by_sfe
-  unique: user.id
-- name: g_edit_by_snippet_ide
-  unique: user.id
+options:
+  aggregate:
+    attribute: user.id
+  events:
+  - g_edit_by_web_ide
+  - g_edit_by_sfe
+  - g_edit_by_snippet_ide
 distribution:
 - ce
 - ee
@@ -24,4 +26,3 @@ tier:
 - ultimate
 performance_indicator_type: []
 milestone: "<13.9"
-introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/54332

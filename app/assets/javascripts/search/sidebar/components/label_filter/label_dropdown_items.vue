@@ -15,7 +15,7 @@ export default {
 };
 </script>
 <template>
-  <ul class="gl-list-none gl-px-0">
+  <ul class="gl-list-style-none gl-px-0">
     <li
       v-for="label in labels"
       :id="label.key"
@@ -23,18 +23,18 @@ export default {
       :key="label.key"
       :aria-label="label.title"
       tabindex="-1"
-      class="label-filter-menu-item gl-px-5 gl-py-3"
+      class="gl-px-5 gl-py-3 label-filter-menu-item"
     >
       <gl-form-checkbox
-        class="label-with-color-checkbox gl-inline-flex gl-min-h-5"
+        class="label-with-color-checkbox gl-display-inline-flex gl-min-h-5"
         :value="label.key"
       >
         <span
           data-testid="label-color-indicator"
-          class="gl-mr-3 gl-inline-block gl-h-5 gl-min-w-5 gl-rounded-base gl-align-bottom"
+          class="gl-rounded-base gl-min-w-5 gl-h-5 gl-display-inline-block gl-vertical-align-bottom gl-mr-3"
           :style="{ 'background-color': label.color }"
         ></span>
-        <span class="label-title gl-m-0 gl-break-all gl-p-0 gl-text-align-inherit">{{
+        <span class="gl-reset-text-align gl-m-0 gl-p-0 label-title gl-word-break-all">{{
           label.title
         }}</span></gl-form-checkbox
       >

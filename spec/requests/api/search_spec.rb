@@ -19,6 +19,14 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
     it { expect(json_response.size).to eq(size) }
   end
 
+  shared_examples 'ping counters' do |scope:, search: ''|
+    it 'increases usage ping searches counter' do
+      expect(Gitlab::UsageDataCounters::SearchCounter).to receive(:count).with(:all_searches)
+
+      get api(endpoint, user), params: { scope: scope, search: search }
+    end
+  end
+
   shared_examples 'apdex recorded' do |scope:, level:, search: ''|
     it 'increments the custom search sli apdex' do
       expect(Gitlab::Metrics::GlobalSearchSlis).to receive(:record_apdex).with(
@@ -182,21 +190,6 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
     end
 
     context 'with correct params' do
-      [:issues, :merge_requests, :projects, :milestones, :users, :snippet_titles].each do |scope|
-        context "with correct params for scope #{scope}" do
-          it_behaves_like 'internal event tracking' do
-            let(:event) { 'perform_search' }
-            let(:category) { described_class.to_s }
-            let(:project) { nil }
-            let(:namespace) { nil }
-
-            subject(:tracked_event) do
-              get api(endpoint, user), params: { scope: scope, search: 'foobar' }
-            end
-          end
-        end
-      end
-
       context 'for projects scope' do
         before do
           get api(endpoint, user), params: { scope: 'projects', search: 'awesome' }
@@ -205,6 +198,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
         it_behaves_like 'response is correct', schema: 'public_api/v4/projects'
 
         it_behaves_like 'pagination', scope: :projects
+
+        it_behaves_like 'ping counters', scope: :projects
 
         it_behaves_like 'apdex recorded', scope: 'projects', level: 'global'
       end
@@ -218,6 +213,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
           end
 
           it_behaves_like 'response is correct', schema: 'public_api/v4/issues'
+
+          it_behaves_like 'ping counters', scope: :issues
 
           it_behaves_like 'apdex recorded', scope: 'issues', level: 'global'
 
@@ -281,6 +278,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
           it_behaves_like 'response is correct', schema: 'public_api/v4/merge_requests'
 
+          it_behaves_like 'ping counters', scope: :merge_requests
+
           it_behaves_like 'apdex recorded', scope: 'merge_requests', level: 'global'
 
           it_behaves_like 'merge_requests orderable by created_at'
@@ -326,6 +325,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
           it_behaves_like 'response is correct', schema: 'public_api/v4/milestones'
 
+          it_behaves_like 'ping counters', scope: :milestones
+
           it_behaves_like 'apdex recorded', scope: 'milestones', level: 'global'
 
           describe 'pagination' do
@@ -364,6 +365,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
         it_behaves_like 'pagination', scope: :users
 
+        it_behaves_like 'ping counters', scope: :users
+
         it_behaves_like 'apdex recorded', scope: 'users', level: 'global'
       end
 
@@ -376,6 +379,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/snippets'
 
+        it_behaves_like 'ping counters', scope: :snippet_titles
+
         it_behaves_like 'apdex recorded', scope: 'snippet_titles', level: 'global'
 
         describe 'pagination' do
@@ -384,16 +389,6 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
           end
 
           include_examples 'pagination', scope: :snippet_titles
-        end
-      end
-
-      context 'for ai_workflows scope' do
-        let(:oauth_token) { create(:oauth_access_token, user: user, scopes: [:ai_workflows]) }
-
-        it 'is successful' do
-          get api(endpoint, oauth_access_token: oauth_token), params: { scope: 'milestones', search: 'awesome' }
-
-          expect(response).to have_gitlab_http_status(:ok)
         end
       end
 
@@ -550,6 +545,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
         it_behaves_like 'pagination', scope: :projects
 
+        it_behaves_like 'ping counters', scope: :projects
+
         it_behaves_like 'apdex recorded', scope: 'projects', level: 'group'
       end
 
@@ -561,6 +558,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
         end
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/issues'
+
+        it_behaves_like 'ping counters', scope: :issues
 
         it_behaves_like 'apdex recorded', scope: 'issues', level: 'group'
 
@@ -584,6 +583,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/merge_requests'
 
+        it_behaves_like 'ping counters', scope: :merge_requests
+
         it_behaves_like 'apdex recorded', scope: 'merge_requests', level: 'group'
 
         it_behaves_like 'merge_requests orderable by created_at'
@@ -605,6 +606,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
         end
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/milestones'
+
+        it_behaves_like 'ping counters', scope: :milestones
 
         it_behaves_like 'apdex recorded', scope: 'milestones', level: 'group'
 
@@ -638,6 +641,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
         end
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/user/basics'
+
+        it_behaves_like 'ping counters', scope: :users
 
         it_behaves_like 'apdex recorded', scope: 'users', level: 'group'
 
@@ -751,6 +756,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/issues'
 
+        it_behaves_like 'ping counters', scope: :issues
+
         it_behaves_like 'issues orderable by created_at'
 
         it_behaves_like 'apdex recorded', scope: 'issues', level: 'project'
@@ -766,9 +773,9 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
       context 'when requesting basic search' do
         it 'passes the parameter to search service' do
-          expect(SearchService).to receive(:new).with(user, hash_including(search_type: 'basic'))
+          expect(SearchService).to receive(:new).with(user, hash_including(basic_search: 'true'))
 
-          get api(endpoint, user), params: { scope: 'issues', search: 'awesome', search_type: 'basic' }
+          get api(endpoint, user), params: { scope: 'issues', search: 'awesome', basic_search: 'true' }
         end
       end
 
@@ -782,6 +789,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
         end
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/merge_requests'
+
+        it_behaves_like 'ping counters', scope: :merge_requests
 
         it_behaves_like 'merge_requests orderable by created_at'
 
@@ -807,6 +816,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
           end
 
           it_behaves_like 'response is correct', schema: 'public_api/v4/milestones'
+
+          it_behaves_like 'ping counters', scope: :milestones
 
           it_behaves_like 'apdex recorded', scope: 'milestones', level: 'project'
 
@@ -845,6 +856,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/user/basics'
 
+        it_behaves_like 'ping counters', scope: :users
+
         it_behaves_like 'apdex recorded', scope: 'users', level: 'project'
 
         describe 'pagination' do
@@ -864,6 +877,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
         end
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/notes'
+
+        it_behaves_like 'ping counters', scope: :notes
 
         it_behaves_like 'apdex recorded', scope: 'notes', level: 'project'
 
@@ -888,6 +903,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
 
         it_behaves_like 'response is correct', schema: 'public_api/v4/wiki_blobs'
 
+        it_behaves_like 'ping counters', scope: :wiki_blobs
+
         it_behaves_like 'apdex recorded', scope: 'wiki_blobs', level: 'project'
 
         describe 'pagination' do
@@ -909,6 +926,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
         it_behaves_like 'response is correct', schema: 'public_api/v4/commits_details'
 
         it_behaves_like 'pagination', scope: :commits, search: 'merge'
+
+        it_behaves_like 'ping counters', scope: :commits
 
         it_behaves_like 'apdex recorded', scope: 'commits', level: 'project'
 
@@ -1023,6 +1042,8 @@ RSpec.describe API::Search, :clean_gitlab_redis_rate_limiting, feature_category:
         it_behaves_like 'response is correct', schema: 'public_api/v4/blobs', size: 2
 
         it_behaves_like 'pagination', scope: :blobs, search: 'monitors'
+
+        it_behaves_like 'ping counters', scope: :blobs
 
         it_behaves_like 'apdex recorded', scope: 'blobs', level: 'project'
 

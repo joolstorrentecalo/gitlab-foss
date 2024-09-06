@@ -5,7 +5,6 @@ import { LOAD_INTERNAL_EVENTS_SELECTOR } from '~/tracking/constants';
 import * as utils from '~/tracking/utils';
 import { Tracker } from '~/tracking/tracker';
 import Tracking from '~/tracking';
-import { resetHTMLFixture, setHTMLFixture } from 'helpers/fixtures';
 
 const allowedAdditionalProps = {
   property: 'value',
@@ -27,19 +26,6 @@ Tracker.enabled = jest.fn();
 const event = 'TestEvent';
 
 describe('InternalEvents', () => {
-  beforeEach(() => {
-    setHTMLFixture(`<div><button data-event-tracking data-testid="button" /></div>`);
-  });
-
-  afterEach(() => {
-    resetHTMLFixture();
-  });
-
-  const findButton = () => document.querySelector('[data-testid="button"]');
-  const triggerClick = () => {
-    findButton().dispatchEvent(new Event('click', { bubbles: true }));
-  };
-
   describe('trackEvent', () => {
     const category = 'TestCategory';
 
@@ -75,29 +61,6 @@ describe('InternalEvents', () => {
       );
     });
 
-    it('trackEvent calls Tracking.event with event name, category, base and custom properties', () => {
-      jest.spyOn(Tracking, 'event').mockImplementation(() => {});
-
-      const additionalProps = {
-        ...allowedAdditionalProps,
-        key: 'value',
-      };
-
-      InternalEvents.trackEvent(event, additionalProps, category);
-
-      expect(Tracking.event).toHaveBeenCalledWith(
-        category,
-        event,
-        expect.objectContaining({
-          context: expect.any(Object),
-          value: 2,
-          property: 'value',
-          label: 'value',
-          extra: { key: 'value' },
-        }),
-      );
-    });
-
     it('trackEvent calls trackBrowserSDK with event name', () => {
       jest.spyOn(InternalEvents, 'trackBrowserSDK').mockImplementation(() => {});
 
@@ -120,41 +83,22 @@ describe('InternalEvents', () => {
       });
     });
 
-    it('throws an error if base property has incorrect type', () => {
+    it('throws an error if unallowed additionalProperties are passed', () => {
       jest.spyOn(InternalEvents, 'trackBrowserSDK').mockImplementation(() => {});
       jest.spyOn(Tracking, 'event').mockImplementation(() => {});
 
       const additionalProps = {
         ...allowedAdditionalProps,
-        value: 'invalidType',
+        unallowedKey: 'value',
       };
 
       expect(() => {
         InternalEvents.trackEvent(event, additionalProps, category);
-      }).toThrow('value should be of type: number. Provided type is: string.');
+      }).toThrow(/Disallowed additional properties were provided:/);
 
       expect(InternalEvents.trackBrowserSDK).not.toHaveBeenCalled();
       expect(Tracking.event).not.toHaveBeenCalled();
       expect(API.trackInternalEvent).not.toHaveBeenCalled();
-    });
-
-    it('does not throw an error for custom properties', () => {
-      jest.spyOn(InternalEvents, 'trackBrowserSDK').mockImplementation(() => {});
-      jest.spyOn(Tracking, 'event').mockImplementation(() => {});
-
-      const additionalProps = {
-        ...allowedAdditionalProps,
-        key1: 'value1',
-        key2: 2,
-      };
-
-      expect(() => {
-        InternalEvents.trackEvent(event, additionalProps, category);
-      }).not.toThrow();
-
-      expect(InternalEvents.trackBrowserSDK).toHaveBeenCalled();
-      expect(Tracking.event).toHaveBeenCalled();
-      expect(API.trackInternalEvent).toHaveBeenCalled();
     });
   });
 
@@ -214,53 +158,30 @@ describe('InternalEvents', () => {
   });
 
   describe('bindInternalEventDocument', () => {
-    let disposeBind;
-    let trackEventSpy;
-
-    beforeEach(() => {
-      Tracker.enabled.mockReturnValue(true);
-      trackEventSpy = jest.spyOn(InternalEvents, 'trackEvent');
-    });
-
-    afterEach(() => {
-      disposeBind?.();
-    });
-
     it('should not bind event handlers if tracker is not enabled', () => {
       Tracker.enabled.mockReturnValue(false);
-
-      disposeBind = InternalEvents.bindInternalEventDocument();
-
-      expect(disposeBind).toBe(null);
+      const result = InternalEvents.bindInternalEventDocument();
+      expect(result).toEqual([]);
       expect(utils.getInternalEventHandlers).not.toHaveBeenCalled();
     });
 
     it('should not bind event handlers if already bound', () => {
-      disposeBind = InternalEvents.bindInternalEventDocument();
-
-      utils.getInternalEventHandlers.mockReset();
-
-      const nextDisposeBind = InternalEvents.bindInternalEventDocument();
-
-      expect(nextDisposeBind).toBe(null);
+      Tracker.enabled.mockReturnValue(true);
+      document.internalEventsTrackingBound = true;
+      const result = InternalEvents.bindInternalEventDocument();
+      expect(result).toEqual([]);
       expect(utils.getInternalEventHandlers).not.toHaveBeenCalled();
     });
 
     it('should bind event handlers when not bound yet', () => {
-      disposeBind = InternalEvents.bindInternalEventDocument();
+      Tracker.enabled.mockReturnValue(true);
+      document.internalEventsTrackingBound = false;
+      const addEventListenerMock = jest.spyOn(document, 'addEventListener');
 
-      triggerClick();
+      const result = InternalEvents.bindInternalEventDocument();
 
-      expect(trackEventSpy).toHaveBeenCalledWith('', {});
-    });
-
-    it('returns function that disposes listener', () => {
-      disposeBind = InternalEvents.bindInternalEventDocument();
-      disposeBind();
-
-      triggerClick();
-
-      expect(trackEventSpy).not.toHaveBeenCalled();
+      expect(addEventListenerMock).toHaveBeenCalledWith('click', expect.any(Function));
+      expect(result).toEqual({ name: 'click', func: expect.any(Function) });
     });
   });
 
@@ -377,22 +298,10 @@ describe('InternalEvents', () => {
 
   describe('trackBrowserSDK', () => {
     beforeEach(() => {
-      window.glClient = { track: jest.fn() };
-      Tracker.enabled = jest.fn();
-    });
-
-    afterEach(() => {
-      window.glClient = null;
-      window.gl = null;
-    });
-
-    const mockSnowplowContext = (projectId, namespaceId) => {
-      window.gl = {
-        snowplowStandardContext: {
-          data: { project_id: projectId, namespace_id: namespaceId },
-        },
+      window.glClient = {
+        track: jest.fn(),
       };
-    };
+    });
 
     it('should not call glClient.track if Tracker is not enabled', () => {
       Tracker.enabled.mockReturnValue(false);
@@ -402,30 +311,25 @@ describe('InternalEvents', () => {
       expect(window.glClient.track).not.toHaveBeenCalled();
     });
 
-    it('should call glClient.track with event name if Tracker is enabled and no project_id and namespace_id present', () => {
-      mockSnowplowContext(null, null);
+    it('should call glClient.track with event name if Tracker is enabled', () => {
       Tracker.enabled.mockReturnValue(true);
 
       InternalEvents.trackBrowserSDK(event);
 
       expect(window.glClient.track).toHaveBeenCalledTimes(1);
-      expect(window.glClient.track).toHaveBeenCalledWith(event, {
-        project_id: null,
-        namespace_id: null,
-      });
+      expect(window.glClient.track).toHaveBeenCalledWith(event, {});
     });
 
     it('should call glClient.track with event name and additional properties if Tracker is enabled', () => {
-      mockSnowplowContext(123, 456);
       Tracker.enabled.mockReturnValue(true);
 
       InternalEvents.trackBrowserSDK(event, allowedAdditionalProps);
 
       expect(window.glClient.track).toHaveBeenCalledTimes(1);
       expect(window.glClient.track).toHaveBeenCalledWith(event, {
-        project_id: 123,
-        namespace_id: 456,
-        ...allowedAdditionalProps,
+        property: 'value',
+        label: 'value',
+        value: 2,
       });
     });
   });

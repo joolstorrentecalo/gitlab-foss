@@ -17,7 +17,7 @@ RSpec.describe Projects::DeployKeysController, feature_category: :continuous_del
     let_it_be(:project) { create(:project, :repository) }
     let_it_be(:user) { create(:user) }
 
-    let_it_be(:accessible_project) { create(:project, :internal, developers: user) }
+    let_it_be(:accessible_project) { create(:project, :internal).tap { |p| p.add_developer(user) } }
     let_it_be(:inaccessible_project) { create(:project, :internal) }
     let_it_be(:project_private) { create(:project, :private) }
 
@@ -147,7 +147,7 @@ RSpec.describe Projects::DeployKeysController, feature_category: :continuous_del
         post :create, params: create_params
 
         expect(assigns(:key).errors.count).to be > 1
-        expect(flash[:alert]).to eq('Deploy key must be a <a target="_blank" rel="noopener noreferrer" ' \
+        expect(flash[:alert]).to eq('Deploy Key must be a <a target="_blank" rel="noopener noreferrer" ' \
           'href="/help/user/ssh#supported-ssh-key-types">supported SSH public key.</a>')
       end
     end

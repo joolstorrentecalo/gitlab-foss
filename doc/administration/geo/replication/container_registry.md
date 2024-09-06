@@ -80,7 +80,7 @@ To be able to replicate new container images, the container registry must send n
 **primary** site for every push. The token shared between the container registry and the web nodes on the
 **primary** is used to make communication more secure.
 
-1. SSH into your GitLab **primary** server and sign in as root (for GitLab HA, you only need a Registry node):
+1. SSH into your GitLab **primary** server and log in as root (for GitLab HA, you only need a Registry node):
 
    ```shell
    sudo -i
@@ -141,7 +141,7 @@ generate a short-lived JWT that is pull-only-capable to access the
 
 For each application and Sidekiq node on the **secondary** site:
 
-1. SSH into the node and sign in as the `root` user:
+1. SSH into the node and log in as the `root` user:
 
    ```shell
    sudo -i
@@ -169,7 +169,7 @@ For each application and Sidekiq node on the **secondary** site:
 
 To verify container registry replication is working, on the **secondary** site:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Geo > Nodes**.
    The initial replication, or "backfill", is probably still in progress.
 
@@ -217,18 +217,11 @@ On multinode deployments, make sure that the issuer configured on the Sidekiq no
 
 ### Manually trigger a container registry sync event
 
-To help with troubleshooting, you can manually trigger the container registry replication process:
-
-1. On the left sidebar, at the bottom, select **Admin**.
-1. Select **Geo > Sites**.
-1. In **Replication Details** for a **Secondary Site**, select **Container Repositories**.
-1. Select **Resync** for one row, or **Resync all**.
-
-You can also manually trigger a resync by running the following commands on the secondary's Rails console:
+To help with troubleshooting, you can manually trigger the container registry replication process by running the following commands on the secondary's Rails console:
 
 ```ruby
 registry = Geo::ContainerRepositoryRegistry.first # Choose a Geo registry entry
-registry.replicator.sync # Resync the container repository
+registry.replicator.sync_repository # Resync the container repository
 pp registry.reload # Look at replication state fields
 
 #<Geo::ContainerRepositoryRegistry:0x00007f54c2a36060

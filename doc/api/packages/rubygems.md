@@ -51,6 +51,8 @@ Feature.disable(:rubygem_packages, Project.find(2))
 
 ## Download a gem file
 
+> - Introduced in GitLab 13.10.
+
 Download a gem:
 
 ```plaintext
@@ -75,6 +77,8 @@ curl --header "Authorization:<personal_access_token>" "https://gitlab.example.co
 This writes the downloaded file to `my_gem-1.0.0.gem` in the current directory.
 
 ## Fetch a list of dependencies
+
+> - Introduced in GitLab 13.10.
 
 Fetch a list of dependencies for a list of gems:
 
@@ -128,6 +132,8 @@ $ ruby -ropen-uri -rpp -e \
 This writes the downloaded file to `mypkg-1.0-SNAPSHOT.jar` in the current directory.
 
 ## Upload a gem
+
+> - Introduced in GitLab 13.11.
 
 Upload a gem:
 

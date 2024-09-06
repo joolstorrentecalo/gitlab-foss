@@ -50,7 +50,6 @@ class MergeRequestsFinder < IssuableFinder
       :merged_before,
       :reviewer_id,
       :reviewer_username,
-      :review_state,
       :source_branch,
       :target_branch,
       :wip
@@ -79,10 +78,8 @@ class MergeRequestsFinder < IssuableFinder
     items = by_approvals(items)
     items = by_deployments(items)
     items = by_reviewer(items)
-    items = by_review_state(items)
     items = by_source_project_id(items)
     items = by_resource_event_state(items)
-    items = by_assignee_or_reviewer(items)
 
     by_approved(items)
   end
@@ -246,17 +243,10 @@ class MergeRequestsFinder < IssuableFinder
     elsif params.filter_by_any_reviewer?
       items.review_requested
     elsif params.reviewer
-      items.review_requested_to(params.reviewer, params.review_state)
+      items.review_requested_to(params.reviewer)
     else # reviewer not found
       items.none
     end
-  end
-
-  def by_review_state(items)
-    return items unless params.review_state.present?
-    return items if params.reviewer_id? || params.reviewer_username?
-
-    items.review_states(params.review_state)
   end
 
   def by_negated_reviewer(items)
@@ -269,22 +259,7 @@ class MergeRequestsFinder < IssuableFinder
     end
   end
 
-  def by_assignee_or_reviewer(items)
-    return items unless current_user&.merge_request_dashboard_enabled?
-    return items unless params.assigned_user
-
-    items.assignee_or_reviewer(
-      params.assigned_user,
-      params.assigned_review_states,
-      params.reviewer_review_states
-    )
-  end
-
   def parse_datetime(input)
-    # NOTE: Input from GraphQL query is a Time object already.
-    #   Just return DateTime object for consistency instead of trying to parse it.
-    return input.to_datetime if input.is_a?(Time)
-
     # To work around http://www.ruby-lang.org/en/news/2021/11/15/date-parsing-method-regexp-dos-cve-2021-41817/
     DateTime.parse(input.byteslice(0, 128)) if input
   rescue Date::Error

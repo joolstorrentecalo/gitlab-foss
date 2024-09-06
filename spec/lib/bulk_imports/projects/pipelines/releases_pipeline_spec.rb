@@ -38,7 +38,7 @@ RSpec.describe BulkImports::Projects::Pipelines::ReleasesPipeline, feature_categ
 
   subject(:pipeline) { described_class.new(context) }
 
-  describe '#run', :clean_gitlab_redis_shared_state do
+  describe '#run', :clean_gitlab_redis_cache do
     before do
       group.add_owner(user)
       with_index = [release, 0]

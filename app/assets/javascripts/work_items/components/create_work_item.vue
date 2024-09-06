@@ -1,103 +1,38 @@
 <script>
-import {
-  GlButton,
-  GlAlert,
-  GlLoadingIcon,
-  GlFormCheckbox,
-  GlFormGroup,
-  GlFormSelect,
-} from '@gitlab/ui';
-import * as Sentry from '~/sentry/sentry_browser_wrapper';
-import { __, getPreferredLocales, s__ } from '~/locale';
+import { GlButton, GlAlert, GlLoadingIcon, GlFormSelect } from '@gitlab/ui';
+import { TYPENAME_PROJECT } from '~/graphql_shared/constants';
+import { getPreferredLocales, s__ } from '~/locale';
 import { capitalizeFirstCharacter } from '~/lib/utils/text_utility';
-import { fetchPolicies } from '~/lib/graphql';
-import { addHierarchyChild, setNewWorkItemCache } from '~/work_items/graphql/cache_utils';
-import { findWidget } from '~/issues/list/utils';
-import { newWorkItemFullPath } from '~/work_items/utils';
 import {
   I18N_WORK_ITEM_CREATE_BUTTON_LABEL,
   I18N_WORK_ITEM_ERROR_CREATING,
   I18N_WORK_ITEM_ERROR_FETCHING_TYPES,
   sprintfWorkItem,
-  i18n,
-  WIDGET_TYPE_ASSIGNEES,
-  WIDGET_TYPE_COLOR,
-  NEW_WORK_ITEM_IID,
-  WIDGET_TYPE_HEALTH_STATUS,
-  WIDGET_TYPE_PARTICIPANTS,
-  WIDGET_TYPE_DESCRIPTION,
-  NEW_WORK_ITEM_GID,
-  WIDGET_TYPE_LABELS,
-  WIDGET_TYPE_ROLLEDUP_DATES,
-  WIDGET_TYPE_CRM_CONTACTS,
 } from '../constants';
 import createWorkItemMutation from '../graphql/create_work_item.mutation.graphql';
-import namespaceWorkItemTypesQuery from '../graphql/namespace_work_item_types.query.graphql';
+import groupWorkItemTypesQuery from '../graphql/group_work_item_types.query.graphql';
+import projectWorkItemTypesQuery from '../graphql/project_work_item_types.query.graphql';
+import groupWorkItemByIidQuery from '../graphql/group_work_item_by_iid.query.graphql';
 import workItemByIidQuery from '../graphql/work_item_by_iid.query.graphql';
-import updateNewWorkItemMutation from '../graphql/update_new_work_item.mutation.graphql';
 
-import WorkItemProjectsListbox from './work_item_links/work_item_projects_listbox.vue';
-import WorkItemTitle from './work_item_title.vue';
-import WorkItemDescription from './work_item_description.vue';
-import WorkItemAssignees from './work_item_assignees.vue';
-import WorkItemLabels from './work_item_labels.vue';
-import WorkItemLoading from './work_item_loading.vue';
-import WorkItemCrmContacts from './work_item_crm_contacts.vue';
+import WorkItemTitleWithEdit from './work_item_title_with_edit.vue';
 
 export default {
   components: {
     GlButton,
     GlAlert,
     GlLoadingIcon,
-    GlFormGroup,
-    GlFormCheckbox,
+    WorkItemTitleWithEdit,
     GlFormSelect,
-    WorkItemDescription,
-    WorkItemTitle,
-    WorkItemAssignees,
-    WorkItemLabels,
-    WorkItemLoading,
-    WorkItemCrmContacts,
-    WorkItemProjectsListbox,
-    WorkItemHealthStatus: () =>
-      import('ee_component/work_items/components/work_item_health_status.vue'),
-    WorkItemColor: () => import('ee_component/work_items/components/work_item_color.vue'),
-    WorkItemRolledupDates: () =>
-      import('ee_component/work_items/components/work_item_rolledup_dates.vue'),
   },
-  inject: ['fullPath'],
+  inject: ['fullPath', 'isGroup'],
   props: {
-    description: {
+    initialTitle: {
       type: String,
       required: false,
       default: '',
     },
-    hideFormTitle: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    isGroup: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    parentId: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    showProjectSelector: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    title: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    workItemTypeName: {
+    workItemType: {
       type: String,
       required: false,
       default: null,
@@ -105,67 +40,36 @@ export default {
   },
   data() {
     return {
-      isTitleValid: true,
-      isConfidential: false,
+      title: this.initialTitle,
+      editingTitle: false,
       error: null,
       workItemTypes: [],
-      selectedProjectFullPath: null,
-      selectedWorkItemTypeId: null,
+      selectedWorkItemType: null,
       loading: false,
       showWorkItemTypeSelect: false,
     };
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
-    workItem: {
-      query: workItemByIidQuery,
-      variables() {
-        return {
-          fullPath: this.newWorkItemPath,
-          iid: NEW_WORK_ITEM_IID,
-        };
-      },
-      skip() {
-        return !this.fullPath || !this.selectedWorkItemTypeName;
-      },
-      update(data) {
-        return data?.workspace?.workItem ?? {};
-      },
-      error() {
-        this.error = i18n.fetchError;
-      },
-    },
     workItemTypes: {
       query() {
-        return namespaceWorkItemTypesQuery;
-      },
-      fetchPolicy() {
-        return this.workItemTypeName ? fetchPolicies.CACHE_ONLY : fetchPolicies.CACHE_FIRST;
+        return this.isGroup ? groupWorkItemTypesQuery : projectWorkItemTypesQuery;
       },
       variables() {
         return {
           fullPath: this.fullPath,
-          name: this.workItemTypeName,
+          name: this.workItemType,
         };
       },
       update(data) {
-        return data.workspace?.workItemTypes?.nodes;
+        return data.workspace?.workItemTypes?.nodes.map((node) => ({
+          value: node.id,
+          text: capitalizeFirstCharacter(node.name.toLocaleLowerCase(getPreferredLocales()[0])),
+        }));
       },
-      async result() {
-        if (!this.workItemTypes?.length) {
-          return;
-        }
-        if (this.workItemTypes?.length === 1) {
-          this.selectedWorkItemTypeId = this.workItemTypes[0]?.id;
+      result() {
+        if (this.workItemTypes.length === 1) {
+          this.selectedWorkItemType = this.workItemTypes[0].value;
         } else {
-          this.workItemTypes.forEach(async (workItemType) => {
-            await setNewWorkItemCache(
-              this.fullPath,
-              workItemType?.widgetDefinitions,
-              workItemType.name,
-              workItemType.id,
-            );
-          });
           this.showWorkItemTypeSelect = true;
         }
       },
@@ -175,243 +79,60 @@ export default {
     },
   },
   computed: {
-    newWorkItemPath() {
-      return newWorkItemFullPath(this.fullPath, this.selectedWorkItemTypeName);
-    },
-    isLoading() {
-      return this.$apollo.queries.workItemTypes.loading || this.$apollo.queries.workItem.loading;
-    },
-    hasWidgets() {
-      return this.workItem?.widgets?.length > 0;
-    },
-    workItemAssignees() {
-      return findWidget(WIDGET_TYPE_ASSIGNEES, this.workItem);
-    },
-    workItemLabels() {
-      return findWidget(WIDGET_TYPE_LABELS, this.workItem);
-    },
-    workItemHealthStatus() {
-      return findWidget(WIDGET_TYPE_HEALTH_STATUS, this.workItem);
-    },
-    workItemColor() {
-      return findWidget(WIDGET_TYPE_COLOR, this.workItem);
-    },
-    workItemCrmContacts() {
-      return findWidget(WIDGET_TYPE_CRM_CONTACTS, this.workItem);
-    },
-    workItemTypesForSelect() {
-      return this.workItemTypes
-        ? this.workItemTypes.map((node) => ({
-            value: node.id,
-            text: capitalizeFirstCharacter(node.name.toLocaleLowerCase(getPreferredLocales()[0])),
-          }))
-        : [];
-    },
-    selectedWorkItemType() {
-      return this.workItemTypes?.find((item) => item.id === this.selectedWorkItemTypeId);
-    },
-    selectedWorkItemTypeName() {
-      return this.selectedWorkItemType?.name;
-    },
     formOptions() {
-      return [{ value: null, text: s__('WorkItem|Select type') }, ...this.workItemTypesForSelect];
+      return [{ value: null, text: s__('WorkItem|Select type') }, ...this.workItemTypes];
+    },
+    isButtonDisabled() {
+      return this.title.trim().length === 0 || !this.selectedWorkItemType;
     },
     createErrorText() {
-      return sprintfWorkItem(I18N_WORK_ITEM_ERROR_CREATING, this.selectedWorkItemTypeName);
+      const workItemType = this.workItemTypes.find(
+        (item) => item.value === this.selectedWorkItemType,
+      )?.text;
+
+      return sprintfWorkItem(I18N_WORK_ITEM_ERROR_CREATING, workItemType);
     },
     createWorkItemText() {
-      return sprintfWorkItem(I18N_WORK_ITEM_CREATE_BUTTON_LABEL, this.selectedWorkItemTypeName);
-    },
-    makeConfidentialText() {
-      return sprintfWorkItem(
-        s__(
-          'WorkItem|This %{workItemType} is confidential and should only be visible to users having at least Reporter access.',
-        ),
-        this.selectedWorkItemTypeName,
-      );
-    },
-    titleText() {
-      return sprintfWorkItem(s__('WorkItem|New %{workItemType}'), this.selectedWorkItemTypeName);
-    },
-    canUpdate() {
-      return this.workItem?.userPermissions?.updateWorkItem;
-    },
-    workItemType() {
-      return this.workItem?.workItemType?.name;
-    },
-    workItemParticipantNodes() {
-      return this.workItemParticipants?.participants?.nodes ?? [];
-    },
-    workItemParticipants() {
-      return findWidget(WIDGET_TYPE_PARTICIPANTS, this.workItem);
-    },
-    workItemAssigneeIds() {
-      const assigneesWidget = findWidget(WIDGET_TYPE_ASSIGNEES, this.workItem);
-      return assigneesWidget?.assignees?.nodes?.map((assignee) => assignee.id) || [];
-    },
-    workItemLabelIds() {
-      const labelsWidget = findWidget(WIDGET_TYPE_LABELS, this.workItem);
-      return labelsWidget?.labels?.nodes?.map((label) => label.id) || [];
-    },
-    workItemCrmContactIds() {
-      return this.workItemCrmContacts?.contacts?.nodes?.map((item) => item.id) || [];
-    },
-    workItemColorValue() {
-      const colorWidget = findWidget(WIDGET_TYPE_COLOR, this.workItem);
-      return colorWidget?.color || '';
-    },
-    workItemHealthStatusValue() {
-      const healthStatusWidget = findWidget(WIDGET_TYPE_HEALTH_STATUS, this.workItem);
-      return healthStatusWidget?.healthStatus || null;
-    },
-    workItemAuthor() {
-      return this.workItem?.author;
-    },
-    workItemTitle() {
-      return this.workItem?.title || this.title;
-    },
-    workItemDescription() {
-      const descriptionWidget = findWidget(WIDGET_TYPE_DESCRIPTION, this.workItem);
-      return descriptionWidget?.description || this.description;
-    },
-    workItemRolledupDates() {
-      return findWidget(WIDGET_TYPE_ROLLEDUP_DATES, this.workItem);
-    },
-    workItemDueDateFixed() {
-      return this.workItemRolledupDates?.dueDateFixed;
-    },
-    workItemStartDateFixed() {
-      return this.workItemRolledupDates?.startDateFixed;
-    },
-    workItemDueDateIsFixed() {
-      return this.workItemRolledupDates?.dueDateIsFixed;
-    },
-    workItemStartDateIsFixed() {
-      return this.workItemRolledupDates?.startDateIsFixed;
-    },
-    workItemId() {
-      return this.workItem?.id;
-    },
-    workItemIid() {
-      return this.workItem?.iid;
+      const workItemType = this.workItemTypes.find(
+        (item) => item.value === this.selectedWorkItemType,
+      )?.text;
+      return sprintfWorkItem(I18N_WORK_ITEM_CREATE_BUTTON_LABEL, workItemType);
     },
   },
   methods: {
-    isWidgetSupported(widgetType) {
-      const widgetDefinitions =
-        this.selectedWorkItemType?.widgetDefinitions?.flatMap((i) => i.type) || [];
-      return widgetDefinitions.indexOf(widgetType) !== -1;
-    },
-    validate(newValue) {
-      const title = newValue || this.workItemTitle;
-      this.isTitleValid = Boolean(title.trim());
-    },
-    async updateDraftData(type, value) {
-      if (type === 'title') {
-        this.validate(value);
-      }
-
-      try {
-        this.$apollo.mutate({
-          mutation: updateNewWorkItemMutation,
-          variables: {
-            input: {
-              fullPath: this.fullPath,
-              workItemType: this.selectedWorkItemTypeName || this.workItemTypeName,
-              [type]: value,
-            },
-          },
-        });
-      } catch {
-        this.error = this.createErrorText;
-        Sentry.captureException(this.error);
-      }
-    },
     async createWorkItem() {
-      this.validate();
-
-      if (!this.isTitleValid) {
-        return;
-      }
-
-      if (this.showProjectSelector && !this.selectedProjectFullPath) {
-        this.error = __('Please select a project.');
-        return;
-      }
-
       this.loading = true;
-
-      const workItemCreateInput = {
-        title: this.workItemTitle,
-        workItemTypeId: this.selectedWorkItemTypeId,
-        namespacePath: this.selectedProjectFullPath || this.fullPath,
-        confidential: this.workItem.confidential,
-        descriptionWidget: {
-          description: this.workItemDescription || '',
-        },
-      };
-
-      // TODO , we can move this to util, currently objectives with other widgets not being supported is causing issues
-
-      if (this.isWidgetSupported(WIDGET_TYPE_COLOR)) {
-        workItemCreateInput.colorWidget = {
-          color: this.workItemColorValue,
-        };
-      }
-
-      if (this.isWidgetSupported(WIDGET_TYPE_ASSIGNEES)) {
-        workItemCreateInput.assigneesWidget = {
-          assigneeIds: this.workItemAssigneeIds,
-        };
-      }
-
-      if (this.isWidgetSupported(WIDGET_TYPE_HEALTH_STATUS)) {
-        workItemCreateInput.healthStatusWidget = {
-          healthStatus: this.workItemHealthStatusValue,
-        };
-      }
-
-      if (this.isWidgetSupported(WIDGET_TYPE_LABELS)) {
-        workItemCreateInput.labelsWidget = {
-          labelIds: this.workItemLabelIds,
-        };
-      }
-
-      if (this.isWidgetSupported(WIDGET_TYPE_ROLLEDUP_DATES)) {
-        workItemCreateInput.rolledupDatesWidget = {
-          dueDateIsFixed: this.workItemDueDateIsFixed,
-          startDateIsFixed: this.workItemStartDateIsFixed,
-          startDateFixed: this.workItemStartDateFixed,
-          dueDateFixed: this.workItemDueDateFixed,
-        };
-      }
-
-      if (this.isWidgetSupported(WIDGET_TYPE_CRM_CONTACTS)) {
-        workItemCreateInput.crmContactsWidget = {
-          contactIds: this.workItemCrmContactIds,
-        };
-      }
-
-      if (this.parentId) {
-        workItemCreateInput.hierarchyWidget = {
-          parentId: this.parentId,
-        };
-      }
 
       try {
         const response = await this.$apollo.mutate({
           mutation: createWorkItemMutation,
           variables: {
             input: {
-              ...workItemCreateInput,
+              title: this.title,
+              projectPath: this.fullPath,
+              workItemTypeId: this.selectedWorkItemType,
             },
           },
           update: (store, { data: { workItemCreate } }) => {
             const { workItem } = workItemCreate;
 
-            if (this.parentId) {
-              addHierarchyChild({ cache: store, id: this.parentId, workItem });
-            }
+            store.writeQuery({
+              query: this.isGroup ? groupWorkItemByIidQuery : workItemByIidQuery,
+              variables: {
+                fullPath: this.fullPath,
+                iid: workItem.iid,
+              },
+              data: {
+                workspace: {
+                  __typename: TYPENAME_PROJECT,
+                  id: workItem.namespace.id,
+                  workItems: {
+                    __typename: 'WorkItemConnection',
+                    nodes: [workItem],
+                  },
+                },
+              },
+            });
           },
         });
 
@@ -421,179 +142,55 @@ export default {
         this.loading = false;
       }
     },
+    handleTitleInput(title) {
+      this.title = title;
+    },
     handleCancelClick() {
       this.$emit('cancel');
     },
   },
-  NEW_WORK_ITEM_IID,
-  NEW_WORK_ITEM_GID,
 };
 </script>
 
 <template>
   <form @submit.prevent="createWorkItem">
-    <work-item-loading v-if="isLoading" />
-    <template v-else>
-      <gl-alert v-if="error" class="gl-mb-3" variant="danger" @dismiss="error = null">
-        {{ error }}
-      </gl-alert>
-      <h1 v-if="!hideFormTitle" class="page-title gl-text-xl gl-pb-5">{{ titleText }}</h1>
-      <div class="gl-flex gl-items-center gl-gap-4">
-        <gl-form-group
-          v-if="showProjectSelector"
-          class="gl-max-w-26 gl-flex-grow"
-          :label="__('Project')"
-        >
-          <work-item-projects-listbox
-            v-model="selectedProjectFullPath"
-            :full-path="fullPath"
-            :is-group="isGroup"
-          />
-        </gl-form-group>
-
-        <gl-loading-icon v-if="$apollo.queries.workItemTypes.loading" size="lg" />
-        <gl-form-group
-          v-else-if="showWorkItemTypeSelect"
-          class="gl-max-w-26 gl-flex-grow"
-          :label="__('Type')"
-          label-for="work-item-type"
-        >
-          <gl-form-select
-            id="work-item-type"
-            v-model="selectedWorkItemTypeId"
-            :options="formOptions"
-          />
-        </gl-form-group>
-      </div>
-      <div v-if="selectedWorkItemTypeId" data-testid="create-work-item">
-        <work-item-title
-          ref="title"
-          data-testid="title-input"
-          is-editing
-          :is-valid="isTitleValid"
-          :title="workItemTitle"
-          @updateDraft="updateDraftData('title', $event)"
-          @updateWorkItem="createWorkItem"
+    <gl-alert v-if="error" variant="danger" @dismiss="error = null">{{ error }}</gl-alert>
+    <div data-testid="content">
+      <work-item-title-with-edit
+        ref="title"
+        data-testid="title-input"
+        is-editing
+        :title="title"
+        @updateDraft="handleTitleInput"
+        @updateWorkItem="createWorkItem"
+      />
+      <div>
+        <gl-loading-icon
+          v-if="$apollo.queries.workItemTypes.loading"
+          size="lg"
+          data-testid="loading-types"
         />
-        <div data-testid="work-item-overview" class="work-item-overview">
-          <section>
-            <work-item-description
-              edit-mode
-              :autofocus="false"
-              :description="description"
-              :full-path="fullPath"
-              :show-buttons-below-field="false"
-              :work-item-id="workItemId"
-              :work-item-iid="workItemIid"
-              :work-item-type-name="selectedWorkItemTypeName"
-              @error="updateError = $event"
-              @updateDraft="updateDraftData('description', $event)"
-            />
-            <gl-form-group :label="__('Confidentiality')" label-for="work-item-confidential">
-              <gl-form-checkbox
-                id="work-item-confidential"
-                v-model="isConfidential"
-                data-testid="confidential-checkbox"
-                @change="updateDraftData('confidential', $event)"
-              >
-                {{ makeConfidentialText }}
-              </gl-form-checkbox>
-            </gl-form-group>
-          </section>
-          <aside
-            v-if="hasWidgets"
-            data-testid="work-item-overview-right-sidebar"
-            class="work-item-overview-right-sidebar"
-            :class="{ 'is-modal': true }"
-          >
-            <template v-if="workItemAssignees">
-              <work-item-assignees
-                class="js-assignee gl-mb-5"
-                :can-update="canUpdate"
-                :full-path="fullPath"
-                :is-group="isGroup"
-                :work-item-id="workItemId"
-                :assignees="workItemAssignees.assignees.nodes"
-                :participants="workItemParticipantNodes"
-                :work-item-author="workItemAuthor"
-                :allows-multiple-assignees="workItemAssignees.allowsMultipleAssignees"
-                :work-item-type="selectedWorkItemTypeName"
-                :can-invite-members="workItemAssignees.canInviteMembers"
-                @error="$emit('error', $event)"
-              />
-            </template>
-            <template v-if="workItemLabels">
-              <work-item-labels
-                class="js-labels gl-mb-5"
-                :can-update="canUpdate"
-                :full-path="fullPath"
-                :is-group="isGroup"
-                :work-item-id="workItemId"
-                :work-item-iid="workItemIid"
-                :work-item-type="selectedWorkItemTypeName"
-                @error="$emit('error', $event)"
-              />
-            </template>
-            <template v-if="workItemRolledupDates">
-              <work-item-rolledup-dates
-                :can-update="canUpdate"
-                :full-path="fullPath"
-                :due-date-is-fixed="workItemRolledupDates.dueDateIsFixed"
-                :due-date-fixed="workItemRolledupDates.dueDateFixed"
-                :due-date-inherited="workItemRolledupDates.dueDate"
-                :start-date-is-fixed="workItemRolledupDates.startDateIsFixed"
-                :start-date-fixed="workItemRolledupDates.startDateFixed"
-                :start-date-inherited="workItemRolledupDates.startDate"
-                :work-item-type="selectedWorkItemTypeName"
-                :work-item="workItem"
-                @error="$emit('error', $event)"
-              />
-            </template>
-            <template v-if="workItemHealthStatus">
-              <work-item-health-status
-                class="gl-mb-5"
-                :work-item-id="workItemId"
-                :work-item-iid="workItemIid"
-                :work-item-type="selectedWorkItemTypeName"
-                :full-path="fullPath"
-                @error="$emit('error', $event)"
-              />
-            </template>
-            <template v-if="workItemColor">
-              <work-item-color
-                class="gl-mb-5"
-                :work-item="workItem"
-                :full-path="fullPath"
-                :can-update="canUpdate"
-                @error="$emit('error', $event)"
-              />
-            </template>
-            <template v-if="workItemCrmContacts">
-              <work-item-crm-contacts
-                class="gl-mb-5"
-                :full-path="fullPath"
-                :work-item-id="workItemId"
-                :work-item-iid="workItemIid"
-                :work-item-type="selectedWorkItemTypeName"
-                @error="$emit('error', $event)"
-              />
-            </template>
-          </aside>
-          <div class="gl-col-start-1 gl-flex gl-gap-3 gl-py-3">
-            <gl-button
-              variant="confirm"
-              :loading="loading"
-              data-testid="create-button"
-              @click="createWorkItem"
-            >
-              {{ createWorkItemText }}
-            </gl-button>
-            <gl-button type="button" data-testid="cancel-button" @click="handleCancelClick">
-              {{ __('Cancel') }}
-            </gl-button>
-          </div>
-        </div>
+        <gl-form-select
+          v-else-if="showWorkItemTypeSelect"
+          v-model="selectedWorkItemType"
+          :options="formOptions"
+          class="gl-max-w-26"
+        />
       </div>
-    </template>
+    </div>
+    <div class="gl-py-5 gl-mt-4 gl-display-flex gl-justify-content-end gl-gap-3">
+      <gl-button type="button" data-testid="cancel-button" @click="handleCancelClick">
+        {{ __('Cancel') }}
+      </gl-button>
+      <gl-button
+        variant="confirm"
+        :disabled="isButtonDisabled"
+        :loading="loading"
+        data-testid="create-button"
+        type="submit"
+      >
+        {{ createWorkItemText }}
+      </gl-button>
+    </div>
   </form>
 </template>

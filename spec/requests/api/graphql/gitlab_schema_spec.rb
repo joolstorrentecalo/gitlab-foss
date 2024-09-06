@@ -15,7 +15,7 @@ RSpec.describe 'GitlabSchema configurations', feature_category: :integrations do
 
           subject
 
-          expect_graphql_errors_to_include(/Timeout/)
+          expect_graphql_errors_to_include /Timeout/
         end
       end
     end
@@ -27,7 +27,7 @@ RSpec.describe 'GitlabSchema configurations', feature_category: :integrations do
 
           subject
 
-          expect_graphql_errors_to_include(/which exceeds max complexity of 1/)
+          expect_graphql_errors_to_include /which exceeds max complexity of 1/
         end
       end
     end
@@ -39,7 +39,7 @@ RSpec.describe 'GitlabSchema configurations', feature_category: :integrations do
 
           subject
 
-          expect_graphql_errors_to_include(/exceeds max depth/)
+          expect_graphql_errors_to_include /exceeds max depth/
         end
       end
 
@@ -196,8 +196,8 @@ RSpec.describe 'GitlabSchema configurations', feature_category: :integrations do
         hash_including(
           trace_type: 'execute_query',
           "query_analysis.duration_s" => 7,
-          "query_analysis.complexity" => 217,
-          "query_analysis.depth" => 15,
+          "query_analysis.complexity" => 181,
+          "query_analysis.depth" => 13,
           "query_analysis.used_deprecated_fields" => an_instance_of(Array),
           "query_analysis.used_deprecated_arguments" => an_instance_of(Array),
           "query_analysis.used_fields" => an_instance_of(Array)

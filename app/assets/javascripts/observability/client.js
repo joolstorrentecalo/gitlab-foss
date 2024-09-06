@@ -3,168 +3,42 @@ import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import axios from '~/lib/utils/axios_utils';
 import { logError } from '~/lib/logger';
 import { DEFAULT_SORTING_OPTION, SORTING_OPTIONS, CUSTOM_DATE_RANGE_OPTION } from './constants';
-import { isTracingDateRangeOutOfBounds } from './utils';
 
 function reportErrorAndThrow(e) {
   logError(e);
   Sentry.captureException(e);
   throw e;
 }
-
-/** ****
- *
- * Common utils
- *
- * ***** */
-
-const FILTER_OPERATORS_PREFIX = {
-  '!=': 'not',
-  '>': 'gt',
-  '<': 'lt',
-  '!~': 'not_like',
-  '=~': 'like',
-};
-
-const SEARCH_FILTER_NAME = 'search';
-
-/**
- * Return the query parameter name, given an operator and param key
- *
- * e.g
- *    if paramKey is 'foo' and operator is "=", param name is 'foo'
- *    if paramKey is 'foo' and operator is "!=", param name is 'not[foo]'
- *
- * @param {String} paramKey - The parameter name
- * @param {String} operator - The operator
- * @returns String | undefined - Query param name
- */
-
-function getFilterParamName(paramKey, operator) {
-  if (!paramKey) return undefined;
-
-  if (operator === '=' || !operator /* 'search' filter has an undefined operator */) {
-    return paramKey;
+// Provisioning API spec: https://gitlab.com/gitlab-org/opstrace/opstrace/-/blob/main/provisioning-api/pkg/provisioningapi/routes.go#L59
+async function enableObservability(provisioningUrl) {
+  try {
+    // Note: axios.put(url, undefined, {withCredentials: true}) does not send cookies properly, so need to use the API below for the correct behaviour
+    return await axios(provisioningUrl, {
+      method: 'put',
+      withCredentials: true,
+    });
+  } catch (e) {
+    return reportErrorAndThrow(e);
   }
-
-  const prefix = FILTER_OPERATORS_PREFIX[operator];
-  if (prefix) {
-    return `${prefix}[${paramKey}]`;
-  }
-
-  return undefined;
 }
 
-/**
- * Process `filterValue` and append the proper query params to the  `searchParams` arg, using `nameParam` and `valueParam`
- *
- * It mutates `searchParams`
- *
- * @param {String} filterValue The filter value, in the format `attribute_name=attribute_value`
- * @param {String} filterOperator The filter operator
- * @param {URLSearchParams} searchParams The URLSearchParams object where to append the proper query params
- * @param {String} nameParam The query param name for the attribute name
- * @param {String} nameParam The query param name for the attribute value
- *
- * e.g.
- *
- *    handleAttributeFilter('foo=bar', '=', searchParams, 'attr_name', 'attr_value')
- *
- *        it adds { attr_name: 'foo', attr_value: 'bar'} to `searchParams`
- *
- */
-// eslint-disable-next-line max-params
-function handleAttributeFilter(filterValue, filterOperator, searchParams, nameParam, valueParam) {
-  const [attrName, attrValue] = filterValue.split('=');
-  if (attrName && attrValue) {
-    if (filterOperator === '=') {
-      searchParams.append(nameParam, attrName);
-      searchParams.append(valueParam, attrValue);
+// Provisioning API spec: https://gitlab.com/gitlab-org/opstrace/opstrace/-/blob/main/provisioning-api/pkg/provisioningapi/routes.go#L37
+async function isObservabilityEnabled(provisioningUrl) {
+  try {
+    const { data } = await axios.get(provisioningUrl, { withCredentials: true });
+    if (data && data.status) {
+      // we currently ignore the 'status' payload and just check if the request was successful
+      // We might improve this as part of https://gitlab.com/gitlab-org/opstrace/opstrace/-/issues/2315
+      return true;
     }
-  }
-}
-
-function addDateRangeFilterToQueryParams(dateRangeFilter, params) {
-  if (!dateRangeFilter || !params) return;
-
-  const { value, endDate, startDate, timestamp } = dateRangeFilter;
-  if (timestamp) {
-    params.append('start_time', timestamp);
-    params.append('end_time', timestamp);
-  } else if (value === CUSTOM_DATE_RANGE_OPTION) {
-    if (isValidDate(startDate) && isValidDate(endDate)) {
-      params.append('start_time', startDate.toISOString());
-      params.append('end_time', endDate.toISOString());
+  } catch (e) {
+    if (e.response.status === 404) {
+      return false;
     }
-  } else if (typeof value === 'string') {
-    params.append('period', value);
+    return reportErrorAndThrow(e);
   }
+  return reportErrorAndThrow(new Error('Failed to check provisioning')); // eslint-disable-line @gitlab/require-i18n-strings
 }
-
-/**
- * Get valid filters for a given filter name
- *
- * @param {Object} attributesFilters - The filter object containing attribute filters
- * @param {string} filterName - The name of the filter to validate
- * @param {Object} supportedFilters - Object defining supported filters and their operators
- * @returns {Array} - Array of valid filter objects for the given filter name
- */
-function getValidFilters(attributesFilters, filterName, supportedFilters) {
-  const filterValues = Array.isArray(attributesFilters[filterName])
-    ? attributesFilters[filterName].filter(({ value }) => Boolean(value)) // ignore empty strings
-    : [];
-  return filterValues.filter(
-    (f) =>
-      (filterName === SEARCH_FILTER_NAME && supportedFilters[filterName]) ||
-      supportedFilters[filterName].includes(f.operator),
-  );
-}
-
-/**
- * Adds attribute filters to query parameters. It mutates `queryParams`
- *
- * @param {Object} attributesFilters - The filter object containing attribute filters
- * @param {URLSearchParams} queryParams - The URLSearchParams object to add the filters to
- * @param {Object} supportedFilters - Object defining supported filters and their operators, e.g
- *
- *  const supportedFilters = {
- *    durationMs: ['>', '<'],
- *    status: [ '=' ]
- *  }
- *
- * @param {Object} filterToQueryParamMap - Mapping of filter names to query parameter names. Values can either be string or handler functions, e.g
- *
- *    filterToQueryParamMap = {
- *      aFilter: 'a_filter_query_param',
- *      anotherFilter: (value, operator, params) => { ...custom logic }
- *    }
- *
- */
-function addAttributesFiltersToQueryParams({
-  attributesFilters,
-  queryParams,
-  supportedFilters,
-  filterToQueryParamMap,
-}) {
-  Object.keys(supportedFilters).forEach((filterName) => {
-    getValidFilters(attributesFilters, filterName, supportedFilters).forEach(
-      ({ operator, value: rawValue }) => {
-        const queryParamMapping = filterToQueryParamMap[filterName];
-        if (typeof queryParamMapping === 'string' && rawValue) {
-          const paramName = getFilterParamName(queryParamMapping, operator);
-          queryParams.append(paramName, rawValue);
-        } else if (typeof queryParamMapping === 'function') {
-          queryParamMapping(rawValue, operator, queryParams);
-        }
-      },
-    );
-  });
-}
-
-/** ****
- *
- * Tracing API
- *
- * ***** */
 
 async function fetchTrace(tracingUrl, traceId) {
   try {
@@ -189,44 +63,151 @@ const SUPPORTED_TRACING_FILTERS = {
   durationMs: ['>', '<'],
   operation: ['=', '!='],
   service: ['=', '!='],
+  period: ['='],
   traceId: ['=', '!='],
   attribute: ['='],
   status: ['=', '!='],
-  // 'search' temporarily ignored https://gitlab.com/gitlab-org/opstrace/opstrace/-/issues/2309
+  // free-text 'search' temporarily ignored https://gitlab.com/gitlab-org/opstrace/opstrace/-/issues/2309
 };
 
 /**
- * Mapping of filter name to tracing query param
+ * Mapping of filter name to query param
  */
 const TRACING_FILTER_TO_QUERY_PARAM = {
+  durationMs: 'duration_nano',
   operation: 'operation',
   service: 'service_name',
+  period: 'period',
   traceId: 'trace_id',
+  attribute: 'attribute',
   status: 'status',
-  durationMs: (durationMs, operator, params) => {
-    const paramName = getFilterParamName('duration_nano', operator);
-    const durationNano = durationMs * 1e6; // converting ms to nano
-    if (paramName && durationNano) {
-      params.append(paramName, durationNano);
-    }
-  },
-  attribute: (value, operator, params) =>
-    handleAttributeFilter(value, operator, params, 'attr_name', 'attr_value'),
+};
+
+const FILTER_OPERATORS_PREFIX = {
+  '!=': 'not',
+  '>': 'gt',
+  '<': 'lt',
+  '!~': 'not_like',
+  '=~': 'like',
 };
 
 /**
- * Adds tracing attribute filters to query parameters
+ * Return the query parameter name, given an operator and param key
  *
- * @param {Object} attributesFilters - An object representing tracing attribute filters
- * @param {URLSearchParams} queryParams - The URLSearchParams object to add the filters to
+ * e.g
+ *    if paramKey is 'foo' and operator is "=", param name is 'foo'
+ *    if paramKey is 'foo' and operator is "!=", param name is 'not[foo]'
+ *
+ * @param {String} paramKey - The parameter name
+ * @param {String} operator - The operator
+ * @returns String | undefined - Query param name
  */
-function addTracingAttributesFiltersToQueryParams(attributesFilters, queryParams) {
-  addAttributesFiltersToQueryParams({
-    attributesFilters,
-    queryParams,
-    supportedFilters: SUPPORTED_TRACING_FILTERS,
-    filterToQueryParamMap: TRACING_FILTER_TO_QUERY_PARAM,
+function getFilterParamName(paramKey, operator) {
+  if (operator === '=') {
+    return paramKey;
+  }
+
+  const prefix = FILTER_OPERATORS_PREFIX[operator];
+  if (prefix) {
+    return `${prefix}[${paramKey}]`;
+  }
+
+  return undefined;
+}
+
+/**
+ * Builds the tracing query param name for the given filter and operator
+ *
+ * @param {String} filterName - The filter name
+ * @param {String} operator - The operator
+ * @returns String | undefined - Query param name
+ */
+function getTracingFilterParamName(filterName, operator) {
+  const paramKey = TRACING_FILTER_TO_QUERY_PARAM[filterName];
+  if (!paramKey) return undefined;
+
+  return getFilterParamName(paramKey, operator);
+}
+
+/**
+ * Process `filterValue` and append the proper query params to the  `searchParams` arg
+ *
+ * It mutates `searchParams`
+ *
+ * @param {String} filterValue The filter value, in the format `attribute_name=attribute_value`
+ * @param {String} filterOperator The filter operator
+ * @param {URLSearchParams} searchParams The URLSearchParams object where to append the proper query params
+ */
+function handleAttributeFilter(filterValue, filterOperator, searchParams) {
+  const [attrName, attrValue] = filterValue.split('=');
+  if (attrName && attrValue) {
+    if (filterOperator === '=') {
+      searchParams.append('attr_name', attrName);
+      searchParams.append('attr_value', attrValue);
+    }
+  }
+}
+
+function handlePeriodFilter(rawValue, filterName, filterParams) {
+  if (rawValue.trim().indexOf(' ') < 0) {
+    filterParams.append(filterName, rawValue.trim());
+    return;
+  }
+
+  const dateParts = rawValue.split(' - ');
+  if (dateParts.length === 2) {
+    const [start, end] = dateParts;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    if (isValidDate(startDate) && isValidDate(endDate)) {
+      filterParams.append('start_time', startDate.toISOString());
+      filterParams.append('end_time', endDate.toISOString());
+    }
+  }
+}
+
+/**
+ * Builds URLSearchParams from a filter object of type { [filterName]: undefined | null | Array<{operator: String, value: any} }
+ *  e.g:
+ *
+ *  filterObj =  {
+ *      durationMs: [{operator: '>', value: '100'}, {operator: '<', value: '1000' }],
+ *      operation: [{operator: '=', value: 'someOp' }],
+ *      service: [{operator: '!=', value: 'foo' }]
+ *    }
+ *
+ * It handles converting the filter to the proper supported query params
+ *
+ * @param {Object} filterObj : An Object representing filters
+ * @returns URLSearchParams
+ */
+function tracingFilterObjToQueryParams(filterObj) {
+  const filterParams = new URLSearchParams();
+
+  Object.keys(SUPPORTED_TRACING_FILTERS).forEach((filterName) => {
+    const filterValues = Array.isArray(filterObj[filterName]) ? filterObj[filterName] : [];
+    const validFilters = filterValues.filter((f) =>
+      SUPPORTED_TRACING_FILTERS[filterName].includes(f.operator),
+    );
+    validFilters.forEach(({ operator, value: rawValue }) => {
+      if (filterName === 'attribute') {
+        handleAttributeFilter(rawValue, operator, filterParams);
+      } else if (filterName === 'period') {
+        handlePeriodFilter(rawValue, filterName, filterParams);
+      } else {
+        const paramName = getTracingFilterParamName(filterName, operator);
+        let value = rawValue;
+        if (filterName === 'durationMs') {
+          // converting durationMs to duration_nano
+          value *= 1000000;
+        }
+        if (paramName && value) {
+          filterParams.append(paramName, value);
+        }
+      }
+    });
   });
+  return filterParams;
 }
 
 /**
@@ -248,20 +229,7 @@ async function fetchTraces(
   tracingUrl,
   { filters = {}, pageToken, pageSize, sortBy, abortController } = {},
 ) {
-  const params = new URLSearchParams();
-
-  const { attributes, dateRange } = filters;
-
-  if (attributes) {
-    addTracingAttributesFiltersToQueryParams(attributes, params);
-  }
-  if (dateRange) {
-    if (isTracingDateRangeOutOfBounds(dateRange)) {
-      throw new Error('Selected date range is out of allowed limits.'); // eslint-disable-line @gitlab/require-i18n-strings
-    }
-    addDateRangeFilterToQueryParams(dateRange, params);
-  }
-
+  const params = tracingFilterObjToQueryParams(filters);
   if (pageToken) {
     params.append('page_token', pageToken);
   }
@@ -289,16 +257,7 @@ async function fetchTraces(
 }
 
 async function fetchTracesAnalytics(tracingAnalyticsUrl, { filters = {}, abortController } = {}) {
-  const params = new URLSearchParams();
-
-  const { attributes, dateRange } = filters;
-
-  if (attributes) {
-    addTracingAttributesFiltersToQueryParams(attributes, params);
-  }
-  if (dateRange) {
-    addDateRangeFilterToQueryParams(dateRange, params);
-  }
+  const params = tracingFilterObjToQueryParams(filters);
 
   try {
     const { data } = await axios.get(tracingAnalyticsUrl, {
@@ -351,49 +310,26 @@ async function fetchOperations(operationsUrl, serviceName) {
   }
 }
 
-/** ****
- *
- * Metrics API
- *
- * ***** */
-
-/**
- * Filters (and operators) allowed by metrics query API
- */
-const SUPPORTED_METRICS_FILTERS = {
-  attribute: ['='],
-  traceId: ['='],
-  search: [],
-};
-
-/**
- * Mapping of filter name to metrics query param
- */
-const METRICS_FILTER_TO_QUERY_PARAM = {
-  traceId: 'trace_id',
-  search: 'search',
-  attribute: (value, operator, urlParams) =>
-    operator === '=' && urlParams.append('attributes', value),
-};
-
 async function fetchMetrics(metricsUrl, { filters = {}, limit } = {}) {
   try {
-    const queryParams = new URLSearchParams();
+    const params = new URLSearchParams();
 
-    addAttributesFiltersToQueryParams({
-      attributesFilters: filters,
-      queryParams,
-      supportedFilters: SUPPORTED_METRICS_FILTERS,
-      filterToQueryParamMap: METRICS_FILTER_TO_QUERY_PARAM,
-    });
+    if (Array.isArray(filters.search)) {
+      const search = filters.search
+        .map((f) => f.value)
+        .join(' ')
+        .trim();
 
-    if (filters.search && limit) {
-      queryParams.append('limit', limit);
+      if (search) {
+        params.append('search', search);
+        if (limit) {
+          params.append('limit', limit);
+        }
+      }
     }
-
     const { data } = await axios.get(metricsUrl, {
       withCredentials: true,
-      params: queryParams,
+      params,
     });
     if (!Array.isArray(data.metrics)) {
       throw new Error('metrics are missing/invalid in the response'); // eslint-disable-line @gitlab/require-i18n-strings
@@ -410,7 +346,6 @@ const SUPPORTED_METRICS_DIMENSIONS_OPERATORS = {
   '=~': 're',
   '!~': 'nre',
 };
-
 function addMetricsAttributeFilterToQueryParams(dimensionFilter, params) {
   if (!dimensionFilter || !params) return;
 
@@ -426,7 +361,21 @@ function addMetricsAttributeFilterToQueryParams(dimensionFilter, params) {
   });
 }
 
-function addMetricsGroupByFilterToQueryParams(groupByFilter, params) {
+function addDateRangeFilterToQueryParams(dateRangeFilter, params) {
+  if (!dateRangeFilter || !params) return;
+
+  const { value, endDate, startDate } = dateRangeFilter;
+  if (value === CUSTOM_DATE_RANGE_OPTION) {
+    if (isValidDate(startDate) && isValidDate(endDate)) {
+      params.append('start_time', startDate.toISOString());
+      params.append('end_time', endDate.toISOString());
+    }
+  } else if (typeof value === 'string') {
+    params.append('period', value);
+  }
+}
+
+function addGroupByFilterToQueryParams(groupByFilter, params) {
   if (!groupByFilter || !params) return;
 
   const { func, attributes } = groupByFilter;
@@ -438,7 +387,6 @@ function addMetricsGroupByFilterToQueryParams(groupByFilter, params) {
   }
 }
 
-// eslint-disable-next-line max-params
 async function fetchMetric(searchUrl, name, type, options = {}) {
   try {
     if (!name) {
@@ -468,7 +416,7 @@ async function fetchMetric(searchUrl, name, type, options = {}) {
     }
 
     if (groupBy) {
-      addMetricsGroupByFilterToQueryParams(groupBy, params);
+      addGroupByFilterToQueryParams(groupBy, params);
     }
 
     const { data } = await axios.get(searchUrl, {
@@ -509,75 +457,13 @@ async function fetchMetricSearchMetadata(searchMetadataUrl, name, type) {
   }
 }
 
-/** ****
- *
- * Logs API
- *
- * ***** */
-
-/**
- * Filters (and operators) allowed by logs query API
- */
-const SUPPORTED_LOGS_FILTERS = {
-  service: ['=', '!='],
-  severityName: ['=', '!='],
-  severityNumber: ['=', '!='],
-  traceId: ['='],
-  spanId: ['='],
-  fingerprint: ['='],
-  traceFlags: ['=', '!='],
-  attribute: ['='],
-  resourceAttribute: ['='],
-  search: [], // 'search' filter does not have any operator
-};
-
-/**
- * Mapping of filter name to query param
- */
-const LOGS_FILTER_TO_QUERY_PARAM = {
-  service: 'service_name',
-  severityName: 'severity_name',
-  severityNumber: 'severity_number',
-  traceId: 'trace_id',
-  spanId: 'span_id',
-  fingerprint: 'fingerprint',
-  traceFlags: 'trace_flags',
-  search: 'body',
-  attribute: (value, operator, params) =>
-    handleAttributeFilter(value, operator, params, 'log_attr_name', 'log_attr_value'),
-  resourceAttribute: (value, operator, params) =>
-    handleAttributeFilter(value, operator, params, 'res_attr_name', 'res_attr_value'),
-};
-
-/**
- * Adds logs attribute filters to query parameters
- *
- * @param {Object} attributesFilters - An object representing logs attribute filters
- * @param {URLSearchParams} queryParams - The URLSearchParams object to add the filters to
- */
-function addLogsAttributesFiltersToQueryParams(attributesFilters, queryParams) {
-  addAttributesFiltersToQueryParams({
-    attributesFilters,
-    queryParams,
-    supportedFilters: SUPPORTED_LOGS_FILTERS,
-    filterToQueryParamMap: LOGS_FILTER_TO_QUERY_PARAM,
-  });
-}
-
-export async function fetchLogs(
-  logsSearchUrl,
-  { pageToken, pageSize, filters = {}, abortController } = {},
-) {
+export async function fetchLogs(logsSearchUrl, { pageToken, pageSize, filters = {} } = {}) {
   try {
     const params = new URLSearchParams();
 
-    const { dateRange, attributes } = filters;
+    const { dateRange } = filters;
     if (dateRange) {
       addDateRangeFilterToQueryParams(dateRange, params);
-    }
-
-    if (attributes) {
-      addLogsAttributesFiltersToQueryParams(attributes, params);
     }
 
     if (pageToken) {
@@ -589,7 +475,6 @@ export async function fetchLogs(
     const { data } = await axios.get(logsSearchUrl, {
       withCredentials: true,
       params,
-      signal: abortController?.signal,
     });
     if (!Array.isArray(data.results)) {
       throw new Error('logs are missing/invalid in the response'); // eslint-disable-line @gitlab/require-i18n-strings
@@ -603,66 +488,13 @@ export async function fetchLogs(
   }
 }
 
-export async function fetchLogsSearchMetadata(
-  logsSearchMetadataUrl,
-  { filters = {}, abortController } = {},
-) {
-  try {
-    const params = new URLSearchParams();
-
-    const { dateRange, attributes } = filters;
-    if (dateRange) {
-      addDateRangeFilterToQueryParams(dateRange, params);
-    }
-
-    if (attributes) {
-      addLogsAttributesFiltersToQueryParams(attributes, params);
-    }
-
-    const { data } = await axios.get(logsSearchMetadataUrl, {
-      withCredentials: true,
-      params,
-      signal: abortController?.signal,
-    });
-    return data;
-  } catch (e) {
-    return reportErrorAndThrow(e);
-  }
-}
-
-export async function fetchUsageData(analyticsUrl, { period } = {}) {
-  try {
-    const params = new URLSearchParams();
-
-    if (period?.month) {
-      params.append('month', period?.month);
-    }
-    if (period?.year) {
-      params.append('year', period?.year);
-    }
-
-    const { data } = await axios.get(analyticsUrl, {
-      withCredentials: true,
-      params,
-    });
-    return data;
-  } catch (e) {
-    return reportErrorAndThrow(e);
-  }
-}
-
-/** ****
- *
- * ObservabilityClient
- *
- * ***** */
-
 export function buildClient(config) {
   if (!config) {
     throw new Error('No options object provided'); // eslint-disable-line @gitlab/require-i18n-strings
   }
 
   const {
+    provisioningUrl,
     tracingUrl,
     tracingAnalyticsUrl,
     servicesUrl,
@@ -671,9 +503,11 @@ export function buildClient(config) {
     metricsSearchUrl,
     metricsSearchMetadataUrl,
     logsSearchUrl,
-    logsSearchMetadataUrl,
-    analyticsUrl,
   } = config;
+
+  if (typeof provisioningUrl !== 'string') {
+    throw new Error('provisioningUrl param must be a string');
+  }
 
   if (typeof tracingUrl !== 'string') {
     throw new Error('tracingUrl param must be a string');
@@ -707,15 +541,9 @@ export function buildClient(config) {
     throw new Error('logsSearchUrl param must be a string');
   }
 
-  if (typeof logsSearchMetadataUrl !== 'string') {
-    throw new Error('logsSearchMetadataUrl param must be a string');
-  }
-
-  if (typeof analyticsUrl !== 'string') {
-    throw new Error('analyticsUrl param must be a string');
-  }
-
   return {
+    enableObservability: () => enableObservability(provisioningUrl),
+    isObservabilityEnabled: () => isObservabilityEnabled(provisioningUrl),
     fetchTraces: (options) => fetchTraces(tracingUrl, options),
     fetchTracesAnalytics: (options) => fetchTracesAnalytics(tracingAnalyticsUrl, options),
     fetchTrace: (traceId) => fetchTrace(tracingUrl, traceId),
@@ -727,7 +555,5 @@ export function buildClient(config) {
     fetchMetricSearchMetadata: (metricName, metricType) =>
       fetchMetricSearchMetadata(metricsSearchMetadataUrl, metricName, metricType),
     fetchLogs: (options) => fetchLogs(logsSearchUrl, options),
-    fetchLogsSearchMetadata: (options) => fetchLogsSearchMetadata(logsSearchMetadataUrl, options),
-    fetchUsageData: (options) => fetchUsageData(analyticsUrl, options),
   };
 }

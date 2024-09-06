@@ -1,7 +1,7 @@
-import { GlButton, GlModal, GlLink } from '@gitlab/ui';
+import { GlButton } from '@gitlab/ui';
+import { shallowMount } from '@vue/test-utils';
 import Vue from 'vue';
 import VueApollo from 'vue-apollo';
-import { shallowMount } from '@vue/test-utils';
 import createMockApollo from 'helpers/mock_apollo_helper';
 import { mockTracking } from 'helpers/tracking_helper';
 import waitForPromises from 'helpers/wait_for_promises';
@@ -14,52 +14,30 @@ import {
   TRACKING_CATEGORY_SHOW,
 } from '~/work_items/constants';
 import updateWorkItemMutation from '~/work_items/graphql/update_work_item.mutation.graphql';
-import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
-import workItemLinkedItemsQuery from '~/work_items/graphql/work_item_linked_items.query.graphql';
-import {
-  updateWorkItemMutationResponse,
-  mockBlockedByLinkedItem,
-  workItemByIidResponseFactory,
-  workItemBlockedByLinkedItemsResponse,
-} from '../mock_data';
+import { updateWorkItemMutationResponse, workItemQueryResponse } from '../mock_data';
 
 describe('Work Item State toggle button component', () => {
   let wrapper;
 
   Vue.use(VueApollo);
 
-  const workItemQueryResponse = workItemByIidResponseFactory();
-
   const mutationSuccessHandler = jest.fn().mockResolvedValue(updateWorkItemMutationResponse);
-  const querySuccessHander = jest.fn().mockResolvedValue(workItemQueryResponse);
-  const workItemBlockedByItemsSuccessHandler = jest
-    .fn()
-    .mockResolvedValue(workItemBlockedByLinkedItemsResponse);
 
   const findStateToggleButton = () => wrapper.findComponent(GlButton);
-  const findModal = () => wrapper.findComponent(GlModal);
-  const findModalLinkAt = (index) => findModal().findAllComponents(GlLink).at(index);
 
-  const { id, iid } = workItemQueryResponse.data.workspace.workItem;
+  const { id } = workItemQueryResponse.data.workItem;
 
   const createComponent = ({
     mutationHandler = mutationSuccessHandler,
-    workItemLinkedItemsHandler = workItemBlockedByItemsSuccessHandler,
     canUpdate = true,
     workItemState = STATE_OPEN,
     workItemType = 'Task',
     hasComment = false,
   } = {}) => {
     wrapper = shallowMount(WorkItemStateToggle, {
-      apolloProvider: createMockApollo([
-        [updateWorkItemMutation, mutationHandler],
-        [workItemByIidQuery, querySuccessHander],
-        [workItemLinkedItemsQuery, workItemLinkedItemsHandler],
-      ]),
+      apolloProvider: createMockApollo([[updateWorkItemMutation, mutationHandler]]),
       propsData: {
         workItemId: id,
-        workItemIid: iid,
-        fullPath: 'test-project-path',
         workItemState,
         workItemType,
         canUpdate,
@@ -112,7 +90,7 @@ describe('Work Item State toggle button component', () => {
 
       expect(mutationSuccessHandler).toHaveBeenCalledWith({
         input: {
-          id,
+          id: workItemQueryResponse.data.workItem.id,
           stateEvent: STATE_EVENT_CLOSE,
         },
       });
@@ -127,7 +105,7 @@ describe('Work Item State toggle button component', () => {
 
       expect(mutationSuccessHandler).toHaveBeenCalledWith({
         input: {
-          id,
+          id: workItemQueryResponse.data.workItem.id,
           stateEvent: STATE_EVENT_REOPEN,
         },
       });
@@ -165,41 +143,6 @@ describe('Work Item State toggle button component', () => {
         category: TRACKING_CATEGORY_SHOW,
         label: 'item_state',
         property: 'type_Task',
-      });
-    });
-  });
-
-  describe('with blocking issues', () => {
-    const blockers = mockBlockedByLinkedItem.linkedItems.nodes;
-
-    beforeEach(async () => {
-      createComponent();
-      await waitForPromises();
-    });
-
-    it('has title text', () => {
-      expect(findModal().attributes('title')).toBe(
-        'Are you sure you want to close this blocked task?',
-      );
-    });
-
-    it('has body text', () => {
-      expect(findModal().text()).toContain(
-        'This task is currently blocked by the following items:',
-      );
-    });
-
-    describe.each`
-      ordinal     | index
-      ${'first'}  | ${0}
-      ${'second'} | ${1}
-    `('$ordinal blocked-by issue link', ({ index }) => {
-      it('has link text', () => {
-        expect(findModalLinkAt(index).text()).toBe(`#${blockers[index].workItem.iid}`);
-      });
-
-      it('has url', () => {
-        expect(findModalLinkAt(index).attributes('href')).toBe(blockers[index].workItem.webUrl);
       });
     });
   });

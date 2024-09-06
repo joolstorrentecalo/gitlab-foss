@@ -41,8 +41,7 @@ module WorkItems
         labels: :labels,
         milestone: { milestone: [:project, :group] },
         subscribed: [:assignees, :award_emoji, { notes: [:author, :award_emoji] }],
-        award_emoji: { award_emoji: :awardable },
-        closing_merge_requests: { merge_requests_closing_issues: { merge_request: [:target_project, :author] } }
+        award_emoji: { award_emoji: :awardable }
       }
     end
 

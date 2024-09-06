@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Groups::DependencyProxyForContainersController, feature_category: :virtual_registry do
+RSpec.describe Groups::DependencyProxyForContainersController, feature_category: :dependency_proxy do
   include HttpBasicAuthHelpers
   include DependencyProxyHelpers
   include WorkhorseHelpers
@@ -62,8 +62,6 @@ RSpec.describe Groups::DependencyProxyForContainersController, feature_category:
 
     context 'with invalid group access token' do
       let_it_be(:user) { create(:user, :project_bot) }
-      let_it_be(:token) { create(:personal_access_token, user: user, scopes: [Gitlab::Auth::READ_API_SCOPE]) }
-      let_it_be(:jwt) { build_jwt(token) }
 
       context 'not under the group' do
         it { is_expected.to have_gitlab_http_status(:not_found) }
@@ -84,6 +82,8 @@ RSpec.describe Groups::DependencyProxyForContainersController, feature_category:
       end
 
       context 'with insufficient scopes' do
+        let_it_be(:pat) { create(:personal_access_token, user: user, scopes: [Gitlab::Auth::READ_API_SCOPE]) }
+
         it { is_expected.to have_gitlab_http_status(:not_found) }
 
         context 'packages_dependency_proxy_containers_scope_check disabled' do
@@ -181,28 +181,13 @@ RSpec.describe Groups::DependencyProxyForContainersController, feature_category:
       group.add_guest(user)
     end
 
-    # When authenticating with a job token, the encoded token has the same structure
-    # as the token built when authenticating with a user
-    context 'with a valid user or a job token' do
+    context 'with a valid user' do
       it_behaves_like 'sends Workhorse instructions'
-
-      context 'with a job token triggered by a group access token user' do
-        let_it_be(:user) { create(:user, :project_bot) }
-
-        it_behaves_like 'sends Workhorse instructions'
-      end
-
-      context 'with a job token triggered by a service account user' do
-        let_it_be(:user) { create(:user, :service_account) }
-
-        it_behaves_like 'sends Workhorse instructions'
-      end
     end
 
     context 'with a valid group access token' do
       let_it_be(:user) { create(:user, :project_bot) }
       let_it_be_with_reload(:token) { create(:personal_access_token, user: user) }
-      let_it_be(:jwt) { build_jwt(token) }
 
       before do
         token.update_column(:scopes, Gitlab::Auth::REGISTRY_SCOPES)
@@ -300,9 +285,7 @@ RSpec.describe Groups::DependencyProxyForContainersController, feature_category:
         end
       end
 
-      # When authenticating with a job token, the encoded token is the same as
-      # that built when authenticating with a user
-      context 'a valid user or a job token' do
+      context 'a valid user' do
         before do
           group.add_guest(user)
         end
@@ -356,7 +339,6 @@ RSpec.describe Groups::DependencyProxyForContainersController, feature_category:
       context 'a valid group access token' do
         let_it_be(:user) { create(:user, :project_bot) }
         let_it_be(:token) { create(:personal_access_token, :dependency_proxy_scopes, user: user) }
-        let_it_be(:jwt) { build_jwt(token) }
 
         before do
           group.add_guest(user)

@@ -67,7 +67,7 @@ export default {
     <template #left-primary>
       <gl-link
         :href="report.reportPath"
-        class="gl-font-normal gl-text-gray-900"
+        class="gl-font-weight-normal gl-pt-4 gl-text-gray-900"
         data-testid="abuse-report-title"
       >
         {{ title }}
@@ -79,6 +79,7 @@ export default {
         v-for="label in report.labels"
         :key="label.id"
         class="gl-mr-2"
+        size="sm"
         :background-color="label.color"
         :title="label.title"
         :target="labelTarget(label.title)"
@@ -86,7 +87,7 @@ export default {
     </template>
 
     <template #right-secondary>
-      <div data-testid="abuse-report-date">{{ displayDate }}</div>
+      <div class="gl-mt-7" data-testid="abuse-report-date">{{ displayDate }}</div>
     </template>
   </list-item>
 </template>

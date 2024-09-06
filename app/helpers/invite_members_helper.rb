@@ -10,12 +10,14 @@ module InviteMembersHelper
   end
 
   def invite_accepted_notice(member)
-    format(
-      _('You have been granted access to the %{source_name} %{source_type} with the following role: %{role_name}.'),
-      source_name: member.source.name,
-      source_type: member.source.model_name.singular,
-      role_name: member.present.human_access
-    )
+    case member.source
+    when Project
+      _("You have been granted %{member_human_access} access to project %{name}.") %
+        { member_human_access: member.human_access, name: member.source.name }
+    when Group
+      _("You have been granted %{member_human_access} access to group %{name}.") %
+        { member_human_access: member.human_access, name: member.source.name }
+    end
   end
 
   # Overridden in EE
@@ -42,11 +44,6 @@ module InviteMembersHelper
       default_access_level: Gitlab::Access::GUEST,
       full_path: source.full_path
     }
-  end
-
-  # Overridden in EE
-  def invite_group_dataset(source)
-    {}
   end
 
   private

@@ -7,7 +7,6 @@ import {
   STATUS_SUCCEEDED,
   STATUS_FAILED,
   STATUS_LABELS,
-  PODS_TABLE_FIELDS,
 } from '~/kubernetes_dashboard/constants';
 import { getAge } from '~/kubernetes_dashboard/helpers/k8s_integration_helper';
 import WorkloadStats from '~/kubernetes_dashboard/components/workload_stats.vue';
@@ -23,7 +22,6 @@ export default {
     WorkloadTable,
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     k8sPods: {
       query: k8sPodsQuery,
       variables() {
@@ -45,16 +43,6 @@ export default {
               kind: s__('KubernetesDashboard|Pod'),
               spec: pod.spec,
               fullStatus: pod.status,
-              containers: pod.spec.containers,
-              actions: [
-                {
-                  name: 'delete-pod',
-                  text: s__('KubernetesDashboard|Delete pod'),
-                  icon: 'remove',
-                  variant: 'danger',
-                  class: '!gl-text-red-500',
-                },
-              ],
             };
           }) || []
         );
@@ -81,7 +69,6 @@ export default {
   data() {
     return {
       error: '',
-      filterOption: '',
     };
   },
   computed: {
@@ -113,12 +100,6 @@ export default {
     podsCount() {
       return this.k8sPods?.length || 0;
     },
-    filteredPods() {
-      if (!this.k8sPods) return [];
-      if (!this.filterOption) return this.k8sPods;
-
-      return this.k8sPods.filter((pod) => pod.status === this.filterOption);
-    },
   },
   methods: {
     countPodsByPhase(phase) {
@@ -135,40 +116,31 @@ export default {
     onRemoveSelection() {
       this.$emit('remove-selection');
     },
-    filterPods(status) {
-      this.filterOption = status;
-    },
-    onDeletePod(pod) {
-      this.$emit('delete-pod', pod);
-    },
   },
   i18n: {
     podsTitle: s__('Environment|Pods'),
   },
   PAGE_SIZE: 10,
-  PODS_TABLE_FIELDS,
 };
 </script>
 <template>
   <gl-tab>
     <template #title>
       {{ $options.i18n.podsTitle }}
-      <gl-badge class="gl-tab-counter-badge">{{ podsCount }}</gl-badge>
+      <gl-badge size="sm" class="gl-tab-counter-badge">{{ podsCount }}</gl-badge>
     </template>
 
     <gl-loading-icon v-if="loading" />
 
     <template v-else-if="!error">
-      <workload-stats v-if="podStats" :stats="podStats" class="gl-mt-3" @select="filterPods" />
+      <workload-stats v-if="podStats" :stats="podStats" class="gl-mt-3" />
       <workload-table
         v-if="k8sPods"
-        :items="filteredPods"
+        :items="k8sPods"
         :page-size="$options.PAGE_SIZE"
-        :fields="$options.PODS_TABLE_FIELDS"
         class="gl-mt-8"
         @select-item="onItemSelect"
         @remove-selection="onRemoveSelection"
-        @delete-pod="onDeletePod"
       />
     </template>
   </gl-tab>

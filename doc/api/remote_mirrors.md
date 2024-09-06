@@ -58,6 +58,8 @@ Example response:
 
 ## Get a single project's remote mirror
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/82770) in GitLab 14.10.
+
 Returns a remote mirror and its statuses:
 
 ```plaintext
@@ -213,6 +215,8 @@ Example response:
 An empty response with a HTTP response code 204.
 
 ## Delete a remote mirror
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/82778) in GitLab 14.10.
 
 Delete a remote mirror.
 

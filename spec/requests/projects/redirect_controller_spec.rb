@@ -7,7 +7,11 @@ RSpec.describe "Projects::RedirectController requests", feature_category: :group
 
   let_it_be(:private_project) { create(:project, :private) }
   let_it_be(:public_project) { create(:project, :public) }
-  let_it_be(:user) { create(:user, developer_of: private_project) }
+  let_it_be(:user) { create(:user) }
+
+  before_all do
+    private_project.add_developer(user)
+  end
 
   describe 'GET redirect_from_id' do
     where(:authenticated, :project, :is_found) do

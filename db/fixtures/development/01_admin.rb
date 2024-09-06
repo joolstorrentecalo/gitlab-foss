@@ -1,14 +1,14 @@
 require './spec/support/sidekiq_middleware'
 
 Gitlab::Seeder.quiet do
-  if User.exists?(username: 'root')
+  if User.exists?(email: 'admin@example.com')
     puts 'Admin user already exists, skipping'
     return
   end
 
   User.create!(
     name: 'Administrator',
-    email: "gitlab_admin_#{SecureRandom.hex(3)}@example.com",
+    email: 'admin@example.com',
     username: 'root',
     password: '5iveL!fe',
     admin: true,

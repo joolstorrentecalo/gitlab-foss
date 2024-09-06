@@ -12,6 +12,7 @@ describe('ContributionEventBase', () => {
   const defaultPropsData = {
     event: eventApproved(),
     iconName: 'approval-solid',
+    iconClass: 'gl-text-green-500',
     message: 'Approved merge request %{targetLink} in %{resourceParentLink}.',
   };
 
@@ -59,6 +60,7 @@ describe('ContributionEventBase', () => {
     const icon = wrapper.findComponent(GlIcon);
 
     expect(icon.props('name')).toBe(defaultPropsData.iconName);
+    expect(icon.classes()).toContain(defaultPropsData.iconClass);
   });
 
   describe('when `message` prop is passed', () => {

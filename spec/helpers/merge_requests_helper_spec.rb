@@ -10,24 +10,8 @@ RSpec.describe MergeRequestsHelper, feature_category: :code_review_workflow do
   include ProjectForksHelper
   include IconsHelper
   include IssuablesHelper
-  include MarkupHelper
 
   let_it_be(:current_user) { create(:user) }
-
-  describe '#merge_params' do
-    let(:merge_request) { create(:merge_request) }
-
-    it 'returns the expected params' do
-      expect(merge_params(merge_request)).to eq(
-        {
-          auto_merge_strategy: AutoMergeService::STRATEGY_MERGE_WHEN_CHECKS_PASS,
-          should_remove_source_branch: true,
-          sha: 'b83d6e391c22777fca1ed3012fce84f633d7fed0',
-          squash: false
-        }
-      )
-    end
-  end
 
   describe '#format_mr_branch_names' do
     describe 'within the same project' do
@@ -234,31 +218,6 @@ RSpec.describe MergeRequestsHelper, feature_category: :code_review_workflow do
     end
   end
 
-  describe '#sticky_header_data' do
-    let_it_be(:project) { create(:project) }
-    let(:merge_request) do
-      create(:merge_request, source_project: project, target_project: project, imported_from: imported_from)
-    end
-
-    subject { sticky_header_data(project, merge_request) }
-
-    context 'when the merge request is not imported' do
-      let(:imported_from) { :none }
-
-      it 'returns data with imported set as false' do
-        expect(subject[:imported]).to eq('false')
-      end
-    end
-
-    context 'when the merge request is imported' do
-      let(:imported_from) { :gitlab_migration }
-
-      it 'returns data with imported set as true' do
-        expect(subject[:imported]).to eq('true')
-      end
-    end
-  end
-
   describe '#tab_count_display' do
     let(:merge_request) { create(:merge_request) }
 
@@ -313,143 +272,6 @@ RSpec.describe MergeRequestsHelper, feature_category: :code_review_workflow do
       let(:author) { create(:user) }
 
       it { is_expected.to eq(_('Merge request author cannot push to target project')) }
-    end
-  end
-
-  describe '#project_merge_requests_list_data' do
-    let(:project) { create(:project) }
-
-    subject { helper.project_merge_requests_list_data(project, current_user) }
-
-    before do
-      allow(helper).to receive(:project).and_return(project)
-      allow(helper).to receive(:current_user).and_return(current_user)
-      allow(helper).to receive(:can?).with(current_user, :create_merge_request_in, project).and_return(true)
-      allow(helper).to receive(:can?).with(current_user, :admin_merge_request, project).and_return(true)
-      allow(helper).to receive(:issuables_count_for_state).and_return(5)
-      allow(helper).to receive(:url_for).and_return("/rss-url")
-      allow(helper).to receive(:export_csv_project_merge_requests_path).and_return('/csv-url')
-    end
-
-    it 'returns the correct data' do
-      expected_data = {
-        autocomplete_award_emojis_path: autocomplete_award_emojis_path,
-        full_path: project.full_path,
-        is_public_visibility_restricted: 'false',
-        is_signed_in: 'true',
-        has_any_merge_requests: 'false',
-        initial_sort: nil,
-        new_merge_request_path: project_new_merge_request_path(project),
-        show_export_button: 'true',
-        issuable_type: :merge_request,
-        issuable_count: 5,
-        email: current_user.notification_email_or_default,
-        export_csv_path: '/csv-url',
-        rss_url: '/rss-url',
-        releases_endpoint: project_releases_path(project, format: :json)
-      }
-
-      expect(subject).to eq(expected_data)
-    end
-  end
-
-  describe '#project_merge_requests_list_more_actions_data' do
-    let(:project) { create(:project) }
-
-    subject { helper.project_merge_requests_list_more_actions_data(project, current_user) }
-
-    before do
-      allow(helper).to receive(:project).and_return(project)
-      allow(helper).to receive(:current_user).and_return(current_user)
-      allow(helper).to receive(:issuables_count_for_state).and_return(5)
-      allow(helper).to receive(:url_for).and_return("/rss-url")
-      allow(helper).to receive(:export_csv_project_merge_requests_path).and_return('/csv-url')
-    end
-
-    it 'returns the correct data' do
-      expected_data = {
-        is_signed_in: 'true',
-        issuable_type: :merge_request,
-        issuable_count: 5,
-        email: current_user.notification_email_or_default,
-        export_csv_path: '/csv-url',
-        rss_url: '/rss-url'
-      }
-
-      expect(subject).to eq(expected_data)
-    end
-  end
-
-  describe '#identity_verification_alert_data' do
-    let_it_be(:current_user) { build_stubbed(:user) }
-    let(:merge_request) { build_stubbed(:merge_request, author: current_user) }
-
-    subject { helper.identity_verification_alert_data(merge_request) }
-
-    before do
-      allow(helper).to receive(:current_user).and_return(current_user)
-    end
-
-    it 'returns the correct data' do
-      expected_data = { identity_verification_required: 'false' }
-
-      expect(subject).to include(expected_data)
-    end
-  end
-
-  describe '#merge_request_dashboard_enabled?' do
-    using RSpec::Parameterized::TableSyntax
-
-    let_it_be(:current_user) { build_stubbed(:user) }
-
-    where(:enabled, :search_page, :result) do
-      true  | true  | false
-      true  | false | true
-      false | false | false
-      false | true  | false
-    end
-
-    with_them do
-      before do
-        stub_feature_flags(merge_request_dashboard: enabled)
-
-        allow(helper).to receive(:current_page?).and_return(search_page)
-      end
-
-      it { expect(helper.merge_request_dashboard_enabled?(current_user)).to eq(result) }
-    end
-  end
-
-  describe '#diffs_stream_url' do
-    let_it_be(:offset) { 5 }
-    let(:merge_request) { create(:merge_request_with_diffs) }
-    let(:id) { merge_request.iid }
-    let(:project_id) { merge_request.project.to_param }
-    let(:namespace_id) { merge_request.project.namespace.to_param }
-    let(:diff_view) { :inline }
-
-    subject { diffs_stream_url(merge_request, offset, diff_view) }
-
-    it 'returns diffs stream url with offset' do
-      url = "/#{namespace_id}/#{project_id}/-/merge_requests/#{id}/diffs_stream?offset=#{offset}&view=inline"
-      expect(subject).to eq(url)
-    end
-
-    context 'when view is set to parallel' do
-      let_it_be(:diff_view) { :parallel }
-
-      it 'returns diffs stream url with parallel view' do
-        url = "/#{namespace_id}/#{project_id}/-/merge_requests/#{id}/diffs_stream?offset=#{offset}&view=parallel"
-        expect(subject).to eq(url)
-      end
-    end
-
-    context 'when offset is greater than the number of diffs' do
-      let_it_be(:offset) { 9999 }
-
-      it 'returns nil' do
-        expect(subject).to eq(nil)
-      end
     end
   end
 end

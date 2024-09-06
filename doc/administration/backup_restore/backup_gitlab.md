@@ -104,7 +104,7 @@ The [backup command](#backup-command) doesn't back up blobs that aren't stored o
   - Hosted by you (like MinIO).
   - A Storage Appliance that exposes an Object Storage-compatible API.
 
-The backup command does not back up registry data when they are stored in Object Storage.
+The backup command backs up registry data when they are stored in the default location on the file system.
 
 ### Storing configuration files
 
@@ -152,7 +152,7 @@ In the unlikely event that the secrets file is lost, see
 
 ### Other data
 
-GitLab uses Redis both as a cache store and to hold persistent data for our background jobs system, Sidekiq. The provided [backup command](#backup-command) does _not_ back up Redis data. This means that in order to take a consistent backup with the [backup command](#backup-command), there must be no pending or running background jobs. It is possible to [manually back up Redis](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/#backing-up-redis-data).
+GitLab uses Redis both as a cache store and to hold persistent data for our background jobs system, Sidekiq. The provided [backup command](#backup-command) does _not_ back up Redis data. This means that in order to take a consistent backup with the [backup command](#backup-command), there must be no pending or running background jobs. It is possible to [manually back up Redis](https://redis.io/docs/management/persistence/#backing-up-redis-data).
 
 Elasticsearch is an optional database for advanced search. It can improve search
 in both source-code level, and user generated content in issues, merge requests, and discussions. The [backup command](#backup-command) does _not_ back up Elasticsearch data. Elasticsearch data can be regenerated from PostgreSQL data after a restore. It is possible to [manually back up Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-restore.html).
@@ -168,14 +168,14 @@ including:
 - CI/CD job output logs
 - CI/CD job artifacts
 - LFS objects
-- Terraform states
+- Terraform states ([introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/331806) in GitLab 14.7)
 - Container registry images
 - GitLab Pages content
-- Packages
+- Packages ([introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/332006) in GitLab 14.7)
 - Snippets
 - [Group wikis](../../user/project/wiki/group.md)
 - Project-level Secure Files ([introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/121142) in GitLab 16.1)
-- External merge request diffs ([introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/154914) in GitLab 17.1)
+- Merge request diffs (Helm chart installation only)
 
 Backups do not include:
 
@@ -284,8 +284,6 @@ Deleting tmp directories...[DONE]
 Deleting old backups... [SKIPPING]
 ```
 
-For detailed information about the backup process, see [Backup archive process](backup_archive_process.md).
-
 ### Backup options
 
 The command-line tool GitLab provides to back up your instance can accept more
@@ -320,7 +318,7 @@ WARNING:
 If you use a custom backup filename, you can't
 [limit the lifetime of the backups](#limit-backup-lifetime-for-local-files-prune-old-backups).
 
-Backup files are created with filenames according to [specific defaults](backup_archive_process.md#backup-id). However, you can
+Backup files are created with filenames according to [specific defaults](index.md#backup-id). However, you can
 override the `<backup-id>` portion of the filename by setting the `BACKUP`
 environment variable. For example:
 
@@ -445,7 +443,7 @@ Depending on your installation type, slightly different components can be skippe
 
 :::TabTitle Linux package (Omnibus) / Docker / Self-compiled
 
-<!-- source: https://gitlab.com/gitlab-org/gitlab/-/blob/d693aa7f894c7306a0d20ab6d138a7b95785f2ff/lib/backup/manager.rb#L117-133 -->
+<!-- source: https://gitlab.com/gitlab-org/gitlab/-/blob/31c3df7ebb65768208772da3e20d32688a6c90ef/lib/backup/manager.rb#L126 -->
 
 - `db` (database)
 - `repositories` (Git repositories data, including wikis)
@@ -457,8 +455,7 @@ Depending on your installation type, slightly different components can be skippe
 - `terraform_state` (Terraform states)
 - `registry` (Container registry images)
 - `packages` (Packages)
-- `ci_secure_files` (Project-level secure files)
-- `external_diffs` (External merge request diffs)
+- `ci_secure_files` (Project-level Secure Files)
 
 :::TabTitle Helm chart (Kubernetes)
 
@@ -536,10 +533,9 @@ sudo -u git -H bundle exec rake gitlab:backup:create SKIP=tar RAILS_ENV=producti
 
 #### Create server-side repository backups
 
-> - [Introduced](https://gitlab.com/gitlab-org/gitaly/-/issues/4941) in `gitlab-backup` in GitLab 16.3.
-> - Server-side support in `gitlab-backup` for restoring a specified backup instead of the latest backup [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/132188) in GitLab 16.6.
-> - Server-side support in `gitlab-backup` for creating incremental backups [introduced](https://gitlab.com/gitlab-org/gitaly/-/merge_requests/6475) in GitLab 16.6.
-> - Server-side support in `backup-utility` [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/438393) in GitLab 17.0.
+> - [Introduced](https://gitlab.com/gitlab-org/gitaly/-/issues/4941) in GitLab 16.3.
+> - Server-side support for restoring a specified backup instead of the latest backup [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/132188) in GitLab 16.6.
+> - Server-side support for creating incremental backups [introduced](https://gitlab.com/gitlab-org/gitaly/-/merge_requests/6475) in GitLab 16.6.
 
 Instead of storing large repository backups in the backup archive, repository
 backups can be configured so that the Gitaly node that hosts each repository is
@@ -547,7 +543,7 @@ responsible for creating the backup and streaming it to object storage. This
 helps reduce the network resources required to create and restore a backup.
 
 1. [Configure a server-side backup destination in Gitaly](../gitaly/configure_gitaly.md#configure-server-side-backups).
-1. Create a back up using the repositories server-side option. See the following examples.
+1. Create a back up using the `REPOSITORIES_SERVER_SIDE` variable. See the following examples.
 
 ::Tabs
 
@@ -563,18 +559,12 @@ sudo gitlab-backup create REPOSITORIES_SERVER_SIDE=true
 sudo -u git -H bundle exec rake gitlab:backup:create REPOSITORIES_SERVER_SIDE=true
 ```
 
-:::TabTitle Helm chart (Kubernetes)
-
-```shell
-kubectl exec <Toolbox pod name> -it -- backup-utility --repositories-server-side
-```
-
-When you are using [cron-based backups](https://docs.gitlab.com/charts/backup-restore/backup.html#cron-based-backup),
-add the `--repositories-server-side` flag to the extra arguments.
-
 ::EndTabs
 
 #### Back up Git repositories concurrently
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/37158) in GitLab 13.3.
+> - [Concurrent restore introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/69330) in GitLab 14.3
 
 When using [multiple repository storages](../repository_storage_paths.md),
 repositories can be backed up or restored concurrently to help fully use CPU time. The
@@ -582,10 +572,12 @@ following variables are available to modify the default behavior of the Rake
 task:
 
 - `GITLAB_BACKUP_MAX_CONCURRENCY`: The maximum number of projects to back up at
-  the same time. Defaults to the number of logical CPUs.
+  the same time. Defaults to the number of logical CPUs (in GitLab 14.1 and
+  earlier, defaults to `1`).
 - `GITLAB_BACKUP_MAX_STORAGE_CONCURRENCY`: The maximum number of projects to
   back up at the same time on each storage. This allows the repository backups
-  to be spread across storages. Defaults to `2`.
+  to be spread across storages. Defaults to `2` (in GitLab 14.1 and earlier,
+  defaults to `1`).
 
 For example, with 4 repository storages:
 
@@ -607,6 +599,8 @@ sudo -u git -H bundle exec rake gitlab:backup:create GITLAB_BACKUP_MAX_CONCURREN
 
 #### Incremental repository backups
 
+> - Introduced in GitLab 14.9 [with a flag](../feature_flags.md) named `incremental_repository_backup`. Disabled by default.
+> - [Enabled on self-managed](https://gitlab.com/gitlab-org/gitlab/-/issues/355945) in GitLab 14.10.
 > - `PREVIOUS_BACKUP` option [introduced](https://gitlab.com/gitlab-org/gitaly/-/issues/4184) in GitLab 15.0.
 > - Server-side support for creating incremental backups [introduced](https://gitlab.com/gitlab-org/gitaly/-/merge_requests/6475) in GitLab 16.6.
 
@@ -623,17 +617,26 @@ support incremental backups for all subtasks.
 
 Incremental repository backups can be faster than full repository backups because they only pack changes since the last backup into the backup bundle for each repository.
 The incremental backup archives are not linked to each other: each archive is a self-contained backup of the instance. There must be an existing backup
-to create an incremental backup from.
+to create an incremental backup from:
 
-Use the `PREVIOUS_BACKUP=<backup-id>` option to choose the backup to use. By default, a backup file is created
-as documented in the [Backup ID](backup_archive_process.md#backup-id) section. You can override the `<backup-id>` portion of the filename by setting the
-[`BACKUP` environment variable](#backup-filename).
+- In GitLab 14.9 and 14.10, use the `BACKUP=<backup-id>` option to choose the backup to use. The chosen previous backup is overwritten.
+- In GitLab 15.0 and later, use the `PREVIOUS_BACKUP=<backup-id>` option to choose the backup to use. By default, a backup file is created
+  as documented in the [Backup ID](index.md#backup-id) section. You can override the `<backup-id>` portion of the filename by setting the
+  [`BACKUP` environment variable](#backup-filename).
 
 To create an incremental backup, run:
 
-```shell
-sudo gitlab-backup create INCREMENTAL=yes PREVIOUS_BACKUP=<backup-id>
-```
+- In GitLab 15.0 or later:
+
+  ```shell
+  sudo gitlab-backup create INCREMENTAL=yes PREVIOUS_BACKUP=<backup-id>
+  ```
+
+- In GitLab 14.9 and 14.10:
+
+  ```shell
+  sudo gitlab-backup create INCREMENTAL=yes BACKUP=<backup-id>
+  ```
 
 To create an [untarred](#skipping-tar-creation) incremental backup from a tarred backup, use `SKIP=tar`:
 
@@ -736,6 +739,8 @@ For Linux package (Omnibus):
    for the changes to take effect
 
 ##### S3 Encrypted Buckets
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/64765) in GitLab 14.3.
 
 AWS supports these [modes for server side encryption](https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html):
 
@@ -976,6 +981,8 @@ For self-compiled installations:
    for the changes to take effect
 
 ##### Using Azure Blob storage
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/25877) in GitLab 13.4.
 
 ::Tabs
 
@@ -1327,6 +1334,10 @@ for more details on what these parameters do.
 
 #### `gitaly-backup` for repository backup and restore
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/333034) in GitLab 14.2.
+> - [Deployed behind a feature flag](../../user/feature_flags.md), enabled by default.
+> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/333034) in GitLab 14.10. [Feature flag `gitaly_backup`](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/83254) removed.
+
 The `gitaly-backup` binary is used by the backup Rake task to create and restore repository backups from Gitaly.
 `gitaly-backup` replaces the previous backup method that directly calls RPCs on Gitaly from GitLab.
 
@@ -1362,8 +1373,8 @@ When considering using file system data transfer or snapshots:
 
 - Don't use these methods to migrate from one operating system to another. The operating systems of the source and destination should be as similar as possible. For example,
   don't use these methods to migrate from Ubuntu to RHEL.
-- Data consistency is very important. You should stop GitLab (`sudo gitlab-ctl stop`) before
-  doing a file system transfer (with `rsync`, for example) or taking a snapshot.
+- Data consistency is very important. You should stop GitLab with `sudo gitlab-ctl stop` before taking doing a file system transfer (with `rsync`, for example) or taking a
+  snapshot.
 
 Example: Amazon Elastic Block Store (EBS)
 

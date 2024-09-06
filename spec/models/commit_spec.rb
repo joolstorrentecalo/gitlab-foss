@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Commit, feature_category: :source_code_management do
+RSpec.describe Commit do
   let_it_be(:project) { create(:project, :public, :repository) }
   let_it_be(:personal_snippet) { create(:personal_snippet, :repository) }
   let_it_be(:project_snippet) { create(:project_snippet, :repository) }
@@ -17,7 +17,6 @@ RSpec.describe Commit, feature_category: :source_code_management do
     it { is_expected.to include_module(Referable) }
     it { is_expected.to include_module(StaticModel) }
     it { is_expected.to include_module(Presentable) }
-    it { is_expected.to include_module(GlobalID::Identification) }
   end
 
   describe '.lazy' do
@@ -336,7 +335,7 @@ RSpec.describe Commit, feature_category: :source_code_management do
       '1234567' | true
       '123456' | false
       '1' | false
-      ('0' * 40) | true
+      '0' * 40 | true
       'c1acaa58bbcbc3eafe538cb8274ba387047b69f8' | true
       'H1acaa58bbcbc3eafe538cb8274ba387047b69f8' | false
       nil | false
@@ -409,10 +408,10 @@ RSpec.describe Commit, feature_category: :source_code_management do
     end
 
     it "does not truncates a message with a newline after 80 but less 100 characters" do
-      message = <<EOS
+      message = <<eos
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sodales id felis id blandit.
 Vivamus egestas lacinia lacus, sed rutrum mauris.
-EOS
+eos
 
       allow(commit).to receive(:safe_message).and_return(message)
       expect(commit.title).to eq(message.split("\n").first)
@@ -461,20 +460,20 @@ EOS
     end
 
     it 'returns description of commit message if title less than 100 characters' do
-      message = <<EOS
+      message = <<eos
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sodales id felis id blandit.
 Vivamus egestas lacinia lacus, sed rutrum mauris.
-EOS
+eos
 
       allow(commit).to receive(:safe_message).and_return(message)
       expect(commit.description).to eq('Vivamus egestas lacinia lacus, sed rutrum mauris.')
     end
 
     it 'returns full commit message if commit title more than 100 characters' do
-      message = <<EOS
+      message = <<eos
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sodales id felis id blandit. Vivamus egestas lacinia lacus, sed rutrum mauris.
 Vivamus egestas lacinia lacus, sed rutrum mauris.
-EOS
+eos
 
       allow(commit).to receive(:safe_message).and_return(message)
       expect(commit.description).to eq(message)
@@ -597,25 +596,6 @@ EOS
         it 'does not include details of the merged commits' do
           expect(merge_commit.cherry_pick_message(user)).to end_with("(cherry picked from commit #{merge_commit.sha})")
         end
-      end
-    end
-  end
-
-  describe '#parents' do
-    subject(:parents) { commit.parents }
-
-    it 'loads commits for parents' do
-      expect(parents).to all be_kind_of(described_class)
-      expect(parents.map(&:id)).to match_array(commit.parent_ids)
-    end
-
-    context 'when parent id cannot be loaded' do
-      before do
-        allow(commit).to receive(:parent_ids).and_return(["invalid"])
-      end
-
-      it 'returns an empty array' do
-        expect(parents).to eq([])
       end
     end
   end
@@ -1015,38 +995,6 @@ EOS
       let(:ref_containing) { ->(limit: 0, excluded_tipped: false) { commit.tags_containing(exclude_tipped: excluded_tipped, limit: limit) } }
 
       it_behaves_like 'containing ref names'
-    end
-  end
-
-  describe '#has_encoded_file_paths?' do
-    before do
-      allow(commit).to receive(:raw_diffs).and_return(raw_diffs)
-    end
-
-    context 'when there are diffs with encoded_file_path as true' do
-      let(:raw_diffs) do
-        [
-          instance_double(Gitlab::Git::Diff, encoded_file_path: true),
-          instance_double(Gitlab::Git::Diff, encoded_file_path: false)
-        ]
-      end
-
-      it 'returns true' do
-        expect(commit.has_encoded_file_paths?).to eq(true)
-      end
-    end
-
-    context 'when there are no diffs with encoded_file_path as true' do
-      let(:raw_diffs) do
-        [
-          instance_double(Gitlab::Git::Diff, encoded_file_path: false),
-          instance_double(Gitlab::Git::Diff, encoded_file_path: false)
-        ]
-      end
-
-      it 'returns false' do
-        expect(commit.has_encoded_file_paths?).to eq(false)
-      end
     end
   end
 end

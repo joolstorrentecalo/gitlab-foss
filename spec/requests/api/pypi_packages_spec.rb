@@ -222,10 +222,6 @@ RSpec.describe API::PypiPackages, feature_category: :package_registry do
     let(:requires_python) { '>=3.7' }
     let(:keywords) { 'dog,puppy,voting,election' }
     let(:description) { 'Example description' }
-    let(:metadata_version) { '2.3' }
-    let(:author_email) { 'cschultz@example.com, snoopy@peanuts.com' }
-    let(:description_content_type) { 'text/plain' }
-    let(:summary) { 'A module for collecting votes from beagles.' }
     let(:base_params) do
       {
         requires_python: requires_python,
@@ -233,11 +229,11 @@ RSpec.describe API::PypiPackages, feature_category: :package_registry do
         name: 'sample-project',
         sha256_digest: '1' * 64,
         md5_digest: '1' * 32,
-        metadata_version: metadata_version,
-        author_email: author_email,
+        metadata_version: '2.3',
+        author_email: 'cschultz@example.com, snoopy@peanuts.com',
         description: description,
-        description_content_type: description_content_type,
-        summary: summary,
+        description_content_type: 'text/plain',
+        summary: 'A module for collecting votes from beagles.',
         keywords: keywords
       }
     end
@@ -336,40 +332,51 @@ RSpec.describe API::PypiPackages, feature_category: :package_registry do
       end
     end
 
-    context 'with a very long metadata field' do
-      where(:field_name, :param_name, :max_length) do
-        :required_python          | :requires_python | ::Packages::Pypi::Metadatum::MAX_REQUIRED_PYTHON_LENGTH
-        :keywords                 | nil              | ::Packages::Pypi::Metadatum::MAX_KEYWORDS_LENGTH
-        :metadata_version         | nil              | ::Packages::Pypi::Metadatum::MAX_METADATA_VERSION_LENGTH
-        :description              | nil              | ::Packages::Pypi::Metadatum::MAX_DESCRIPTION_LENGTH
-        :summary                  | nil              | ::Packages::Pypi::Metadatum::MAX_SUMMARY_LENGTH
-        :description_content_type | nil              | ::Packages::Pypi::Metadatum::MAX_DESCRIPTION_CONTENT_TYPE_LENGTH
-        :author_email             | nil              | ::Packages::Pypi::Metadatum::MAX_AUTHOR_EMAIL_LENGTH
+    context 'with requires_python too big' do
+      let(:requires_python) { 'x' * 256 }
+      let(:token) { personal_access_token.token }
+      let(:user_headers) { basic_auth_header(user.username, token) }
+      let(:headers) { user_headers.merge(workhorse_headers) }
+
+      before do
+        project.update_column(:visibility_level, Gitlab::VisibilityLevel::PRIVATE)
       end
 
-      with_them do
-        include_context 'setup auth headers'
-        include_context 'add to project and group', 'developer'
+      it_behaves_like 'process PyPI api request', :developer, :bad_request, true
+    end
 
-        let(:truncated_field) { ('x' * (max_length + 1)).truncate(max_length) }
+    context 'with keywords too big' do
+      include_context 'setup auth headers'
+      include_context 'add to project and group', 'developer'
 
-        before do
-          key = param_name || field_name
+      let(:keywords) { 'x' * 1025 }
 
-          params.merge!(
-            { key.to_sym => 'x' * (max_length + 1) }
-          )
-        end
+      it_behaves_like 'returning response status', :created
 
-        it_behaves_like 'returning response status', :created
+      it 'truncates the keywords' do
+        subject
 
-        it 'truncates the field' do
-          subject
+        created_package = ::Packages::Package.pypi.last
 
-          created_package = ::Packages::Package.pypi.last
+        expect(created_package.pypi_metadatum.keywords.size).to eq(1024)
+      end
+    end
 
-          expect(created_package.pypi_metadatum.public_send(field_name)).to eq(truncated_field)
-        end
+    context 'with description too big' do
+      include_context 'setup auth headers'
+      include_context 'add to project and group', 'developer'
+
+      let(:description) { 'x' * (::Packages::Pypi::Metadatum::MAX_DESCRIPTION_LENGTH + 1) }
+
+      it_behaves_like 'returning response status', :created
+
+      it 'truncates the description' do
+        subject
+
+        created_package = ::Packages::Package.pypi.last
+
+        expect(created_package.pypi_metadatum.description.size)
+          .to eq(::Packages::Pypi::Metadatum::MAX_DESCRIPTION_LENGTH)
       end
     end
 
@@ -388,7 +395,7 @@ RSpec.describe API::PypiPackages, feature_category: :package_registry do
       include_context 'setup auth headers'
 
       before do
-        params[:sha256_digest] = ('a' * 63) + '%'
+        params[:sha256_digest] = 'a' * 63 + '%'
         project.add_developer(user)
       end
 

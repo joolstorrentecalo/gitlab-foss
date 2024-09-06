@@ -2,22 +2,19 @@
 
 require 'spec_helper'
 
-RSpec.describe "Group Runners", :freeze_time, feature_category: :fleet_visibility do
+RSpec.describe "Group Runners", feature_category: :fleet_visibility do
   include Features::RunnersHelpers
   include Spec::Support::Helpers::ModalHelpers
 
-  before_all do
-    freeze_time # Freeze time before `let_it_be` runs, so that runner statuses are frozen during execution
-  end
-
-  after :all do
-    unfreeze_time
-  end
-
   let_it_be(:group_owner) { create(:user) }
   let_it_be(:group_maintainer) { create(:user) }
-  let_it_be(:group) { create(:group, owners: group_owner, maintainers: group_maintainer) }
+  let_it_be(:group) { create(:group) }
   let_it_be(:project) { create(:project, group: group) }
+
+  before_all do
+    group.add_owner(group_owner)
+    group.add_maintainer(group_maintainer)
+  end
 
   describe "Group runners page", :js do
     context 'when logged in as group maintainer' do
@@ -41,7 +38,7 @@ RSpec.describe "Group Runners", :freeze_time, feature_category: :fleet_visibilit
 
       context "with an online group runner" do
         let_it_be(:group_runner) do
-          create(:ci_runner, :group, :almost_offline, groups: [group], description: 'runner-foo')
+          create(:ci_runner, :group, groups: [group], description: 'runner-foo', contacted_at: Time.zone.now)
         end
 
         before do
@@ -70,7 +67,7 @@ RSpec.describe "Group Runners", :freeze_time, feature_category: :fleet_visibilit
 
       context "with an online project runner" do
         let_it_be(:project_runner) do
-          create(:ci_runner, :project, :almost_offline, projects: [project], description: 'runner-bar')
+          create(:ci_runner, :project, projects: [project], description: 'runner-bar', contacted_at: Time.zone.now)
         end
 
         before do
@@ -91,7 +88,7 @@ RSpec.describe "Group Runners", :freeze_time, feature_category: :fleet_visibilit
 
       context "with an online instance runner" do
         let_it_be(:instance_runner) do
-          create(:ci_runner, :instance, :almost_offline, description: 'runner-baz')
+          create(:ci_runner, :instance, description: 'runner-baz', contacted_at: Time.zone.now)
         end
 
         before do
@@ -148,7 +145,7 @@ RSpec.describe "Group Runners", :freeze_time, feature_category: :fleet_visibilit
 
       context "with an online group runner" do
         let_it_be(:group_runner) do
-          create(:ci_runner, :group, :almost_offline, groups: [group], description: 'runner-foo')
+          create(:ci_runner, :group, groups: [group], description: 'runner-foo', contacted_at: Time.zone.now)
         end
 
         before do
@@ -168,7 +165,7 @@ RSpec.describe "Group Runners", :freeze_time, feature_category: :fleet_visibilit
 
       context "with an online project runner" do
         let_it_be(:project_runner) do
-          create(:ci_runner, :project, :almost_offline, projects: [project], description: 'runner-bar')
+          create(:ci_runner, :project, projects: [project], description: 'runner-bar', contacted_at: Time.zone.now)
         end
 
         before do

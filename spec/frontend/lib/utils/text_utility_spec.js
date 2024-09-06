@@ -408,36 +408,4 @@ describe('text_utility', () => {
       },
     );
   });
-
-  describe('convertEachWordToTitleCase', () => {
-    it.each`
-      inputValue   | outputValue
-      ${'Foo Bar'} | ${'Foo Bar'}
-      ${'Foo bar'} | ${'Foo Bar'}
-      ${'foo bar'} | ${'Foo Bar'}
-      ${'FOO BAr'} | ${'Foo Bar'}
-      ${'FOO BAR'} | ${'Foo Bar'}
-      ${'fOO bar'} | ${'Foo Bar'}
-    `(
-      'returns string $outputValue when called with string $inputValue',
-      ({ inputValue, outputValue }) => {
-        expect(textUtils.convertEachWordToTitleCase(inputValue)).toBe(outputValue);
-      },
-    );
-  });
-
-  describe('uniquifyString', () => {
-    it.each`
-      inputStr            | inputArray                       | inputModifier | outputValue
-      ${'Foo Bar'}        | ${['Foo Bar']}                   | ${' (copy)'}  | ${'Foo Bar (copy)'}
-      ${'Foo Bar'}        | ${['Foo Bar', 'Foo Bar (copy)']} | ${' (copy)'}  | ${'Foo Bar (copy) (copy)'}
-      ${'Foo Bar (copy)'} | ${['Foo Bar (copy)']}            | ${' (copy)'}  | ${'Foo Bar (copy) (copy)'}
-      ${'Foo Bar'}        | ${['Foo']}                       | ${' (copy)'}  | ${'Foo Bar'}
-    `(
-      'returns string $outputValue when called with string $inputStr, $inputArray, $inputModifier',
-      ({ inputStr, inputArray, inputModifier, outputValue }) => {
-        expect(textUtils.uniquifyString(inputStr, inputArray, inputModifier)).toBe(outputValue);
-      },
-    );
-  });
 });

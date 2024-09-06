@@ -25,8 +25,14 @@ export default {
     labelMargin: 8,
 
     baseOpacity: 0.8,
-    containerClasses: ['dag-graph-container', 'gl-flex', 'gl-flex-col'].join(' '),
-    hoverFadeClasses: ['gl-cursor-pointer', 'gl-duration-slow', 'gl-ease-ease'].join(' '),
+    containerClasses: ['dag-graph-container', 'gl-display-flex', 'gl-flex-direction-column'].join(
+      ' ',
+    ),
+    hoverFadeClasses: [
+      'gl-cursor-pointer',
+      'gl-transition-duration-slow',
+      'gl-transition-timing-function-ease',
+    ].join(' '),
   },
   gitLabColorRotation: [
     '#e17223',
@@ -129,11 +135,11 @@ export default {
       });
 
       const labelClasses = [
-        'gl-flex',
+        'gl-display-flex',
         'gl-pointer-events-none',
-        'gl-flex-col',
-        'gl-justify-center',
-        'gl-break-words',
+        'gl-flex-direction-column',
+        'gl-justify-content-center',
+        'gl-overflow-wrap-break',
       ].join(' ');
 
       return (
@@ -210,8 +216,14 @@ export default {
     },
 
     drawGraph({ maxNodesPerLayer, linksAndNodes }) {
-      const { baseWidth, baseHeight, minNodeHeight, nodeWidth, nodePadding, paddingForLabels } =
-        this.$options.viewOptions;
+      const {
+        baseWidth,
+        baseHeight,
+        minNodeHeight,
+        nodeWidth,
+        nodePadding,
+        paddingForLabels,
+      } = this.$options.viewOptions;
 
       this.width = baseWidth;
       this.height = baseHeight + maxNodesPerLayer * minNodeHeight;
@@ -243,7 +255,7 @@ export default {
           return this.createAndAssignId(d, 'uid', LINK_SELECTOR);
         })
         .classed(
-          `${LINK_SELECTOR} gl-transition-stroke-opacity ${this.$options.viewOptions.hoverFadeClasses}`,
+          `${LINK_SELECTOR} gl-transition-property-stroke-opacity ${this.$options.viewOptions.hoverFadeClasses}`,
           true,
         );
     },
@@ -258,7 +270,7 @@ export default {
         .enter()
         .append('line')
         .classed(
-          `${NODE_SELECTOR} gl-transition-stroke ${this.$options.viewOptions.hoverFadeClasses}`,
+          `${NODE_SELECTOR} gl-transition-property-stroke ${this.$options.viewOptions.hoverFadeClasses}`,
           true,
         )
         .attr('id', (d) => {
@@ -286,7 +298,7 @@ export default {
     labelNodes(svg, nodeData) {
       return svg
         .append('g')
-        .classed('gl-text-sm', true)
+        .classed('gl-font-sm', true)
         .selectAll('text')
         .data(nodeData)
         .enter()

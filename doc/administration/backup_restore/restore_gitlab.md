@@ -43,7 +43,7 @@ To restore a backup, **you must also restore the GitLab secrets**.
 These include the database encryption key, [CI/CD variables](../../ci/variables/index.md), and
 variables used for [two-factor authentication](../../user/profile/account/two_factor_authentication.md).
 Without the keys, [multiple issues occur](../../administration/backup_restore/troubleshooting_backup_gitlab.md#when-the-secrets-file-is-lost), including loss of access by users with [two-factor authentication enabled](../../user/profile/account/two_factor_authentication.md),
-and GitLab Runners cannot sign in.
+and GitLab Runners cannot log in.
 
 Restore:
 
@@ -106,10 +106,8 @@ after copying over the GitLab secrets file from the original installation.
 Next, restore the backup, specifying the ID of the backup you wish to
 restore:
 
-WARNING:
-The following command overwrites the contents of your GitLab database!
-
 ```shell
+# This command will overwrite the contents of your GitLab database!
 # NOTE: "_gitlab_backup.tar" is omitted from the name
 sudo gitlab-backup restore BACKUP=11493107454_2018_04_25_10.6.4-ce
 ```
@@ -139,7 +137,7 @@ sudo gitlab-ctl restart
 sudo gitlab-rake gitlab:check SANITIZE=true
 ```
 
-Verify that the [database values can be decrypted](../raketasks/check.md#verify-database-values-can-be-decrypted-using-the-current-secrets)
+In GitLab 13.1 and later, check [database values can be decrypted](../raketasks/check.md#verify-database-values-can-be-decrypted-using-the-current-secrets)
 especially if `/etc/gitlab/gitlab-secrets.json` was restored, or if a different server is
 the target for the restore.
 
@@ -154,17 +152,6 @@ sudo gitlab-rake gitlab:artifacts:check
 sudo gitlab-rake gitlab:lfs:check
 sudo gitlab-rake gitlab:uploads:check
 ```
-
-After the restore is completed, it's recommended to generate database statistics to improve the database performance and avoid inconsistencies in the UI:
-
-1. Enter the [database console](https://docs.gitlab.com/omnibus/settings/database.html#connecting-to-the-postgresql-database).
-1. Run the following:
-
-   ```sql
-   SET STATEMENT_TIMEOUT=0 ; ANALYZE VERBOSE;
-   ```
-
-There are ongoing discussions about integrating the command into the restore command, see [issue 276184](https://gitlab.com/gitlab-org/gitlab/-/issues/276184) for more details.
 
 ## Restore for Docker image and GitLab Helm chart installations
 
@@ -187,7 +174,7 @@ The GitLab Helm chart uses the process documented in
 
 ### Restore for Docker image installations
 
-If you're using [Docker Swarm](../../install/docker/installation.md#install-gitlab-using-docker-swarm-mode),
+If you're using [Docker Swarm](../../install/docker.md#install-gitlab-using-docker-swarm-mode),
 the container might restart during the restore process because Puma is shut down,
 and so the container health check fails. To work around this problem,
 temporarily disable the health check mechanism.
@@ -318,7 +305,7 @@ options.
 
 ### Specify backup to restore when there are more than one
 
-Backup files use a naming scheme [starting with a backup ID](backup_archive_process.md#backup-id). When more than one backup exists, you must specify which
+Backup files use a naming scheme [starting with a backup ID](index.md#backup-id). When more than one backup exists, you must specify which
 `<backup-id>_gitlab_backup.tar` file to restore by setting the environment variable `BACKUP=<backup-id>`.
 
 ### Disable prompts during restore
@@ -346,6 +333,8 @@ To disable these prompts, set the `GITLAB_ASSUME_YES` environment variable to `1
 The `force=yes` environment variable also disables these prompts.
 
 ### Excluding tasks on restore
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/19347) in GitLab 14.10.
 
 You can exclude specific tasks on restore by adding the environment variable `SKIP`, whose values are a comma-separated list of the following options:
 
@@ -378,11 +367,6 @@ To exclude specific tasks:
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/86896) in GitLab 15.0.
 
-WARNING:
-GitLab 17.1 and earlier are [affected by a race condition](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/158412) that can cause data loss. The problem affects
-repositories that have been forked and use GitLab [object pools](../repository_storage_paths.md#hashed-object-pools). To avoid data loss, **only restore backups by using GitLab
-17.2 or later**.
-
 When using [multiple repository storages](../repository_storage_paths.md),
 repositories from specific repository storages can be restored separately
 using the `REPOSITORIES_STORAGES` option. The option accepts a comma-separated list of
@@ -405,11 +389,6 @@ For example:
 ### Restore specific repositories
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/88094) in GitLab 15.1.
-
-WARNING:
-GitLab 17.1 and earlier are [affected by a race condition](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/158412) that can cause data loss. The problem affects
-repositories that have been forked and use GitLab [object pools](../repository_storage_paths.md#hashed-object-pools). To avoid data loss, **only restore backups by using GitLab
-17.2 or later**.
 
 You can restore specific repositories using the `REPOSITORIES_PATHS` and the `SKIP_REPOSITORIES_PATHS` options.
 Both options accept a comma-separated list of project and group paths. If you

@@ -11,31 +11,15 @@ RSpec.describe Projects::ImportExport::RelationImportWorker, feature_category: :
   subject(:perform) { worker.perform(tracker.id, user.id) }
 
   before do
-    create(
+    tracker.project.update!(import_export_upload: create(
       :import_export_upload,
-      import_file: fixture_file_upload('spec/features/projects/import_export/test_project_export.tar.gz'),
-      project: tracker.project,
-      user: user
-    )
+      import_file: fixture_file_upload('spec/features/projects/import_export/test_project_export.tar.gz')
+    ))
   end
 
   context 'when the import succeeds' do
-    it 'schedules the relation restoration' do
-      expect_next_instance_of(Gitlab::ImportExport::Project::RelationTreeRestorer) do |restorer|
-        expect(restorer).to receive(:restore_single_relation).with(tracker.relation)
-      end
-
-      perform
-    end
-
     it 'marks the tracker as finished' do
       expect { perform }.to change { tracker.reload.finished? }.from(false).to(true)
-    end
-
-    it 'refreshes the project stats' do
-      expect(worker).to receive(:perform_post_import_tasks)
-
-      perform
     end
   end
 

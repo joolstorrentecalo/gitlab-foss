@@ -1,5 +1,6 @@
 <script>
 import { GlAlert, GlButton, GlButtonGroup, GlLoadingIcon, GlToggle } from '@gitlab/ui';
+import glFeatureFlagMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import { __, s__ } from '~/locale';
 import { STAGE_VIEW, LAYER_VIEW } from '../constants';
 
@@ -12,6 +13,7 @@ export default {
     GlLoadingIcon,
     GlToggle,
   },
+  mixins: [glFeatureFlagMixin()],
   props: {
     showLinks: {
       type: Boolean,
@@ -75,6 +77,9 @@ export default {
         };
       });
     },
+    isNewPipelineGraph() {
+      return this.glFeatures.newPipelineGraph;
+    },
   },
   watch: {
     /*
@@ -136,14 +141,20 @@ export default {
 
 <template>
   <div>
-    <div class="gl-relative gl-my-4 gl-flex gl-flex-wrap gl-items-center sm:gl-flex-nowrap">
+    <div
+      class="gl-relative gl-display-flex gl-align-items-center gl-my-4"
+      :class="{
+        'gl-w-max-content': !isNewPipelineGraph,
+        'gl-flex-wrap gl-sm-flex-nowrap': isNewPipelineGraph,
+      }"
+    >
       <gl-loading-icon
         v-if="isSwitcherLoading"
         data-testid="switcher-loading-state"
-        class="gl-absolute gl-z-2 gl-w-full gl-bg-white gl-opacity-5"
+        class="gl-absolute gl-w-full gl-bg-white gl-opacity-5 gl-z-index-2"
         size="lg"
       />
-      <span class="gl-font-bold">{{ $options.i18n.viewLabelText }}</span>
+      <span class="gl-font-weight-bold">{{ $options.i18n.viewLabelText }}</span>
       <gl-button-group class="gl-mx-4">
         <gl-button
           v-for="viewType in viewTypesList"
@@ -155,11 +166,14 @@ export default {
         </gl-button>
       </gl-button-group>
 
-      <div v-if="showLinksToggle" class="gl-flex gl-items-center">
+      <div v-if="showLinksToggle" class="gl-display-flex gl-align-items-center">
         <gl-toggle
           v-model="showLinksActive"
           data-testid="show-links-toggle"
-          class="gl-sm-ml-4 gl-mt-4 sm:gl-mt-0"
+          :class="{
+            'gl-mx-4': !isNewPipelineGraph,
+            'gl-sm-ml-4 gl-mt-4 gl-sm-mt-0': isNewPipelineGraph,
+          }"
           :label="$options.i18n.linksLabelText"
           :is-loading="isToggleLoading"
           label-position="left"

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require "spec_helper"
 
-RSpec.describe Pajamas::AvatarComponent, type: :component, feature_category: :design_system do
+RSpec.describe Pajamas::AvatarComponent, type: :component do
   let_it_be(:user) { create(:user) }
   let_it_be(:project) { create(:project) }
   let_it_be(:group) { create(:group) }
@@ -34,7 +34,7 @@ RSpec.describe Pajamas::AvatarComponent, type: :component, feature_category: :de
       let(:item) { project }
 
       it "has default shape (rect)" do
-        expect(page).to have_css ".gl-avatar.\\!gl-rounded-base"
+        expect(page).to have_css ".gl-avatar"
         expect(page).not_to have_css ".gl-avatar-circle"
       end
     end
@@ -43,22 +43,13 @@ RSpec.describe Pajamas::AvatarComponent, type: :component, feature_category: :de
       let(:item) { group }
 
       it "has default shape (rect)" do
-        expect(page).to have_css ".gl-avatar.\\!gl-rounded-base"
+        expect(page).to have_css ".gl-avatar"
         expect(page).not_to have_css ".gl-avatar-circle"
       end
     end
   end
 
   describe "avatar image" do
-    context "when src is a string" do
-      let(:item) { "https://uploads.example.com/avatars/123.png" }
-
-      it "uses that string as image src" do
-        render_inline(described_class.new(item))
-        expect(page).to have_css "img.gl-avatar[src='#{item}']"
-      end
-    end
-
     context "when it has an uploaded image" do
       let(:item) { project }
 
@@ -110,7 +101,7 @@ RSpec.describe Pajamas::AvatarComponent, type: :component, feature_category: :de
       let(:item) { user }
 
       it "uses a gravatar" do
-        expect(rendered_content).to match(/gravatar\.com/)
+        expect(rendered_content).to match /gravatar\.com/
       end
     end
 
@@ -119,7 +110,7 @@ RSpec.describe Pajamas::AvatarComponent, type: :component, feature_category: :de
         let(:item) { Pajamas::AvatarEmail.new('') }
 
         it "uses the default avatar" do
-          expect(rendered_content).to match(/no_avatar/)
+          expect(rendered_content).to match /no_avatar/
         end
       end
 
@@ -127,7 +118,7 @@ RSpec.describe Pajamas::AvatarComponent, type: :component, feature_category: :de
         let(:item) { email }
 
         it "uses a agravatar" do
-          expect(rendered_content).to match(/gravatar\.com/)
+          expect(rendered_content).to match /gravatar\.com/
         end
       end
     end

@@ -12,7 +12,7 @@ module Banzai
         self.object_class   = Snippet
 
         def parent_records(project, ids)
-          return Snippet.none unless project.is_a?(Project)
+          return unless project.is_a?(Project)
 
           project.snippets.where(id: ids.to_a)
         end

@@ -9,7 +9,7 @@ import { WORK_ITEM_TYPE_ENUM_TASK } from '~/work_items/constants';
 import groupWorkItemsQuery from '~/work_items/graphql/group_work_items.query.graphql';
 import projectWorkItemsQuery from '~/work_items/graphql/project_work_items.query.graphql';
 import workItemsByReferencesQuery from '~/work_items/graphql/work_items_by_references.query.graphql';
-import { searchWorkItemsResponse, mockworkItemReferenceQueryResponse } from '../../mock_data';
+import { searchWorkItemsResponse } from '../../mock_data';
 
 Vue.use(VueApollo);
 
@@ -61,7 +61,22 @@ describe('WorkItemTokenInput', () => {
       workItems: [mockWorkItem],
     }),
   );
-
+  const mockworkItemReferenceQueryResponse = {
+    data: {
+      workItemsByReference: {
+        nodes: [
+          {
+            id: 'gid://gitlab/WorkItem/705',
+            iid: '111',
+            title: 'Objective linked items 104',
+            confidential: false,
+            __typename: 'WorkItem',
+          },
+        ],
+        __typename: 'WorkItemConnection',
+      },
+    },
+  };
   const workItemReferencesQueryResolver = jest
     .fn()
     .mockResolvedValue(mockworkItemReferenceQueryResponse);
@@ -80,18 +95,17 @@ describe('WorkItemTokenInput', () => {
         [groupWorkItemsQuery, groupSearchedWorkItemResolver],
         [workItemsByReferencesQuery, workItemReferencesQueryResolver],
       ]),
+      provide: {
+        isGroup,
+      },
       propsData: {
         value: workItemsToAdd,
         childrenType,
         childrenIds: [],
         fullPath: 'test-project-path',
-        isGroup,
         parentWorkItemId: 'gid://gitlab/WorkItem/1',
         parentConfidential,
         areWorkItemsToAddValid,
-      },
-      stubs: {
-        GlTokenSelector,
       },
     });
 
@@ -123,7 +137,7 @@ describe('WorkItemTokenInput', () => {
       areWorkItemsToAddValid: false,
     });
 
-    expect(findTokenSelector().props('containerClass')).toBe('!gl-shadow-inner-1-red-500');
+    expect(findTokenSelector().props('containerClass')).toBe('gl-inset-border-1-red-500!');
   });
 
   describe('when input data is provided', () => {
@@ -269,17 +283,7 @@ describe('WorkItemTokenInput', () => {
     });
 
     it('calls the project work items query', () => {
-      expect(searchWorkItemTextResolver).toHaveBeenCalledWith(
-        expect.objectContaining({
-          fullPath: 'test-project-path',
-          iid: null,
-          in: undefined,
-          searchByIid: false,
-          searchByText: true,
-          searchTerm: '',
-          types: ['TASK'],
-        }),
-      );
+      expect(searchWorkItemTextResolver).toHaveBeenCalled();
     });
 
     it('skips calling the group work items query', () => {
@@ -298,19 +302,7 @@ describe('WorkItemTokenInput', () => {
     });
 
     it('calls the group work items query', () => {
-      expect(groupSearchedWorkItemResolver).toHaveBeenCalledWith(
-        expect.objectContaining({
-          fullPath: 'test-project-path',
-          iid: null,
-          in: undefined,
-          includeAncestors: true,
-          includeDescendants: true,
-          searchByIid: false,
-          searchByText: true,
-          searchTerm: '',
-          types: ['TASK'],
-        }),
-      );
+      expect(groupSearchedWorkItemResolver).toHaveBeenCalled();
     });
   });
 

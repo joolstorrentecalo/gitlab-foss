@@ -2,7 +2,7 @@ import { GlIcon, GlLink } from '@gitlab/ui';
 import { shallowMount } from '@vue/test-utils';
 import { extendedWrapper } from 'helpers/vue_test_utils_helper';
 import CiVerificationBadge from '~/ci/catalog/components/shared/ci_verification_badge.vue';
-import { VERIFICATION_LEVELS } from '~/ci/catalog/constants';
+import { VerificationLevel } from '~/ci/catalog/constants';
 
 describe('Catalog Verification Badge', () => {
   let wrapper;
@@ -10,7 +10,7 @@ describe('Catalog Verification Badge', () => {
   const defaultProps = {
     resourceId: 'gid://gitlab/Ci::Catalog::Resource/36',
     showText: true,
-    verificationLevel: 'GITLAB_MAINTAINED',
+    verificationLevel: 'GITLAB',
   };
 
   const findVerificationIcon = () => wrapper.findComponent(GlIcon);
@@ -64,24 +64,21 @@ describe('Catalog Verification Badge', () => {
   });
 
   describe.each`
-    verificationLevel                | describeText
-    ${'GITLAB_MAINTAINED'}           | ${'GitLab'}
-    ${'GITLAB_PARTNER_MAINTAINED'}   | ${'a GitLab partner'}
-    ${'VERIFIED_CREATOR_MAINTAINED'} | ${'a verified creator'}
-  `('when the resource is maintained by $describeText', ({ verificationLevel }) => {
+    verificationLevel | describeText
+    ${'GITLAB'}       | ${'GitLab'}
+    ${'PARTNER'}      | ${'partner'}
+  `('when the resource is $describeText maintained', ({ verificationLevel }) => {
     beforeEach(() => {
       createComponent({ ...defaultProps, verificationLevel });
     });
 
     it('renders the correct icon', () => {
-      expect(findVerificationIcon().props('name')).toBe(
-        VERIFICATION_LEVELS[verificationLevel].icon,
-      );
+      expect(findVerificationIcon().props('name')).toBe(VerificationLevel[verificationLevel].icon);
     });
 
     it('displays the correct badge text', () => {
       expect(findVerificationText().text()).toContain(
-        VERIFICATION_LEVELS[verificationLevel].badgeText,
+        VerificationLevel[verificationLevel].badgeText,
       );
     });
   });

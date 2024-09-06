@@ -128,44 +128,6 @@ RSpec.describe Gitlab::Ci::Parsers::Sbom::Validators::CyclonedxSchemaValidator,
             ])
         end
       end
-
-      describe "name length validation" do
-        let(:components) do
-          [
-            { "type" => "library", "name" => "" },
-            { "type" => "library", "name" => "a" * 256 }
-          ]
-        end
-
-        it { is_expected.not_to be_valid }
-
-        it "outputs errors for each validation failure" do
-          expect(validator.errors).to match_array(
-            [
-              "property '/components/0/name' is invalid: error_type=minLength",
-              "property '/components/1/name' is invalid: error_type=maxLength"
-            ])
-        end
-      end
-
-      describe "version length validation" do
-        let(:components) do
-          [
-            { "type" => "library", "name" => "activesupport", "version" => "" },
-            { "type" => "library", "name" => "activesupport", "version" => "a" * 256 }
-          ]
-        end
-
-        it { is_expected.not_to be_valid }
-
-        it "outputs errors for each validation failure" do
-          expect(validator.errors).to match_array(
-            [
-              "property '/components/0/version' is invalid: error_type=minLength",
-              "property '/components/1/version' is invalid: error_type=maxLength"
-            ])
-        end
-      end
     end
 
     context "when report has metadata" do
@@ -219,7 +181,7 @@ RSpec.describe Gitlab::Ci::Parsers::Sbom::Validators::CyclonedxSchemaValidator,
   end
 
   context 'when spec version is supported' do
-    where(:spec_version) { %w[1.4 1.5 1.6] }
+    where(:spec_version) { %w[1.4 1.5] }
 
     with_them do
       it_behaves_like 'a validator that performs the expected validations'

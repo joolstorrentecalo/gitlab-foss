@@ -6,7 +6,11 @@ RSpec.describe 'User sees feature flag list', :js, feature_category: :feature_fl
   include FeatureFlagHelpers
 
   let_it_be(:user) { create(:user) }
-  let_it_be(:project) { create(:project, namespace: user.namespace, developers: user) }
+  let_it_be(:project) { create(:project, namespace: user.namespace) }
+
+  before_all do
+    project.add_developer(user)
+  end
 
   before do
     sign_in(user)

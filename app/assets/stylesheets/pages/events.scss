@@ -79,6 +79,10 @@
         iframe.twitter-share-button {
           vertical-align: bottom;
         }
+
+        .gl-label-scoped.gl-label-sm {
+          --label-inset-border: inset 0 0 0 1px currentColor;
+        }
       }
 
       code {
@@ -87,7 +91,7 @@
 
       pre {
         border: 0;
-        background: $gray-10;
+        background: $gray-light;
         border-radius: 0;
         color: $gray-500;
         overflow: hidden;

@@ -47,21 +47,23 @@ export default {
 
 <template>
   <div>
-    <ul class="gl-m-0 gl-flex gl-list-none gl-justify-between gl-p-0">
+    <ul class="gl-list-style-none gl-display-flex gl-p-0 gl-m-0 gl-justify-content-space-between">
       <li v-for="grade in $options.grades" :key="grade.value">
         <gl-button
           v-gl-tooltip="grade.title"
-          class="!gl-p-2"
+          class="gl-p-2!"
           variant="default"
           category="tertiary"
           :aria-label="grade.title"
           @click="$emit('rate', grade.value)"
         >
-          <gl-icon class="gl-align-top" :name="grade.icon" :size="24" />
+          <gl-icon class="gl-vertical-align-top" :name="grade.icon" :size="24" />
         </gl-button>
       </li>
     </ul>
-    <div class="gl-flex gl-justify-between gl-pt-3 gl-text-sm gl-text-gray-500">
+    <div
+      class="gl-display-flex gl-justify-content-space-between gl-pt-3 gl-text-gray-500 gl-font-sm"
+    >
       <div>{{ $options.i18n.unhappy }}</div>
       <div>{{ $options.i18n.delighted }}</div>
     </div>

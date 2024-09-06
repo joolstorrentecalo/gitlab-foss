@@ -5,8 +5,8 @@
 
 RSpec.shared_examples 'issuable record that does not supports quick actions' do |with_widgets: false|
   let_it_be(:project) { create(:project, :repository) }
-  let_it_be(:user) { create(:user, maintainer_of: project) }
-  let_it_be(:assignee) { create(:user, maintainer_of: project) }
+  let_it_be(:user) { create(:user) }
+  let_it_be(:assignee) { create(:user) }
   let_it_be(:milestone) { create(:milestone, project: project) }
   let_it_be(:labels) { create_list(:label, 3, project: project) }
 
@@ -15,6 +15,11 @@ RSpec.shared_examples 'issuable record that does not supports quick actions' do 
   let(:params) { base_params.merge(with_widgets ? { label_ids: example_params.delete(:label_ids) } : example_params) }
   let(:widget_params) do
     with_widgets ? { description_widget: { description: example_params.delete(:description) } } : {}
+  end
+
+  before_all do
+    project.add_maintainer(user)
+    project.add_maintainer(assignee)
   end
 
   before do

@@ -10,7 +10,6 @@ import {
   GlModal,
 } from '@gitlab/ui';
 import { toSafeInteger } from 'lodash';
-import SeatControlsSection from 'ee_component/pages/admin/application_settings/general/components/seat_controls_section.vue';
 import csrf from '~/lib/utils/csrf';
 import { __, n__, s__, sprintf } from '~/locale';
 import glFeatureFlagMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
@@ -33,7 +32,6 @@ export default {
     GlLink,
     SignupCheckbox,
     GlModal,
-    SeatControlsSection,
     PasswordComplexityCheckboxGroup: () =>
       import(
         'ee_component/pages/admin/application_settings/general/components/password_complexity_checkbox_group.vue'
@@ -186,11 +184,8 @@ export default {
 
       this.submitForm();
     },
-    setFormValue({ name, value }) {
-      this.form = {
-        ...this.form,
-        [name]: value,
-      };
+    setPasswordComplexity({ name, value }) {
+      this.$set(this.form, name, value);
     },
     submitForm() {
       this.$refs.form.submit();
@@ -221,7 +216,7 @@ export default {
     ),
     domainAllowListLabel: s__('ApplicationSettings|Allowed domains for sign-ups'),
     domainAllowListDescription: s__(
-      'ApplicationSettings|Only users with e-mail addresses that match these domain(s) can sign up. Wildcards allowed. Enter multiple entries on separate lines. Example: domain.com, *.domain.com',
+      'ApplicationSettings|Only users with e-mail addresses that match these domain(s) can sign up. Wildcards allowed. Use separate lines for multiple entries. Example: domain.com, *.domain.com',
     ),
     userCapLabel: s__('ApplicationSettings|User cap'),
     userCapDescription: s__(
@@ -237,7 +232,7 @@ export default {
     ),
     domainDenyListListLabel: s__('ApplicationSettings|Denied domains for sign-ups'),
     domainDenyListListDescription: s__(
-      'ApplicationSettings|Users with e-mail addresses that match these domain(s) cannot sign up. Wildcards allowed. Enter multiple entries on separate lines. Example: domain.com, *.domain.com',
+      'ApplicationSettings|Users with e-mail addresses that match these domain(s) cannot sign up. Wildcards allowed. Use separate lines for multiple entries. Example: domain.com, *.domain.com',
     ),
     domainPlaceholder: s__('ApplicationSettings|domain.com'),
     emailRestrictionsEnabledGroupLabel: s__('ApplicationSettings|Email restrictions'),
@@ -310,8 +305,6 @@ export default {
         </gl-form-radio-group>
       </gl-form-group>
 
-      <seat-controls-section @form-value-change="setFormValue" />
-
       <gl-form-group
         :label="$options.i18n.userCapLabel"
         :description="$options.i18n.userCapDescription"
@@ -350,7 +343,7 @@ export default {
 
       <password-complexity-checkbox-group
         v-if="glFeatures.passwordComplexity"
-        @set-password-complexity="setFormValue"
+        @set-password-complexity="setPasswordComplexity"
       />
       <gl-form-group
         :description="$options.i18n.domainAllowListDescription"

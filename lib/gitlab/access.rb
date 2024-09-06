@@ -75,10 +75,6 @@ module Gitlab
         sym_options.merge(owner: OWNER)
       end
 
-      def sym_options_with_admin
-        sym_options_with_owner.merge(admin: ADMIN)
-      end
-
       def protection_options
         [
           {
@@ -109,26 +105,11 @@ module Gitlab
         ]
       end
 
-      def global_protection_levels
-        [
-          {
-            label: s_('DefaultBranchProtection|Not protected'),
-            help_text: s_('DefaultBranchProtection|Both developers and maintainers can push new commits, force push, or delete the branch.'),
-            value: false
-          },
-          {
-            label: s_('DefaultBranchProtection|Protected'),
-            help_text: s_('DefaultBranchProtection|Once a repository is created this branch will be protected.'),
-            value: true
-          }
-        ]
-      end
-
       def protection_values
         protection_options.map { |option| option[:value] }
       end
 
-      def human_access(access, _member_role = nil)
+      def human_access(access)
         options_with_owner.key(access)
       end
 

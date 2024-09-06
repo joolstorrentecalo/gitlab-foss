@@ -195,12 +195,6 @@ const EDIT_RECENT_COMMENT = {
   defaultKeys: ['up'],
 };
 
-export const SAVE_CHANGES = {
-  id: 'globalShortcuts.saveChanges',
-  description: __('Submit/save changes'),
-  defaultKeys: ['mod+enter'],
-};
-
 export const EDIT_WIKI_PAGE = {
   id: 'wiki.editWikiPage',
   description: __('Edit wiki page'),
@@ -455,20 +449,6 @@ export const MR_TOGGLE_FILE_BROWSER = {
   customizable: false,
 };
 
-export const MR_ADD_TO_REVIEW = {
-  id: 'mergeRequests.addToReview',
-  description: __('Add your comment to a review'),
-  defaultKeys: ['mod+enter'],
-  customizable: false,
-};
-
-export const MR_ADD_COMMENT_NOW = {
-  id: 'mergeRequests.addCommentNow',
-  description: __('Publish your comment immediately'),
-  defaultKeys: ['shift+mod+enter'],
-  customizable: false,
-};
-
 export const MR_NEXT_UNRESOLVED_DISCUSSION = {
   id: 'mergeRequests.nextUnresolvedDiscussion',
   description: __('Next unresolved thread'),
@@ -578,7 +558,6 @@ export const EDITING_SHORTCUTS_GROUP = {
     LINK_TEXT,
     TOGGLE_MARKDOWN_PREVIEW,
     EDIT_RECENT_COMMENT,
-    SAVE_CHANGES,
   ],
 };
 
@@ -668,8 +647,6 @@ const MR_SHORTCUTS_GROUP = {
     MR_PREVIOUS_UNRESOLVED_DISCUSSION,
     MR_COPY_SOURCE_BRANCH_NAME,
     MR_TOGGLE_FILE_BROWSER,
-    MR_ADD_TO_REVIEW,
-    MR_ADD_COMMENT_NOW,
   ],
 };
 

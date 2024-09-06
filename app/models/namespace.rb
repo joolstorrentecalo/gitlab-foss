@@ -20,7 +20,6 @@ class Namespace < ApplicationRecord
   include CrossDatabaseIgnoredTables
   include IgnorableColumns
   include UseSqlFunctionForPrimaryKeyLookups
-  include Todoable
 
   ignore_column :unlock_membership_to_ldap, remove_with: '16.7', remove_after: '2023-11-16'
 
@@ -39,21 +38,12 @@ class Namespace < ApplicationRecord
   NUMBER_OF_ANCESTORS_ALLOWED = 20
 
   SR_DISABLED_AND_UNOVERRIDABLE = 'disabled_and_unoverridable'
+  # DISABLED_WITH_OVERRIDE is deprecated in favour of DISABLED_AND_OVERRIDABLE.
+  SR_DISABLED_WITH_OVERRIDE = 'disabled_with_override'
   SR_DISABLED_AND_OVERRIDABLE = 'disabled_and_overridable'
   SR_ENABLED = 'enabled'
-  SHARED_RUNNERS_SETTINGS = [SR_DISABLED_AND_UNOVERRIDABLE, SR_DISABLED_AND_OVERRIDABLE, SR_ENABLED].freeze
+  SHARED_RUNNERS_SETTINGS = [SR_DISABLED_AND_UNOVERRIDABLE, SR_DISABLED_WITH_OVERRIDE, SR_DISABLED_AND_OVERRIDABLE, SR_ENABLED].freeze
   URL_MAX_LENGTH = 255
-  STATISTICS_COLUMNS = %i[
-    storage_size
-    repository_size
-    wiki_size
-    snippets_size
-    lfs_objects_size
-    build_artifacts_size
-    pipeline_artifacts_size
-    packages_size
-    uploads_size
-  ].freeze
 
   cache_markdown_field :description, pipeline: :description
 
@@ -111,12 +101,7 @@ class Namespace < ApplicationRecord
 
   has_many :jira_connect_subscriptions, class_name: 'JiraConnectSubscription', foreign_key: :namespace_id, inverse_of: :namespace
 
-  has_many :import_source_users, class_name: 'Import::SourceUser', foreign_key: :namespace_id, inverse_of: :namespace
-  has_one :namespace_import_user, class_name: 'Import::NamespaceImportUser', foreign_key: :namespace_id, inverse_of: :namespace
-  has_one :import_user, class_name: 'User', through: :namespace_import_user, foreign_key: :user_id
-
   validates :owner, presence: true, if: ->(n) { n.owner_required? }
-  validates :organization, presence: true, if: :require_organization?
   validates :name,
     presence: true,
     length: { maximum: 255 }
@@ -157,7 +142,6 @@ class Namespace < ApplicationRecord
   validate :nesting_level_allowed, unless: -> { project_namespace? }
   validate :changing_shared_runners_enabled_is_allowed, unless: -> { project_namespace? }
   validate :changing_allow_descendants_override_disabled_shared_runners_is_allowed, unless: -> { project_namespace? }
-  validate :parent_organization_match, if: :require_organization?
 
   delegate :name, to: :owner, allow_nil: true, prefix: true
   delegate :avatar_url, to: :owner, allow_nil: true
@@ -183,8 +167,6 @@ class Namespace < ApplicationRecord
   delegate :math_rendering_limits_enabled?,
     :lock_math_rendering_limits_enabled?,
     to: :namespace_settings
-  delegate :add_creator, :pending_delete, :pending_delete=,
-    to: :namespace_details
 
   before_create :sync_share_with_group_lock_with_parent
   before_update :sync_share_with_group_lock_with_parent, if: :parent_changed?
@@ -198,36 +180,36 @@ class Namespace < ApplicationRecord
   after_sync_traversal_ids :schedule_sync_event_worker # custom callback defined in Namespaces::Traversal::Linear
 
   after_commit :expire_child_caches, on: :update, if: -> {
-    (Feature.enabled?(:cached_route_lookups, self, type: :ops) &&
-      saved_change_to_name?) || saved_change_to_path? || saved_change_to_parent_id?
+    Feature.enabled?(:cached_route_lookups, self, type: :ops) &&
+      saved_change_to_name? || saved_change_to_path? || saved_change_to_parent_id?
   }
 
-  scope :without_deleted, -> { joins(:namespace_details).where(namespace_details: { pending_delete: false }) }
   scope :user_namespaces, -> { where(type: Namespaces::UserNamespace.sti_name) }
-  scope :group_namespaces, -> { where(type: Group.sti_name) }
   scope :without_project_namespaces, -> { where(Namespace.arel_table[:type].not_eq(Namespaces::ProjectNamespace.sti_name)) }
   scope :sort_by_type, -> { order(arel_table[:type].asc.nulls_first) }
   scope :include_route, -> { includes(:route) }
-  scope :by_parent, ->(parent) { where(parent_id: parent) }
-  scope :by_root_id, ->(root_id) { where('traversal_ids[1] IN (?)', root_id) }
-  scope :by_not_in_root_id, ->(root_id) { where('namespaces.traversal_ids[1] NOT IN (?)', root_id) }
-  scope :filter_by_path, ->(query) { where('lower(path) = :query', query: query.downcase) }
-  scope :in_organization, ->(organization) { where(organization: organization) }
+  scope :by_parent, -> (parent) { where(parent_id: parent) }
+  scope :by_root_id, -> (root_id) { where('traversal_ids[1] IN (?)', root_id) }
+  scope :filter_by_path, -> (query) { where('lower(path) = :query', query: query.downcase) }
+  scope :in_organization, -> (organization) { where(organization: organization) }
   scope :by_name, ->(name) { where('name LIKE ?', "#{sanitize_sql_like(name)}%") }
   scope :ordered_by_name, -> { order(:name) }
 
   scope :with_statistics, -> do
-    namespace_statistic_columns = STATISTICS_COLUMNS.map { |column| sum_project_statistics_column(column) }
-    subquery = Arel::Table.new(:statistics)
-    project_statistics = ProjectStatistics.arel_table
-
-    statistics = project_statistics
-      .project(namespace_statistic_columns)
-      .where(project_statistics[:namespace_id].eq(arel_table[:id]))
-      .lateral(subquery.name)
-
-    select(arel_table[Arel.star], subquery[Arel.star])
-      .from([arel.as('namespaces'), statistics])
+    joins('LEFT JOIN project_statistics ps ON ps.namespace_id = namespaces.id')
+      .group('namespaces.id')
+      .select(
+        'namespaces.*',
+        'COALESCE(SUM(ps.storage_size), 0) AS storage_size',
+        'COALESCE(SUM(ps.repository_size), 0) AS repository_size',
+        'COALESCE(SUM(ps.wiki_size), 0) AS wiki_size',
+        'COALESCE(SUM(ps.snippets_size), 0) AS snippets_size',
+        'COALESCE(SUM(ps.lfs_objects_size), 0) AS lfs_objects_size',
+        'COALESCE(SUM(ps.build_artifacts_size), 0) AS build_artifacts_size',
+        'COALESCE(SUM(ps.pipeline_artifacts_size), 0) AS pipeline_artifacts_size',
+        'COALESCE(SUM(ps.packages_size), 0) AS packages_size',
+        'COALESCE(SUM(ps.uploads_size), 0) AS uploads_size'
+      )
   end
 
   scope :with_jira_installation, ->(installation_id) do
@@ -235,7 +217,7 @@ class Namespace < ApplicationRecord
     .where(jira_connect_subscriptions: { jira_connect_installation_id: installation_id })
   end
 
-  scope :sorted_by_similarity_and_parent_id_desc, ->(search) do
+  scope :sorted_by_similarity_and_parent_id_desc, -> (search) do
     order_expression = Gitlab::Database::SimilarityScore.build_expression(
       search: search,
       rules: [
@@ -308,9 +290,9 @@ class Namespace < ApplicationRecord
     # https://gitlab.com/gitlab-org/gitlab/-/blob/5d34e3488faa3982d30d7207773991c1e0b6368a/app/assets/javascripts/gfm_auto_complete.js#L68 and
     # https://gitlab.com/gitlab-org/gitlab/-/blob/5d34e3488faa3982d30d7207773991c1e0b6368a/app/assets/javascripts/gfm_auto_complete.js#L1053
     def gfm_autocomplete_search(query)
-      # This scope does not work with `ProjectNamespace` records because they don't have a corresponding `route` association.
-      # We do not chain the `without_project_namespaces` scope because it results in an expensive query plan in certain cases
-      joins(:route)
+      without_project_namespaces
+        .allow_cross_joins_across_databases(url: "https://gitlab.com/gitlab-org/gitlab/-/issues/420046")
+        .joins(:route)
         .where(
           "REPLACE(routes.name, ' ', '') ILIKE :pattern OR routes.path ILIKE :pattern",
           pattern: "%#{sanitize_sql_like(query)}%"
@@ -347,26 +329,6 @@ class Namespace < ApplicationRecord
     def reference_pattern
       User.reference_pattern
     end
-
-    def sum_project_statistics_column(column)
-      sum = ProjectStatistics.arel_table[column].sum
-
-      coalesce = Arel::Nodes::NamedFunction.new('COALESCE', [sum, 0])
-      coalesce.as(column.to_s)
-    end
-
-    def with_disabled_organization_validation
-      current_value = Gitlab::SafeRequestStore[:require_organization]
-      Gitlab::SafeRequestStore[:require_organization] = false
-
-      yield
-    ensure
-      Gitlab::SafeRequestStore[:require_organization] = current_value
-    end
-
-    def username_reserved?(username)
-      without_project_namespaces.where(parent_id: nil).find_by_path_or_name(username).present?
-    end
   end
 
   def to_reference_base(from = nil, full: false, absolute_path: false)
@@ -390,8 +352,6 @@ class Namespace < ApplicationRecord
   end
 
   def default_branch_protection_settings
-    return Gitlab::CurrentSettings.default_branch_protection_defaults if user_namespace?
-
     settings = default_branch_protection_defaults
 
     return settings unless settings.blank?
@@ -485,10 +445,6 @@ class Namespace < ApplicationRecord
     !emails_enabled?
   end
 
-  def default_branch_protected?
-    Gitlab::Access::DefaultBranchProtection.new(default_branch_protection_settings).any?
-  end
-
   def emails_enabled?
     # If no namespace_settings, we can assume it has not changed from enabled
     return true unless namespace_settings
@@ -518,10 +474,8 @@ class Namespace < ApplicationRecord
     Project.where(namespace: namespace)
   end
 
-  def all_catalog_resources
-    Ci::Catalog::Resource.where(project: all_projects)
-  end
-
+  # Includes projects from this namespace and projects from all subgroups
+  # that belongs to this namespace, except the ones that are soft deleted
   def all_projects_except_soft_deleted
     all_projects.not_aimed_for_deletion
   end
@@ -594,9 +548,11 @@ class Namespace < ApplicationRecord
 
   def container_repositories_size
     strong_memoize(:container_repositories_size) do
+      next unless Gitlab.com_except_jh?
       next unless root?
       next unless ContainerRegistry::GitlabApiClient.supports_gitlab_api?
       next 0 if all_container_repositories.empty?
+      next unless all_container_repositories.all_migrated?
 
       Rails.cache.fetch(container_repositories_size_cache_key, expires_in: 7.days) do
         ContainerRegistry::GitlabApiClient.deduplicated_size(full_path)
@@ -626,7 +582,7 @@ class Namespace < ApplicationRecord
     root? && actual_plan.paid?
   end
 
-  def linked_to_subscription?
+  def prevent_delete?
     paid?
   end
 
@@ -675,10 +631,10 @@ class Namespace < ApplicationRecord
     case other_setting
     when SR_ENABLED
       false
-    when SR_DISABLED_AND_OVERRIDABLE
+    when SR_DISABLED_WITH_OVERRIDE, SR_DISABLED_AND_OVERRIDABLE
       shared_runners_setting == SR_ENABLED
     when SR_DISABLED_AND_UNOVERRIDABLE
-      shared_runners_setting == SR_ENABLED || shared_runners_setting == SR_DISABLED_AND_OVERRIDABLE
+      shared_runners_setting == SR_ENABLED || shared_runners_setting == SR_DISABLED_AND_OVERRIDABLE || shared_runners_setting == SR_DISABLED_WITH_OVERRIDE
     else
       raise ArgumentError
     end
@@ -728,18 +684,7 @@ class Namespace < ApplicationRecord
       :active_pages_deployments)
   end
 
-  def web_url(only_path: nil)
-    Gitlab::UrlBuilder.build(self, only_path: only_path)
-  end
-
   private
-
-  def parent_organization_match
-    return unless parent
-    return if parent.organization_id == organization_id
-
-    errors.add(:organization_id, _("must match the parent organization's ID"))
-  end
 
   def cross_namespace_reference?(from)
     return false if from == self
@@ -752,7 +697,7 @@ class Namespace < ApplicationRecord
     when Namespaces::ProjectNamespace
       from.parent_id != comparable_namespace_id
     when Namespace
-      is_a?(Group) ? from.id != id : parent != from
+      parent != from
     when User
       true
     end

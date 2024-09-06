@@ -1,24 +1,16 @@
 import { shallowMount } from '@vue/test-utils';
 import { nextTick } from 'vue';
-import waitForPromises from 'helpers/wait_for_promises';
-import { useMockInternalEventsTracking } from 'helpers/tracking_internal_events_helper';
-import { renderGFM } from '~/behaviors/markdown/render_gfm';
-import { handleLocationHash } from '~/lib/utils/common_utils';
-import eventHub from '~/issues/show/event_hub';
-import CreateWorkItemModal from '~/work_items/components/create_work_item_modal.vue';
 import WorkItemDescriptionRendered from '~/work_items/components/work_item_description_rendered.vue';
-import { descriptionHtmlWithCheckboxes, descriptionTextWithCheckboxes } from '../mock_data';
+import { renderGFM } from '~/behaviors/markdown/render_gfm';
+import { descriptionTextWithCheckboxes, descriptionHtmlWithCheckboxes } from '../mock_data';
 
 jest.mock('~/behaviors/markdown/render_gfm');
-jest.mock('~/lib/utils/common_utils');
 
-describe('WorkItemDescriptionRendered', () => {
-  /** @type {import('@vue/test-utils').Wrapper} */
+describe('WorkItemDescription', () => {
   let wrapper;
 
+  const findEditButton = () => wrapper.find('[data-testid="edit-description"]');
   const findCheckboxAtIndex = (index) => wrapper.findAll('input[type="checkbox"]').at(index);
-  const findCreateWorkItemModal = () => wrapper.findComponent(CreateWorkItemModal);
-  const findReadMore = () => wrapper.findComponent({ ref: 'show-all-btn' });
 
   const defaultWorkItemDescription = {
     description: descriptionTextWithCheckboxes,
@@ -28,17 +20,19 @@ describe('WorkItemDescriptionRendered', () => {
   const createComponent = ({
     workItemDescription = defaultWorkItemDescription,
     canEdit = false,
+    disableInlineEditing = false,
     mockComputed = {},
+    hasWorkItemsMvc2 = false,
   } = {}) => {
     wrapper = shallowMount(WorkItemDescriptionRendered, {
       propsData: {
-        workItemId: 'gid://gitlab/WorkItem/818',
         workItemDescription,
         canEdit,
+        disableInlineEditing,
       },
       computed: mockComputed,
       provide: {
-        fullPath: 'full/path',
+        workItemsMvc2: hasWorkItemsMvc2,
       },
     });
   };
@@ -52,8 +46,7 @@ describe('WorkItemDescriptionRendered', () => {
   });
 
   describe('with truncation', () => {
-    const { bindInternalEventDocument } = useMockInternalEventsTracking();
-    beforeEach(() => {
+    it('shows the untruncate action', () => {
       createComponent({
         workItemDescription: {
           description: 'This is a long description',
@@ -64,18 +57,10 @@ describe('WorkItemDescriptionRendered', () => {
             return true;
           },
         },
+        hasWorkItemsMvc2: true,
       });
-    });
 
-    it('shows the untruncate action', () => {
-      expect(findReadMore().exists()).toBe(true);
-    });
-    it('tracks untruncate action', async () => {
-      const { trackEventSpy } = bindInternalEventDocument(wrapper.element);
-
-      await findReadMore().vm.$emit('click');
-
-      expect(trackEventSpy).toHaveBeenCalledWith('expand_description_on_workitem', {}, undefined);
+      expect(wrapper.find('[data-test-id="description-read-more"]').exists()).toBe(true);
     });
   });
 
@@ -91,37 +76,10 @@ describe('WorkItemDescriptionRendered', () => {
             return false;
           },
         },
+        hasWorkItemsMvc2: true,
       });
-      expect(findReadMore().exists()).toBe(false);
-    });
-  });
 
-  describe('with anchor to description item', () => {
-    const anchorHash = '#description-anchor';
-
-    afterAll(() => {
-      window.location.hash = '';
-    });
-
-    it('scrolls matching link into view', async () => {
-      window.location.hash = anchorHash;
-      createComponent({
-        workItemDescription: {
-          description: 'This is a long description',
-          descriptionHtml: `<p>This is a long description</p><a href="${anchorHash}">Some anchor</a>`,
-        },
-        mockComputed: {
-          isTruncated() {
-            return true;
-          },
-        },
-      });
-      jest.spyOn(wrapper.vm, 'truncateLongDescription');
-
-      await nextTick();
-
-      expect(handleLocationHash).toHaveBeenCalled();
-      expect(wrapper.vm.truncateLongDescription).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-test-id="description-read-more"]').exists()).toBe(false);
     });
   });
 
@@ -148,7 +106,6 @@ describe('WorkItemDescriptionRendered', () => {
 
       const updatedDescription = `- [x] todo 1\n- [x] todo 2`;
       expect(wrapper.emitted('descriptionUpdated')).toEqual([[updatedDescription]]);
-      expect(findReadMore().exists()).toBe(false);
     });
 
     it('disables checkbox while updating', async () => {
@@ -166,88 +123,37 @@ describe('WorkItemDescriptionRendered', () => {
 
       const updatedDescription = `- [ ] todo 1\n- [ ] todo 2`;
       expect(wrapper.emitted('descriptionUpdated')).toEqual([[updatedDescription]]);
-      expect(findReadMore().exists()).toBe(false);
     });
   });
 
-  describe('task list item actions', () => {
-    describe('converting the task list item', () => {
-      it('opens modal to create work item and emits event to update description', async () => {
-        const description = `Tasks
-
-1. [ ] item 1
-   1. [ ] item 2 with a really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really long title
-
-      and more text
-
-      and even more
-      1. [ ] item 3
-   1. [ ] item 4;`;
-        const newDescription = `Tasks
-
-1. [ ] item 1
-   1. [ ] item 3
-   1. [ ] item 4;`;
-        createComponent({ workItemDescription: { description } });
-        await waitForPromises();
-
-        eventHub.$emit('convert-task-list-item', {
-          id: 'gid://gitlab/WorkItem/818',
-          sourcepos: '4:4-9:19',
-        });
-        await nextTick();
-
-        expect(findCreateWorkItemModal().props()).toEqual({
-          asDropdownItem: false,
-          description: `lly really long title
-
-
-and more text
-
-and even more`,
-          hideButton: true,
-          isGroup: false,
-          parentId: 'gid://gitlab/WorkItem/818',
-          showProjectSelector: true,
-          title:
-            'item 2 with a really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really rea',
-          visible: true,
-          workItemTypeName: 'ISSUE',
-        });
-
-        findCreateWorkItemModal().vm.$emit('workItemCreated');
-
-        expect(wrapper.emitted('descriptionUpdated')).toEqual([[newDescription]]);
-
-        findCreateWorkItemModal().vm.$emit('hideModal');
-        await nextTick();
-
-        expect(findCreateWorkItemModal().props('visible')).toBe(false);
+  describe('Edit button', () => {
+    it('is not visible when canUpdate = false', () => {
+      createComponent({
+        canUpdate: false,
       });
+
+      expect(findEditButton().exists()).toBe(false);
     });
 
-    describe('deleting the task list item', () => {
-      it('emits an event to update the description with the deleted task list item', () => {
-        const description = `Tasks
-
-1. [ ] item 1
-   1. [ ] item 2
-      1. [ ] item 3
-   1. [ ] item 4;`;
-        const newDescription = `Tasks
-
-1. [ ] item 1
-   1. [ ] item 3
-   1. [ ] item 4;`;
-        createComponent({ workItemDescription: { description } });
-
-        eventHub.$emit('delete-task-list-item', {
-          id: 'gid://gitlab/WorkItem/818',
-          sourcepos: '4:4-5:19',
-        });
-
-        expect(wrapper.emitted('descriptionUpdated')).toEqual([[newDescription]]);
+    it('toggles edit mode', async () => {
+      createComponent({
+        canEdit: true,
       });
+
+      findEditButton().vm.$emit('click');
+
+      await nextTick();
+
+      expect(wrapper.emitted('startEditing')).toEqual([[]]);
+    });
+
+    it('is not visible when `disableInlineEditing` is true and the user can edit', () => {
+      createComponent({
+        disableInlineEditing: true,
+        canEdit: true,
+      });
+
+      expect(findEditButton().exists()).toBe(false);
     });
   });
 });

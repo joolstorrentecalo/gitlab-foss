@@ -16,7 +16,7 @@ You can use **Sign-in restrictions** to customize authentication restrictions fo
 
 To access sign-in restriction settings:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand the **Sign-in restrictions** section.
 
@@ -27,12 +27,14 @@ You can restrict the password authentication for web interface and Git over HTTP
 - **Web interface**: When this feature is disabled, the **Standard** sign-in tab
   is removed and an [external authentication provider](../auth/index.md)
   must be used.
-- **Git over HTTP(S)**: When this feature is disabled, a [personal access token](../../user/profile/personal_access_tokens.md)
+- **Git over HTTP(S)**: When this feature is disabled, a [Personal Access Token](../../user/profile/personal_access_tokens.md)
   or LDAP password must be used to authenticate.
 
 In the event of an external authentication provider outage, use the [GitLab Rails console](../operations/rails_console.md) to [re-enable the standard web sign-in form](#re-enable-standard-web-sign-in-form-in-rails-console). This configuration can also be changed over the [Application settings REST API](../../api/settings.md#change-application-settings) while authenticating with an administrator account's personal access token.
 
 ## Admin Mode
+
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/2158) in GitLab 13.10.
 
 If you're an administrator, you might want to work in GitLab without administrator access.
 You could either create a separate user account that does not have
@@ -47,7 +49,7 @@ When Admin Mode is enabled, it applies to all administrators on the instance.
 When Admin Mode is enabled for an instance, administrators:
 
 - Are allowed to access group and projects for which they are members.
-- Cannot access the **Admin area**.
+- Cannot access the **Admin Area**.
 
 ### Enable Admin Mode for your instance
 
@@ -77,7 +79,7 @@ Open the [Rails console](../operations/rails_console.md) and run the following:
 
 To enable Admin Mode through the UI:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General**.
 1. Expand **Sign-in restrictions**.
 1. Select **Enable Admin Mode**.
@@ -104,8 +106,6 @@ authentication are supported by Admin Mode. Admin Mode status is stored in the c
 ### Check if your session has Admin Mode enabled
 
 - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/438674) in GitLab 16.10 [with a flag](../../administration/feature_flags.md) named `show_admin_mode_within_active_sessions`. Disabled by default.
-- [Enabled on GitLab.com](https://gitlab.com/gitlab-org/gitlab/-/issues/444188) in GitLab 16.10.
-- [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/438674) in GitLab 17.0. Feature flag `show_admin_mode_within_active_sessions` removed.
 
 Go to your list of active sessions:
 
@@ -113,7 +113,7 @@ Go to your list of active sessions:
 1. Select **Edit profile**.
 1. On the left sidebar, select **Active Sessions**.
 
-Sessions which have Admin Mode turned on display the text **Signed in on `date of session` with Admin Mode**.
+Sessions which have Admin Mode turned on display the text **Signed in on <date of session> with Admin Mode**.
 
 ### Turn off Admin Mode for your session
 
@@ -128,7 +128,7 @@ Admin Mode times out after six hours, and you cannot change this timeout limit.
 
 The following access methods are **not** protected by Admin Mode:
 
-- Git client access (SSH using public keys or HTTPS using Personal access tokens).
+- Git client access (SSH using public keys or HTTPS using Personal Access Tokens).
 
 In other words, administrators who are otherwise limited by Admin Mode can still use
 Git clients without additional authentication steps.
@@ -171,6 +171,8 @@ period in hours.
 
 ## Email notification for unknown sign-ins
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/218457) in GitLab 13.2.
+
 When enabled, GitLab notifies users of sign-ins from unknown IP addresses or devices. For more information,
 see [Email notification for unknown sign-ins](../../user/profile/notifications.md#notifications-for-unknown-sign-ins).
 
@@ -178,15 +180,29 @@ see [Email notification for unknown sign-ins](../../user/profile/notifications.m
 
 ## Sign-in information
 
-> - **Sign-in text** setting [deprecated](https://gitlab.com/gitlab-org/gitlab/-/issues/410885) in GitLab 17.0.
-
 All users that are not logged in are redirected to the page represented by the configured
 **Home page URL** if value is not empty.
 
 All users are redirected to the page represented by the configured **Sign-out page URL**
 after sign out if value is not empty.
 
-To add a help message to the sign-in page, [customize your sign-in and register pages](../appearance.md#customize-your-sign-in-and-register-pages).
+In the **Sign-in restrictions** section, scroll to the **Sign-in text** field. You can add a
+custom message for your users in Markdown format.
+
+For example, if you include the following information in the noted text box:
+
+```markdown
+# Custom sign-in text
+
+To access this text box:
+
+1. On the left sidebar, at the bottom, select **Admin Area**.
+1. Select **Settings > General**.
+1. Expand the **Sign-in restrictions** section.
+```
+
+Your users see the **Custom sign-in text** when they go to the sign-in screen for your
+GitLab instance.
 
 ## Troubleshooting
 

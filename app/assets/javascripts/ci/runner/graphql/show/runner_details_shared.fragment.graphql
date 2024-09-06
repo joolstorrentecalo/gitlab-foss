@@ -19,6 +19,7 @@ fragment RunnerDetailsShared on CiRunner {
   status
   contactedAt
   tokenExpiresAt
+  version
   editAdminUrl
   managers {
     count

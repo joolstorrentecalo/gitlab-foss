@@ -1,8 +1,8 @@
 <script>
-import { GlButton, GlDisclosureDropdownItem, GlLoadingIcon, GlModal, GlLink } from '@gitlab/ui';
+import { GlButton, GlDisclosureDropdownItem, GlLoadingIcon } from '@gitlab/ui';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import Tracking from '~/tracking';
-import { __, s__ } from '~/locale';
+import { __ } from '~/locale';
 import {
   sprintfWorkItem,
   I18N_WORK_ITEM_ERROR_UPDATING,
@@ -10,21 +10,14 @@ import {
   STATE_EVENT_CLOSE,
   STATE_EVENT_REOPEN,
   TRACKING_CATEGORY_SHOW,
-  LINKED_CATEGORIES_MAP,
-  i18n,
 } from '../constants';
-import { findLinkedItemsWidget } from '../utils';
 import updateWorkItemMutation from '../graphql/update_work_item.mutation.graphql';
-import workItemByIidQuery from '../graphql/work_item_by_iid.query.graphql';
-import workItemLinkedItemsQuery from '../graphql/work_item_linked_items.query.graphql';
 
 export default {
   components: {
     GlButton,
     GlDisclosureDropdownItem,
     GlLoadingIcon,
-    GlModal,
-    GlLink,
   },
   mixins: [Tracking.mixin()],
   props: {
@@ -36,15 +29,7 @@ export default {
       type: String,
       required: true,
     },
-    workItemIid: {
-      type: String,
-      required: true,
-    },
     workItemType: {
-      type: String,
-      required: true,
-    },
-    fullPath: {
       type: String,
       required: true,
     },
@@ -62,57 +47,7 @@ export default {
   data() {
     return {
       updateInProgress: false,
-      blockerItems: [],
     };
-  },
-  apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
-    workItem: {
-      query: workItemByIidQuery,
-      variables() {
-        return {
-          fullPath: this.fullPath,
-          iid: this.workItemIid,
-        };
-      },
-      update(data) {
-        return data.workspace.workItem ?? {};
-      },
-      skip() {
-        return !this.workItemIid;
-      },
-      error(e) {
-        const msg = e.message || i18n.fetchError;
-        this.$emit('error', msg);
-        Sentry.captureException(new Error(msg));
-      },
-    },
-    blockerItems: {
-      query: workItemLinkedItemsQuery,
-      variables() {
-        return {
-          fullPath: this.fullPath,
-          iid: this.workItemIid,
-        };
-      },
-      skip() {
-        return !this.workItemIid;
-      },
-      update({ workspace }) {
-        if (!workspace?.workItem) return [];
-
-        const linkedWorkItems = findLinkedItemsWidget(workspace.workItem).linkedItems?.nodes || [];
-
-        return linkedWorkItems.filter((item) => {
-          return item.linkType === LINKED_CATEGORIES_MAP.IS_BLOCKED_BY;
-        });
-      },
-      error(e) {
-        const msg = e.message || i18n.fetchError;
-        this.$emit('error', msg);
-        Sentry.captureException(new Error(msg));
-      },
-    },
   },
   computed: {
     isWorkItemOpen() {
@@ -120,13 +55,13 @@ export default {
     },
     toggleWorkItemStateText() {
       let baseText = this.isWorkItemOpen
-        ? s__('WorkItem|Close %{workItemType}')
-        : s__('WorkItem|Reopen %{workItemType}');
+        ? __('Close %{workItemType}')
+        : __('Reopen %{workItemType}');
 
       if (this.hasComment) {
         baseText = this.isWorkItemOpen
-          ? s__('WorkItem|Comment & close %{workItemType}')
-          : s__('WorkItem|Comment & reopen %{workItemType}');
+          ? __('Comment & close %{workItemType}')
+          : __('Comment & reopen %{workItemType}');
       }
       return sprintfWorkItem(baseText, this.workItemType);
     },
@@ -139,40 +74,9 @@ export default {
     },
     toggleInProgressText() {
       const baseText = this.isWorkItemOpen
-        ? s__('WorkItem|Closing %{workItemType}')
-        : s__('WorkItem|Reopening %{workItemType}');
+        ? __('Closing %{workItemType}')
+        : __('Reopening %{workItemType}');
       return sprintfWorkItem(baseText, this.workItemType);
-    },
-    isBlocked() {
-      return this.blockerItems.length > 0;
-    },
-    action() {
-      if (this.isBlocked && this.isWorkItemOpen) {
-        return () => this.$refs.blockedByIssuesModal.show();
-      }
-      return this.updateWorkItem;
-    },
-    modalTitle() {
-      return sprintfWorkItem(
-        s__('WorkItem|Are you sure you want to close this blocked %{workItemType}?'),
-        this.workItemType,
-      );
-    },
-    modalBody() {
-      return sprintfWorkItem(
-        s__('WorkItem|This %{workItemType} is currently blocked by the following items:'),
-        this.workItemType,
-      );
-    },
-    modalActionCancel() {
-      return {
-        text: __('Cancel'),
-      };
-    },
-    modalActionPrimary() {
-      return {
-        text: sprintfWorkItem(s__('WorkItem|Yes, close %{workItemType}'), this.workItemType),
-      };
     },
   },
   methods: {
@@ -206,7 +110,6 @@ export default {
       if (this.hasComment) {
         this.$emit('submit-comment');
       }
-      this.$emit('workItemStateUpdated');
 
       this.updateInProgress = false;
     },
@@ -215,37 +118,18 @@ export default {
 </script>
 
 <template>
-  <span>
-    <gl-disclosure-dropdown-item v-if="showAsDropdownItem" @action="action">
-      <template #list-item>
-        <template v-if="updateInProgress">
-          <gl-loading-icon inline size="sm" />
-          {{ toggleInProgressText }}
-        </template>
-        <template v-else>
-          {{ toggleWorkItemStateText }}
-        </template>
+  <gl-disclosure-dropdown-item v-if="showAsDropdownItem" @action="updateWorkItem">
+    <template #list-item>
+      <template v-if="updateInProgress">
+        <gl-loading-icon inline size="sm" />
+        {{ toggleInProgressText }}
       </template>
-    </gl-disclosure-dropdown-item>
-
-    <gl-button v-else :loading="updateInProgress" @click="action">{{
-      toggleWorkItemStateText
-    }}</gl-button>
-
-    <gl-modal
-      ref="blockedByIssuesModal"
-      modal-id="blocked-by-issues-modal"
-      :action-cancel="modalActionCancel"
-      :action-primary="modalActionPrimary"
-      :title="modalTitle"
-      @primary="updateWorkItem"
-    >
-      <p>{{ modalBody }}</p>
-      <ul>
-        <li v-for="issue in blockerItems" :key="issue.workItem.iid">
-          <gl-link :href="issue.workItem.webUrl">#{{ issue.workItem.iid }}</gl-link>
-        </li>
-      </ul>
-    </gl-modal>
-  </span>
+      <template v-else>
+        {{ toggleWorkItemStateText }}
+      </template>
+    </template>
+  </gl-disclosure-dropdown-item>
+  <gl-button v-else :loading="updateInProgress" @click="updateWorkItem">{{
+    toggleWorkItemStateText
+  }}</gl-button>
 </template>

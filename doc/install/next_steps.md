@@ -17,23 +17,18 @@ installation.
 
 - [SMTP](https://docs.gitlab.com/omnibus/settings/smtp.html): Configure SMTP
   for proper email notifications support.
-- [Incoming email](../administration/incoming_email.md): Configure incoming email
-  so that users can use email to reply to comments, create new issues and merge requests, etc.
 
-## CI/CD (Runner)
+## CI/CD
 
 - [Set up runners](https://docs.gitlab.com/runner/): Set up one or more
   runners, the agents that are responsible for running CI/CD jobs.
-
-## Container Registry
-
-- [Container Registry](../administration/packages/container_registry.md): Integrated container registry to store container images for each GitLab project.
+- [GitLab Pages](../administration/pages/index.md): Configure GitLab Pages to
+  allow hosting of static sites.
+- [GitLab Registry](../administration/packages/container_registry.md): Set up the
+  GitLab container registry so every project can have its own space to store Docker
+  images.
 - [GitLab Dependency Proxy](../administration/packages/dependency_proxy.md): Set up the dependency
   proxy so you can cache container images from Docker Hub for faster, more reliable builds.
-
-## Pages
-
-- [GitLab Pages](../user/project/pages/index.md): Publish static websites directly from a repository in GitLab
 
 ## Security
 
@@ -54,7 +49,8 @@ installation.
 - [Upgrade GitLab](../update/index.md): Every month, a new feature-rich GitLab version
   is released. Learn how to upgrade to it, or to an interim release that contains a security fix.
 - [Release and maintenance policy](../policy/maintenance.md): Learn about GitLab
-  policies governing version naming, as well as release pace for major, minor and patch releases.
+  policies governing version naming, as well as release pace for major, minor, patch,
+  and security releases.
 
 ## License
 

@@ -6,17 +6,14 @@ import UserCalloutDismisser from '~/vue_shared/components/user_callout_dismisser
 import SectionLayout from '~/vue_shared/security_configuration/components/section_layout.vue';
 import SafeHtml from '~/vue_shared/directives/safe_html';
 import { SERVICE_PING_SECURITY_CONFIGURATION_THREAT_MANAGEMENT_VISIT } from '~/tracking/constants';
-import { REPORT_TYPE_CONTAINER_SCANNING_FOR_REGISTRY } from '~/vue_shared/security_reports/constants';
 import {
   AUTO_DEVOPS_ENABLED_ALERT_DISMISSED_STORAGE_KEY,
   TAB_VULNERABILITY_MANAGEMENT_INDEX,
   i18n,
-  PRE_RECEIVE_SECRET_DETECTION,
 } from '../constants';
 import AutoDevOpsAlert from './auto_dev_ops_alert.vue';
 import AutoDevOpsEnabledAlert from './auto_dev_ops_enabled_alert.vue';
 import FeatureCard from './feature_card.vue';
-import PreReceiveSecretDetectionFeatureCard from './pre_receive_secret_detection_feature_card.vue';
 import TrainingProviderList from './training_provider_list.vue';
 
 export default {
@@ -25,7 +22,6 @@ export default {
     AutoDevOpsAlert,
     AutoDevOpsEnabledAlert,
     FeatureCard,
-    PreReceiveSecretDetectionFeatureCard,
     GlAlert,
     GlLink,
     GlSprintf,
@@ -37,10 +33,6 @@ export default {
       import('ee_component/security_configuration/components/upgrade_banner.vue'),
     UserCalloutDismisser,
     TrainingProviderList,
-    ContainerScanningForRegistryFeatureCard: () =>
-      import(
-        'ee_component/security_configuration/components/container_scanning_for_registry_feature_card.vue'
-      ),
   },
   directives: { SafeHtml },
   inject: ['projectFullPath', 'vulnerabilityTrainingDocsPath'],
@@ -103,15 +95,6 @@ export default {
     },
   },
   methods: {
-    getComponentName(feature) {
-      if (feature.type === PRE_RECEIVE_SECRET_DETECTION) {
-        return 'pre-receive-secret-detection-feature-card';
-      }
-      if (feature.type === REPORT_TYPE_CONTAINER_SCANNING_FOR_REGISTRY) {
-        return 'container-scanning-for-registry-feature-card';
-      }
-      return 'feature-card';
-    },
     dismissAutoDevopsEnabledAlert() {
       const dismissedProjects = new Set(this.autoDevopsEnabledAlertDismissedProjects);
       dismissedProjects.add(this.projectFullPath);
@@ -138,7 +121,7 @@ export default {
     <gl-alert
       v-if="errorMessage"
       sticky
-      class="gl-top-8 gl-z-1"
+      class="gl-top-8 gl-z-index-1"
       data-testid="manage-via-mr-error-alert"
       variant="danger"
       @dismiss="dismissAlert"
@@ -159,7 +142,7 @@ export default {
       </template>
     </user-callout-dismisser>
     <header>
-      <h1 class="gl-text-size-h1">{{ $options.i18n.securityConfiguration }}</h1>
+      <h1 class="gl-font-size-h1">{{ $options.i18n.securityConfiguration }}</h1>
     </header>
     <user-callout-dismisser v-if="canUpgrade" feature-name="security_configuration_upgrade_banner">
       <template #default="{ dismiss, shouldShowCallout }">
@@ -209,8 +192,7 @@ export default {
           </template>
 
           <template #features>
-            <component
-              :is="getComponentName(feature)"
+            <feature-card
               v-for="feature in augmentedSecurityFeatures"
               :id="feature.anchor"
               :key="feature.type"

@@ -7,8 +7,7 @@ module Backup
     class Database < Target
       extend ::Gitlab::Utils::Override
       include Backup::Helper
-
-      attr_reader :force, :errors, :logger
+      attr_reader :force, :errors
 
       IGNORED_ERRORS = [
         # Ignore warnings
@@ -25,7 +24,6 @@ module Backup
 
         @errors = []
         @force = options.force?
-        @logger = Gitlab::BackupLogger.new(progress)
       end
 
       override :dump
@@ -41,7 +39,7 @@ module Backup
           dump_file_name = file_name(destination_dir, backup_connection.connection_name)
           FileUtils.rm_f(dump_file_name)
 
-          logger.info "Dumping PostgreSQL database #{pg_database_name} ... "
+          progress.print "Dumping PostgreSQL database #{pg_database_name} ... "
 
           schemas = []
 
@@ -63,7 +61,8 @@ module Backup
           raise DatabaseBackupError.new(active_record_config, dump_file_name) unless success
 
           report_success(success)
-          logger.flush
+
+          progress.flush
         end
       ensure
         if multiple_databases?
@@ -97,12 +96,12 @@ module Backup
           unless File.exist?(db_file_name)
             raise(Backup::Error, "Source database file does not exist #{db_file_name}") if main_database?(database_name)
 
-            logger.info "Source backup for the database #{database_name} doesn't exist. Skipping the task"
+            progress.puts "Source backup for the database #{database_name} doesn't exist. Skipping the task"
             return false
           end
 
           unless force
-            logger.info 'Removing all tables. Press `Ctrl-C` within 5 seconds to abort'
+            progress.puts 'Removing all tables. Press `Ctrl-C` within 5 seconds to abort'.color(:yellow)
             sleep(5)
           end
 
@@ -120,7 +119,7 @@ module Backup
             status, tracked_errors =
               case config[:adapter]
               when "postgresql" then
-                logger.info "Restoring PostgreSQL database #{database} ... "
+                progress.print "Restoring PostgreSQL database #{database} ... "
                 execute_and_track_errors(pg_restore_cmd(database), decompress_rd)
               end
             decompress_rd.close
@@ -130,9 +129,9 @@ module Backup
           end
 
           unless tracked_errors.empty?
-            logger.error "------ BEGIN ERRORS -----\n"
-            logger.error tracked_errors.join
-            logger.error "------ END ERRORS -------\n"
+            progress.print "------ BEGIN ERRORS -----\n".color(:yellow)
+            progress.print tracked_errors.join.color(:yellow)
+            progress.print "------ END ERRORS -------\n".color(:yellow)
 
             @errors += tracked_errors
           end
@@ -192,13 +191,17 @@ module Backup
       end
 
       def report_success(success)
-        success ? logger.info('[DONE]') : logger.error('[FAILED]')
+        if success
+          progress.puts '[DONE]'.color(:green)
+        else
+          progress.puts '[FAILED]'.color(:red)
+        end
       end
 
       private
 
       def drop_tables(database_name)
-        logger.info 'Cleaning the database ... '
+        puts_time 'Cleaning the database ... '.color(:blue)
 
         if Rake::Task.task_defined? "gitlab:db:drop_tables:#{database_name}"
           Rake::Task["gitlab:db:drop_tables:#{database_name}"].invoke
@@ -207,7 +210,7 @@ module Backup
           Rake::Task["gitlab:db:drop_tables"].invoke
         end
 
-        logger.info 'done'
+        puts_time 'done'.color(:green)
       end
 
       # @deprecated This will be removed when restore operation is refactored to use extended_env directly

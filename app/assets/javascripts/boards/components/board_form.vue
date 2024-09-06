@@ -1,5 +1,5 @@
 <script>
-import { GlForm, GlModal, GlAlert, GlButton } from '@gitlab/ui';
+import { GlModal, GlAlert } from '@gitlab/ui';
 import { visitUrl } from '~/lib/utils/url_utility';
 import { __, s__ } from '~/locale';
 import { formType } from '../constants';
@@ -27,25 +27,22 @@ const boardDefaults = {
 
 export default {
   i18n: {
-    [formType.new]: { title: s__('Boards|Create new board'), btnText: s__('Boards|Create board') },
-    [formType.delete]: { title: s__('Boards|Delete board'), btnText: __('Delete') },
-    [formType.edit]: { title: s__('Boards|Configure board'), btnText: __('Save changes') },
-    scopeModalTitle: s__('Boards|Board configuration'),
+    [formType.new]: { title: s__('Board|Create new board'), btnText: s__('Board|Create board') },
+    [formType.delete]: { title: s__('Board|Delete board'), btnText: __('Delete') },
+    [formType.edit]: { title: s__('Board|Edit board'), btnText: __('Save changes') },
+    scopeModalTitle: s__('Board|Board scope'),
     cancelButtonText: __('Cancel'),
-    deleteButtonText: s__('Boards|Delete board'),
-    deleteErrorMessage: s__('Boards|Failed to delete board. Please try again.'),
+    deleteErrorMessage: s__('Board|Failed to delete board. Please try again.'),
     saveErrorMessage: __('Unable to save your changes. Please try again.'),
-    deleteConfirmationMessage: s__('Boards|Are you sure you want to delete this board?'),
+    deleteConfirmationMessage: s__('Board|Are you sure you want to delete this board?'),
     titleFieldLabel: __('Title'),
-    titleFieldPlaceholder: s__('Boards|Enter board name'),
+    titleFieldPlaceholder: s__('Board|Enter board name'),
   },
   components: {
     BoardScope: () => import('ee_component/boards/components/board_scope.vue'),
     GlModal,
-    GlButton,
     BoardConfigurationOptions,
     GlAlert,
-    GlForm,
   },
   inject: {
     fullPath: {
@@ -84,11 +81,6 @@ export default {
       type: String,
       required: true,
     },
-    showDelete: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
   },
   data() {
     return {
@@ -97,7 +89,6 @@ export default {
     };
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     error: {
       query: errorQuery,
       update: (data) => data.boardsAppError,
@@ -178,16 +169,12 @@ export default {
     mutationVariables() {
       return this.baseMutationVariables;
     },
-    canDelete() {
-      return this.canAdminBoard && this.showDelete && this.isEditForm;
-    },
   },
   mounted() {
     this.resetFormState();
     if (this.$refs.name) {
       this.$refs.name.focus();
     }
-    this.$emit('shown');
   },
   methods: {
     setError,
@@ -208,9 +195,6 @@ export default {
       }
 
       return response.data.updateBoard.board;
-    },
-    openDeleteModal() {
-      this.$emit('showBoardModal', this.$options.formType.delete);
     },
     async deleteBoard() {
       await this.$apollo.mutate({
@@ -259,40 +243,27 @@ export default {
     setIteration(iteration) {
       this.board.iterationCadenceId = iteration.iterationCadenceId;
 
-      this.board = {
-        ...this.board,
-        iteration: {
-          id: iteration.id,
-        },
-      };
+      this.$set(this.board, 'iteration', {
+        id: iteration.id,
+      });
     },
     setBoardLabels(labels) {
       this.board.labels = labels;
     },
     setAssignee(assigneeId) {
-      this.board = {
-        ...this.board,
-        assignee: {
-          id: assigneeId,
-        },
-      };
+      this.$set(this.board, 'assignee', {
+        id: assigneeId,
+      });
     },
     setMilestone(milestoneId) {
-      this.board = {
-        ...this.board,
-        milestone: {
-          id: milestoneId,
-        },
-      };
+      this.$set(this.board, 'milestone', {
+        id: milestoneId,
+      });
     },
     setWeight(weight) {
-      this.board = {
-        ...this.board,
-        weight,
-      };
+      this.$set(this.board, 'weight', weight);
     },
   },
-  formType,
 };
 </script>
 
@@ -324,9 +295,9 @@ export default {
     <p v-if="isDeleteForm" data-testid="delete-confirmation-message">
       {{ $options.i18n.deleteConfirmationMessage }}
     </p>
-    <gl-form v-else data-testid="board-form-wrapper" @submit.prevent="submit">
+    <form v-else data-testid="board-form-wrapper" @submit.prevent>
       <div v-if="!readonly" class="gl-mb-5" data-testid="board-form">
-        <label class="gl-text-lg gl-font-bold" for="board-new-name">
+        <label class="gl-font-weight-bold gl-font-lg" for="board-new-name">
           {{ $options.i18n.titleFieldLabel }}
         </label>
         <input
@@ -337,6 +308,7 @@ export default {
           data-testid="board-name-field"
           type="text"
           :placeholder="$options.i18n.titleFieldPlaceholder"
+          @keyup.enter="submit"
         />
       </div>
 
@@ -358,24 +330,6 @@ export default {
         @set-milestone="setMilestone"
         @set-weight="setWeight"
       />
-    </gl-form>
-    <template v-if="canDelete" #modal-footer>
-      <div class="gl-m-0 gl-flex gl-w-full gl-justify-between">
-        <gl-button
-          category="secondary"
-          variant="danger"
-          data-testid="delete-board-button"
-          @click="openDeleteModal"
-        >
-          {{ $options.i18n.deleteButtonText }}</gl-button
-        >
-        <div>
-          <gl-button @click="cancel">{{ cancelProps.text }}</gl-button>
-          <gl-button v-bind="primaryProps.attributes" @click="submit">{{
-            primaryProps.text
-          }}</gl-button>
-        </div>
-      </div>
-    </template>
+    </form>
   </gl-modal>
 </template>

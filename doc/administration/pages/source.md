@@ -428,6 +428,7 @@ Each request to view a resource in a private site is authenticated by Pages
 using that token. For each request it receives, it makes a request to the GitLab
 API to check that the user is authorized to read that site.
 
+From [GitLab 12.8](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/3689) onward,
 Access Control parameters for Pages are set in a configuration file, which
 by convention is named `gitlab-pages-config`. The configuration file is passed to
 pages using the `-config flag` or `CONFIG` environment variable.
@@ -482,7 +483,7 @@ The default for the maximum size of unpacked archives per project is 100 MB.
 
 To change this value:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > Preferences**.
 1. Expand **Pages**.
 1. Update the value for **Maximum size of pages (MB)**.

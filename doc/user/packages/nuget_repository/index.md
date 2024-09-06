@@ -10,6 +10,10 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/20050) in GitLab 12.8.
+> - [Moved](https://gitlab.com/gitlab-org/gitlab/-/issues/221259) from GitLab Premium to GitLab Free in 13.3.
+> - Symbol package support [added](https://gitlab.com/gitlab-org/gitlab/-/issues/262081) in GitLab 14.1.
+
 Publish NuGet packages in your project's package registry. Then, install the
 packages whenever you need to use them as a dependency.
 
@@ -25,6 +29,8 @@ clients use, see the [NuGet API documentation](../../../api/packages/nuget.md).
 Learn how to [install NuGet](../workflows/build_packages.md#nuget).
 
 ## Use the GitLab endpoint for NuGet Packages
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/36423) group-level endpoint in GitLab 13.8.
 
 To use the GitLab endpoint for NuGet Packages, choose an option:
 
@@ -52,15 +58,14 @@ Prerequisites:
 
 - Your GitLab username.
 - A personal access token or deploy token. For repository authentication:
-  - You can generate a [personal access token](../../../user/profile/personal_access_tokens.md).
-    - To install packages from the repository, the scope of the token must include `read_api` or `api`.
-    - To publish packages to the repository, the scope of the token must include `api`.
-  - You can generate a [deploy token](../../project/deploy_tokens/index.md).
-    - To install packages from the repository, the scope of the token must include `read_package_registry`.
-    - To publish packages to the repository, the scope of the token must include `write_package_registry`.
+  - You can generate a [personal access token](../../../user/profile/personal_access_tokens.md)
+    with the scope set to `api`.
+  - You can generate a [deploy token](../../project/deploy_tokens/index.md)
+    with the scope set to `read_package_registry`, `write_package_registry`, or
+    both.
 - A name for your source.
 - Depending on the [endpoint level](#use-the-gitlab-endpoint-for-nuget-packages) you use, either:
-  - Your project ID, which is found on your [project overview page](../../project/working_with_projects.md#access-a-project-by-using-the-project-id).
+  - Your project ID, which is found on your [project overview page](../../project/working_with_projects.md#access-the-project-overview-page-by-using-the-project-id).
   - Your group ID, which is found on your group's home page.
 
 You can now add a new source to NuGet with:
@@ -371,6 +376,8 @@ dotnet nuget push MyPackage.1.0.0.nupkg --source https://gitlab.example.com/api/
 
 ### Publish a NuGet package by using CI/CD
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/36424) in GitLab 13.3.
+
 If you're using NuGet with GitLab CI/CD, a CI job token can be used instead of a
 personal access token or deploy token. The token inherits the permissions of the
 user that generates the pipeline.
@@ -433,7 +440,6 @@ the existing package is overwritten.
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/293748) in GitLab 16.3 [with a flag](../../../administration/feature_flags.md) named `nuget_duplicates_option`. Disabled by default.
 > - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/419078) in GitLab 16.6. Feature flag `nuget_duplicates_option` removed.
-> - Required role [changed](https://gitlab.com/gitlab-org/gitlab/-/issues/370471) from Maintainer to Owner in GitLab 17.0.
 
 To prevent users from publishing duplicate NuGet packages, you can use the [GraphQl API](../../../api/graphql/reference/index.md#packagesettings) or the UI.
 
@@ -576,6 +582,8 @@ nuget delete MyPackage 1.0.0 -Source gitlab -ApiKey <gitlab_personal_access_toke
 
 ## Symbol packages
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/262081) in GitLab 14.1.
+
 If you push a `.nupkg`, symbol package files in the `.snupkg` format are uploaded automatically. You
 can also push them manually:
 
@@ -669,10 +677,6 @@ cache with this command:
 nuget locals all -clear
 ```
 
-### Errors when trying to publish NuGet packages in a Docker-based GitLab installation
+### `Error publishing` or `Invalid Package: Failed metadata extraction error` messages when trying to publish NuGet packages in a Docker-based GitLab installation
 
-Webhook requests to local network addresses are blocked to prevent exploitation of
-internal web services. If you get `Error publishing` or
-`Invalid Package: Failed metadata extraction error` messages
-when you try to publish NuGet packages, change your network settings to
-[allow webhook and integration requests to the local network](../../../security/webhooks.md#allow-requests-to-the-local-network-from-webhooks-and-integrations).
+Webhook requests to local network addresses are blocked to prevent exploitation of internal web services. If you get `Error publishing` or `Invalid Package` messages when you try to publish NuGet packages, change your network settings to [allow webhook and integration requests to the local network](../../../security/webhooks.md#allow-requests-to-the-local-network-from-webhooks-and-integrations).

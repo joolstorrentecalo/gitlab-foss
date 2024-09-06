@@ -6,10 +6,15 @@ RSpec.describe 'User uses header search field', :js, :disable_rate_limiter, feat
   include FilteredSearchHelpers
 
   let_it_be(:project) { create(:project, :repository) }
-  let_it_be(:reporter) { create(:user, reporter_of: project) }
-  let_it_be(:developer) { create(:user, developer_of: project) }
+  let_it_be(:reporter) { create(:user) }
+  let_it_be(:developer) { create(:user) }
 
   let(:user) { reporter }
+
+  before_all do
+    project.add_reporter(reporter)
+    project.add_developer(developer)
+  end
 
   before do
     sign_in(user)
@@ -27,7 +32,7 @@ RSpec.describe 'User uses header search field', :js, :disable_rate_limiter, feat
       end
 
       it 'renders breadcrumbs' do
-        within_testid('breadcrumb-links') do
+        page.within('.breadcrumbs') do
           expect(page).to have_content('Search')
         end
       end

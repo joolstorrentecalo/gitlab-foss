@@ -91,22 +91,38 @@ RSpec.describe Projects::DeploymentsController do
       get :show, params: deployment_params(id: deployment.iid)
     end
 
-    context 'as maintainer' do
-      it 'renders show with 200 status code' do
-        is_expected.to have_gitlab_http_status(:ok)
-        is_expected.to render_template(:show)
-      end
-    end
-
-    context 'as anonymous user' do
-      let(:anonymous_user) { create(:user) }
-
+    context 'without feature flag' do
       before do
-        sign_in(anonymous_user)
+        stub_feature_flags(deployment_details_page: false)
       end
 
       it 'renders a 404' do
         is_expected.to have_gitlab_http_status(:not_found)
+      end
+    end
+
+    context 'with feature flag' do
+      before do
+        stub_feature_flags(deployment_details_page: true)
+      end
+
+      context 'as maintainer' do
+        it 'renders show with 200 status code' do
+          is_expected.to have_gitlab_http_status(:ok)
+          is_expected.to render_template(:show)
+        end
+      end
+
+      context 'as anonymous user' do
+        let(:anonymous_user) { create(:user) }
+
+        before do
+          sign_in(anonymous_user)
+        end
+
+        it 'renders a 404' do
+          is_expected.to have_gitlab_http_status(:not_found)
+        end
       end
     end
   end

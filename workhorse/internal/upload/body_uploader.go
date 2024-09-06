@@ -1,4 +1,3 @@
-// Package upload provides middleware for handling request bodies and uploading them to a destination.
 package upload
 
 import (

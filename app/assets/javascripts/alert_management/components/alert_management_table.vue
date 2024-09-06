@@ -53,7 +53,7 @@ export default {
       key: 'severity',
       label: s__('AlertManagement|Severity'),
       variant: 'secondary',
-      thClass: `gl-w-1/8`,
+      thClass: `gl-w-eighth`,
       thAttr: TH_TEST_ID,
       tdClass: `${tdClass} rounded-top text-capitalize sortable-cell`,
       sortable: true,
@@ -62,7 +62,7 @@ export default {
       key: 'startedAt',
       label: s__('AlertManagement|Start time'),
       variant: 'secondary',
-      thClass: `js-started-at gl-w-3/20`,
+      thClass: `js-started-at w-15p`,
       tdClass: `${tdClass} sortable-cell`,
       sortable: true,
     },
@@ -82,20 +82,20 @@ export default {
     {
       key: 'issue',
       label: s__('AlertManagement|Incident'),
-      thClass: 'gl-w-3/20 gl-pointer-events-none',
+      thClass: 'gl-w-15p gl-pointer-events-none',
       tdClass,
     },
     {
       key: 'assignees',
       label: s__('AlertManagement|Assignees'),
-      thClass: 'gl-w-1/8 gl-pointer-events-none',
+      thClass: 'gl-w-eighth gl-pointer-events-none',
       tdClass,
     },
     {
       key: 'status',
       label: s__('AlertManagement|Status'),
       variant: 'secondary',
-      thClass: `gl-w-3/20`,
+      thClass: `w-15p`,
       tdClass: `${tdClass} rounded-bottom sortable-cell`,
       sortable: true,
     },
@@ -281,7 +281,7 @@ export default {
     <gl-alert v-if="showNoAlertsMsg" @dismiss="errorAlertDismissed">
       <gl-sprintf :message="$options.i18n.noAlertsMsg">
         <template #link="{ content }">
-          <gl-link class="gl-inline-block" :href="populatingAlertsHelpUrl" target="_blank">
+          <gl-link class="gl-display-inline-block" :href="populatingAlertsHelpUrl" target="_blank">
             {{ content }}
           </gl-link>
         </template>
@@ -340,7 +340,7 @@ export default {
         >
           <template #cell(severity)="{ item }">
             <div
-              class="justify-content-between gl-inline-flex gl-items-center"
+              class="d-inline-flex gl-align-items-center justify-content-between"
               data-testid="severityField"
             >
               <gl-icon
@@ -363,7 +363,7 @@ export default {
 
           <template #cell(alertLabel)="{ item }">
             <div
-              class="text-truncate gl-max-w-full"
+              class="gl-max-w-full text-truncate"
               :title="`${item.iid} - ${item.title}`"
               data-testid="idField"
             >

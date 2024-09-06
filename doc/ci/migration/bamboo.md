@@ -1,6 +1,6 @@
 ---
 stage: Verify
-group: Pipeline Execution
+group: Pipeline Authoring
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
@@ -39,7 +39,7 @@ single-tenant SaaS service.
 
 ### Agents vs Runners
 
-Bamboo uses [agents](https://confluence.atlassian.com/bamboo/configuring-agents-289277172.html)
+Bamboo uses [agents](https://confluence.atlassian.com/confeval/development-tools-evaluator-resources/bamboo/bamboo-remote-agents-and-local-agents)
 to run builds and deployments. Agents can be local agents running on the Bamboo server or
 remote agents running external to the server.
 
@@ -81,7 +81,7 @@ Bamboo Specs can also be [repository-stored](https://confluence.atlassian.com/ba
 
 #### `.gitlab-ci.yml` configuration file
 
-GitLab, by default, uses a `.gitlab-ci.yml` file for CI/CD configuration.
+GitLab, by default, uses a [`.gitlab-ci.yml` file](../index.md#the-gitlab-ciyml-file) for CI/CD configuration.
 Alternatively, [Auto DevOps](../../topics/autodevops/index.md) can automatically build,
 test, and deploy your application without a manually configured `.gitlab-ci.yml` file.
 
@@ -102,11 +102,11 @@ plan:
   key: TP
   name: test plan
 stages:
-  - Default Stage:
-      manual: false
-      final: false
-      jobs:
-        - Default Job
+- Default Stage:
+    manual: false
+    final: false
+    jobs:
+    - Default Job
 Default Job:
   key: JOB1
   tasks:
@@ -116,20 +116,20 @@ Default Job:
   - script:
       interpreter: SHELL
       scripts:
-        - |-
-          ruby -v  # Print out ruby version for debugging
-          bundle config set --local deployment true  # Install dependencies into ./vendor/ruby
-          bundle install -j $(nproc)
-          rubocop
-          rspec spec
+      - |-
+        ruby -v  # Print out ruby version for debugging
+        bundle config set --local deployment true  # Install dependencies into ./vendor/ruby
+        bundle install -j $(nproc)
+        rubocop
+        rspec spec
       description: run bundler
   artifact-subscriptions: []
 repositories:
-  - Demo Project:
-      scope: global
+- Demo Project:
+    scope: global
 triggers:
-  - polling:
-      period: '180'
+- polling:
+    period: '180'
 branches:
   create: manually
   delete: never
@@ -150,20 +150,20 @@ version: 2
 plan:
   key: AB-TP
 plan-permissions:
-  - users:
-    - root
-    permissions:
-    - view
-    - edit
-    - build
-    - clone
-    - admin
-    - view-configuration
-  - roles:
-    - logged-in
-    - anonymous
-    permissions:
-    - view
+- users:
+  - root
+  permissions:
+  - view
+  - edit
+  - build
+  - clone
+  - admin
+  - view-configuration
+- roles:
+  - logged-in
+  - anonymous
+  permissions:
+  - view
 ...
 
 ```
@@ -175,7 +175,7 @@ default:
   image: ruby:latest
 
 stages:
-  - default-stage
+- default-stage
 
 job1:
   stage: default-stage
@@ -334,8 +334,8 @@ based on scope:
 
 - Build-specific variables which are evaluated at build time. For example `${bamboo.planKey}`.
 - System variables inherited from the Bamboo instance or system environment.
-- Global variables defined for the entire instance and accessible to every plan.
-- Project variables specific to a project and accessible by plans in the same project.
+- Global variables defined at the instance level and accessible to every plan.
+- Project variables defined at the project level and accessible by plans in the same project.
 - Plan variables specific to a plan.
 
 You can access variables in Bamboo using the format `${system.variableName}` for System variables
@@ -416,10 +416,10 @@ Default Job:
   - script:
       interpreter: SHELL
       scripts:
-        - |-
-          ruby -v
-          bundle config set --local deployment true
-          bundle install -j $(nproc)
+      - |-
+        ruby -v
+        bundle config set --local deployment true
+        bundle install -j $(nproc)
       description: run bundler
 other:
   concurrent-build-plugin: system-default
@@ -489,8 +489,8 @@ For example, in a Bamboo build plan:
 version: 2
 #...
 triggers:
-  - polling:
-      period: '180'
+- polling:
+    period: '180'
 ```
 
 GitLab CI/CD pipelines can be triggered based on code change, on schedule, or triggered by

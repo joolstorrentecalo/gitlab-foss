@@ -5,11 +5,19 @@ require 'spec_helper'
 RSpec.describe Mutations::Commits::Create do
   include GraphqlHelpers
 
-  subject(:mutation) { described_class.new(object: nil, context: query_context, field: nil) }
+  subject(:mutation) { described_class.new(object: nil, context: context, field: nil) }
 
-  let_it_be(:current_user) { create(:user) }
+  let_it_be(:user) { create(:user) }
   let_it_be(:project) { create(:project, :public, :repository) }
   let_it_be(:group) { create(:group, :public) }
+
+  let(:context) do
+    GraphQL::Query::Context.new(
+      query: query_double(schema: nil), # rubocop:disable RSpec/VerifiedDoubles
+      values: { current_user: user },
+      object: nil
+    )
+  end
 
   specify { expect(described_class).to require_graphql_authorizations(:push_code) }
 
@@ -41,7 +49,7 @@ RSpec.describe Mutations::Commits::Create do
     context 'when user is a direct project member' do
       context 'and user is a guest' do
         before do
-          project.add_guest(current_user)
+          project.add_guest(user)
         end
 
         it 'raises an error' do
@@ -53,7 +61,7 @@ RSpec.describe Mutations::Commits::Create do
         let(:deltas) { mutated_commit.raw_deltas }
 
         before_all do
-          project.add_developer(current_user)
+          project.add_developer(user)
         end
 
         context 'when service successfully creates a new commit' do
@@ -71,8 +79,8 @@ RSpec.describe Mutations::Commits::Create do
             expect(subject[:errors]).to be_empty
 
             expect_to_contain_deltas([
-              a_hash_including(a_mode: '0', b_mode: '100644', new_file: true, new_path: file_path)
-            ])
+                                       a_hash_including(a_mode: '0', b_mode: '100644', new_file: true, new_path: file_path)
+                                     ])
           end
         end
 
@@ -112,13 +120,13 @@ RSpec.describe Mutations::Commits::Create do
             expect(subject[:errors]).to be_empty
 
             expect_to_contain_deltas([
-              a_hash_including(a_mode: '0', b_mode: '100644', new_path: 'foo/foobar'),
+                                       a_hash_including(a_mode: '0', b_mode: '100644', new_path: 'foo/foobar'),
                                        a_hash_including(deleted_file: true, new_path: 'README.md'),
                                        a_hash_including(deleted_file: true, new_path: 'LICENSE'),
                                        a_hash_including(new_file: true, new_path: 'LICENSE.md'),
                                        a_hash_including(new_file: false, new_path: 'VERSION'),
                                        a_hash_including(a_mode: '100644', b_mode: '100755', new_path: 'CHANGELOG')
-            ])
+                                     ])
           end
         end
 
@@ -161,8 +169,8 @@ RSpec.describe Mutations::Commits::Create do
             expect(subject[:content]).to eq(actions.pluck(:content))
 
             expect_to_contain_deltas([
-              a_hash_including(a_mode: '0', b_mode: '100644', new_file: true, new_path: 'ANOTHER_FILE.md')
-            ])
+                                       a_hash_including(a_mode: '0', b_mode: '100644', new_file: true, new_path: 'ANOTHER_FILE.md')
+                                     ])
           end
         end
 
@@ -203,7 +211,7 @@ RSpec.describe Mutations::Commits::Create do
 
         context 'and user is a guest' do
           before do
-            group.add_guest(current_user)
+            group.add_guest(user)
           end
 
           it 'raises an error' do
@@ -217,7 +225,7 @@ RSpec.describe Mutations::Commits::Create do
 
         context 'and user is a guest' do
           before do
-            group.add_guest(current_user)
+            group.add_guest(user)
           end
 
           it 'raises an error' do
@@ -229,7 +237,7 @@ RSpec.describe Mutations::Commits::Create do
 
     context 'when user is a maintainer of a different project' do
       before do
-        create(:project_empty_repo).add_maintainer(current_user)
+        create(:project_empty_repo).add_maintainer(user)
       end
 
       it 'raises an error' do

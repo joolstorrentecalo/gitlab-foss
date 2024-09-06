@@ -366,6 +366,7 @@ export default {
   ci_troubleshooting_docs_path: 'help2',
   merge_request_pipelines_docs_path: '/help/ci/pipelines/merge_request_pipelines.md',
   squash: true,
+  visual_review_app_available: true,
   merge_trains_enabled: true,
   merge_trains_count: 3,
   merge_train_index: 1,
@@ -421,7 +422,6 @@ export const mockStore = {
     ref: {},
   },
   targetBranch: 'target-branch',
-  targetProjectFullPath: '/group2/project2',
   sourceBranch: 'source-branch',
   sourceBranchLink: 'source-branch-link',
   deployments: [
@@ -454,6 +454,7 @@ export const mockStore = {
   targetProjectId: 1,
   iid: 1,
   retargeted: false,
+  detatchedPipeline: 'DETATCHED',
 };
 
 export const mockMergePipeline = {

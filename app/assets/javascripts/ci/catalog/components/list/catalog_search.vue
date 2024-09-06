@@ -1,32 +1,18 @@
 <script>
 import { GlSearchBoxByClick, GlSorting } from '@gitlab/ui';
 import { __ } from '~/locale';
-import {
-  SORT_ASC,
-  SORT_DESC,
-  SORT_OPTION_CREATED,
-  SORT_OPTION_RELEASED,
-  SORT_OPTION_STAR_COUNT,
-  SORT_OPTION_POPULARITY,
-} from '../../constants';
+import { SORT_ASC, SORT_DESC, SORT_OPTION_CREATED, SORT_OPTION_RELEASED } from '../../constants';
 
 export default {
   components: {
     GlSearchBoxByClick,
     GlSorting,
   },
-  props: {
-    initialSearchTerm: {
-      default: '',
-      required: false,
-      type: String,
-    },
-  },
   data() {
     return {
-      currentSortOption: SORT_OPTION_POPULARITY,
+      currentSortOption: SORT_OPTION_RELEASED,
       isAscending: false,
-      searchTerm: this.initialSearchTerm,
+      searchTerm: '',
     };
   },
   computed: {
@@ -63,15 +49,13 @@ export default {
     },
   },
   sortOptions: [
-    { value: SORT_OPTION_POPULARITY, text: __('Popularity') },
     { value: SORT_OPTION_RELEASED, text: __('Released at') },
     { value: SORT_OPTION_CREATED, text: __('Created at') },
-    { value: SORT_OPTION_STAR_COUNT, text: __('Star count') },
   ],
 };
 </script>
 <template>
-  <div class="gl-flex gl-gap-3">
+  <div class="gl-display-flex gl-gap-3">
     <gl-search-box-by-click
       v-model="searchTerm"
       data-testid="catalog-search-bar"

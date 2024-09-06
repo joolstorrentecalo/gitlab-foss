@@ -30,7 +30,7 @@ RSpec.describe API::Helpers::IntegrationsHelpers, feature_category: :integration
   end
 
   describe '.integration_classes' do
-    it 'returns correct integrations', quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/444979' do
+    it 'returns correct integrations' do
       expect(described_class.integration_classes)
         .to match_array(Integration.descendants.without(base_classes, development_classes, instance_level_classes))
     end
@@ -39,19 +39,6 @@ RSpec.describe API::Helpers::IntegrationsHelpers, feature_category: :integration
   describe '.development_integration_classes' do
     it 'returns correct integrations' do
       expect(described_class.development_integration_classes).to eq(development_classes)
-    end
-  end
-
-  describe '.inheritance_field' do
-    it 'returns correct field' do
-      expect(described_class.inheritance_field).to eq(
-        {
-          required: false,
-          name: :use_inherited_settings,
-          type: ::Grape::API::Boolean,
-          desc: 'Indicates whether or not to inherit default settings. Defaults to `false`.'
-        }
-      )
     end
   end
 end

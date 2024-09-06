@@ -17,9 +17,6 @@ module Members
       end
 
       prepare_response(members)
-
-    rescue ActiveRecord::RecordInvalid
-      prepare_response(members)
     end
 
     private
@@ -29,6 +26,8 @@ module Members
       Member.transaction do
         members.filter_map { |member| update_member(member, permission) }
       end
+    rescue ActiveRecord::RecordInvalid
+      []
     end
 
     def update_member(member, permission)
@@ -38,7 +37,6 @@ module Members
       return unless member.changed?
 
       member.expiry_notified_at = nil if member.expires_at_changed?
-
       member.tap(&:save!)
     end
 

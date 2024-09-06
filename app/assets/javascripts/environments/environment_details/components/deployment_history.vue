@@ -4,6 +4,7 @@ import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { logError } from '~/lib/logger';
 import { toggleQueryPollingByVisibility, etagQueryHeaders } from '~/graphql_shared/utils';
 import ConfirmRollbackModal from '~/environments/components/confirm_rollback_modal.vue';
+import glFeatureFlagsMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import environmentDetailsQuery from '../../graphql/queries/environment_details.query.graphql';
 import environmentToRollbackQuery from '../../graphql/queries/environment_to_rollback.query.graphql';
 import { convertToDeploymentTableRow } from '../../helpers/deployment_data_transformation_helper';
@@ -23,6 +24,7 @@ export default {
     EmptyState,
     GlLoadingIcon,
   },
+  mixins: [glFeatureFlagsMixin()],
   inject: { graphqlEtagKey: { default: '' } },
   props: {
     projectFullPath: {
@@ -55,6 +57,7 @@ export default {
           last: this.before ? ENVIRONMENT_DETAILS_PAGE_SIZE : null,
           after: this.after,
           before: this.before,
+          deploymentDetailsEnabled: this.glFeatures.deploymentDetailsPage,
         };
       },
       pollInterval() {
@@ -104,8 +107,12 @@ export default {
 
       try {
         // TLDR: when we load a page, if there's next and/or previous pages existing, we'll load their data as well to improve percepted performance.
-        const { endCursor, hasPreviousPage, hasNextPage, startCursor } =
-          newProject.environment.deployments.pageInfo;
+        const {
+          endCursor,
+          hasPreviousPage,
+          hasNextPage,
+          startCursor,
+        } = newProject.environment.deployments.pageInfo;
 
         // At the moment we have a limit of deployments being requested only from a signle environment entity per query,
         // and apparently two batched queries count as one on server-side
@@ -170,9 +177,9 @@ export default {
   <div class="gl-relative gl-min-h-6">
     <div
       v-if="isLoading"
-      class="gl-absolute gl-left-0 gl-top-0 gl-z-200 gl-h-full gl-w-full gl-bg-gray-10 gl-opacity-3"
+      class="gl-absolute gl-top-0 gl-left-0 gl-w-full gl-h-full gl-z-index-200 gl-bg-gray-10 gl-opacity-3"
     ></div>
-    <gl-loading-icon v-if="isLoading" size="lg" class="gl-absolute gl-left-1/2 gl-top-1/2" />
+    <gl-loading-icon v-if="isLoading" size="lg" class="gl-absolute gl-top-1/2 gl-left-1/2" />
     <div v-if="isDeploymentTableShown">
       <deployments-table :deployments="deployments" />
       <pagination :page-info="pageInfo" :disabled="isPaginationDisabled" />

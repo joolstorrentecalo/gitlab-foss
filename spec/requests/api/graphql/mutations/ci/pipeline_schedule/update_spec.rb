@@ -51,6 +51,10 @@ RSpec.describe 'PipelineScheduleUpdate', feature_category: :continuous_integrati
   let(:pipeline_schedule_parameters) { {} }
   let(:mutation_response) { graphql_mutation_response(:pipeline_schedule_update) }
 
+  before do
+    stub_feature_flags(enforce_full_refs_for_pipeline_schedules: false)
+  end
+
   context 'when unauthorized' do
     it_behaves_like 'a mutation on an unauthorized resource'
   end
@@ -141,23 +145,12 @@ RSpec.describe 'PipelineScheduleUpdate', feature_category: :continuous_integrati
           }
         end
 
-        it 'only returns the ref error' do
-          post_graphql_mutation(mutation, current_user: current_user)
+        context 'when enforce_full_refs_for_pipeline_schedules is enabled' do
+          before do
+            stub_feature_flags(enforce_full_refs_for_pipeline_schedules: true)
+          end
 
-          expect(response).to have_gitlab_http_status(:success)
-
-          expect(mutation_response['errors'])
-            .to match_array(
-              [
-                "Ref is ambiguous"
-              ]
-            )
-        end
-
-        context 'when ref is valid' do
-          let(:ref) { "#{Gitlab::Git::TAG_REF_PREFIX}some_tag" }
-
-          it 'returns the rest of the errors' do
+          it 'only returns the ref error' do
             post_graphql_mutation(mutation, current_user: current_user)
 
             expect(response).to have_gitlab_http_status(:success)
@@ -165,12 +158,45 @@ RSpec.describe 'PipelineScheduleUpdate', feature_category: :continuous_integrati
             expect(mutation_response['errors'])
               .to match_array(
                 [
-                  "Cron syntax is invalid",
-                  "Cron timezone syntax is invalid",
-                  "Description can't be blank"
+                  "Ref is ambiguous"
                 ]
               )
           end
+
+          context 'when ref is valid' do
+            let(:ref) { "#{Gitlab::Git::TAG_REF_PREFIX}some_tag" }
+
+            it 'returns the rest of the errors' do
+              post_graphql_mutation(mutation, current_user: current_user)
+
+              expect(response).to have_gitlab_http_status(:success)
+
+              expect(mutation_response['errors'])
+                .to match_array(
+                  [
+                    "Cron syntax is invalid",
+                    "Cron timezone syntax is invalid",
+                    "Description can't be blank"
+                  ]
+                )
+            end
+          end
+        end
+
+        it 'returns the errors' do
+          post_graphql_mutation(mutation, current_user: current_user)
+
+          expect(response).to have_gitlab_http_status(:success)
+
+          expect(mutation_response['errors'])
+            .to match_array(
+              [
+                "Cron syntax is invalid",
+                "Cron timezone syntax is invalid",
+                "Ref can't be blank",
+                "Description can't be blank"
+              ]
+            )
         end
       end
 

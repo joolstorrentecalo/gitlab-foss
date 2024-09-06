@@ -127,7 +127,7 @@ export default {
     extendedToggleButtonClass() {
       const classes = [
         {
-          '!gl-shadow-inner-1-red-500': !this.state,
+          'gl-inset-border-1-red-500!': !this.state,
           'gl-font-monospace': Boolean(this.selectedRef),
         },
         'gl-mb-0',
@@ -279,12 +279,16 @@ export default {
       @select="selectRef"
     >
       <template #group-label="{ group }">
-        {{ group.text }} <gl-badge>{{ totalCountText(group.options.length) }}</gl-badge>
+        {{ group.text }} <gl-badge size="sm">{{ totalCountText(group.options.length) }}</gl-badge>
       </template>
       <template #list-item="{ item }">
         {{ item.text }}
-        <gl-badge v-if="item.default" variant="info">{{ i18n.defaultLabelText }}</gl-badge>
-        <gl-badge v-if="item.protected" variant="neutral">{{ i18n.protectedLabelText }}</gl-badge>
+        <gl-badge v-if="item.default" size="sm" variant="info">{{
+          i18n.defaultLabelText
+        }}</gl-badge>
+        <gl-badge v-if="item.protected" size="sm" variant="neutral">{{
+          i18n.protectedLabelText
+        }}</gl-badge>
       </template>
       <template #footer>
         <slot name="footer" v-bind="footerSlotProps"></slot>
@@ -292,9 +296,9 @@ export default {
           v-for="errorMessage in errors"
           :key="errorMessage"
           data-testid="red-selector-error-list"
-          class="gl-mx-4 gl-my-3 gl-flex gl-items-start gl-text-red-500"
+          class="gl-display-flex gl-align-items-flex-start gl-text-red-500 gl-mx-4 gl-my-3"
         >
-          <gl-icon name="error" class="gl-mr-2 gl-mt-2 gl-shrink-0" />
+          <gl-icon name="error" class="gl-mr-2 gl-mt-2 gl-flex-shrink-0" />
           <span>{{ errorMessage }}</span>
         </div>
       </template>

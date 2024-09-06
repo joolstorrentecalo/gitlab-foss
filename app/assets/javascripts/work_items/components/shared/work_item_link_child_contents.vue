@@ -15,8 +15,6 @@ import { isScopedLabel } from '~/lib/utils/common_utils';
 import RichTimestampTooltip from '~/vue_shared/components/rich_timestamp_tooltip.vue';
 import WorkItemLinkChildMetadata from 'ee_else_ce/work_items/components/shared/work_item_link_child_metadata.vue';
 import WorkItemTypeIcon from '../work_item_type_icon.vue';
-import WorkItemStateBadge from '../work_item_state_badge.vue';
-import { findLinkedItemsWidget } from '../../utils';
 import {
   STATE_OPEN,
   WIDGET_TYPE_PROGRESS,
@@ -26,7 +24,6 @@ import {
   WIDGET_TYPE_ASSIGNEES,
   WIDGET_TYPE_LABELS,
 } from '../../constants';
-import WorkItemRelationshipIcons from './work_item_relationship_icons.vue';
 
 export default {
   i18n: {
@@ -47,8 +44,6 @@ export default {
     RichTimestampTooltip,
     WorkItemLinkChildMetadata,
     WorkItemTypeIcon,
-    WorkItemStateBadge,
-    WorkItemRelationshipIcons,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -71,11 +66,6 @@ export default {
       type: String,
       required: false,
       default: '',
-    },
-    showWeight: {
-      type: Boolean,
-      required: false,
-      default: true,
     },
   },
   computed: {
@@ -109,17 +99,20 @@ export default {
     isChildItemOpen() {
       return this.childItem.state === STATE_OPEN;
     },
+    statusIconName() {
+      return this.isChildItemOpen ? 'issue-open-m' : 'issue-close';
+    },
     childItemType() {
       return this.childItem.workItemType.name;
+    },
+    statusIconClass() {
+      return this.isChildItemOpen ? 'gl-text-green-500' : 'gl-text-blue-500';
     },
     stateTimestamp() {
       return this.isChildItemOpen ? this.childItem.createdAt : this.childItem.closedAt;
     },
     stateTimestampTypeText() {
       return this.isChildItemOpen ? this.$options.i18n.created : this.$options.i18n.closed;
-    },
-    childItemTypeColorClass() {
-      return this.isChildItemOpen ? 'gl-text-secondary' : 'gl-text-gray-300';
     },
     hasMetadata() {
       if (this.metadataWidgets) {
@@ -133,19 +126,16 @@ export default {
       }
       return false;
     },
+    showRemove() {
+      return this.canUpdate;
+    },
     displayLabels() {
       return this.showLabels && this.labels.length;
     },
     displayReference() {
       // The reference is replaced by work item fullpath in case the project and group are same.
       // e.g., gitlab-org/gitlab-test#45 will be shown as #45
-      if (new RegExp(`${this.workItemFullPath}#`, 'g').test(this.childItem.reference)) {
-        return this.childItem.reference.replace(new RegExp(`${this.workItemFullPath}`, 'g'), '');
-      }
-      return this.childItem.reference;
-    },
-    linkedChildWorkItems() {
-      return findLinkedItemsWidget(this.childItem).linkedItems?.nodes || [];
+      return this.childItem.reference.replace(new RegExp(`${this.workItemFullPath}(?!-)`, 'g'), '');
     },
   },
   methods: {
@@ -158,17 +148,19 @@ export default {
 
 <template>
   <div
-    class="item-body work-item-link-child gl-relative gl-flex gl-min-w-0 gl-grow gl-gap-3 gl-hyphens-auto gl-break-words gl-rounded-base gl-p-3"
+    class="item-body work-item-link-child gl-relative gl-display-flex gl-flex-grow-1 gl-overflow-break-word gl-min-w-0 gl-rounded-base gl-p-3 gl-gap-3"
     data-testid="links-child"
   >
     <div ref="stateIcon" class="gl-cursor-help">
-      <work-item-type-icon :color-class="childItemTypeColorClass" :work-item-type="childItemType" />
+      <work-item-type-icon class="gl-text-secondary" :work-item-type="childItemType" />
       <gl-tooltip :target="() => $refs.stateIcon">
         {{ childItemType }}
       </gl-tooltip>
     </div>
-    <div class="gl-flex gl-min-w-0 gl-grow gl-flex-col gl-flex-wrap">
-      <div class="gl-mb-2 gl-flex gl-min-w-0 gl-justify-between gl-gap-3">
+    <div class="gl-display-flex gl-flex-direction-column gl-flex-grow-1 gl-flex-wrap gl-min-w-0">
+      <div
+        class="gl-display-flex gl-flex-wrap flex-xl-nowrap gl-justify-content-space-between gl-gap-3 gl-min-w-0 gl-mb-2"
+      >
         <div class="item-title gl-min-w-0">
           <span v-if="childItem.confidential">
             <gl-icon
@@ -182,16 +174,15 @@ export default {
           </span>
           <gl-link
             :href="childItem.webUrl"
-            :class="{ '!gl-text-secondary': !isChildItemOpen }"
-            class="gl-hyphens-auto gl-break-words gl-font-semibold"
-            @click.exact="$emit('click', $event)"
+            class="gl-overflow-break-word gl-font-weight-semibold"
+            @click="$emit('click', $event)"
             @mouseover="$emit('mouseover')"
             @mouseout="$emit('mouseout')"
           >
             {{ childItem.title }}
           </gl-link>
         </div>
-        <div class="gl-flex gl-shrink-0 gl-items-center gl-justify-end gl-gap-3">
+        <div class="gl-display-flex gl-justify-content-end">
           <gl-avatars-inline
             v-if="assignees.length"
             :avatars="assignees"
@@ -200,6 +191,7 @@ export default {
             :avatar-size="16"
             badge-tooltip-prop="name"
             :badge-sr-only-text="assigneesCollapsedTooltip"
+            class="gl-white-space-nowrap gl-mr-3"
           >
             <template #avatar="{ avatar }">
               <gl-avatar-link v-gl-tooltip :href="avatar.webUrl" :title="avatar.name">
@@ -207,17 +199,17 @@ export default {
               </gl-avatar-link>
             </template>
           </gl-avatars-inline>
-          <work-item-relationship-icons
-            v-if="isChildItemOpen && linkedChildWorkItems.length"
-            :work-item-type="childItemType"
-            :linked-work-items="linkedChildWorkItems"
-          />
           <span
             :id="`statusIcon-${childItem.id}`"
             class="gl-cursor-help"
             data-testid="item-status-icon"
           >
-            <work-item-state-badge :work-item-state="childItem.state" :show-icon="false" />
+            <gl-icon
+              class="gl-text-secondary"
+              :class="statusIconClass"
+              :name="statusIconName"
+              :aria-label="stateTimestampTypeText"
+            />
           </span>
           <rich-timestamp-tooltip
             :target="`statusIcon-${childItem.id}`"
@@ -229,13 +221,10 @@ export default {
       <work-item-link-child-metadata
         :reference="displayReference"
         :iid="childItem.iid"
-        :is-child-item-open="isChildItemOpen"
         :metadata-widgets="metadataWidgets"
-        :show-weight="showWeight"
-        :work-item-type="childItemType"
         class="ml-xl-0"
       />
-      <div v-if="displayLabels" class="gl-flex gl-flex-wrap">
+      <div v-if="displayLabels" class="gl-display-flex gl-flex-wrap">
         <gl-label
           v-for="label in labels"
           :key="label.id"
@@ -243,7 +232,7 @@ export default {
           :background-color="label.color"
           :description="label.description"
           :scoped="showScopedLabel(label)"
-          class="gl-mb-auto gl-mr-2 gl-mt-2"
+          class="gl-mt-2 gl-mr-2 gl-mb-auto gl-label-sm"
           tooltip-placement="top"
         />
       </div>
@@ -251,7 +240,8 @@ export default {
     <div v-if="canUpdate">
       <gl-button
         v-gl-tooltip
-        class="-gl-mr-1 -gl-mt-1"
+        :class="{ 'gl-visibility-visible': showRemove }"
+        class="gl-visibility-hidden gl-mt-n2"
         category="tertiary"
         size="small"
         icon="close"

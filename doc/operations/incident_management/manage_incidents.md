@@ -1,5 +1,5 @@
 ---
-stage: Monitor
+stage: Service Management
 group: Respond
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -10,49 +10,37 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-> - Ability to add an [incident](index.md) to an iteration [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/347153) in GitLab 17.0.
-
 This page collects instructions for all the things you can do with [incidents](incidents.md) or in relation to them.
 
 ## Create an incident
 
 You can create an incident manually or automatically.
 
-## Add an incident to an iteration
+### From the incidents list
 
-DETAILS:
-**Tier:** Premium, Ultimate
-**Offering:** GitLab.com, Self-managed, GitLab Dedicated
-
-To add an incident to an [iteration](../../user/group/iterations/index.md):
-
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Plan > Issues** or **Monitor > Incidents**, then select your incident to view it.
-1. On the right sidebar, in the **Iteration** section, select **Edit**.
-1. From the dropdown list, select the iteration to add this incident to.
-1. Select any area outside the dropdown list.
-
-Alternatively, you can use the `/iteration` [quick action](../../user/project/quick_actions.md#issues-merge-requests-and-epics).
-
-### From the Incidents page
+> - [Moved](https://gitlab.com/gitlab-org/monitor/monitor/-/issues/24) to GitLab Free in 13.3.
+> - [Permission changed](https://gitlab.com/gitlab-org/gitlab/-/issues/336624) from Guest to Reporter in GitLab 14.5.
+> - Automatic application of the `incident` label [removed](https://gitlab.com/gitlab-org/gitlab/-/issues/290964) in GitLab 14.8.
 
 Prerequisites:
 
 - You must have at least the Reporter role for the project.
 
-To create an incident from the **Incidents** page:
+To create an incident from the incidents list:
 
 1. On the left sidebar, select **Search or go to** and find your project.
 1. Select **Monitor > Incidents**.
 1. Select **Create incident**.
 
-### From the Issues page
+### From the issues list
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/230857) in GitLab 13.4.
 
 Prerequisites:
 
 - You must have at least the Reporter role for the project.
 
-To create an incident from the **Issues** page:
+To create an incident from the issues list:
 
 1. On the left sidebar, select **Search or go to** and find your project.
 1. Select **Plan > Issues**, and select **New issue**.
@@ -61,6 +49,8 @@ To create an incident from the **Issues** page:
 1. Select **Create issue**.
 
 ### From an alert
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/217745) in GitLab 13.1.
 
 Create an incident issue when viewing an [alert](alerts.md).
 The incident description is populated from the alert.
@@ -93,6 +83,7 @@ whenever an alert is triggered.
 
 ### Using the PagerDuty webhook
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/119018) in GitLab 13.3.
 > - [PagerDuty V3 Webhook](https://support.pagerduty.com/docs/webhooks) support [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/383029) in GitLab 15.7.
 
 You can set up a webhook with PagerDuty to automatically create a GitLab incident
@@ -117,9 +108,9 @@ To set up a webhook with PagerDuty:
 To confirm the integration is successful, trigger a test incident from PagerDuty to
 check if a GitLab incident is created from the incident.
 
-## View a list of incidents
+## View incidents list
 
-To view a list of the [incidents](incidents.md#incidents-list):
+To view the [incidents list](incidents.md#incidents-list):
 
 1. On the left sidebar, select **Search or go to** and find your project.
 1. Select **Monitor > Incidents**.
@@ -151,7 +142,9 @@ To assign a user:
 
 ## Change severity
 
-See the [incidents list](incidents.md#incidents-list) topic for a full description of the severity levels available.
+> - Editing severity on incident details page was [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/229402) in GitLab 13.4.
+
+See [incident list](incidents.md#incidents-list) for a full description of the severity levels available.
 
 Prerequisites:
 
@@ -237,6 +230,8 @@ the linked alert's status changes to **Resolved**.
 You are then credited with the alert's status change.
 
 ### Automatically close incidents via recovery alerts
+
+> - [Introduced for HTTP integrations](https://gitlab.com/gitlab-org/gitlab/-/issues/13402) in GitLab 13.4.
 
 Turn on closing an incident automatically when GitLab receives a recovery alert
 from a HTTP or Prometheus webhook.

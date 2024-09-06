@@ -140,7 +140,7 @@ module GraphqlHelpers
     arg_style: :internal_prepared, # Args are in internal format, but should use more rigorous processing
     query: nil                     # Query to evaluate the field
   )
-    field = to_base_field(field, object_type).ensure_loaded
+    field = to_base_field(field, object_type)
     ctx[:current_user] = current_user unless current_user == :not_given
     query ||= GraphQL::Query.new(schema, context: ctx.to_h)
     extras[:lookahead] = negative_lookahead if extras[:lookahead] == :not_given && field.extras.include?(:lookahead)
@@ -160,20 +160,13 @@ module GraphqlHelpers
                         args_internal(field, args: args, query_ctx: query_ctx, parent: parent, extras: extras, query: query)
                       end
 
-      if prepared_args.class <= GraphQL::ExecutionError
+      if prepared_args.class <= Gitlab::Graphql::Errors::BaseError
         prepared_args
       else
         field.resolve(parent, prepared_args, query_ctx)
       end
     end
   end
-
-  # create a valid query context object
-  def query_context(user: current_user, request: {})
-    query = GraphQL::Query.new(empty_schema, document: nil, context: {}, variables: {})
-    GraphQL::Query::Context.new(query: query, values: { current_user: user, request: request })
-  end
-
   # rubocop:enable Metrics/ParameterLists
 
   # Pros:
@@ -230,11 +223,9 @@ module GraphqlHelpers
     if ctx.is_a?(Hash)
       q = double('Query', schema: schema, subscription_update?: subscription_update, warden: GraphQL::Schema::Warden::PassThruWarden)
       allow(q).to receive(:after_lazy) { |value, &block| schema.after_lazy(value, &block) }
-
-      ctx = GraphQL::Query::Context.new(query: q, values: ctx)
+      ctx = GraphQL::Query::Context.new(query: q, object: obj, values: ctx)
     end
 
-    allow(ctx.query).to receive(:subscription_update?).and_return(subscription_update)
     resolver_class.new(object: obj, context: ctx, field: field)
   end
 
@@ -470,7 +461,6 @@ module GraphqlHelpers
 
     allow_unlimited_graphql_complexity
     allow_unlimited_graphql_depth if max_depth > 1
-    allow_unlimited_validation_timeout
     allow_high_graphql_recursion
     allow_high_graphql_transaction_threshold
     allow_high_graphql_query_size
@@ -735,11 +725,6 @@ module GraphqlHelpers
   def allow_unlimited_graphql_depth
     allow_any_instance_of(GitlabSchema).to receive(:max_depth).and_return nil
     allow(GitlabSchema).to receive(:max_query_depth).with(any_args).and_return nil
-  end
-
-  def allow_unlimited_validation_timeout
-    allow_any_instance_of(GitlabSchema).to receive(:validate_timeout).and_return nil
-    allow(GitlabSchema).to receive(:validate_timeout).with(any_args).and_return nil
   end
 
   def allow_high_graphql_recursion

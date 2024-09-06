@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 class Packages::Composer::CacheUploader < GitlabUploader
   include ObjectStorage::Concern
-  include Packages::GcsSignedUrlMetadata
 
   storage_location :packages
 

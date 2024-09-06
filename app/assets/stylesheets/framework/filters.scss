@@ -1,6 +1,10 @@
 .filter-item {
   vertical-align: top;
 
+  &.reset-filters {
+    padding: 7px;
+  }
+
   &.update-issues-btn {
     float: right;
     margin-right: 0;
@@ -8,6 +12,12 @@
     @include media-breakpoint-down(sm) {
       float: none;
     }
+  }
+}
+
+.filters-section {
+  @include media-breakpoint-down(sm) {
+    display: inline-block;
   }
 }
 
@@ -89,27 +99,11 @@
   .value {
     display: inline-block;
     padding: 2px 7px;
-    @include gl-font-sm;
-  }
-
-  .name,
-  .operator,
-  .value-container {
-    color: $gl-text-color;
-  }
-
-  .name,
-  .operator,
-  .value-container,
-  .value {
-    display: inline-flex;
-    align-self: center;
-    align-items: center;
-    height: 24px;
   }
 
   .name {
     background-color: $gray-50;
+    color: $gl-text-color-secondary;
     border-radius: 2px 0 0 2px;
     margin-right: 1px;
     text-transform: capitalize;
@@ -117,6 +111,7 @@
 
   .operator {
     background-color: $gray-50;
+    color: $gl-text-color;
     margin-right: 1px;
   }
 
@@ -124,9 +119,10 @@
     display: flex;
     align-items: center;
     background-color: $gray-50;
+    color: $gl-text-color;
     border-radius: 0 2px 2px 0;
-    margin-right: 4px;
-    padding-right: 4px;
+    margin-right: 5px;
+    padding-right: 8px;
   }
 
   .value {
@@ -134,8 +130,7 @@
   }
 
   .remove-token {
-    display: inline-flex;
-    align-self: center;
+    display: inline-block;
     padding-left: 8px;
     padding-right: 0;
 
@@ -202,7 +197,12 @@
   min-width: 0;
   border: 1px solid $gray-400;
   background-color: $white;
-  border-radius: $gl-border-radius-base;
+  border-radius: $border-radius-default;
+
+  @include media-breakpoint-down(sm) {
+    flex: 1 1 auto;
+    margin-bottom: 10px;
+  }
 
   &.focus,
   &.focus:hover {
@@ -237,6 +237,23 @@
       box-shadow: none;
     }
   }
+
+  .clear-search-icon {
+    right: 10px;
+    color: $gray-darkest;
+  }
+
+  .clear-search {
+    width: 35px;
+    background-color: $white;
+    border: 0;
+    outline: none;
+    z-index: 1;
+
+    &:hover .clear-search-icon {
+      color: $gray-800;
+    }
+  }
 }
 
 .filtered-search-box-input-container {
@@ -245,7 +262,7 @@
   min-width: 0;
   height: #{$input-height - 2px};
   background-color: $input-bg;
-  border-radius: $gl-border-radius-base;
+  border-radius: $border-radius-default;
 }
 
 .filtered-search-input-dropdown-menu {
@@ -260,6 +277,11 @@
     max-width: none;
     min-width: 100%;
   }
+
+  .btn-helptext {
+    margin-left: auto;
+    color: var(--gray);
+  }
 }
 
 .filtered-search-history-dropdown-wrapper {
@@ -269,7 +291,8 @@
 }
 
 .filtered-search-history-dropdown-toggle-button.gl-button {
-  border-radius: $gl-border-radius-base-inner 0 0 $gl-border-radius-base-inner;
+  $inner-border: #{$border-radius-default - 1px};
+  border-radius: $inner-border 0 0 $inner-border;
   color: $gl-text-color-secondary;
   margin: -1px 0 -1px -1px;
   box-shadow: inset 0 0 0 1px $gray-400;
@@ -323,6 +346,16 @@
     background-color: $white;
   }
 
+  .filtered-search-block .boards-switcher {
+    margin-right: 0;
+    margin-bottom: $gl-input-padding;
+
+    .boards-selector-wrapper,
+    .dropdown {
+      display: block;
+    }
+  }
+
   .filter-dropdown-container {
     > div {
       margin: 0;
@@ -356,11 +389,36 @@
       top: 0;
     }
   }
+
+  .dropdown-light-content {
+    font-size: 14px;
+    font-weight: $gl-font-weight-normal;
+  }
+
+  .dropdown-user {
+    display: flex;
+  }
+
+  .dropdown-user-details {
+    display: flex;
+    flex-direction: column;
+
+    > span {
+      white-space: normal;
+      word-break: break-all;
+    }
+  }
 }
 
 .filter-dropdown-loading {
   padding: 8px 16px;
   text-align: center;
+}
+
+.search-token-target-branch {
+  .value {
+    @include gl-font-monospace;
+  }
 }
 
 .vue-filtered-search-bar-container {

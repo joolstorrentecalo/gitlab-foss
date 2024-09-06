@@ -15,6 +15,7 @@ import { BV_HIDE_TOOLTIP } from '~/lib/utils/constants';
 import { n__, s__ } from '~/locale';
 import Tracking from '~/tracking';
 import { TYPE_ISSUE } from '~/issues/constants';
+import { formatDate } from '~/lib/utils/datetime_utility';
 import glFeatureFlagMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import setActiveBoardItemMutation from 'ee_else_ce/boards/graphql/client/set_active_board_item.mutation.graphql';
 import AccessorUtilities from '~/lib/utils/accessor';
@@ -206,7 +207,6 @@ export default {
     },
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     boardList: {
       fetchPolicy: fetchPolicies.CACHE_AND_NETWORK,
       query() {
@@ -302,6 +302,16 @@ export default {
         });
       }
     },
+    /**
+     * TODO: https://gitlab.com/gitlab-org/gitlab/-/issues/344619
+     * This method also exists as a utility function in ee/../iterations/utils.js
+     * Remove the duplication when the EE code is separated from this compoment.
+     */
+    getIterationPeriod({ startDate, dueDate }) {
+      const start = formatDate(startDate, 'mmm d, yyyy', true);
+      const due = formatDate(dueDate, 'mmm d, yyyy', true);
+      return `${start} - ${due}`;
+    },
     updateLocalCollapsedStatus(collapsed) {
       this.$apollo.mutate({
         mutation: toggleCollapsedMutations[this.issuableType].mutation,
@@ -320,8 +330,8 @@ export default {
     :class="{
       'gl-h-full': list.collapsed,
       'gl-bg-gray-50': isSwimlanesHeader,
-      'gl-rounded-tl-base gl-rounded-tr-base gl-border-4 gl-border-t-solid': isLabelList,
-      'gl-rounded-tl-base gl-rounded-tr-base gl-bg-red-50': boardItemsSizeExceedsMax,
+      'gl-border-t-solid gl-border-4 gl-rounded-top-left-base gl-rounded-top-right-base': isLabelList,
+      'gl-bg-red-50 gl-rounded-top-left-base gl-rounded-top-right-base': boardItemsSizeExceedsMax,
     }"
     :style="headerStyle"
     class="board-header gl-relative"
@@ -330,19 +340,19 @@ export default {
     <h3
       :class="{
         'gl-cursor-grab': userCanDrag,
-        'gl-h-full gl-py-3': list.collapsed && !isSwimlanesHeader,
+        'gl-py-3 gl-h-full': list.collapsed && !isSwimlanesHeader,
         'gl-border-b-0': list.collapsed || isSwimlanesHeader,
         'gl-py-2': list.collapsed && isSwimlanesHeader,
-        'gl-flex-col': list.collapsed,
+        'gl-flex-direction-column': list.collapsed,
       }"
-      class="board-title gl-m-0 gl-flex gl-h-9 gl-items-center gl-px-3 gl-text-base"
+      class="board-title gl-m-0 gl-display-flex gl-align-items-center gl-font-base gl-px-3 gl-h-9"
     >
       <gl-button
         v-gl-tooltip.hover
         :aria-label="chevronTooltip"
         :title="chevronTooltip"
         :icon="chevronIcon"
-        class="board-title-caret no-drag gl-cursor-pointer hover:gl-bg-gray-50"
+        class="board-title-caret no-drag gl-cursor-pointer gl-hover-bg-gray-50"
         :class="{ 'gl-mt-1': list.collapsed, 'gl-mr-2': !list.collapsed }"
         category="tertiary"
         size="small"
@@ -373,9 +383,9 @@ export default {
       <div
         class="board-title-text"
         :class="{
-          'gl-hidden': list.collapsed && isSwimlanesHeader,
-          'gl-mx-0 gl-my-3 gl-flex-grow-0': list.collapsed,
-          'gl-grow': !list.collapsed,
+          'gl-display-none': list.collapsed && isSwimlanesHeader,
+          'gl-flex-grow-0 gl-my-3 gl-mx-0': list.collapsed,
+          'gl-flex-grow-1': !list.collapsed,
           'gl-rotate-90': list.collapsed,
         }"
       >
@@ -385,17 +395,17 @@ export default {
           v-gl-tooltip.hover
           :class="{
             'gl-text-gray-500': list.collapsed,
-            'gl-block': list.collapsed || listType === 'milestone',
+            'gl-display-block': list.collapsed || listType === 'milestone',
           }"
           :title="listTitle"
-          class="board-title-main-text gl-truncate"
+          class="board-title-main-text gl-text-truncate"
         >
           {{ listTitle }}
         </span>
         <span
           v-if="listType === 'assignee'"
           v-show="!list.collapsed"
-          class="gl-ml-2 gl-font-normal gl-text-secondary"
+          class="gl-ml-2 gl-font-weight-normal gl-text-secondary"
         >
           @{{ listAssignee }}
         </span>
@@ -406,6 +416,7 @@ export default {
           :background-color="list.label.color"
           :description="list.label.description"
           :scoped="showScopedLabels(list.label)"
+          :size="list.collapsed ? 'sm' : ''"
           :title="list.label.title"
         />
       </div>
@@ -415,12 +426,12 @@ export default {
         v-if="isSwimlanesHeader && list.collapsed"
         ref="collapsedInfo"
         aria-hidden="true"
-        class="board-header-collapsed-info-icon gl-cursor-pointer gl-text-secondary hover:gl-text-gray-900"
+        class="board-header-collapsed-info-icon gl-cursor-pointer gl-text-secondary gl-hover-text-gray-900"
       >
         <gl-icon name="information" />
       </span>
       <gl-tooltip v-if="isSwimlanesHeader && list.collapsed" :target="() => $refs.collapsedInfo">
-        <div class="gl-pb-2 gl-font-bold">{{ collapsedTooltipTitle }}</div>
+        <div class="gl-font-weight-bold gl-pb-2">{{ collapsedTooltipTitle }}</div>
         <div v-if="list.maxIssueCount !== 0">
           •
           <gl-sprintf :message="__('%{issuesSize} with a limit of %{maxIssueCount}')">
@@ -439,16 +450,20 @@ export default {
       <!-- EE end -->
 
       <div
-        class="issue-count-badge no-drag gl-inline-flex gl-pr-2 gl-text-sm gl-text-secondary"
+        class="gl-font-sm issue-count-badge gl-display-inline-flex gl-pr-2 no-drag gl-text-secondary"
         data-testid="issue-count-badge"
         :class="{
-          '!gl-hidden': list.collapsed && isSwimlanesHeader,
+          'gl-display-none!': list.collapsed && isSwimlanesHeader,
           'gl-p-0': list.collapsed,
         }"
       >
-        <span class="gl-inline-flex" :class="{ 'gl-rotate-90': list.collapsed }">
+        <span class="gl-display-inline-flex" :class="{ 'gl-rotate-90': list.collapsed }">
           <gl-tooltip :target="() => $refs.itemCount" :title="itemsTooltipLabel" />
-          <span ref="itemCount" class="gl-inline-flex gl-items-center" data-testid="item-count">
+          <span
+            ref="itemCount"
+            class="gl-display-inline-flex gl-align-items-center"
+            data-testid="item-count"
+          >
             <gl-icon class="gl-mr-2" :name="countIcon" :size="14" />
             <item-count
               v-if="!isLoading"
@@ -459,7 +474,7 @@ export default {
           <!-- EE start -->
           <template v-if="canShowTotalWeight">
             <gl-tooltip :target="() => $refs.weightTooltip" :title="weightCountToolTip" />
-            <span ref="weightTooltip" class="gl-ml-3 gl-inline-flex" data-testid="weight">
+            <span ref="weightTooltip" class="gl-display-inline-flex gl-ml-3" data-testid="weight">
               <gl-icon class="gl-mr-2" name="weight" :size="14" />
               {{ totalIssueWeight }}
             </span>

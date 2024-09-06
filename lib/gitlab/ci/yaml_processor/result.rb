@@ -9,9 +9,9 @@ module Gitlab
         include Gitlab::Utils::StrongMemoize
 
         attr_reader :errors, :warnings,
-          :root_variables, :root_variables_with_prefill_data,
-          :stages, :jobs,
-          :workflow_rules, :workflow_name, :workflow_auto_cancel
+                    :root_variables, :root_variables_with_prefill_data,
+                    :stages, :jobs,
+                    :workflow_rules, :workflow_name, :workflow_auto_cancel
 
         def initialize(ci_config: nil, errors: [], warnings: [])
           @ci_config = ci_config
@@ -68,10 +68,6 @@ module Gitlab
           @ci_config&.metadata || {}
         end
 
-        def clear_jobs!
-          @jobs = {}
-        end
-
         private
 
         def assign_valid_attributes
@@ -115,7 +111,6 @@ module Gitlab
             resource_group_key: job[:resource_group],
             scheduling_type: job[:scheduling_type],
             id_tokens: job[:id_tokens],
-            execution_config: build_execution_config(job),
             options: {
               image: job[:image],
               services: job[:services],
@@ -126,7 +121,6 @@ module Gitlab
               job_timeout: job[:timeout],
               before_script: job[:before_script],
               script: job[:script],
-              manual_confirmation: job[:manual_confirmation],
               after_script: job[:after_script],
               hooks: job[:hooks],
               environment: job[:environment],
@@ -145,12 +139,6 @@ module Gitlab
 
         def transform_to_array(variables)
           ::Gitlab::Ci::Variables::Helpers.transform_to_array(variables)
-        end
-
-        def build_execution_config(job)
-          {
-            run_steps: job[:run]
-          }.compact.presence
         end
       end
     end

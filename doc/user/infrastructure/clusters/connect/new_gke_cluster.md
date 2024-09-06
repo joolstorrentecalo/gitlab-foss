@@ -6,17 +6,17 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 # Create a Google GKE cluster
 
-Learn how to create a new cluster on Google Kubernetes Engine (GKE) through
-[Infrastructure as Code (IaC)](../../index.md). This process uses the Google
-and Kubernetes Terraform providers create GKE clusters. You connect the clusters to GitLab
-by using the GitLab agent for Kubernetes.
-
-NOTE:
+INFO:
 Every new Google Cloud Platform (GCP) account receives [$300 in credit](https://console.cloud.google.com/freetrial),
 and in partnership with Google, GitLab is able to offer an additional $200 for new
 GCP accounts to get started with the GitLab integration with Google Kubernetes Engine.
 [Follow this link](https://cloud.google.com/partners?pcn_code=0014M00001h35gDQAQ&hl=en#contact-form)
 and apply for credit.
+
+Learn how to create a new cluster on Google Kubernetes Engine (GKE) through
+[Infrastructure as Code (IaC)](../../index.md). This process uses the Google
+and Kubernetes Terraform providers create GKE clusters. You connect the clusters to GitLab
+by using the GitLab agent for Kubernetes.
 
 **Prerequisites:**
 
@@ -58,7 +58,7 @@ This project provides you with:
 ## Register the agent
 
 FLAG:
-A [flag](../../../../administration/feature_flags.md) named `certificate_based_clusters` changed the **Actions** menu to focus on the agent rather than certificates. The flag is [enabled on GitLab.com, GitLab Dedicated, and self-managed](https://gitlab.com/groups/gitlab-org/configure/-/epics/8).
+In GitLab 14.10, a [flag](../../../../administration/feature_flags.md) named `certificate_based_clusters` changed the **Actions** menu to focus on the agent rather than certificates. The flag is [enabled on GitLab.com, GitLab Dedicated, and self-managed](https://gitlab.com/groups/gitlab-org/configure/-/epics/8).
 
 To create a GitLab agent for Kubernetes:
 

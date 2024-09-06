@@ -25,7 +25,6 @@ decrypt those columns, preventing access to the following items:
 - [Project mirroring](../../user/project/repository/mirror/index.md)
 - [Integrations](../../user/project/integrations/index.md)
 - [Web hooks](../../user/project/integrations/webhooks.md)
-- [Deploy tokens](../../user/project/deploy_tokens/index.md)
 
 In cases like CI/CD variables and runner authentication, you can experience
 unexpected behaviors, such as:
@@ -64,13 +63,25 @@ after which users must reactivate 2FA.
 
 1. Enter the database console:
 
-   For the Linux package (Omnibus):
+   For the Linux package (Omnibus) GitLab 14.1 and earlier:
+
+   ```shell
+   sudo gitlab-rails dbconsole
+   ```
+
+   For the Linux package (Omnibus) GitLab 14.2 and later:
 
    ```shell
    sudo gitlab-rails dbconsole --database main
    ```
 
-   For self-compiled installations:
+   For self-compiled installations, GitLab 14.1 and earlier:
+
+   ```shell
+   sudo -u git -H bundle exec rails dbconsole -e production
+   ```
+
+   For self-compiled installations, GitLab 14.2 and later:
 
    ```shell
    sudo -u git -H bundle exec rails dbconsole -e production --database main
@@ -105,13 +116,25 @@ You may need to reconfigure or restart GitLab for the changes to take effect.
 
 1. Enter the database console:
 
-   For the Linux package (Omnibus):
+   For the Linux package (Omnibus) GitLab 14.1 and earlier:
+
+   ```shell
+   sudo gitlab-rails dbconsole
+   ```
+
+   For the Linux package (Omnibus) GitLab 14.2 and later:
 
    ```shell
    sudo gitlab-rails dbconsole --database main
    ```
 
-   For self-compiled installations:
+   For self-compiled installations, GitLab 14.1 and earlier:
+
+   ```shell
+   sudo -u git -H bundle exec rails dbconsole -e production
+   ```
+
+   For self-compiled installations, GitLab 14.2 and later:
 
    ```shell
    sudo -u git -H bundle exec rails dbconsole -e production --database main
@@ -142,13 +165,25 @@ You may need to reconfigure or restart GitLab for the changes to take effect.
 
 1. Enter the database console:
 
-   For the Linux package (Omnibus):
+   For the Linux package (Omnibus) GitLab 14.1 and earlier:
+
+   ```shell
+   sudo gitlab-rails dbconsole
+   ```
+
+   For the Linux package (Omnibus) GitLab 14.2 and later:
 
    ```shell
    sudo gitlab-rails dbconsole --database main
    ```
 
-   For self-compiled installations:
+   For self-compiled installations, GitLab 14.1 and earlier:
+
+   ```shell
+   sudo -u git -H bundle exec rails dbconsole -e production
+   ```
+
+   For self-compiled installations, GitLab 14.2 and later:
 
    ```shell
    sudo -u git -H bundle exec rails dbconsole -e production --database main
@@ -185,13 +220,25 @@ You should verify that the secrets are the root cause before deleting any data.
 
 1. Enter the database console:
 
-   For the Linux package (Omnibus):
+   For the Linux package (Omnibus) GitLab 14.1 and earlier:
+
+   ```shell
+   sudo gitlab-rails dbconsole
+   ```
+
+   For the Linux package (Omnibus) GitLab 14.2 and later:
 
    ```shell
    sudo gitlab-rails dbconsole --database main
    ```
 
-   For self-compiled installations:
+   For self-compiled installations, GitLab 14.1 and earlier:
+
+   ```shell
+   sudo -u git -H bundle exec rails dbconsole -e production
+   ```
+
+   For self-compiled installations, GitLab 14.2 and later:
 
    ```shell
    sudo -u git -H bundle exec rails dbconsole -e production --database main
@@ -203,14 +250,6 @@ You should verify that the secrets are the root cause before deleting any data.
    -- truncate web_hooks table
    TRUNCATE integrations, chat_names, issue_tracker_data, jira_tracker_data, slack_integrations, web_hooks, zentao_tracker_data, web_hook_logs CASCADE;
    ```
-
-## Container registry is not restored
-
-If you restore a backup from an environment that uses the [container registry](../../user/packages/container_registry/index.md) 
-to a newly installed environment where the container registry is not enabled, the container registry is not restored.
-
-To also restore the container registry, you need to [enable it](../packages/container_registry.md#enable-the-container-registry) in the new
-environment before you restore the backup.
 
 ## Container registry push failures after restoring from a backup
 
@@ -316,16 +355,28 @@ Truncate the filenames in the `uploads` table:
 
 1. Enter the database console:
 
-   For the Linux package (Omnibus):
+   For the Linux package (Omnibus) GitLab 14.2 and later:
 
    ```shell
    sudo gitlab-rails dbconsole --database main
    ```
 
-   For self-compiled installations:
+   For the Linux package (Omnibus) GitLab 14.1 and earlier:
+
+   ```shell
+   sudo gitlab-rails dbconsole
+   ```
+
+   For self-compiled installations, GitLab 14.2 and later:
 
    ```shell
    sudo -u git -H bundle exec rails dbconsole -e production --database main
+   ```
+
+   For self-compiled installations, GitLab 14.1 and earlier:
+
+   ```shell
+   sudo -u git -H bundle exec rails dbconsole -e production
    ```
 
 1. Search the `uploads` table for filenames longer than 246 characters:

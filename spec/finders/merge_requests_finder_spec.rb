@@ -55,6 +55,16 @@ RSpec.describe MergeRequestsFinder, feature_category: :code_review_workflow do
           it 'returns merge requests created by any of the given users' do
             expect(merge_requests).to contain_exactly(merge_request1, merge_request2)
           end
+
+          context 'when feature flag is disabled' do
+            before do
+              stub_feature_flags(or_issuable_queries: false)
+            end
+
+            it 'does not add any filter' do
+              expect(merge_requests).to contain_exactly(merge_request1, merge_request2, merge_request3, merge_request4, merge_request5)
+            end
+          end
         end
 
         context 'with nonexistent author ID and MR term using CTE for search' do
@@ -172,30 +182,56 @@ RSpec.describe MergeRequestsFinder, feature_category: :code_review_workflow do
 
         subject { described_class.new(user, params).execute }
 
-        describe 'by merge_user_id' do
-          let(:params) { { merge_user_id: user.id } }
-          let(:expected_mr) { [merge_request1, merge_request2] }
+        context 'when flag `mr_merge_user_filter` is disabled' do
+          before do
+            stub_feature_flags(mr_merge_user_filter: false)
+          end
 
-          it { is_expected.to contain_exactly(*expected_mr) }
+          describe 'by merge_user_id' do
+            let(:params) { { merge_user_id: user.id } }
+            let(:expected_mr) { [merge_request1, merge_request2, merge_request3, merge_request4, merge_request5] }
+
+            it { is_expected.to contain_exactly(*expected_mr) }
+          end
+
+          describe 'by merge_user_username' do
+            let(:params) { { merge_user_username: user.username } }
+            let(:expected_mr) { [merge_request1, merge_request2, merge_request3, merge_request4, merge_request5] }
+
+            it { is_expected.to contain_exactly(*expected_mr) }
+          end
         end
 
-        describe 'by merge_user_username' do
-          let(:params) { { merge_user_username: user.username } }
-          let(:expected_mr) { [merge_request1, merge_request2] }
+        context 'when flag `mr_merge_user_filter` is enabled' do
+          before do
+            stub_feature_flags(mr_merge_user_filter: true)
+          end
 
-          it { is_expected.to contain_exactly(*expected_mr) }
-        end
+          describe 'by merge_user_id' do
+            let(:params) { { merge_user_id: user.id } }
+            let(:expected_mr) { [merge_request1, merge_request2] }
 
-        describe 'by merge_user_id with unknown user id' do
-          let(:params) { { merge_user_id: 99999 } }
+            it { is_expected.to contain_exactly(*expected_mr) }
+          end
 
-          it { is_expected.to be_empty }
-        end
+          describe 'by merge_user_username' do
+            let(:params) { { merge_user_username: user.username } }
+            let(:expected_mr) { [merge_request1, merge_request2] }
 
-        describe 'by merge_user_username with unknown user name' do
-          let(:params) { { merge_user_username: 'does-not-exist' } }
+            it { is_expected.to contain_exactly(*expected_mr) }
+          end
 
-          it { is_expected.to be_empty }
+          describe 'by merge_user_id with unknown user id' do
+            let(:params) { { merge_user_id: 99999 } }
+
+            it { is_expected.to be_empty }
+          end
+
+          describe 'by merge_user_username with unknown user name' do
+            let(:params) { { merge_user_username: 'does-not-exist' } }
+
+            it { is_expected.to be_empty }
+          end
         end
       end
 
@@ -458,17 +494,6 @@ RSpec.describe MergeRequestsFinder, feature_category: :code_review_workflow do
           let(:expected_mr) { [merge_request1, merge_request2] }
 
           it { is_expected.to contain_exactly(*expected_mr) }
-
-          context 'with reviewer state' do
-            let(:params) { { reviewer_id: user2.id, review_state: 'requested_changes' } }
-            let(:expected_mr) { [merge_request1] }
-
-            before do
-              merge_request1.merge_request_reviewers.update_all(state: :requested_changes)
-            end
-
-            it { is_expected.to contain_exactly(*expected_mr) }
-          end
         end
 
         context 'by NOT reviewer_id' do
@@ -483,29 +508,6 @@ RSpec.describe MergeRequestsFinder, feature_category: :code_review_workflow do
           let(:expected_mr) { [merge_request1, merge_request2] }
 
           it { is_expected.to contain_exactly(*expected_mr) }
-
-          context 'with review state' do
-            let(:params) { { reviewer_username: user2.username, review_state: 'requested_changes' } }
-            let(:expected_mr) { [merge_request1] }
-
-            before do
-              merge_request1.merge_request_reviewers.update_all(state: :requested_changes)
-            end
-
-            it { is_expected.to contain_exactly(*expected_mr) }
-          end
-
-          context 'with multiple review state' do
-            let(:params) { { reviewer_username: user2.username, review_states: %w[requested_changes reviewed] } }
-            let(:expected_mr) { [merge_request1, merge_request2] }
-
-            before do
-              merge_request1.merge_request_reviewers.update_all(state: :requested_changes)
-              merge_request2.merge_request_reviewers.update_all(state: :reviewed)
-            end
-
-            it { is_expected.to contain_exactly(*expected_mr) }
-          end
         end
 
         context 'by NOT reviewer_username' do
@@ -540,100 +542,6 @@ RSpec.describe MergeRequestsFinder, feature_category: :code_review_workflow do
 
           it { is_expected.to be_empty }
         end
-      end
-
-      context 'review state filtering' do
-        let(:params) { { review_state: 'requested_changes' } }
-        let(:expected_mr) { [merge_request1] }
-
-        subject { described_class.new(user, params).execute }
-
-        before do
-          merge_request1.merge_request_reviewers.update_all(state: :requested_changes)
-        end
-
-        it { is_expected.to contain_exactly(*expected_mr) }
-      end
-
-      context 'multiple review state filtering' do
-        let(:params) { { review_states: %w[requested_changes reviewed] } }
-        let(:expected_mr) { [merge_request1, merge_request2] }
-
-        subject { described_class.new(user, params).execute }
-
-        before do
-          merge_request1.merge_request_reviewers.update_all(state: :requested_changes)
-          merge_request2.merge_request_reviewers.update_all(state: :requested_changes)
-        end
-
-        it { is_expected.to contain_exactly(*expected_mr) }
-      end
-
-      context 'assignee or reviewer filtering' do
-        let(:dashboard_flag_enabled) { true }
-        let(:params) { { assigned_user_id: user.id } }
-        let(:expected_mrs) { [merge_request1, merge_request2, merge_request3] }
-
-        subject { described_class.new(user, params).execute }
-
-        before do
-          stub_feature_flags(merge_request_dashboard: dashboard_flag_enabled)
-        end
-
-        context 'when merge_request_dashboard feature flag is disabled' do
-          let(:dashboard_flag_enabled) { false }
-          let(:expected_mrs) { [merge_request1, merge_request2, merge_request3, merge_request4, merge_request5] }
-
-          it { is_expected.to contain_exactly(*expected_mrs) }
-        end
-
-        it { is_expected.to contain_exactly(*expected_mrs) }
-      end
-
-      context 'assignee or reviewer filtering with assigned_review_states' do
-        let(:params) { { assigned_user_id: user.id, assigned_review_states: [:reviewed] } }
-        let(:expected_mr) { [merge_request1, merge_request3] }
-
-        subject { described_class.new(user, params).execute }
-
-        before do
-          stub_feature_flags(merge_request_dashboard: true)
-
-          merge_request1.merge_request_reviewers.update_all(state: :reviewed)
-        end
-
-        it { is_expected.to contain_exactly(*expected_mr) }
-      end
-
-      context 'assignee or reviewer filtering with reviewer_review_states' do
-        let(:params) { { assigned_user_id: user2.id, reviewer_review_states: [:reviewed] } }
-        let(:expected_mr) { [merge_request1, merge_request3] }
-
-        subject { described_class.new(user2, params).execute }
-
-        before do
-          stub_feature_flags(merge_request_dashboard: true)
-
-          merge_request1.merge_request_reviewers.update_all(state: :reviewed)
-        end
-
-        it { is_expected.to contain_exactly(*expected_mr) }
-      end
-
-      context 'assignee or reviewer filtering with assigned_review_states and reviewer_review_states' do
-        let(:params) { { assigned_user_id: user.id, assigned_review_states: [:requested_changes], reviewer_review_states: [:reviewed] } }
-        let(:expected_mr) { [merge_request1, merge_request3] }
-
-        subject { described_class.new(user, params).execute }
-
-        before do
-          stub_feature_flags(merge_request_dashboard: true)
-
-          merge_request1.merge_request_reviewers.update_all(state: :requested_changes)
-          merge_request3.merge_request_reviewers.update_all(state: :reviewed)
-        end
-
-        it { is_expected.to contain_exactly(*expected_mr) }
       end
 
       context 'filtering by group milestone' do

@@ -57,6 +57,5 @@ export default {
     :alt="avatarAlt"
     :size="size"
     :fallback-on-error="true"
-    itemprop="image"
   />
 </template>

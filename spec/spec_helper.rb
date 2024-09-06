@@ -34,7 +34,7 @@ require 'rspec-parameterized'
 require 'shoulda/matchers'
 require 'test_prof/recipes/rspec/let_it_be'
 require 'test_prof/factory_default'
-require 'test_prof/factory_prof/nate_heckler' if ENV.fetch('ENABLE_FACTORY_PROF', 'true') == 'true'
+require 'test_prof/factory_prof/nate_heckler'
 require 'parslet/rig/rspec'
 require 'axe-rspec'
 
@@ -51,6 +51,8 @@ if rspec_profiling_is_configured && (!ENV.key?('CI') || branch_can_be_profiled)
   require 'rspec_profiling/rspec'
 end
 
+# require rainbow gem String monkeypatch, so we can test SystemChecks
+require 'rainbow/ext/string'
 Rainbow.enabled = false
 
 # Enable zero monkey patching mode before loading any other RSpec code.
@@ -79,12 +81,7 @@ quality_level = Quality::TestLevel.new
 RSpec.configure do |config|
   config.use_transactional_fixtures = true
   config.use_instantiated_fixtures = false
-
-  if ::Gitlab.next_rails?
-    config.fixture_paths = [Rails.root]
-  else
-    config.fixture_path = Rails.root
-  end
+  config.fixture_path = Rails.root
 
   config.verbose_retry = true
   config.display_try_failure_messages = true
@@ -151,10 +148,6 @@ RSpec.configure do |config|
     metadata[:type] = :feature
   end
 
-  config.define_derived_metadata(file_path: %r{spec/dot_gitlab_ci/ci_configuration_validation/}) do |metadata|
-    metadata[:ci_config_validation] = true
-  end
-
   config.include LicenseHelpers
   config.include ActiveJob::TestHelper
   config.include ActiveSupport::Testing::TimeHelpers
@@ -165,6 +158,7 @@ RSpec.configure do |config|
   config.include StubGitlabCalls
   config.include NextFoundInstanceOf
   config.include NextInstanceOf
+  config.include TestEnv
   config.include FileReadHelpers
   config.include Database::MultipleDatabasesHelpers
   config.include Database::WithoutCheckConstraint
@@ -212,7 +206,6 @@ RSpec.configure do |config|
   config.include UserWithNamespaceShim
   config.include OrphanFinalArtifactsCleanupHelpers, :orphan_final_artifacts_cleanup
   config.include ClickHouseHelpers, :click_house
-  config.include DisableNamespaceOrganizationValidationHelper
 
   config.include_context 'when rendered has no HTML escapes', type: :view
 
@@ -274,8 +267,6 @@ RSpec.configure do |config|
   end
 
   config.before do |example|
-    stub_feature_flags(log_sql_function_namespace_lookups: false)
-
     if example.metadata.fetch(:stub_feature_flags, true)
       # The following can be removed when we remove the staged rollout strategy
       # and we can just enable it using instance wide settings
@@ -296,7 +287,6 @@ RSpec.configure do |config|
       # These feature flag are by default disabled and used in disaster recovery mode
       stub_feature_flags(ci_queueing_disaster_recovery_disable_fair_scheduling: false)
       stub_feature_flags(ci_queueing_disaster_recovery_disable_quota: false)
-      stub_feature_flags(ci_queuing_disaster_recovery_disable_allowed_plans: false)
 
       # It's disabled in specs because we don't support certain features which
       # cause spec failures.
@@ -336,27 +326,9 @@ RSpec.configure do |config|
       # Work in progress reviewer sidebar that does not have most of the features yet
       stub_feature_flags(reviewer_assign_drawer: false)
 
-      # Disable suspending ClickHouse data ingestion workers
-      stub_feature_flags(suspend_click_house_data_ingestion: false)
-
-      # Disable license requirement for duo chat, which is subject to change.
-      # See https://gitlab.com/gitlab-org/gitlab/-/issues/457090
-      stub_feature_flags(duo_chat_requires_licensed_seat: false)
-
       # Disable license requirement for duo chat (self managed), which is subject to change.
       # See https://gitlab.com/gitlab-org/gitlab/-/issues/457283
       stub_feature_flags(duo_chat_requires_licensed_seat_sm: false)
-
-      # Experimental merge request dashboard
-      stub_feature_flags(merge_request_dashboard: false)
-
-      # Since we are very early in the Vue migration, there isn't much value in testing when the feature flag is enabled
-      # Please see https://gitlab.com/gitlab-org/gitlab/-/issues/466081 for tracking revisiting this.
-      stub_feature_flags(your_work_projects_vue: false)
-
-      # disable license check by default, while migrating code to account for license. We still want out specs to be
-      # able to check functionality when license is enabled or disabled.
-      stub_feature_flags(enforce_check_group_level_work_items_license: false)
     else
       unstub_all_feature_flags
     end
@@ -409,23 +381,12 @@ RSpec.configure do |config|
     example.run if config.inclusion_filter[:quarantine] || !ENV['CI']
   end
 
-  config.around(:example, :ci_config_validation) do |example|
-    # Skip tests for ci config validation unless we explicitly focus on them or not in CI
-    example.run if config.inclusion_filter[:ci_config_validation] || !ENV['CI']
-  end
-
   config.around(:example, :request_store) do |example|
     ::Gitlab::SafeRequestStore.ensure_request_store { example.run }
   end
 
-  config.around(:example, :ci_config_feature_flag_correctness) do |example|
-    ::Gitlab::Ci::Config::FeatureFlags.ensure_correct_usage do
-      example.run
-    end
-  end
-
-  config.around(:example, :allow_unrouted_sidekiq_calls) do |example|
-    ::Gitlab::SidekiqSharding::Validator.allow_unrouted_sidekiq_calls do
+  config.around(:example, :yaml_processor_feature_flag_corectness) do |example|
+    ::Gitlab::Ci::YamlProcessor::FeatureFlags.ensure_correct_usage do
       example.run
     end
   end
@@ -459,15 +420,9 @@ RSpec.configure do |config|
         arguments_logger: false, # We're not logging the regular messages for inline jobs
         skip_jobs: false # We're not skipping jobs for inline tests
       ).call(chain)
-
+      chain.add DisableQueryLimit
       chain.insert_after ::Gitlab::SidekiqMiddleware::RequestStoreMiddleware, IsolatedRequestStore
 
-      example.run
-    end
-  end
-
-  config.around do |example|
-    Gitlab::SidekiqSharding::Validator.enabled do
       example.run
     end
   end
@@ -481,9 +436,6 @@ RSpec.configure do |config|
 
     # Re-enable query limiting in case it was disabled
     Gitlab::QueryLimiting.enable!
-
-    # Reset ActiveSupport::CurrentAttributes models
-    ActiveSupport::CurrentAttributes.reset_all
   end
 
   config.before(:example, :mailer) do
@@ -528,8 +480,6 @@ RSpec.configure do |config|
     STRING
 
     config.around(:each, spec_type) do |example|
-      next example.run if example.metadata[:migration_with_transaction]
-
       self.class.use_transactional_tests = false
 
       if DbCleaner.all_connection_classes.any? { |klass| klass.connection.transaction_open? }
@@ -564,9 +514,6 @@ Rugged::Settings['search_path_global'] = Rails.root.join('tmp/tests').to_s
 
 # Initialize FactoryDefault to use create_default helper
 TestProf::FactoryDefault.init
-
-# Set the start of ID sequence for records initialized by `build_stubbed` to prevent conflicts
-FactoryBot::Strategy::Stub.next_id = 1_000_000_000
 
 # Exclude the Geo proxy API request from getting on_next_request Warden handlers,
 # necessary to prevent race conditions with feature tests not getting authenticated.

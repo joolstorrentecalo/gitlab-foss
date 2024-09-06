@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Projects::DeployTokensController < Projects::ApplicationController
-  before_action :authorize_destroy_deploy_token!
+  before_action :authorize_admin_project!
 
   feature_category :continuous_delivery
   urgency :low

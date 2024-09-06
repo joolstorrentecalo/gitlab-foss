@@ -71,6 +71,9 @@ This can save you a lot of time, if you mostly create issues for the same projec
 
 ## From another issue or incident
 
+> - New issue becoming linked to the issue of origin [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/68226) in GitLab 14.3.
+> - **Relate to** checkbox [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/198494) in GitLab 14.9.
+
 You can create a new issue from an existing one. The two issues can then be marked as related.
 
 Prerequisites:
@@ -120,7 +123,7 @@ example, if the list is scoped to a label `Frontend`, the new issue also has thi
 ## By sending an email
 
 You can send an email to create an issue in a project on the project's
-**Issues** page.
+**Issues List** page.
 
 Prerequisites:
 
@@ -149,10 +152,13 @@ were you.
 
 To regenerate the email address:
 
-1. On the **Issues** page, select **Email a new issue to this project**.
+1. On the issues list, select **Email a new issue to this project**.
 1. Select **reset this token**.
 
 ## Using a URL with prefilled values
+
+> - Ability to use both `issuable_template` and `issue[description]` in the same URL [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/80554) in GitLab 14.9.
+> - Ability to specify `add_related_issue` [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/198494) in GitLab 14.9.
 
 To link directly to the new issue page with prefilled fields, use query
 string parameters in a URL. You can embed a URL in an external
@@ -197,6 +203,7 @@ the appropriate project and followed up from there.
 
 ## Fields in the new issue form
 
+> - Adding the new issue to an epic [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/13847) in GitLab 13.1.
 > - Iteration field [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/233517) in GitLab 15.6.
 
 When you're creating a new issue, you can complete the following fields:
@@ -206,7 +213,7 @@ When you're creating a new issue, you can complete the following fields:
 - [Description template](../description_templates.md): overwrites anything in the Description text box
 - Description: you can use [Markdown](../../markdown.md) and [quick actions](../quick_actions.md)
 - Checkbox to make the issue [confidential](confidential_issues.md)
-- [Assignees](managing_issues.md#assignees)
+- [Assignees](managing_issues.md#assignee)
 - [Weight](issue_weight.md)
 - [Epic](../../group/epics/index.md)
 - [Due date](due_dates.md)

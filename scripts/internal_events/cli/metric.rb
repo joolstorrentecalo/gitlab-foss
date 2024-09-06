@@ -4,6 +4,8 @@ module InternalEventsCli
   NEW_METRIC_FIELDS = [
     :key_path,
     :description,
+    :product_section,
+    :product_stage,
     :product_group,
     :performance_indicator_type,
     :value_type,
@@ -28,8 +30,9 @@ module InternalEventsCli
     :name
   ].freeze
 
-  # These keys will always be included in the definition yaml
   METRIC_DEFAULTS = {
+    product_section: nil,
+    product_stage: nil,
     product_group: nil,
     introduced_by_url: 'TODO',
     value_type: 'number',
@@ -39,31 +42,7 @@ module InternalEventsCli
     performance_indicator_type: []
   }.freeze
 
-  ExistingMetric = Struct.new(*NEW_METRIC_FIELDS, *ADDITIONAL_METRIC_FIELDS, :file_path, keyword_init: true) do
-    def identifier
-      events&.dig(0, 'unique')&.chomp('.id')
-    end
-
-    def actions
-      events&.map { |event| event['name'] } # rubocop:disable Rails/Pluck -- not rails
-    end
-
-    def filters
-      events&.map do |event|
-        [event['name'], event['filter'] || {}]
-      end
-    end
-
-    def filtered?
-      !!filters&.any? { |(_action, filter)| filter&.any? }
-    end
-
-    def time_frame
-      self[:time_frame] || 'all'
-    end
-  end
-
-  NewMetric = Struct.new(*NEW_METRIC_FIELDS, :identifier, :actions, :key, :filters, keyword_init: true) do
+  Metric = Struct.new(*NEW_METRIC_FIELDS, *ADDITIONAL_METRIC_FIELDS, :identifier, :actions, keyword_init: true) do
     def formatted_output
       METRIC_DEFAULTS
         .merge(to_h.compact)
@@ -78,213 +57,91 @@ module InternalEventsCli
     def file_path
       File.join(
         *[
-          distribution.directory_name,
+          ('ee' unless distribution.include?('ce')),
           'config',
           'metrics',
-          time_frame.directory_name,
-          file_name
+          "counts_#{time_frame}",
+          "#{key}.yml"
         ].compact
       )
     end
 
-    def file_name
-      "#{key.value}.yml"
+    def key
+      [
+        'count',
+        (identifier ? "distinct_#{identifier}_id_from" : 'total'),
+        actions.join('_and_'),
+        (time_frame_prefix&.downcase if time_frame != 'all')
+      ].compact.join('_')
     end
 
     def key_path
-      key.full_path
+      self[:key_path] ||= "#{key_path_prefix}.#{key}"
     end
 
-    def time_frame
-      Metric::TimeFrame.new(self[:time_frame])
-    end
-
-    def identifier
-      Metric::Identifier.new(self[:identifier])
-    end
-
-    def distribution
-      Metric::Distribution.new(self[:distribution])
-    end
-
-    def key
-      Metric::Key.new(self[:key] || actions, time_frame, identifier)
-    end
-
-    def filters
-      Metric::Filters.new(self[:filters])
-    end
-
-    # Returns value for the `events` key in the metric definition.
-    # Requires #actions or #filters to be set by the caller first.
-    #
-    # @return [Hash]
     def events
-      if filters.assigned?
-        self[:filters].map { |(action, filter)| event_params(action, filter) }
-      else
-        actions.map { |action| event_params(action) }
+      self[:events] ||= actions.map do |action|
+        if identifier
+          {
+            'name' => action,
+            'unique' => "#{identifier}.id"
+          }
+        else
+          { 'name' => action }
+        end
       end
     end
 
-    def event_params(action, filter = nil)
-      params = { 'name' => action }
-      params['unique'] = "#{identifier.value}.id" if identifier.value
-      params['filter'] = filter if filter&.any?
-
-      params
+    def key_path_prefix
+      if identifier
+        'redis_hll_counters'
+      else
+        'counts'
+      end
     end
 
     def actions
       self[:actions] || []
     end
 
-    # How to interpretting different values for filters:
-    # nil --> not expected, assigned or filtered
-    #        (metric not initialized with filters)
-    # [] --> both expected and filtered
-    #        (metric initialized with filters, but not yet assigned by user)
-    # [['event', {}]] --> not expected, assigned or filtered
-    #        (filters were expected, but then skipped by user)
-    # [['event', { 'label' => 'a' }]] --> both assigned and filtered
-    #        (filters exist for any event; user is done assigning)
-    def filtered?
-      filters.assigned? || filters.expected?
-    end
-
-    def filters_expected?
-      filters.expected?
-    end
-
-    def description_prefix
-      [time_frame.description, identifier.description].join(' ')
-    end
-
-    # Provides simplified but technically accurate description
-    def technical_description
-      event_name = actions.first if events.length == 1 && !filtered?
-      event_name ||= 'the selected events'
-
-      case identifier.value
-      when 'user'
-        "#{description_prefix} who triggered #{event_name}"
-      when 'project', 'namespace'
-        "#{description_prefix} where #{event_name} occurred"
+    def identifier_prefix
+      if identifier
+        "count of unique #{identifier}s"
       else
-        "#{description_prefix} #{event_name} occurrences"
+        "count of"
+      end
+    end
+
+    def time_frame_prefix
+      case time_frame
+      when '7d'
+        'Weekly'
+      when '28d'
+        'Monthly'
+      when 'all'
+        'Total'
+      end
+    end
+
+    def prefix
+      [time_frame_prefix, identifier_prefix].join(' ')
+    end
+
+    def technical_description
+      simple_event_list = actions.join(' or ')
+
+      case identifier
+      when 'user'
+        "#{prefix} who triggered #{simple_event_list}"
+      when 'project', 'namespace'
+        "#{prefix} where #{simple_event_list} occurred"
+      else
+        "#{prefix} #{simple_event_list} occurrences"
       end
     end
 
     def bulk_assign(key_value_pairs)
       key_value_pairs.each { |key, value| self[key] = value }
-    end
-  end
-
-  class Metric
-    TimeFrame = Struct.new(:value) do
-      def description
-        case value
-        when '7d'
-          'Weekly'
-        when '28d'
-          'Monthly'
-        when 'all'
-          'Total'
-        end
-      end
-
-      def directory_name
-        "counts_#{value}"
-      end
-
-      def key_path
-        description&.downcase if value != 'all'
-      end
-    end
-
-    Identifier = Struct.new(:value) do
-      def description
-        if value
-          "count of unique #{value}s"
-        else
-          "count of"
-        end
-      end
-
-      def key_path
-        value ? "distinct_#{value}_id_from" : 'total'
-      end
-    end
-
-    Distribution = Struct.new(:value) do
-      def directory_name
-        'ee' unless value.include?('ce')
-      end
-    end
-
-    Key = Struct.new(:events, :time_frame, :identifier) do
-      # @param name_to_display [String] return the key with the
-      #          provided name instead of a list of event names
-      def value(name_to_display = nil)
-        [
-          'count',
-          identifier&.key_path,
-          name_to_display || name_for_events,
-          time_frame&.key_path
-        ].compact.join('_')
-      end
-
-      def full_path
-        "#{prefix}.#{value}"
-      end
-
-      # Refers to the middle portion of a metric's `key_path`
-      # pertaining to the relevent events; This does not include
-      # identifier/time_frame/etc
-      def name_for_events
-        # user may have defined a different name for events
-        return events unless events.respond_to?(:join)
-
-        events.join('_and_')
-      end
-
-      def prefix
-        if identifier.value
-          'redis_hll_counters'
-        else
-          'counts'
-        end
-      end
-    end
-
-    Filters = Struct.new(:filters) do
-      def expected?
-        filters == []
-      end
-
-      def assigned?
-        !!filters&.any? { |(_action, filter)| filter.any? }
-      end
-
-      def descriptions
-        Array(filters).filter_map do |(action, filter)|
-          next action if filter.none?
-
-          "#{action}(#{describe_filter(filter)})"
-        end.sort_by(&:length)
-      end
-
-      def describe_filter(filter)
-        filter.map { |k, v| "#{k}=#{v}" }.join(',')
-      end
-    end
-
-    def self.parse(**args)
-      ExistingMetric.new(**args)
-    end
-
-    def self.new(**args)
-      NewMetric.new(**args)
     end
   end
 end

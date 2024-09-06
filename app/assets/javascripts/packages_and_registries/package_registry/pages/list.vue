@@ -5,18 +5,15 @@ import { createAlert, VARIANT_INFO } from '~/alert';
 import { WORKSPACE_GROUP, WORKSPACE_PROJECT } from '~/issues/constants';
 import { fetchPolicies } from '~/lib/graphql';
 import { historyReplaceState } from '~/lib/utils/common_utils';
-import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { s__ } from '~/locale';
 import { SHOW_DELETE_SUCCESS_ALERT } from '~/packages_and_registries/shared/constants';
 import {
   GRAPHQL_PAGE_SIZE,
   DELETE_PACKAGE_SUCCESS_MESSAGE,
   EMPTY_LIST_HELP_URL,
-  PACKAGE_ERROR_STATUS,
   PACKAGE_HELP_URL,
 } from '~/packages_and_registries/package_registry/constants';
 import getPackagesQuery from '~/packages_and_registries/package_registry/graphql/queries/get_packages.query.graphql';
-import getGroupPackageSettings from '~/packages_and_registries/package_registry/graphql/queries/get_group_package_settings.query.graphql';
 import DeletePackages from '~/packages_and_registries/package_registry/components/functional/delete_packages.vue';
 import PackageTitle from '~/packages_and_registries/package_registry/components/list/package_title.vue';
 import PackageSearch from '~/packages_and_registries/package_registry/components/list/package_search.vue';
@@ -43,7 +40,7 @@ export default {
   directives: {
     GlTooltip: GlTooltipDirective,
   },
-  inject: ['emptyListIllustration', 'canDeletePackages', 'isGroupPage', 'fullPath', 'settingsPath'],
+  inject: ['emptyListIllustration', 'isGroupPage', 'fullPath', 'settingsPath'],
   data() {
     return {
       packagesResource: {},
@@ -51,7 +48,6 @@ export default {
       filters: {},
       isDeleteInProgress: false,
       pageParams: {},
-      groupSettings: {},
     };
   },
   apollo: {
@@ -68,30 +64,15 @@ export default {
         return !this.sort;
       },
     },
-    groupSettings: {
-      query: getGroupPackageSettings,
-      variables() {
-        return {
-          fullPath: this.fullPath,
-          isGroupPage: this.isGroupPage,
-        };
-      },
-      update(data) {
-        return this.isGroupPage
-          ? data[this.graphqlResource].packageSettings ?? {}
-          : data[this.graphqlResource].group?.packageSettings ?? {};
-      },
-      skip() {
-        return !(this.packagesCount > 0 && this.canDeletePackages);
-      },
-      error(error) {
-        Sentry.captureException(error);
-      },
-    },
   },
   computed: {
     packages() {
       return this.packagesResource?.packages ?? {};
+    },
+    groupSettings() {
+      return this.isGroupPage
+        ? this.packagesResource?.packageSettings ?? {}
+        : this.packagesResource?.group?.packageSettings ?? {};
     },
     queryVariables() {
       return {
@@ -99,8 +80,10 @@ export default {
         fullPath: this.fullPath,
         sort: this.isGroupPage ? undefined : this.sort,
         groupSort: this.isGroupPage ? this.sort : undefined,
+        packageName: this.filters?.packageName,
+        packageType: this.filters?.packageType,
+        packageVersion: this.filters?.packageVersion,
         first: GRAPHQL_PAGE_SIZE,
-        ...this.packageParams,
         ...this.pageParams,
       };
     },
@@ -110,32 +93,14 @@ export default {
     pageInfo() {
       return this.packages?.pageInfo ?? {};
     },
-    packageParams() {
-      return {
-        packageName: this.filters?.packageName,
-        packageType: this.filters?.packageType,
-        packageVersion: this.filters?.packageVersion,
-        packageStatus: this.filters?.packageStatus,
-      };
-    },
     packagesCount() {
       return this.packages?.count;
     },
     hasFilters() {
-      return (
-        this.filters.packageName ||
-        this.filters.packageType ||
-        this.filters.packageVersion ||
-        this.filters.packageStatus
-      );
+      return this.filters.packageName || this.filters.packageType || this.filters.packageVersion;
     },
     emptySearch() {
-      return (
-        !this.filters.packageName &&
-        !this.filters.packageType &&
-        !this.filters.packageVersion &&
-        !this.filters.packageStatus
-      );
+      return !this.filters.packageName && !this.filters.packageType && !this.filters.packageVersion;
     },
     emptyStateTitle() {
       return this.emptySearch
@@ -144,9 +109,6 @@ export default {
     },
     isLoading() {
       return this.$apollo.queries.packagesResource.loading || this.isDeleteInProgress;
-    },
-    isFilteredByErrorStatus() {
-      return this.filters?.packageStatus?.toUpperCase() === PACKAGE_ERROR_STATUS;
     },
     refetchQueriesData() {
       return [
@@ -220,7 +182,6 @@ export default {
     >
       <template #default="{ deletePackages }">
         <package-list
-          :hide-error-alert="isFilteredByErrorStatus"
           :group-settings="groupSettings"
           :list="packages.nodes"
           :is-loading="isLoading"
@@ -247,7 +208,7 @@ export default {
         </package-list>
       </template>
     </delete-packages>
-    <div v-if="!isDeleteInProgress" class="gl-flex gl-justify-center">
+    <div v-if="!isDeleteInProgress" class="gl-display-flex gl-justify-content-center">
       <persisted-pagination
         class="gl-mt-3"
         :pagination="pageInfo"

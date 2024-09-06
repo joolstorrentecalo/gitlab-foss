@@ -10,29 +10,15 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-Epics in a group containing a start date or due date can be visualized in a form
-of a timeline.
+> - [Moved](https://gitlab.com/gitlab-org/gitlab/-/issues/198062) from GitLab Ultimate to GitLab Premium in 12.9.
+> - In [GitLab 12.9](https://gitlab.com/gitlab-org/gitlab/-/issues/5164) and later, the epic bars show epics' title, progress, and completed weight percentage.
+> - Milestones appear in roadmaps in [GitLab 12.10](https://gitlab.com/gitlab-org/gitlab/-/issues/6802), and later.
+> - Feature flag for milestones visible in roadmaps [removed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/29641) in GitLab 13.0.
+> - In [GitLab 13.2](https://gitlab.com/gitlab-org/gitlab/-/issues/214375) and later, the Roadmap also shows milestones in projects in a group.
+> - In [GitLab 13.2](https://gitlab.com/gitlab-org/gitlab/-/issues/212494) and later, milestone bars can be collapsed and expanded.
 
-The roadmap in GitLab provides a high-level overview of the planned work and progress of epics and
-milestones in a timeline view (that is, a Gantt chart).
-Use the roadmap to visualize and communicate the strategic direction and dependencies of your projects.
-
-The epic roadmap offers the following benefits:
-
-- Aligns the team around a shared vision and goals.
-- Assists long-term planning and resource allocation.
-- Identifies potential blockers, dependencies, and risks early.
-- Provides stakeholders with a clear understanding of the project's timeline and milestones.
-- Helps track and update the project's progress.
-
-## View the roadmap
-
-To view the roadmap in a group:
-
-1. On the left sidebar, select **Search or go to** and find your group.
-1. Select **Plan > Roadmap**.
-
-The roadmap shows the epics and milestones in a
+Epics and milestones in a group containing a start date or due date can be visualized in a form
+of a timeline (that is, a Gantt chart). The Roadmap page shows the epics and milestones in a
 group, one of its subgroups, or a project in one of the groups.
 
 On the epic bars, you can see each epic's title, progress, and completed weight percentage.
@@ -50,10 +36,13 @@ heading to toggle the list of the milestone bars.
 
 ![roadmap view](img/roadmap_view_v14_3.png)
 
-## Sort and filter the roadmap
+## Sort and filter the Roadmap
 
+> - Filtering by milestone [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/218621) in GitLab 13.7 [with a flag](../../../administration/feature_flags.md) named `roadmap_daterange_filter`. Enabled by default.
+> - Filtering by epic confidentiality [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/218624) in GitLab 13.9.
+> - Filtering by epic [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/218623) in GitLab 13.11.
+> - Filtering by milestone [feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/323917) in GitLab 14.5.
 > - Filtering by group was [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/385191) in GitLab 15.9.
-> - Sorting by title, created date, and last updated date [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/460492) in GitLab 17.0.
 
 NOTE:
 Filtering roadmaps by milestone might not be available to you. Be sure to review this section's history for details.
@@ -61,19 +50,16 @@ Filtering roadmaps by milestone might not be available to you. Be sure to review
 When you want to explore a roadmap, there are several ways to make it easier by sorting epics or
 filtering them by what's important for you.
 
-In the Roadmap view, you can sort epics by:
+You can sort epics in the Roadmap view by:
 
 - Start date
 - Due date
-- Title
-- Created date
-- Last updated date
 
 Each option contains a button that toggles the sort order between **ascending**
-and **descending**. The sort option and order persist when browsing epics, including
+and **descending**. The sort option and order persist when browsing Epics, including
 the [epics list view](../epics/index.md).
 
-In the Roadmap view, you can also filter by the epics':
+You can also filter epics in the Roadmap view by the epics':
 
 - Author
 - Label
@@ -87,20 +73,10 @@ In the Roadmap view, you can also filter by the epics':
 
 You can also [visualize roadmaps inside of an epic](../epics/index.md#roadmap-in-epics).
 
-### Improve the performance of the roadmap
-
-If your group contains a lot of epics, using filters can reduce the time your roadmap takes to load.
-Filtering the roadmap reduces the amount of data the roadmap contains. Reducing
-the data in the roadmap can also make it easier for you to find the information you're looking for.
-
-In particular, filtering based on labels can result in a significant performance improvement.
-
-After you set the filters you want to apply, you can save the URL as bookmark in your
-browser.
-In the future, you can quickly load the filtered roadmap using the bookmark.
-
 ### Roadmap settings
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/345158) in GitLab 14.8 [with a flag](../../../administration/feature_flags.md) named `roadmap_settings`. Enabled by default.
+> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/350830) in GitLab 14.9. Feature flag `roadmap_settings`removed.
 > - Labels visible on roadmaps [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/385231) in GitLab 15.9.
 
 When you enable the roadmap settings sidebar, you can use it to refine epics shown in the roadmap.
@@ -124,6 +100,10 @@ shared using URL parameters.
 
 ### Date range presets
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/204994) in GitLab 14.3 [with a flag](../../../administration/feature_flags.md) named `roadmap_daterange_filter`. Disabled by default.
+> - [Enabled on GitLab.com and self-managed](https://gitlab.com/gitlab-org/gitlab/-/issues/323917) in GitLab 14.3.
+> - Generally available in GitLab 14.5. [Feature flag `roadmap_daterange_filter`](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/72419) removed.
+
 Roadmap provides these date range options, each with a predetermined timeline duration:
 
 - **This quarter**: Includes the weeks present in the current quarter.
@@ -133,7 +113,7 @@ Roadmap provides these date range options, each with a predetermined timeline du
 
 ### Layout presets
 
-Depending on selected [date range preset](#date-range-presets), the roadmap supports
+Depending on selected [date range preset](#date-range-presets), Roadmap supports
 these layout presets:
 
 - **Quarters**: Available only when the **Within 3 years** date range is selected.
@@ -184,7 +164,7 @@ DETAILS:
 
 If an epic is [blocked by another epic](../epics/linked_epics.md#blocking-epics), an icon appears next to its title to indicate its blocked status.
 
-When you hover over the blocked icon (**{entity-blocked}**), a detailed information popover is displayed.
+When you hover over the blocked icon (**{issue-block}**), a detailed information popover is displayed.
 
 ![Blocked epics](img/roadmap_blocked_icon_v15_5.png)
 

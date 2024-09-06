@@ -70,7 +70,6 @@ RSpec.describe Notes::QuickActionsService, feature_category: :team_planning do
           note.noteable.close!
           expect(note.noteable).to be_closed
         end
-
         let(:note_text) { '/reopen' }
 
         it 'opens the noteable, and leave no note' do
@@ -153,11 +152,10 @@ RSpec.describe Notes::QuickActionsService, feature_category: :team_planning do
 
       shared_examples 'does not update time_estimate and displays the correct error message' do
         it 'shows validation error message' do
-          content, update_params = service.execute(note)
-          service_response = service.apply_updates(update_params, note)
+          content = execute(note)
 
           expect(content).to be_empty
-          expect(service_response.message).to include('Time estimate must have a valid format and be greater than or equal to zero.')
+          expect(note.noteable.errors[:time_estimate]).to include('must have a valid format and be greater than or equal to zero.')
           expect(note.noteable.reload.time_estimate).to eq(600)
         end
       end
@@ -228,7 +226,7 @@ RSpec.describe Notes::QuickActionsService, feature_category: :team_planning do
 
           it 'does not mark parent work item as confidential' do
             expect { execute(note) }.to not_change { noteable.reload.confidential }.from(false)
-            expect(noteable.errors[:base]).to include('All child items must be confidential in order to turn on confidentiality.')
+            expect(noteable.errors[:base]).to include('A confidential work item cannot have a parent that already has non-confidential children.')
           end
         end
 
@@ -264,7 +262,6 @@ RSpec.describe Notes::QuickActionsService, feature_category: :team_planning do
           note.noteable.close
           expect(note.noteable).to be_closed
         end
-
         let(:note_text) { "HELLO\n/reopen\nWORLD" }
 
         it 'opens the noteable' do
@@ -346,38 +343,6 @@ RSpec.describe Notes::QuickActionsService, feature_category: :team_planning do
 
         it 'removes the milestone' do
           expect { execute(note) }.to change { issue.reload.milestone }.from(milestone).to(nil)
-        end
-      end
-    end
-
-    describe '/remind_me' do
-      let(:issue) { create(:issue, project: project, milestone: milestone) }
-      let(:note_text) { '/remind_me 1d' }
-      let(:note) { create(:note_on_issue, noteable: issue, project: project, note: note_text) }
-
-      context 'on an issue' do
-        it 'leaves the note empty' do
-          expect(execute(note)).to be_empty
-        end
-
-        it 'attempts to set a reminder' do
-          expect(Issuable::CreateReminderWorker).to receive(:perform_in)
-
-          execute(note)
-        end
-      end
-
-      context 'on a merge request' do
-        let(:note_mr) { create(:note_on_merge_request, project: project, note: note_text) }
-
-        it 'leaves the note empty' do
-          expect(execute(note_mr)).to be_empty
-        end
-
-        it 'attempts to set a reminder' do
-          expect(Issuable::CreateReminderWorker).to receive(:perform_in)
-
-          execute(note)
         end
       end
     end
@@ -695,7 +660,6 @@ RSpec.describe Notes::QuickActionsService, feature_category: :team_planning do
             note.noteable.close!
             expect(note.noteable).to be_closed
           end
-
           let(:note_text) { '/reopen' }
 
           it 'opens the noteable, and leave no note' do
@@ -728,7 +692,6 @@ RSpec.describe Notes::QuickActionsService, feature_category: :team_planning do
             note.noteable.close
             expect(note.noteable).to be_closed
           end
-
           let(:note_text) { "HELLO\n/reopen\nWORLD" }
 
           it 'opens the noteable' do
@@ -803,7 +766,7 @@ RSpec.describe Notes::QuickActionsService, feature_category: :team_planning do
 
         expect(apply_updates.success?).to be false
         expect(apply_updates.message)
-          .to include("All child items must be confidential in order to turn on confidentiality.")
+          .to include("A confidential work item cannot have a parent that already has non-confidential children.")
       end
     end
 

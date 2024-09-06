@@ -23,19 +23,19 @@ RSpec.describe Banzai::Filter::References::UserReferenceFilter, feature_category
   end
 
   it 'ignores invalid users' do
-    act = "Hey #{invalidate_reference(reference)}"
-    expect(reference_filter(act).to_html).to include act
+    exp = act = "Hey #{invalidate_reference(reference)}"
+    expect(reference_filter(act).to_html).to eq(exp)
   end
 
   it 'ignores references with text before the @ sign' do
-    act = "Hey foo#{reference}"
-    expect(reference_filter(act).to_html).to include act
+    exp = act = "Hey foo#{reference}"
+    expect(reference_filter(act).to_html).to eq(exp)
   end
 
   %w[pre code a style].each do |elem|
     it "ignores valid references contained inside '#{elem}' element" do
-      act = "<#{elem}>Hey #{reference}</#{elem}>"
-      expect(reference_filter(act).to_html).to include act
+      exp = act = "<#{elem}>Hey #{reference}</#{elem}>"
+      expect(reference_filter(act).to_html).to eq exp
     end
   end
 
@@ -243,10 +243,5 @@ RSpec.describe Banzai::Filter::References::UserReferenceFilter, feature_category
         reference_filter(markdown)
       end.to issue_same_number_of_queries_as(control_count)
     end
-  end
-
-  it_behaves_like 'limits the number of filtered items' do
-    let(:text) { "#{reference} #{reference} #{reference}" }
-    let(:ends_with) { "</a> #{reference}" }
   end
 end

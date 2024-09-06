@@ -2,7 +2,6 @@
 stage: Create
 group: Code Review
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
-description: "The most common merge request flows in GitLab use forks, protected branches, or both."
 ---
 
 # Merge request workflows
@@ -54,12 +53,12 @@ To set up a protected branch flow:
    You can specify the format and security measures such as requiring SSH key signing for changes
    coming into your code base with push rules:
 
-   - [Push rules](../repository/push_rules.md)
+   - [Push Rules](../repository/push_rules.md)
 
 1. To ensure that the code is reviewed and checked by the right people in your team, use:
 
    - [Code Owners](../codeowners/index.md)
-   - [Merge request approval rules](approvals/rules.md)
+   - [Merge Request approval rules](approvals/rules.md)
 
 Also available in the Ultimate tier:
 

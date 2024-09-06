@@ -51,7 +51,7 @@ RSpec.describe Resolvers::ContainerRepositoryTagsResolver, feature_category: :co
       stub_container_registry_config(enabled: true)
     end
 
-    context 'when Gitlab API is supported' do
+    context 'when Gitlab API is supported', :saas do
       before do
         allow(repository).to receive(:tags_page).and_return({
           tags: [],
@@ -61,7 +61,7 @@ RSpec.describe Resolvers::ContainerRepositoryTagsResolver, feature_category: :co
           }
         })
 
-        allow(repository.gitlab_api_client).to receive(:supports_gitlab_api?).and_return(true)
+        allow(ContainerRegistry::GitlabApiClient).to receive(:supports_gitlab_api?).and_return(true)
       end
 
       context 'get the page size based on first and last param' do
@@ -83,39 +83,27 @@ RSpec.describe Resolvers::ContainerRepositoryTagsResolver, feature_category: :co
       context 'with parameters' do
         using RSpec::Parameterized::TableSyntax
 
-        where(:referrers, :sort_string, :sort_value) do
-          nil   | nil                 | nil
-          true  | nil                 | nil
-          false | nil                 | nil
-          nil   | 'NAME_ASC'          | 'name'
-          nil   | 'NAME_DESC'         | '-name'
-          nil   | 'PUBLISHED_AT_ASC'  | 'published_at'
-          nil   | 'PUBLISHED_AT_DESC' | '-published_at'
-        end
-
-        let(:args) do
-          {
-            before: 'abc',
-            after: 'xyz',
-            sort: sort_string,
-            name: 'tag1',
-            first: 5,
-            last: 0,
-            referrers: referrers,
-            referrer_type: 'application/example'
-          }
+        where(:before, :after, :sort, :name, :first, :last, :sort_value, :referrers, :referrer_type) do
+          nil  | nil  | 'NAME_DESC' | ''  | 10  | nil | '-name' | nil   | nil
+          'bb' | nil  | 'NAME_ASC'  | 'a' | nil | 5   | 'name'  | false | nil
+          nil  | 'aa' | 'NAME_DESC' | 'a' | 10  | nil | '-name' | true  | 'application/example'
         end
 
         with_them do
-          it 'calls ContainerRepository#tags_page with the correct parameters' do
+          let(:args) do
+            { before: before, after: after, sort: sort, name: name, first: first,
+              last: last, referrers: referrers, referrer_type: referrer_type }.compact
+          end
+
+          it 'calls ContainerRepository#tags_page with correct parameters' do
             expect(repository).to receive(:tags_page).with(
-              before: 'abc',
-              last: 'xyz',
+              before: before,
+              last: after,
               sort: sort_value,
-              name: 'tag1',
-              page_size: 5,
+              name: name,
+              page_size: [first, last].map(&:to_i).max,
               referrers: referrers,
-              referrer_type: 'application/example'
+              referrer_type: referrer_type
             )
 
             resolver(args)
@@ -133,7 +121,7 @@ RSpec.describe Resolvers::ContainerRepositoryTagsResolver, feature_category: :co
 
     context 'when Gitlab API is not supported' do
       before do
-        allow(repository.gitlab_api_client).to receive(:supports_gitlab_api?).and_return(false)
+        allow(ContainerRegistry::GitlabApiClient).to receive(:supports_gitlab_api?).and_return(false)
       end
 
       it_behaves_like 'fetching via tags and filter in place'

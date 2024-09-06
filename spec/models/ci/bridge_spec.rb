@@ -52,7 +52,7 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
     end
 
     it 'returns an empty TagList for tag_list' do
-      expect(bridge.tag_list).to be_a(Gitlab::Ci::Tags::TagList)
+      expect(bridge.tag_list).to be_a(ActsAsTaggableOn::TagList)
     end
   end
 
@@ -149,56 +149,6 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
         let(:accessibility) { 'private' }
 
         it { expect(bridge.scoped_variables.to_hash).not_to include(job_variable.key => job_variable.value) }
-      end
-    end
-  end
-
-  describe 'state machine events' do
-    describe 'start_cancel!' do
-      valid_statuses = Ci::HasStatus::CANCELABLE_STATUSES.map(&:to_sym) + [:manual]
-      # Invalid statuses are statuses that are COMPLETED_STATUSES or already canceling
-      invalid_statuses = Ci::HasStatus::AVAILABLE_STATUSES.map(&:to_sym) - valid_statuses
-
-      valid_statuses.each do |status|
-        it "transitions from #{status} to canceling" do
-          bridge = create(:ci_bridge, status: status)
-
-          bridge.start_cancel!
-
-          expect(bridge.status).to eq('canceling')
-        end
-      end
-
-      invalid_statuses.each do |status|
-        it "does not transition from #{status} to canceling" do
-          bridge = create(:ci_bridge, status: status)
-
-          expect { bridge.start_cancel! }
-            .to raise_error(StateMachines::InvalidTransition)
-        end
-      end
-    end
-
-    describe 'finish_cancel!' do
-      valid_statuses = Ci::HasStatus::CANCELABLE_STATUSES.map(&:to_sym) + [:manual, :canceling]
-      invalid_statuses = Ci::HasStatus::AVAILABLE_STATUSES.map(&:to_sym) - valid_statuses
-      valid_statuses.each do |status|
-        it "transitions from #{status} to canceling" do
-          bridge = create(:ci_bridge, status: status)
-
-          bridge.finish_cancel!
-
-          expect(bridge.status).to eq('canceled')
-        end
-      end
-
-      invalid_statuses.each do |status|
-        it "does not transition from #{status} to canceling" do
-          bridge = create(:ci_bridge, status: status)
-
-          expect { bridge.finish_cancel! }
-            .to raise_error(StateMachines::InvalidTransition)
-        end
       end
     end
   end
@@ -374,6 +324,16 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
 
         expect(bridge.downstream_variables).to contain_exactly(*expected_vars)
       end
+
+      context 'and feature flag is disabled' do
+        before do
+          stub_feature_flags(ci_prevent_file_var_expansion_downstream_pipeline: false)
+        end
+
+        it 'expands the file variable' do
+          expect(bridge.downstream_variables).to contain_exactly({ key: 'EXPANDED_FILE', value: 'test-file-value' })
+        end
+      end
     end
 
     context 'when recursive interpolation has been used' do
@@ -476,6 +436,21 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
 
           expect(bridge.downstream_variables).to contain_exactly(*expected_vars)
         end
+
+        context 'and feature flag is disabled' do
+          before do
+            stub_feature_flags(ci_prevent_file_var_expansion_downstream_pipeline: false)
+          end
+
+          it 'expands the file variable' do
+            expected_vars = [
+              { key: 'FILE_VAR', value: 'project file' },
+              { key: 'YAML_VAR', value: 'project file' }
+            ]
+
+            expect(bridge.downstream_variables).to contain_exactly(*expected_vars)
+          end
+        end
       end
 
       context 'when the pipeline runs from a pipeline schedule' do
@@ -542,6 +517,16 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
         ]
 
         expect(bridge.downstream_variables).to contain_exactly(*expected_vars)
+      end
+
+      context 'and feature flag is disabled' do
+        before do
+          stub_feature_flags(ci_prevent_file_var_expansion_downstream_pipeline: false)
+        end
+
+        it 'expands the file variable' do
+          expect(bridge.downstream_variables).to contain_exactly({ key: 'schedule_var_key', value: 'project file' })
+        end
       end
     end
 
@@ -640,11 +625,7 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
         create(:project, :repository, :in_group, creator: bridge_creator_user, group: bridge_group)
       end
 
-      let(:ci_stage) { create(:ci_stage, pipeline: pipeline, project: pipeline.project) }
-      let(:bridge) do
-        build(:ci_bridge, :playable, pipeline: pipeline, downstream: downstream_project, ci_stage: ci_stage)
-      end
-
+      let(:bridge) { build(:ci_bridge, :playable, pipeline: pipeline, downstream: downstream_project) }
       let!(:pipeline) { create(:ci_pipeline, project: project) }
 
       let!(:ci_variable) do
@@ -810,8 +791,6 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
         .to eq(bridge.scoped_variables.concat(bridge.pipeline.persisted_variables).to_hash)
     end
   end
-
-  it_behaves_like 'a triggerable processable', :ci_bridge
 
   describe '#pipeline_variables' do
     it 'returns the pipeline variables' do
@@ -1166,14 +1145,10 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
   end
 
   describe 'metadata partitioning', :ci_partitionable do
-    let(:pipeline) do
-      create(:ci_pipeline, project: project, partition_id: ci_testing_partition_id_for_check_constraints)
-    end
-
-    let(:ci_stage) { create(:ci_stage, pipeline: pipeline) }
+    let(:pipeline) { create(:ci_pipeline, project: project, partition_id: ci_testing_partition_id) }
 
     let(:bridge) do
-      build(:ci_bridge, pipeline: pipeline, ci_stage: ci_stage)
+      build(:ci_bridge, pipeline: pipeline)
     end
 
     it 'creates the metadata record and assigns its partition' do
@@ -1186,7 +1161,7 @@ RSpec.describe Ci::Bridge, feature_category: :continuous_integration do
 
       expect(bridge.metadata).to be_present
       expect(bridge.metadata).to be_valid
-      expect(bridge.metadata.partition_id).to eq(ci_testing_partition_id_for_check_constraints)
+      expect(bridge.metadata.partition_id).to eq(ci_testing_partition_id)
     end
   end
 

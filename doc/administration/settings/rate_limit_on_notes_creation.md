@@ -10,11 +10,13 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/53637) in GitLab 13.9.
+
 You can configure the per-user rate limit for requests to the note creation endpoint.
 
 To change the note creation rate limit:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > Network**.
 1. Expand **Notes rate limit**.
 1. In the **Maximum requests per minute** box, enter the new value.

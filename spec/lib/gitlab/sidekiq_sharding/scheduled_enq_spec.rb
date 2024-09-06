@@ -2,17 +2,14 @@
 
 require 'spec_helper'
 
-# Gitlab::SidekiqSharding::ScheduledEnq does not need routing checks as it extends
-# Sidekiq::Scheduled::Enq which internally uses Sidekiq.redis. That is expected of the poller.
-RSpec.describe Gitlab::SidekiqSharding::ScheduledEnq, :allow_unrouted_sidekiq_calls,
-  feature_category: :scalability do
+RSpec.describe Gitlab::SidekiqSharding::ScheduledEnq, feature_category: :scalability do
   it 'extends Sidekiq::Scheduled::Enq' do
     expect(described_class <= ::Sidekiq::Scheduled::Enq).to eq(true)
   end
 
   describe '#enqueue_jobs' do
     let(:enq) { described_class.new(Sidekiq.default_configuration) }
-    let(:job_hash) { { class: 'invalidclass', args: [], queue: 'default', store: 'main' } }
+    let(:job_hash) { { class: 'invalidclass', args: [] } }
     let(:store_name) { 'main' }
 
     before do
@@ -28,21 +25,6 @@ RSpec.describe Gitlab::SidekiqSharding::ScheduledEnq, :allow_unrouted_sidekiq_ca
         enq.enqueue_jobs
 
         expect(Sidekiq.redis { |c| c.zcard('schedule') }).to eq(0)
-      end
-    end
-
-    shared_examples 'updates queue key' do
-      let(:sc) { instance_double(Sidekiq::Client) }
-      before do
-        allow(Sidekiq::Client).to receive(:new).and_call_original
-        allow(Sidekiq::Client).to receive(:new).with(config: Sidekiq.default_configuration,
-          pool: Gitlab::Redis::Queues.sidekiq_redis).and_return(sc)
-      end
-
-      it 'job hash contains updated queue key' do
-        expect(sc).to receive(:push).with(hash_including({ 'queue' => queue_name }))
-
-        enq.enqueue_jobs
       end
     end
 
@@ -70,15 +52,13 @@ RSpec.describe Gitlab::SidekiqSharding::ScheduledEnq, :allow_unrouted_sidekiq_ca
       it_behaves_like 'uses sharding router'
     end
 
-    context 'with ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper classes' do
-      let(:job_hash) { { class: ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper, args: [] } }
+    context 'with routable classes' do
+      let(:job_hash) { { class: Chaos::CpuSpinWorker, args: [] } }
       let(:store_name) { 'queues_shard_test' }
-      let(:queue_name) { 'test' }
 
       before do
         # simulate routing rules in config/gitlab.yml
-        allow(ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper)
-          .to receive(:get_sidekiq_options).and_return({ 'store' => store_name, 'queue' => queue_name })
+        allow(Chaos::CpuSpinWorker).to receive(:get_sidekiq_options).and_return({ 'store' => store_name })
 
         # skip label creation to avoid calling .get_shard_instance
         allow_next_instance_of(Gitlab::SidekiqMiddleware::ClientMetrics) do |mh|
@@ -88,48 +68,6 @@ external_dependencies: "", feature_category: "", queue: "", scheduling: "", urge
       end
 
       it_behaves_like 'uses sharding router'
-      it_behaves_like 'updates queue key'
-    end
-
-    context 'with ApplicationWorker classes' do
-      let(:job_hash) { { class: Chaos::CpuSpinWorker, args: [], queue: 'default', store: 'main' } }
-      let(:store_name) { 'queues_shard_test' }
-      let(:queue_name) { 'test' }
-
-      before do
-        # simulate routing rules in config/gitlab.yml
-        allow(Chaos::CpuSpinWorker).to receive(:get_sidekiq_options)
-            .and_return({ 'store' => store_name, 'queue' => queue_name })
-
-        # skip label creation to avoid calling .get_shard_instance
-        allow_next_instance_of(Gitlab::SidekiqMiddleware::ClientMetrics) do |mh|
-          allow(mh).to receive(:create_labels).and_return({ boundary: "", destination_shard_redis: "",
-external_dependencies: "", feature_category: "", queue: "", scheduling: "", urgency: "", worker: "" })
-        end
-      end
-
-      it_behaves_like 'uses sharding router'
-      it_behaves_like 'updates queue key'
-
-      context 'when worker does not have queue set' do
-        let(:sc) { instance_double(Sidekiq::Client) }
-
-        before do
-          allow(Chaos::CpuSpinWorker).to receive(:get_sidekiq_options).and_return({ 'store' => store_name })
-          allow(Sidekiq::Client).to receive(:new).and_call_original
-        end
-
-        it_behaves_like 'uses sharding router'
-
-        it 'job hash does not contain updated queue key' do
-          allow(Sidekiq::Client).to receive(:new).with(config: Sidekiq.default_configuration,
-            pool: Gitlab::Redis::Queues.sidekiq_redis).and_return(sc)
-
-          expect(sc).to receive(:push).with(hash_including({ 'queue' => 'default' }))
-
-          enq.enqueue_jobs
-        end
-      end
     end
   end
 end

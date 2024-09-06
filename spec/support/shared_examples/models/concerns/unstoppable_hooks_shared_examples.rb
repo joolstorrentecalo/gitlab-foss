@@ -2,10 +2,8 @@
 
 RSpec.shared_examples 'a hook that does not get automatically disabled on failure' do
   describe '.executable/.disabled', :freeze_time do
-    let(:attributes_for_webhooks) do
-      attributes_list = attributes_for_list(hook_factory, 13)
-
-      merged_attributes = attributes_list.zip([
+    let!(:webhooks) do
+      [
         [0, Time.current],
         [0, 1.minute.from_now],
         [1, 1.minute.from_now],
@@ -19,14 +17,15 @@ RSpec.shared_examples 'a hook that does not get automatically disabled on failur
         [1, 1.day.ago],
         [3, nil],
         [3, 1.day.ago]
-      ])
-
-      merged_attributes.map do |attributes, (recent_failures, disabled_until)|
-        attributes.merge(**default_factory_arguments, recent_failures: recent_failures, disabled_until: disabled_until)
+      ].map do |(recent_failures, disabled_until)|
+        create(
+          hook_factory,
+          **default_factory_arguments,
+          recent_failures: recent_failures,
+          disabled_until: disabled_until
+        )
       end
     end
-
-    let(:webhooks) { described_class.create!(attributes_for_webhooks) }
 
     it 'finds the correct set of project hooks' do
       expect(find_hooks).to all(be_executable)
@@ -50,7 +49,7 @@ RSpec.shared_examples 'a hook that does not get automatically disabled on failur
   end
 
   describe '#executable?', :freeze_time do
-    let(:web_hook) { build(hook_factory, **default_factory_arguments) }
+    let(:web_hook) { create(hook_factory, **default_factory_arguments) }
 
     where(:recent_failures, :not_until) do
       [

@@ -21,7 +21,7 @@ for binary files.
 When file locking is setup, lockable files are **read-only** by default.
 
 When a file is locked, only the user who locked the file may modify it. This
-user is said to "hold the lock" or have "taken the lock", because only one user
+user is said to "hold the lock" or have "taken the lock", since only one user
 can lock a file at a time. When a file or directory is unlocked, the user is
 said to have "released the lock".
 
@@ -37,12 +37,12 @@ GitLab supports two different modes of file locking:
 ## Permissions
 
 Locks can be created by any person who has at least
-Developer role for the repository.
+Developer role in the repository.
 
 Only the user who locked the file or directory can edit locked files. Other
 users are prevented from modifying locked files by pushing, merging,
 or any other means, and are shown an error like:
-`'.gitignore' is locked by @Administrator`.
+`The path '.gitignore' is locked by Administrator`.
 
 ## Exclusive file locks
 
@@ -77,7 +77,7 @@ you can skip this step. If you're unsure, re-installing it does no harm:
 git lfs install
 ```
 
-For more information, see [Git Large File Storage (LFS)](../../topics/git/lfs/index.md).
+For more information, see [Using Git LFS](../../topics/git/lfs/index.md#using-git-lfs).
 
 ### Configure Exclusive File Locks
 
@@ -182,7 +182,7 @@ lock it again to keep it locked.
 
 ### Edit lockable files
 
-After the file is [configured as lockable](#configure-exclusive-file-locks), it is set to read-only.
+Once the file is [configured as lockable](#configure-exclusive-file-locks), it is set to read-only.
 Therefore, you need to lock it before editing it.
 
 Suggested workflow for shared projects:

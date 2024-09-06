@@ -9,14 +9,17 @@ export default class ProtectedTagEditList {
   }
 
   initEditForm() {
-    document.querySelectorAll('.protected-tags-list .js-protected-tag-edit-form')?.forEach((el) => {
-      const accessDropdownEl = el.querySelector('.js-allowed-to-create');
-      this.initAccessDropdown(accessDropdownEl, {
-        url: el.dataset.url,
-        hasLicense: this.hasLicense,
-        accessLevelsData: gon.create_access_levels.roles,
+    document
+      .querySelector('.protected-tags-list')
+      .querySelectorAll('.js-protected-tag-edit-form')
+      ?.forEach((el) => {
+        const accessDropdownEl = el.querySelector('.js-allowed-to-create');
+        this.initAccessDropdown(accessDropdownEl, {
+          url: el.dataset.url,
+          hasLicense: this.hasLicense,
+          accessLevelsData: gon.create_access_levels.roles,
+        });
       });
-    });
   }
 
   // eslint-disable-next-line class-methods-use-this

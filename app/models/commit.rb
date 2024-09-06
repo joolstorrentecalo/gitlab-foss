@@ -15,7 +15,6 @@ class Commit
   include ::Gitlab::Utils::StrongMemoize
   include ActsAsPaginatedDiff
   include CacheMarkdownField
-  include GlobalID::Identification
 
   participant :author
   participant :committer
@@ -324,8 +323,7 @@ class Commit
   end
 
   def parents
-    # Usage of `reject` is intentional. `compact` doesn't work here, because of BatchLoader specifics
-    @parents ||= parent_ids.map { |oid| Commit.lazy(container, oid) }.reject(&:nil?)
+    @parents ||= parent_ids.map { |oid| Commit.lazy(container, oid) }
   end
 
   def parent
@@ -585,19 +583,23 @@ class Commit
   end
 
   def branches_containing(limit: 0, exclude_tipped: false)
+    # WARNING: This argument can be confusing, if there is a limit.
+    # for example set the limit to 5 and in the 5 out a total of 25 refs there is 2 tipped refs,
+    # then the method will only 3 refs, even though there is more.
     excluded = exclude_tipped ? tipping_branches : []
 
-    repository.branch_names_contains(id, limit: limit, exclude_refs: excluded) || []
+    refs = repository.branch_names_contains(id, limit: limit) || []
+    refs - excluded
   end
 
   def tags_containing(limit: 0, exclude_tipped: false)
+    # WARNING: This argument can be confusing, if there is a limit.
+    # for example set the limit to 5 and in the 5 out a total of 25 refs there is 2 tipped refs,
+    # then the method will only 3 refs, even though there is more.
     excluded = exclude_tipped ? tipping_tags : []
 
-    repository.tag_names_contains(id, limit: limit, exclude_refs: excluded) || []
-  end
-
-  def has_encoded_file_paths?
-    raw_diffs.any?(&:encoded_file_path)
+    refs = repository.tag_names_contains(id, limit: limit) || []
+    refs - excluded
   end
 
   private
@@ -645,5 +647,3 @@ class Commit
     MergeRequestsFinder.new(user, project_id: project_id).find_by(squash_commit_sha: id)
   end
 end
-
-Commit.prepend_mod_with('Projects::Commit')

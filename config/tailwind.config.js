@@ -2,7 +2,6 @@ const tailwindDefaults = require('@gitlab/ui/tailwind.defaults');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  presets: [tailwindDefaults],
   content: [
     './{ee,jh,}/app/assets/javascripts/**/*.{vue,js}',
     '!./app/assets/javascripts/locale/',
@@ -10,6 +9,18 @@ module.exports = {
     './{ee,jh,}/app/components/**/*.{haml,rb}',
     './{ee,jh,}/app/views/**/*.haml',
     './node_modules/@gitlab/ui/dist/**/*.{vue,js}',
+  ],
+  presets: [tailwindDefaults],
+  corePlugins: [
+    'appearance',
+    'content',
+    'float',
+    'inset',
+    'isolation',
+    'mixBlendMode',
+    'position',
+    'tableLayout',
+    'userSelect',
   ],
   blocklist: [
     // Prevents an irrelevant util from being generated.

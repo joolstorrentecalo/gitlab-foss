@@ -2,7 +2,6 @@
 stage: Create
 group: Source Code
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
-description: "Use AsciiDoc files in your GitLab project, and understand AsciiDoc syntax."
 ---
 
 # AsciiDoc
@@ -195,7 +194,11 @@ Attach a block or paragraph to a list item using a list continuation (which you 
 * [ ] not checked
 ```
 
+<!-- vale gitlab.Spelling = NO -->
+
 #### Callout
+
+<!-- vale gitlab.Spelling = YES -->
 
 ```plaintext
 // enable callout bubbles by adding `:icons: font` to the document header
@@ -442,10 +445,12 @@ It's possible to generate diagrams and flowcharts from text in GitLab using
 
 #### Mermaid
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/31818) in GitLab 13.3.
+
 Visit the [official page](https://mermaidjs.github.io/) for more details.
 If you're new to using Mermaid or need help identifying issues in your Mermaid code,
 the [Mermaid Live Editor](https://mermaid-js.github.io/mermaid-live-editor/) is a helpful tool
-for creating and resolving issues in Mermaid diagrams.
+for creating and resolving issues within Mermaid diagrams.
 
 To generate a diagram or flowchart, enter your text in a `mermaid` block:
 

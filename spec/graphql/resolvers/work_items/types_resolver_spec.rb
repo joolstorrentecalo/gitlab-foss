@@ -6,16 +6,20 @@ RSpec.describe Resolvers::WorkItems::TypesResolver do
   include GraphqlHelpers
 
   let_it_be(:current_user) { create(:user) }
-  let_it_be(:group)        { create(:group, developers: current_user) }
+  let_it_be(:group)        { create(:group) }
   let_it_be(:project)      { create(:project, group: group) }
+
+  before_all do
+    group.add_developer(current_user)
+  end
 
   shared_examples 'a work item type resolver' do
     let(:args) { {} }
 
     subject(:result) { resolve(described_class, obj: object, args: args) }
 
-    it 'returns all work item types' do
-      expect(result.to_a).to match(WorkItems::Type.order_by_name_asc)
+    it 'returns all default work item types' do
+      expect(result.to_a).to match(WorkItems::Type.default.order_by_name_asc)
     end
 
     context 'when filtering by type name' do

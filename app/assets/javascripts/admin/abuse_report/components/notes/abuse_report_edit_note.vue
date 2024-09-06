@@ -9,7 +9,7 @@ import AbuseReportCommentForm from './abuse_report_comment_form.vue';
 export default {
   name: 'AbuseReportEditNote',
   i18n: {
-    updateError: __('Comment could not be updated: %{reason}.'),
+    updateError: __('Your comment could not be updated because %{reason}.'),
     genericError: __('Something went wrong while editing your comment. Please try again.'),
   },
   components: {
@@ -90,7 +90,7 @@ export default {
       :is-submitting="isSubmitting"
       :autosave-key="autosaveKey"
       :comment-button-text="commentButtonText"
-      class="gl-mt-3 gl-pl-3"
+      class="gl-pl-3 gl-mt-3"
       @submitForm="updateNote"
       @cancelEditing="$emit('cancelEditing')"
     />

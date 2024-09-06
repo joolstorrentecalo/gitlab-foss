@@ -1,4 +1,3 @@
-// Package builds provides functionality for registering builds.
 package builds
 
 import (
@@ -6,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -58,7 +56,6 @@ var (
 
 type largeBodyError struct{ error }
 
-// WatchKeyHandler is a function type for watching keys in Redis.
 type WatchKeyHandler func(ctx context.Context, key, value string, timeout time.Duration) (redis.WatchKeyStatus, error)
 
 type runnerRequest struct {
@@ -75,30 +72,26 @@ func readRunnerBody(w http.ResponseWriter, r *http.Request) ([]byte, error) {
 
 func readRequestBody(w http.ResponseWriter, r *http.Request, maxBodySize int64) ([]byte, error) {
 	limitedBody := http.MaxBytesReader(w, r.Body, maxBodySize)
-	defer func() {
-		if err := limitedBody.Close(); err != nil {
-			fmt.Printf("Failed to close request body: %v", err)
-		}
-	}()
+	defer limitedBody.Close()
 
 	return io.ReadAll(limitedBody)
 }
 
 func readRunnerRequest(r *http.Request, body []byte) (*runnerRequest, error) {
-	if !isApplicationJSON(r) {
+	if !isApplicationJson(r) {
 		return nil, errors.New("invalid content-type received")
 	}
 
-	var request runnerRequest
-	err := json.Unmarshal(body, &request)
+	var runnerRequest runnerRequest
+	err := json.Unmarshal(body, &runnerRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	return &request, nil
+	return &runnerRequest, nil
 }
 
-func isApplicationJSON(r *http.Request) bool {
+func isApplicationJson(r *http.Request) bool {
 	contentType := r.Header.Get("Content-Type")
 	return helper.IsContentType("application/json", contentType)
 }

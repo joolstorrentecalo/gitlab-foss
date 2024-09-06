@@ -166,7 +166,7 @@ RSpec.describe Banzai::Pipeline::FullPipeline, feature_category: :team_planning 
     end
 
     context 'with [[_TOC_]] as tag' do
-      it_behaves_like 'table of contents tag', '[[_TOC_]]', '<a href="_TOC_" data-wikilink="true">_TOC_</a>'
+      it_behaves_like 'table of contents tag', '[[_TOC_]]', '[[<em>TOC</em>]]'
     end
 
     context 'with [toc] as tag' do
@@ -180,8 +180,6 @@ RSpec.describe Banzai::Pipeline::FullPipeline, feature_category: :team_planning 
     let_it_be(:issue)   { create(:issue, project: project) }
 
     it 'does not convert an escaped reference' do
-      stub_commonmark_sourcepos_disabled
-
       markdown = "\\#{issue.to_reference}"
       output = described_class.to_html(markdown, project: project)
 
@@ -229,9 +227,8 @@ RSpec.describe Banzai::Pipeline::FullPipeline, feature_category: :team_planning 
   end
 
   context 'when input is malicious' do
+    let_it_be(:duration) { (Banzai::Filter::Concerns::PipelineTimingCheck::MAX_PIPELINE_SECONDS + 10).seconds }
     let_it_be(:markdown1) { '![a ' * 3 }
-    let_it_be(:markdown2) { "$1$\n" * 190000 }
-    let_it_be(:markdown3) { "[^1]\n[^1]:\n" * 100000 }
     let_it_be(:markdown4) { "[](a)" * 190000 }
     let_it_be(:markdown5) { "|x|x|x|x|x|\n-|-|-|-|-|\n|a|\n|a|\n|a|\n" * 6900 }
     let_it_be(:markdown6) { "`a^2+b^2=c^2` + " * 56000 }
@@ -240,8 +237,6 @@ RSpec.describe Banzai::Pipeline::FullPipeline, feature_category: :team_planning 
 
     where(:payload, :markdown) do
       "'![a ' * 3"                                        | ref(:markdown1)
-      '"$1$\n" * 190000'                                  | ref(:markdown2)
-      '"[^1]\n[^1]:\n" * 100000'                          | ref(:markdown3)
       '"[](a)" * 190000'                                  | ref(:markdown4)
       '"|x|x|x|x|x|\n-|-|-|-|-|\n|a|\n|a|\n|a|\n" * 6900' | ref(:markdown5)
       '"`a^2+b^2=c^2` + " * 56000'                        | ref(:markdown5)
@@ -252,7 +247,7 @@ RSpec.describe Banzai::Pipeline::FullPipeline, feature_category: :team_planning 
     with_them do
       it 'is not long running' do
         expect do
-          Timeout.timeout(BANZAI_FILTER_TIMEOUT_MAX) { described_class.to_html(markdown, project: nil) }
+          Timeout.timeout(duration) { described_class.to_html(markdown, project: nil) }
         end.not_to raise_error
       end
     end

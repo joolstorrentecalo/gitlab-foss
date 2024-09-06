@@ -5,7 +5,6 @@ require 'spec_helper'
 RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state, feature_category: :webhooks do
   include StubRequests
 
-  let(:uuid_regex) { /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/ }
   let(:ellipsis) { '…' }
   let_it_be(:project) { create(:project) }
   let_it_be_with_reload(:project_hook) { create(:project_hook, project: project) }
@@ -78,7 +77,6 @@ RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state,
       {
         'Content-Type' => 'application/json',
         'User-Agent' => "GitLab/#{Gitlab::VERSION}",
-        'Idempotency-Key' => uuid_regex,
         'X-Gitlab-Webhook-UUID' => uuid,
         'X-Gitlab-Event' => 'Push Hook',
         'X-Gitlab-Event-UUID' => recursion_uuid,
@@ -172,53 +170,6 @@ RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state,
         expect(WebMock).to have_requested(:post, stubbed_hostname(project_hook.url)).with(
           headers: headers.merge({ 'X-Gitlab-Token' => project_hook.token })
         ).once
-      end
-    end
-
-    context 'when idempotency_key is provided' do
-      let(:idempotency_key) { SecureRandom.uuid }
-      let(:service_instance) { described_class.new(project_hook, data, :push_hooks, idempotency_key: idempotency_key) }
-
-      it 'POSTs to the webhook url and logs with the correct idempotency_key' do
-        stub_full_request(project_hook.interpolated_url, method: :post)
-
-        expect(service_instance).to receive(:queue_log_execution_with_retry).with(
-          hash_including(
-            url: project_hook.url,
-            request_headers: hash_including('Idempotency-Key' => idempotency_key)
-          ),
-          :ok
-        )
-
-        service_instance.execute
-
-        expect(WebMock)
-          .to have_requested(:post, stubbed_hostname(project_hook.interpolated_url))
-          .with(headers: { 'Idempotency-Key' => idempotency_key })
-          .once
-      end
-    end
-
-    context 'when idempotency_key is not provided' do
-      let(:service_instance) { described_class.new(project_hook, data, :push_hooks) }
-
-      it 'POSTs to the webhook url and logs with a newly generated idempotency key' do
-        stub_full_request(project_hook.interpolated_url, method: :post)
-
-        expect(service_instance).to receive(:queue_log_execution_with_retry).with(
-          hash_including(
-            url: project_hook.url,
-            request_headers: hash_including('Idempotency-Key' => uuid_regex)
-          ),
-          :ok
-        )
-
-        service_instance.execute
-
-        expect(WebMock)
-          .to have_requested(:post, stubbed_hostname(project_hook.interpolated_url))
-          .with(headers: { 'Idempotency-Key' => uuid_regex })
-          .once
       end
     end
 
@@ -379,7 +330,7 @@ RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state,
 
     it 'handles exceptions' do
       exceptions = Gitlab::HTTP::HTTP_ERRORS + [
-        Gitlab::Json::LimitedEncoder::LimitExceeded, URI::InvalidURIError, Zlib::DataError
+        Gitlab::Json::LimitedEncoder::LimitExceeded, URI::InvalidURIError
       ]
 
       allow(Gitlab::WebHooks::RecursionDetection).to receive(:block?).and_return(false)
@@ -390,10 +341,8 @@ RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state,
 
         stub_full_request(project_hook.url, method: :post).to_raise(exception)
 
-        expect(WebHooks::LogExecutionWorker).to receive(:perform_async)
-          .with(project_hook.id, kind_of(Hash), 'error', '')
-
         expect(service_instance.execute).to have_attributes(status: :error, message: exception.to_s)
+        expect { service_instance.execute }.not_to raise_error
       end
     end
 
@@ -455,6 +404,20 @@ RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state,
               .once
           end
         end
+
+        context 'when feature flag is disabled' do
+          before do
+            stub_feature_flags(custom_webhook_template: false)
+          end
+
+          it 'does not render custom template', :aggregate_failures do
+            service_instance.execute
+
+            expect(WebMock).to have_requested(:post, stubbed_hostname(project_hook.url))
+              .with(headers: headers, body: '{"before":"oldrev","after":"newrev","ref":"ref"}')
+              .once
+          end
+        end
       end
 
       context 'when template is invalid' do
@@ -513,6 +476,19 @@ RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state,
 
           expect(WebMock).to have_requested(:post, stubbed_hostname(project_hook.url))
             .with(headers: Gitlab::WebHooks::RecursionDetection.header(project_hook))
+        end
+      end
+
+      context 'when custom_webhook_headers feature flag is disabled' do
+        before do
+          stub_feature_flags(custom_webhook_headers: false)
+        end
+
+        it 'sends request without custom headers' do
+          service_instance.execute
+
+          expect(WebMock).to have_requested(:post, stubbed_hostname(project_hook.url))
+            .with(headers: headers)
         end
       end
     end
@@ -660,7 +636,7 @@ RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state,
 
       context 'with oversize response body' do
         let(:oversize_body) { 'a' * (described_class::RESPONSE_BODY_SIZE_LIMIT + 1) }
-        let(:stripped_body) { ('a' * (described_class::RESPONSE_BODY_SIZE_LIMIT - ellipsis.bytesize)) + ellipsis }
+        let(:stripped_body) { 'a' * (described_class::RESPONSE_BODY_SIZE_LIMIT - ellipsis.bytesize) + ellipsis }
 
         before do
           stub_full_request(project_hook.url, method: :post).to_return(status: 200, body: oversize_body)
@@ -714,7 +690,7 @@ RSpec.describe WebHookService, :request_store, :clean_gitlab_redis_shared_state,
 
       context 'with oversize header' do
         let(:oversize_header) { 'a' * (described_class::RESPONSE_HEADERS_SIZE_LIMIT + 1) }
-        let(:stripped_header) { ('a' * (described_class::RESPONSE_HEADERS_SIZE_LIMIT - ellipsis.bytesize)) + ellipsis }
+        let(:stripped_header) { 'a' * (described_class::RESPONSE_HEADERS_SIZE_LIMIT - ellipsis.bytesize) + ellipsis }
         let(:response_headers) { { 'oversized-header' => oversize_header } }
         let(:expected_response_headers) { { 'Oversized-Header' => stripped_header } }
 

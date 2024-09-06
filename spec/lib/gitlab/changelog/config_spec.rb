@@ -8,8 +8,6 @@ RSpec.describe Gitlab::Changelog::Config do
   let(:project) { build_stubbed(:project) }
 
   describe '.from_git' do
-    let(:changelog_config_file) { 'specified_changelog_config.yml' }
-
     it 'retrieves the configuration from Git' do
       allow(project.repository)
         .to receive(:changelog_config)
@@ -24,14 +22,14 @@ RSpec.describe Gitlab::Changelog::Config do
 
     it "retrieves the specified configuration from git" do
       allow(project.repository)
-        .to receive(:changelog_config).with('HEAD', changelog_config_file)
+        .to receive(:changelog_config).with('HEAD', 'specified_changelog_config.yml')
         .and_return("---\ndate_format: '%Y'")
 
       expect(described_class)
         .to receive(:from_hash)
         .with(project, { 'date_format' => '%Y' }, nil)
 
-      described_class.from_git(project, nil, changelog_config_file)
+      described_class.from_git(project, nil, 'specified_changelog_config.yml')
     end
 
     it 'returns the default configuration when no YAML file exists in Git' do
@@ -44,17 +42,6 @@ RSpec.describe Gitlab::Changelog::Config do
         .with(project)
 
       described_class.from_git(project)
-    end
-
-    context 'when the specified configuration yml is invalid' do
-      it 'raises an error' do
-        allow(project.repository)
-          .to receive(:changelog_config).with('HEAD', changelog_config_file)
-          .and_return("invalid: :yaml")
-
-        expect { described_class.from_git(project, nil, changelog_config_file) }
-          .to raise_error(Gitlab::Changelog::Error, "#{changelog_config_file} does not contain valid YAML")
-      end
     end
 
     context 'when changelog is empty' do

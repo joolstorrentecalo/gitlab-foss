@@ -23,6 +23,7 @@ export default {
   <contribution-event-base
     :event="event"
     :message="$options.i18n.message"
-    icon-name="merge-request"
+    icon-name="git-merge"
+    icon-class="gl-text-blue-600"
   />
 </template>

@@ -91,7 +91,7 @@ describe('Persisted Search', () => {
     ]);
   });
 
-  it('re-emits update event when url-sync emits popstate event', () => {
+  it('re-emits update event when route changes', async () => {
     mountComponent();
 
     extractFilterAndSorting.mockReturnValue({
@@ -103,7 +103,7 @@ describe('Persisted Search', () => {
       before: '456',
     });
 
-    findUrlSync().vm.$emit('popstate');
+    await router.push({ query: { before: '456' } });
 
     // there is always a first call on mounted that emits up default values
     expect(wrapper.emitted('update')[1]).toEqual([

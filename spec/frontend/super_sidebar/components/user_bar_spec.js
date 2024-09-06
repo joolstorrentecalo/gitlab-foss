@@ -3,7 +3,7 @@ import { GlBadge } from '@gitlab/ui';
 import Vuex from 'vuex';
 import Vue, { nextTick } from 'vue';
 import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
-import { useMockInternalEventsTracking } from 'helpers/tracking_internal_events_helper';
+import { __ } from '~/locale';
 import CreateMenu from '~/super_sidebar/components/create_menu.vue';
 import UserMenu from '~/super_sidebar/components/user_menu.vue';
 import SearchModal from '~/super_sidebar/components/global_search/components/global_search.vue';
@@ -105,7 +105,7 @@ describe('UserBar component', () => {
       const isuesCounter = findIssuesCounter();
       expect(isuesCounter.props('count')).toBe(userCounts.assigned_issues);
       expect(isuesCounter.props('href')).toBe(mockSidebarData.issues_dashboard_path);
-      expect(isuesCounter.props('label')).toBe('Assigned issues');
+      expect(isuesCounter.props('label')).toBe(__('Issues'));
       expect(isuesCounter.attributes('data-track-action')).toBe('click_link');
       expect(isuesCounter.attributes('data-track-label')).toBe('issues_link');
       expect(isuesCounter.attributes('data-track-property')).toBe('nav_core_menu');
@@ -117,7 +117,7 @@ describe('UserBar component', () => {
       expect(mrsCounter.props('count')).toBe(
         userCounts.assigned_merge_requests + userCounts.review_requested_merge_requests,
       );
-      expect(mrsCounter.props('label')).toBe('Merge requests');
+      expect(mrsCounter.props('label')).toBe(__('Merge requests'));
       expect(mrsCounter.attributes('data-track-action')).toBe('click_dropdown');
       expect(mrsCounter.attributes('data-track-label')).toBe('merge_requests_menu');
       expect(mrsCounter.attributes('data-track-property')).toBe('nav_core_menu');
@@ -127,27 +127,19 @@ describe('UserBar component', () => {
       it('renders it', () => {
         const todosCounter = findTodosCounter();
         expect(todosCounter.props('href')).toBe(mockSidebarData.todos_dashboard_path);
-        expect(todosCounter.props('label')).toBe('To-Do list');
+        expect(todosCounter.props('label')).toBe(__('To-Do list'));
         expect(todosCounter.attributes('data-track-action')).toBe('click_link');
         expect(todosCounter.attributes('data-track-label')).toBe('todos_link');
         expect(todosCounter.attributes('data-track-property')).toBe('nav_core_menu');
         expect(todosCounter.attributes('class')).toContain('shortcuts-todos');
       });
 
-      it('should update todo counter when event with count is emitted', async () => {
+      it('should update todo counter when event is emitted', async () => {
         createWrapper();
         const count = 100;
         document.dispatchEvent(new CustomEvent('todo:toggle', { detail: { count } }));
         await nextTick();
         expect(findTodosCounter().props('count')).toBe(count);
-      });
-
-      it('should update todo counter when event with diff is emitted', async () => {
-        createWrapper();
-        expect(findTodosCounter().props('count')).toBe(3);
-        document.dispatchEvent(new CustomEvent('todo:toggle', { detail: { delta: -2 } }));
-        await nextTick();
-        expect(findTodosCounter().props('count')).toBe(1);
       });
     });
 
@@ -189,15 +181,7 @@ describe('UserBar component', () => {
     });
   });
 
-  it('does not render merge request menu when merge_request_menu is null', () => {
-    createWrapper({ sidebarData: { ...mockSidebarData, merge_request_menu: null } });
-
-    expect(findMergeRequestMenu().exists()).toBe(false);
-  });
-
   describe('Search', () => {
-    const { bindInternalEventDocument } = useMockInternalEventsTracking();
-
     beforeEach(async () => {
       createWrapper();
       await waitForPromises();
@@ -210,17 +194,6 @@ describe('UserBar component', () => {
     it('search button should have tooltip', () => {
       const tooltip = getBinding(findSearchButton().element, 'gl-tooltip');
       expect(tooltip.value).toBe(`Type <kbd>/</kbd> to search`);
-    });
-
-    it('search button should have tracking', async () => {
-      const { trackEventSpy } = bindInternalEventDocument(findSearchButton().element);
-      await findSearchButton().trigger('click');
-
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'click_search_button_to_activate_command_palette',
-        {},
-        undefined,
-      );
     });
 
     it('should render search modal', () => {
@@ -255,7 +228,7 @@ describe('UserBar component', () => {
 
     it('sets the correct label on the button', () => {
       const btn = findStopImpersonationButton();
-      const label = 'Stop impersonating';
+      const label = __('Stop impersonating');
 
       expect(btn.attributes('title')).toBe(label);
       expect(btn.attributes('aria-label')).toBe(label);

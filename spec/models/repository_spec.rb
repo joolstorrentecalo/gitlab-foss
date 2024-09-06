@@ -57,18 +57,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
       it { is_expected.to match_array(["'test'"]) }
     end
 
-    context 'when exclude_refs is provided' do
-      let(:opts) { { exclude_refs: ['master'] } }
-
-      it { is_expected.not_to include('master') }
-    end
-
-    context 'with limit + exclude_refs options' do
-      let(:opts) { { limit: 1, exclude_refs: ["'test'"] } }
-
-      it { is_expected.to match_array(["2-mb-file"]) }
-    end
-
     describe 'when storage is broken', :broken_storage do
       it 'raises a storage error' do
         expect_to_raise_storage_error do
@@ -90,18 +78,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
       let(:opts) { { limit: 1 } }
 
       it { is_expected.to match_array(['v1.1.0']) }
-    end
-
-    context 'when exclude_refs is provided' do
-      let(:opts) { { exclude_refs: ['v1.1.0'] } }
-
-      it { is_expected.not_to include('v1.1.0') }
-    end
-
-    context 'with limit + exclude_refs options' do
-      let(:opts) { { limit: 1, exclude_refs: ["v1.1.0"] } }
-
-      it { is_expected.to match_array(["v1.1.1"]) }
     end
   end
 
@@ -250,52 +226,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
     context 'when ref format is incorrect' do
       it 'returns false' do
         expect(repository.ref_exists?('refs/heads/invalid:master')).to be false
-      end
-    end
-  end
-
-  describe '#branch_or_tag?' do
-    using RSpec::Parameterized::TableSyntax
-
-    where(:ref, :result) do
-      'markdown'                   | true
-      'v1.1.1'                     | true
-      'xyz-invalid'                | false
-      'refs/heads/master'          | true
-      'refs/heads/invalid-xyz'     | false
-      'refs/tags/v1.0.0'           | true
-      'refs/tags/v9.8.7'           | false
-    end
-
-    subject(:branch_or_tag?) { repository.branch_or_tag?(ref) }
-
-    with_them do
-      it { is_expected.to eq(result) }
-    end
-
-    context 'when a refs/remotes ref is passed' do
-      let(:ref) { 'refs/remotes/origin/master' }
-
-      it { is_expected.to be_falsey }
-
-      context 'when the ref is a branch' do
-        let_it_be(:project) { create(:project, :repository) }
-
-        before do
-          repository.add_branch(user, 'refs/remotes/origin/master', 'master')
-        end
-
-        it { is_expected.to be_truthy }
-      end
-
-      context 'when the naked ref is a branch' do
-        let_it_be(:project) { create(:project, :repository) }
-
-        before do
-          repository.add_branch(user, 'origin/master', 'master')
-        end
-
-        it { is_expected.to be_falsey }
       end
     end
   end
@@ -453,6 +383,26 @@ RSpec.describe Repository, feature_category: :source_code_management do
     context 'when neither the all flag nor a ref are specified' do
       it 'returns every commit from default branch' do
         expect(repository.commits(nil, limit: 60).size).to eq(37)
+      end
+    end
+
+    context 'when Gitaly raises a CommandError error' do
+      let(:error_message) { 'Boom' }
+
+      before do
+        expect(Gitlab::Git::Commit).to receive(:where).and_raise(Gitlab::Git::CommandError, error_message)
+      end
+
+      it 're-raises an error' do
+        expect { repository.commits('master', limit: 60) }.to raise_error(Gitlab::Git::CommandError, error_message)
+      end
+
+      context 'when error contains "listing commits failed" message' do
+        let(:error_message) { 'listing commits failed' }
+
+        it 'returns an empty collection' do
+          expect(repository.commits('master', limit: 60).to_a).to eq([])
+        end
       end
     end
 
@@ -759,33 +709,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
       subject { repository.blob_at(repository.find_branch('feature').target, 'README.md') }
 
       it { is_expected.to be_an_instance_of(::Blob) }
-    end
-  end
-
-  describe '#has_gitattributes?' do
-    let(:project) { create(:project, :repository) }
-
-    subject { repository.has_gitattributes? }
-
-    context 'when there is a .gitattributes file' do
-      before do
-        create_file_in_repo(project, 'master', 'master', '.gitattributes', 'some contents')
-      end
-
-      it { is_expected.to be_truthy }
-    end
-
-    context 'when there is not a .gitattributes file' do
-      before do
-        repository.delete_file(
-          project.creator,
-          '.gitattributes',
-          message: "Remove .gitattributes",
-          branch_name: project.default_branch_or_main
-        )
-      end
-
-      it { is_expected.to be_falsey }
     end
   end
 
@@ -1674,6 +1597,27 @@ RSpec.describe Repository, feature_category: :source_code_management do
     end
   end
 
+  describe "#gitlab_ci_yml", :use_clean_rails_memory_store_caching do
+    let(:project) { create(:project, :repository) }
+
+    it 'returns valid file' do
+      files = [TestBlob.new('file'), TestBlob.new('.gitlab-ci.yml'), TestBlob.new('copying')]
+      expect(repository.tree).to receive(:blobs).and_return(files)
+
+      expect(repository.gitlab_ci_yml.path).to eq('.gitlab-ci.yml')
+    end
+
+    it 'returns nil if not exists' do
+      expect(repository.tree).to receive(:blobs).and_return([])
+      expect(repository.gitlab_ci_yml).to be_nil
+    end
+
+    it 'returns nil for empty repository' do
+      allow(repository).to receive(:root_ref).and_raise(Gitlab::Git::Repository::NoRepository)
+      expect(repository.gitlab_ci_yml).to be_nil
+    end
+  end
+
   describe "#jenkinsfile?" do
     let_it_be(:project) { create(:project, :repository) }
 
@@ -2432,68 +2376,40 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
   describe '#cherry_pick' do
     let(:project) { create(:project, :repository) }
-    let(:target_sha) { repository.commit(branch_name).id }
+    let(:conflict_commit) { repository.commit('c642fe9b8b9f28f9225d7ea953fe14e74748d53b') }
+    let(:pickable_commit) { repository.commit('7d3b0f7cff5f37573aea97cebfd5692ea1689924') }
+    let(:pickable_merge) { repository.commit('e56497bb5f03a90a51293fc6d516788730953899') }
     let(:message) { 'cherry-pick message' }
-    let(:branch_name) { 'master' }
-
-    subject(:cherry_pick) { repository.cherry_pick(user, commit, branch_name, message) }
 
     context 'when there is a conflict' do
-      let(:commit) { repository.commit('c642fe9b8b9f28f9225d7ea953fe14e74748d53b') }
-
       it 'raises an error' do
-        expect { cherry_pick }.to raise_error(Gitlab::Git::Repository::CreateTreeError)
-      end
-
-      it 'sets target_sha' do
-        expect(repository.raw_repository).to receive(:cherry_pick).with(a_hash_including(target_sha: target_sha))
-        cherry_pick
+        expect { repository.cherry_pick(user, conflict_commit, 'master', message) }.to raise_error(Gitlab::Git::Repository::CreateTreeError)
       end
     end
 
-    context 'when the commit is pickable' do
-      let(:commit) { repository.commit('7d3b0f7cff5f37573aea97cebfd5692ea1689924') }
+    context 'when commit was already cherry-picked' do
+      it 'raises an error' do
+        repository.cherry_pick(user, pickable_commit, 'master', message)
 
-      context 'when commit was already cherry-picked' do
-        before do
-          repository.cherry_pick(user, commit, 'master', message)
-        end
-
-        it 'raises an error' do
-          expect { cherry_pick }.to raise_error(Gitlab::Git::Repository::CreateTreeError)
-        end
-      end
-
-      context 'when commit can be cherry-picked' do
-        it 'cherry-picks the changes' do
-          expect(cherry_pick).to be_truthy
-        end
-      end
-
-      it 'sets target_sha' do
-        expect(repository.raw_repository).to receive(:cherry_pick).with(a_hash_including(target_sha: target_sha))
-        cherry_pick
+        expect { repository.cherry_pick(user, pickable_commit, 'master', message) }.to raise_error(Gitlab::Git::Repository::CreateTreeError)
       end
     end
 
-    context 'when cherry-picking a merge commit' do
-      let(:branch_name) { 'improve/awesome' }
-      let(:commit) { repository.commit('e56497bb5f03a90a51293fc6d516788730953899') }
-
+    context 'when commit can be cherry-picked' do
       it 'cherry-picks the changes' do
-        expect do
-          cherry_pick
-        end.to change {
-          repository.blob_at_branch('improve/awesome', 'foo/bar/.gitkeep')
-        }.from(nil)
-
-        cherry_pick_commit_message = project.commit(cherry_pick).message
-        expect(cherry_pick_commit_message).to eq(message)
+        expect(repository.cherry_pick(user, pickable_commit, 'master', message)).to be_truthy
       end
+    end
 
-      it 'sets target_sha' do
-        expect(repository.raw_repository).to receive(:cherry_pick).with(a_hash_including(target_sha: target_sha))
-        cherry_pick
+    context 'cherry-picking a merge commit' do
+      it 'cherry-picks the changes' do
+        expect(repository.blob_at_branch('improve/awesome', 'foo/bar/.gitkeep')).to be_nil
+
+        cherry_pick_commit_sha = repository.cherry_pick(user, pickable_merge, 'improve/awesome', message)
+        cherry_pick_commit_message = project.commit(cherry_pick_commit_sha).message
+
+        expect(repository.blob_at_branch('improve/awesome', 'foo/bar/.gitkeep')).not_to be_nil
+        expect(cherry_pick_commit_message).to eq(message)
       end
     end
   end
@@ -2599,6 +2515,7 @@ RSpec.describe Repository, feature_category: :source_code_management do
           :license_blob,
           :license_gitaly,
           :gitignore,
+          :gitlab_ci_yml,
           :branch_names,
           :tag_names,
           :branch_count,
@@ -2714,34 +2631,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
       expect(repository).to receive(:repository_event).with(:create_repository)
 
       repository.after_create
-    end
-
-    context 'when repository is attached to a personal snippet' do
-      let(:repository) { create(:personal_snippet).repository }
-
-      it 'does not raise an error for onboarding considerations' do
-        expect { repository.after_create }.not_to raise_error
-      end
-    end
-
-    context 'when namespace is onboarded', :sidekiq_inline do
-      before do
-        ::Onboarding::Progress.onboard(project.namespace)
-      end
-
-      it 'records the onboarding progress' do
-        repository.after_create
-
-        expect(::Onboarding::Progress.completed?(project.namespace, :git_write)).to eq(true)
-      end
-    end
-
-    context 'when namespace is not onboarded', :sidekiq_inline do
-      it 'does not record the onboarding progress' do
-        repository.after_create
-
-        expect(::Onboarding::Progress.completed?(project.namespace, :git_write)).to eq(false)
-      end
     end
   end
 
@@ -2859,33 +2748,12 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
   describe '#rm_branch' do
     let(:project) { create(:project, :repository) }
-    let(:branch_name) { 'feature' }
-    let(:target_sha) { repository.commit(branch_name).sha }
 
     it 'removes a branch' do
       expect(repository).to receive(:before_remove_branch)
       expect(repository).to receive(:after_remove_branch)
 
-      repository.rm_branch(user, branch_name, target_sha: target_sha)
-    end
-
-    context 'when target_sha is not set' do
-      it 'removes a branch without target_sha' do
-        expect(repository).to receive(:before_remove_branch)
-        expect(repository).to receive(:after_remove_branch)
-
-        repository.rm_branch(user, branch_name)
-      end
-    end
-
-    context 'when target_sha is invalid' do
-      let(:invalid_sha) { 'invalidsha1234567890' }
-
-      it 'raises an error for invalid target_sha' do
-        expect do
-          repository.rm_branch(user, branch_name, target_sha: invalid_sha)
-        end.to raise_error(Gitlab::Git::CommandError)
-      end
+      repository.rm_branch(user, 'feature')
     end
 
     context 'when pre hooks failed' do
@@ -2896,10 +2764,10 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
       it 'gets an error and does not delete the branch' do
         expect do
-          repository.rm_branch(user, branch_name, target_sha: target_sha)
+          repository.rm_branch(user, 'feature')
         end.to raise_error(Gitlab::Git::PreReceiveError)
 
-        expect(repository.find_branch(branch_name)).not_to be_nil
+        expect(repository.find_branch('feature')).not_to be_nil
       end
     end
   end
@@ -3508,13 +3376,12 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
     let(:order_by) { nil }
     let(:sort) { nil }
-    let(:ref) { nil }
 
     before do
-      allow(repository).to receive(:commits).with(ref, limit: 2000, offset: 0, skip_merges: true).and_return(stubbed_commits)
+      allow(repository).to receive(:commits).with(nil, limit: 2000, offset: 0, skip_merges: true).and_return(stubbed_commits)
     end
 
-    subject { repository.contributors(ref: ref, order_by: order_by, sort: sort) }
+    subject { repository.contributors(order_by: order_by, sort: sort) }
 
     def expect_contributors(*contributors)
       expect(subject.map(&:email)).to eq(contributors.map(&:email))
@@ -3598,24 +3465,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
       it 'returns the contributors unsorted' do
         expect_contributors(author_a, author_b, author_c)
-      end
-    end
-
-    context 'when passing a ref param' do
-      let(:ref) { 'ref' }
-      let(:author_d) { build(:author, email: 'johndoe@gitlab.com', name: 'John Doe') }
-      let(:stubbed_commits) do
-        [build(:commit, author: author_a),
-         build(:commit, author: author_a),
-         build(:commit, author: author_b),
-         build(:commit, author: author_c),
-         build(:commit, author: author_c),
-         build(:commit, author: author_c),
-         build(:commit, author: author_d)]
-      end
-
-      it 'returns the contributors for ref' do
-        expect_contributors(author_a, author_b, author_c, author_d)
       end
     end
   end
@@ -3923,6 +3772,11 @@ RSpec.describe Repository, feature_category: :source_code_management do
         repository.change_head(branch)
       end
 
+      it 'copies the gitattributes' do
+        expect(repository).to receive(:copy_gitattributes).with(branch)
+        repository.change_head(branch)
+      end
+
       it 'reloads the default branch' do
         expect(repository.container).to receive(:reload_default_branch)
         repository.change_head(branch)
@@ -3951,88 +3805,63 @@ RSpec.describe Repository, feature_category: :source_code_management do
     end
   end
 
-  describe '#remove_prohibited_refs' do
-    context "when repository contains allowed and prohibited ref names" do
-      let(:mutable_project) { create(:project, :repository) }
-      let(:repository) { mutable_project.repository }
-      let(:raw_repository) { repository.raw }
-      let(:commit_id) { raw_repository.commit.id }
-      let(:prohibited_name) { '37fd3601be4c25497a39fa2e6a206e09e759d597' }
-      let(:prohibited_hex_64_name) { '5f50b1461c836081ed677f05e08d10dc7dc68631fa5767bc3e3946349b348275' }
-      let(:allowed_basic_name) { 'some-tag-name' }
-      let(:allowed_non_hex_40_name) { '37fd3601be4c25497a39fa2e6a206e09e759d59s' }
+  describe '#remove_prohibited_branches' do
+    let(:branch_name) { '37fd3601be4c25497a39fa2e6a206e09e759d597' }
 
-      before do
-        raw_repository.add_tag(prohibited_name, user: user, target: commit_id)
-        raw_repository.add_branch(prohibited_name, user: user, target: commit_id)
+    before do
+      allow(repository.raw_repository).to receive(:branch_names).and_return([branch_name])
+    end
 
-        raw_repository.add_tag(allowed_basic_name, user: user, target: commit_id)
-        raw_repository.add_branch(allowed_basic_name, user: user, target: commit_id)
+    shared_examples 'deletes the branch' do
+      it 'deletes prohibited branch' do
+        expect(repository.raw_repository).to receive(:delete_branch).with(branch_name)
 
-        raw_repository.add_tag(prohibited_hex_64_name, user: user, target: commit_id)
-        raw_repository.add_branch(prohibited_hex_64_name, user: user, target: commit_id)
-
-        raw_repository.add_tag(allowed_non_hex_40_name, user: user, target: commit_id)
-        raw_repository.add_branch(allowed_non_hex_40_name, user: user, target: commit_id)
-      end
-
-      it 'only deletes prohibited refs' do
-        # Check everything exists before calling `remove_prohibited_refs`.
-        expect(repository.find_branch(allowed_basic_name)).not_to be_nil
-        expect(repository.find_tag(allowed_basic_name)).not_to be_nil
-
-        expect(repository.find_branch(prohibited_hex_64_name)).not_to be_nil
-        expect(repository.find_tag(prohibited_hex_64_name)).not_to be_nil
-
-        expect(repository.find_branch(allowed_non_hex_40_name)).not_to be_nil
-        expect(repository.find_tag(allowed_non_hex_40_name)).not_to be_nil
-
-        expect(repository.find_branch(prohibited_name)).not_to be_nil
-        expect(repository.find_tag(prohibited_name)).not_to be_nil
-
-        repository.remove_prohibited_refs
-
-        # Check allowed refs were not deleted.
-        expect(repository.find_branch(allowed_basic_name)).not_to be_nil
-        expect(repository.find_tag(allowed_basic_name)).not_to be_nil
-
-        expect(repository.find_branch(allowed_non_hex_40_name)).not_to be_nil
-        expect(repository.find_tag(allowed_non_hex_40_name)).not_to be_nil
-
-        # Check prohibited refs were deleted.
-        expect(repository.find_branch(prohibited_name)).to be_nil
-        expect(repository.find_tag(prohibited_name)).to be_nil
-
-        expect(repository.find_branch(prohibited_hex_64_name)).to be_nil
-        expect(repository.find_tag(prohibited_hex_64_name)).to be_nil
+        repository.remove_prohibited_branches
       end
     end
 
-    context "when repository contains no prohibited ref names" do
-      let(:mutable_project) { create(:project, :repository) }
-      let(:repository) { mutable_project.repository }
-      let(:raw_repository) { repository.raw }
-      let(:commit_id) { raw_repository.commit.id }
-      let(:allowed_basic_name) { 'some-tag-name' }
+    shared_examples 'does not delete branch' do
+      it 'returns without removing the branch' do
+        expect(repository.raw_repository).not_to receive(:delete_branch)
 
-      before do
-        raw_repository.add_tag(allowed_basic_name, user: user, target: commit_id)
-        raw_repository.add_branch(allowed_basic_name, user: user, target: commit_id)
+        repository.remove_prohibited_branches
+      end
+    end
+
+    context 'when branch name is hexadecmal and 40-characters long' do
+      include_examples 'deletes the branch'
+    end
+
+    context 'when branch name is hexadecmal and 64-characters long' do
+      let(:branch_name) { '5f50b1461c836081ed677f05e08d10dc7dc68631fa5767bc3e3946349b348275' }
+
+      include_examples 'deletes the branch'
+    end
+
+    context 'when branch name is 40-characters long but not hexadecimal' do
+      let(:branch_name) { '37fd3601be4c25497a39fa2e6a206e09e759d59s' }
+
+      include_examples 'does not delete branch'
+    end
+
+    context 'when branch name is hexadecimal' do
+      context 'when branch name is less than 40-characters long' do
+        let(:branch_name) { '37fd3601be4c25497a39fa2e6a206e09e759d' }
+
+        include_examples 'does not delete branch'
       end
 
-      it 'does not delete any branches' do
-        expect(repository.raw).not_to receive(:delete_refs)
+      context 'when branch name is more than 40-characters long' do
+        let(:branch_name) { '37fd3601be4c25497a39fa2e6a206e09e759dfdfd' }
 
-        expect { repository.remove_prohibited_refs }
-          .not_to change { raw_repository.branch_count }
+        include_examples 'does not delete branch'
       end
+    end
 
-      it 'does not delete any tags' do
-        expect(repository.raw).not_to receive(:delete_refs)
+    context 'when prohibited branch does not exist' do
+      let(:branch_name) { 'main' }
 
-        expect { repository.remove_prohibited_refs }
-          .not_to change { raw_repository.tag_count }
-      end
+      include_examples 'does not delete branch'
     end
 
     context 'when raw repository does not exist' do
@@ -4040,10 +3869,7 @@ RSpec.describe Repository, feature_category: :source_code_management do
         allow(repository).to receive(:exists?).and_return(false)
       end
 
-      it "does not attempt to find prohibited refs" do
-        expect(repository.raw).not_to receive(:list_refs)
-        repository.remove_prohibited_refs
-      end
+      include_examples 'does not delete branch'
     end
   end
 
@@ -4130,7 +3956,7 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
   describe '#object_pool' do
     let_it_be(:primary_project) { create(:project, :empty_repo) }
-    let_it_be(:forked_project) { create(:project, :fork_repository, forked_from_project: primary_project) }
+    let_it_be(:forked_project) { create(:project, :empty_repo) }
 
     let(:repository) { primary_project.repository }
 
@@ -4368,66 +4194,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
       let(:attrs) { [] }
 
       it { expect { file_attributes }.to raise_error(ArgumentError) }
-    end
-  end
-
-  describe '#commit_files' do
-    let_it_be(:project) { create(:project, :repository) }
-    let(:target_sha) { repository.commit('master').sha }
-    let(:expected_params) do
-      [user, 'master', 'commit message', [], 'author email', 'author name', nil, nil, true, nil, false, target_sha]
-    end
-
-    subject do
-      repository.commit_files(
-        user,
-        branch_name: 'master',
-        message: 'commit message',
-        author_name: 'author name',
-        author_email: 'author email',
-        actions: [],
-        force: true,
-        sign: false
-      )
-    end
-
-    it 'finds and passes the branches target_sha' do
-      expect_next_instance_of(Gitlab::GitalyClient::OperationService) do |client|
-        expect(client).to receive(:user_commit_files).with(*expected_params)
-      end
-
-      subject
-    end
-
-    context 'when validate_target_sha_in_user_commit_files feature flag is disabled' do
-      let_it_be(:project) { create(:project, :repository) }
-      let(:target_sha) { nil }
-
-      before do
-        stub_feature_flags(validate_target_sha_in_user_commit_files: false)
-      end
-
-      it 'does not find or pass the branches target_sha' do
-        expect_next_instance_of(Gitlab::GitalyClient::OperationService) do |client|
-          expect(client).to receive(:user_commit_files).with(*expected_params)
-        end
-        expect(repository).not_to receive(:commit)
-
-        subject
-      end
-    end
-
-    context 'with an empty branch' do
-      let_it_be(:project) { create(:project, :empty_repo) }
-      let(:target_sha) { nil }
-
-      it 'calls UserCommitFiles RPC' do
-        expect_next_instance_of(Gitlab::GitalyClient::OperationService) do |client|
-          expect(client).to receive(:user_commit_files).with(*expected_params)
-        end
-
-        subject
-      end
     end
   end
 end

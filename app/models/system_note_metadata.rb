@@ -14,10 +14,6 @@ class SystemNoteMetadata < ApplicationRecord
     moved merge
     label milestone
     relate unrelate
-    unrelate_from_parent
-    unrelate_from_child
-    relate_to_parent
-    relate_to_child
     cloned
   ].freeze
 
@@ -29,7 +25,6 @@ class SystemNoteMetadata < ApplicationRecord
     tag due_date start_date_or_due_date pinned_embed cherry_pick health_status approved unapproved
     status alert_issue_added relate unrelate new_alert_added severity contact timeline_event
     issue_type relate_to_child unrelate_from_child relate_to_parent unrelate_from_parent override
-    issue_email_participants requested_changes
   ].freeze
 
   validates :note, presence: true, unless: :importing?

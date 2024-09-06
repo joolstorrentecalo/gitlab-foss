@@ -94,6 +94,7 @@ module Gitlab
             issues_with_associated_zoom_link: count(ZoomMeeting.added_to_issue),
             issues_using_zoom_quick_actions: distinct_count(ZoomMeeting, :issue_id),
             issues_with_embedded_grafana_charts_approx: grafana_embed_usage_data,
+            issues_created_from_alerts: total_alert_issues,
             incident_issues: count(::Issue.with_issue_type(:incident), start: minimum_id(Issue), finish: maximum_id(Issue)),
             alert_bot_incident_issues: count(::Issue.authored(::Users::Internal.alert_bot), start: minimum_id(Issue), finish: maximum_id(Issue)),
             keys: count(Key),
@@ -360,8 +361,8 @@ module Gitlab
           clusters: distinct_count(::Clusters::Cluster.where(time_period), :user_id),
           clusters_integrations_prometheus: cluster_integrations_user_distinct_count(::Clusters::Integrations::Prometheus, time_period),
           operations_dashboard_default_dashboard: count(::User.active.with_dashboard('operations').where(time_period),
-            start: minimum_id(User),
-            finish: maximum_id(User)),
+                                                        start: minimum_id(User),
+                                                        finish: maximum_id(User)),
           projects_with_error_tracking_enabled: distinct_count(::Project.with_enabled_error_tracking.where(time_period), :creator_id),
           projects_with_incidents: distinct_count(::Issue.with_issue_type(:incident).where(time_period), :project_id),
           # We are making an assumption here that all alert_management_alerts are associated with an issue of type
@@ -499,6 +500,12 @@ module Gitlab
         }
       end
       # rubocop: enable CodeReuse/ActiveRecord
+
+      def total_alert_issues
+        # Remove prometheus table queries once they are deprecated
+        # To be removed with https://gitlab.com/gitlab-org/gitlab/-/issues/217407.
+        add_metric('IssuesCreatedFromAlertsMetric')
+      end
 
       def clear_memoized
         CE_MEMOIZED_VALUES.each { |v| clear_memoization(v) }

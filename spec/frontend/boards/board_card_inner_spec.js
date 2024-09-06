@@ -6,20 +6,13 @@ import createMockApollo from 'helpers/mock_apollo_helper';
 import setWindowLocation from 'helpers/set_window_location_helper';
 import { createMockDirective, getBinding } from 'helpers/vue_mock_directive';
 import { mountExtended } from 'helpers/vue_test_utils_helper';
-import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
 import IssuableBlockedIcon from '~/vue_shared/components/issuable_blocked_icon/issuable_blocked_icon.vue';
 import BoardCardInner from '~/boards/components/board_card_inner.vue';
 import isShowingLabelsQuery from '~/graphql_shared/client/is_showing_labels.query.graphql';
 import WorkItemTypeIcon from '~/work_items/components/work_item_type_icon.vue';
 import { TYPE_ISSUE } from '~/issues/constants';
 import { updateHistory } from '~/lib/utils/url_utility';
-import {
-  mockLabelList,
-  mockIssue,
-  mockIssueFullPath,
-  mockIssueDirectNamespace,
-  mockMilestone,
-} from './mock_data';
+import { mockLabelList, mockIssue, mockIssueFullPath, mockIssueDirectNamespace } from './mock_data';
 
 jest.mock('~/lib/utils/url_utility');
 
@@ -49,7 +42,6 @@ describe('Board card component', () => {
   const findLoadingIcon = () => wrapper.findComponent(GlLoadingIcon);
   const findHiddenIssueIcon = () => wrapper.findByTestId('hidden-icon');
   const findWorkItemIcon = () => wrapper.findComponent(WorkItemTypeIcon);
-  const findUserAvatar = () => wrapper.findComponent(UserAvatarLink);
 
   const mockApollo = createMockApollo();
 
@@ -83,7 +75,6 @@ describe('Board card component', () => {
         allowSubEpics: false,
         issuableType: TYPE_ISSUE,
         isGroupBoard,
-        disabled: false,
       },
     });
   };
@@ -152,25 +143,6 @@ describe('Board card component', () => {
   it('renders item direct namespace path with full reference path in a tooltip', () => {
     expect(wrapper.find('.board-item-path').text()).toBe(mockIssueDirectNamespace);
     expect(wrapper.find('.board-item-path').attributes('title')).toBe(mockIssueFullPath);
-  });
-
-  describe('milestone', () => {
-    it('does not render milestone if issue has no milestone', () => {
-      expect(wrapper.findByTestId('issue-milestone').exists()).toBe(false);
-    });
-
-    it('renders milestone if issue has a milestone assigned', () => {
-      createWrapper({
-        props: {
-          item: {
-            ...issue,
-            milestone: mockMilestone,
-          },
-        },
-      });
-
-      expect(wrapper.findByTestId('issue-milestone').exists()).toBe(true);
-    });
   });
 
   describe('blocked', () => {
@@ -252,6 +224,9 @@ describe('Board card component', () => {
             item: {
               ...wrapper.props('item'),
               assignees: [user],
+              updateData(newData) {
+                Object.assign(this, newData);
+              },
             },
           },
         });
@@ -273,25 +248,25 @@ describe('Board card component', () => {
         expect(wrapper.find('.board-card-assignee img').exists()).toBe(true);
       });
 
-      it('renders the avatar using avatarUrl property', () => {
-        createWrapper({
-          props: {
-            item: {
-              ...wrapper.props('item'),
-              assignees: [
-                {
-                  id: '1',
-                  name: 'test',
-                  state: 'active',
-                  username: 'test_name',
-                  avatarUrl: 'test_image_from_avatar_url',
-                },
-              ],
+      it('renders the avatar using avatarUrl property', async () => {
+        wrapper.props('item').updateData({
+          ...wrapper.props('item'),
+          assignees: [
+            {
+              id: '1',
+              name: 'test',
+              state: 'active',
+              username: 'test_name',
+              avatarUrl: 'test_image_from_avatar_url',
             },
-          },
+          ],
         });
 
-        expect(findUserAvatar().props('imgSrc')).toBe('test_image_from_avatar_url');
+        await nextTick();
+
+        expect(wrapper.find('.board-card-assignee img').attributes('src')).toBe(
+          'test_image_from_avatar_url?width=48',
+        );
       });
     });
 
@@ -316,7 +291,10 @@ describe('Board card component', () => {
       });
 
       it('displays defaults avatar if users avatar is null', () => {
-        expect(findUserAvatar().props('imgSrc')).toBe('default_avatar');
+        expect(wrapper.find('.board-card-assignee img').exists()).toBe(true);
+        expect(wrapper.find('.board-card-assignee img').attributes('src')).toBe(
+          'default_avatar?width=48',
+        );
       });
     });
   });

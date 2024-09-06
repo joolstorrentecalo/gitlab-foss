@@ -108,6 +108,22 @@ RSpec.describe Projects::EnvironmentsController, feature_category: :continuous_d
           end
         end
 
+        context 'when enable_environments_search_within_folder FF is disabled' do
+          before do
+            stub_feature_flags(enable_environments_search_within_folder: false)
+          end
+
+          it 'ignores name inside folder' do
+            create(:environment, project: project, name: 'review-app', state: :available)
+
+            get :index, params: environment_params(format: :json, search: 'review')
+
+            expect(environments.map { |env| env['name'] }).to contain_exactly('review-app')
+            expect(json_response['available_count']).to eq 1
+            expect(json_response['stopped_count']).to eq 0
+          end
+        end
+
         it 'sets the polling interval header' do
           subject
 
@@ -248,26 +264,6 @@ RSpec.describe Projects::EnvironmentsController, feature_category: :continuous_d
         expect(environments.map { |env| env['name'] }).to eq(['staging-1.0/zzz'])
         expect(json_response['available_count']).to eq 1
         expect(json_response['stopped_count']).to eq 0
-      end
-    end
-  end
-
-  describe 'GET k8s' do
-    context 'with valid id' do
-      it 'responds with a status code 200' do
-        get :k8s, params: environment_params
-
-        expect(response).to be_ok
-      end
-    end
-
-    context 'with invalid id' do
-      it 'responds with a status code 404' do
-        params = environment_params
-        params[:id] = non_existing_record_id
-        get :k8s, params: params
-
-        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
   end

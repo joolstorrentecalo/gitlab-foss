@@ -23,6 +23,7 @@
               "name",
               "path",
               "location",
+              "canDelete",
               "userPermissions"
             ],
             "properties": {
@@ -49,6 +50,9 @@
               },
               "createdAt": {
                 "type": "string"
+              },
+              "canDelete": {
+                "type": "boolean"
               },
               "userPermissions": {
                 "type": "object",

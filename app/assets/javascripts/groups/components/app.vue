@@ -1,6 +1,5 @@
 <script>
 import { GlLoadingIcon, GlModal, GlEmptyState } from '@gitlab/ui';
-import emptySearchIllustration from '@gitlab/svgs/dist/illustrations/empty-state/empty-search-md.svg?url';
 import { createAlert } from '~/alert';
 import { HTTP_STATUS_FORBIDDEN } from '~/lib/utils/http_status';
 import { mergeUrlParams, getParameterByName } from '~/lib/utils/url_utility';
@@ -17,13 +16,13 @@ export default {
       description: __('Edit your search and try again'),
     },
   },
-  emptySearchIllustration,
   components: {
     GroupsComponent,
     GlModal,
     GlLoadingIcon,
     GlEmptyState,
   },
+  inject: ['emptySearchIllustration'],
   props: {
     action: {
       type: String,
@@ -247,7 +246,7 @@ export default {
       <groups-component v-if="hasGroups" :groups="groups" :page-info="pageInfo" :action="action" />
       <gl-empty-state
         v-else-if="fromSearch"
-        :svg-path="$options.emptySearchIllustration"
+        :svg-path="emptySearchIllustration"
         :title="$options.i18n.searchEmptyState.title"
         :description="$options.i18n.searchEmptyState.description"
         data-testid="search-empty-state"

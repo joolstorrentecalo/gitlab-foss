@@ -41,7 +41,7 @@ func TestBlocker(t *testing.T) {
 			upstreamBody := []byte(upstreamResponse)
 			n, err := bl.Write(upstreamBody)
 			require.NoError(t, err)
-			require.Len(t, upstreamBody, n, "bytes written")
+			require.Equal(t, len(upstreamBody), n, "bytes written")
 
 			rw.Flush()
 

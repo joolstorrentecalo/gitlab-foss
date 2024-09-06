@@ -1,6 +1,6 @@
 ---
 stage: Govern
-group: Security Policies
+group: Compliance
 info: "To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments"
 ---
 
@@ -10,6 +10,9 @@ DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/3869) in GitLab 14.0, disabled behind the `:ff_external_status_checks` feature flag.
+> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/320783) in GitLab 14.1.
+> - `failed` status [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/329636) in GitLab 14.9.
 > - `pending` status [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/413723) in GitLab 16.5
 > - Timeout interval of two minutes for `pending` status checks [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/388725) in GitLab 16.6.
 
@@ -49,8 +52,9 @@ By default, merge requests in projects can be merged even if external status che
 
 External status checks have an **asynchronous** workflow. Merge requests emit a merge request webhook payload to an external service whenever:
 
-- A merge request is updated, closed, reopened, approved, unapproved, or merged.
+- The merge request is changed. For example, title or description.
 - Code is pushed to the source branch of the merge request.
+- A comment is made in the merge request discussion.
 
 ```mermaid
 sequenceDiagram
@@ -82,7 +86,7 @@ Within each project's settings, you can see a list of status check services adde
 
 ![Status checks list](img/status_checks_list_view_v14_0.png)
 
-This list shows the service name, API URL, targeted branch, and HMAC authentication status.
+This list shows the service name, API URL, and targeted branch.
 It also provides actions to allow you to create, edit, or remove status checks.
 
 ## Add or update a status check service
@@ -103,9 +107,6 @@ next to the status check you want to edit.
 The **Update status check** form is then shown.
 
 ![Status checks update form](img/status_checks_update_form_v14_0.png)
-
-NOTE:
-You cannot see or modify the value of the HMAC shared secret. To change the shared secret, delete and recreate the external status check with a new value for the shared secret.
 
 Changing the values in the form and selecting the **Update status check** button updates the status check.
 
@@ -142,11 +143,6 @@ for doesn't appear immediately. The search box requires
 If you want the status check to be applied to **all** merge requests,
 you can select the **All branches** option.
 
-#### HMAC shared secret
-
-HMAC authentication prevents tampering with requests
-and ensures they come from a legitimate source.
-
 ## Delete a status check service
 
 Within the **Status checks** sub-section, select **Remove** (**{remove}**)
@@ -161,6 +157,7 @@ the status check and it **is not** recoverable.
 
 ## Status checks widget
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/327634) in GitLab 14.1.
 > - UI [updated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/91504) in GitLab 15.2.
 > - Ability to retry failed external status checks [added](https://gitlab.com/gitlab-org/gitlab/-/issues/383200) in GitLab 15.8.
 > - Widget [updated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/111763) to poll for updates when there are pending status checks in GitLab 15.11.

@@ -18,8 +18,7 @@ RSpec.describe ServiceDeskSettings::UpdateService, :aggregate_failures, feature_
           outgoing_name: 'some name',
           project_key: 'foo',
           reopen_issue_on_external_participant_note: true,
-          add_external_participants_from_cc: true,
-          tickets_confidential_by_default: false
+          add_external_participants_from_cc: true
         }
       end
 
@@ -31,8 +30,7 @@ RSpec.describe ServiceDeskSettings::UpdateService, :aggregate_failures, feature_
           outgoing_name: 'some name',
           project_key: 'foo',
           reopen_issue_on_external_participant_note: true,
-          add_external_participants_from_cc: true,
-          tickets_confidential_by_default: false
+          add_external_participants_from_cc: true
         )
       end
 

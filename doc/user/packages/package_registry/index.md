@@ -39,9 +39,9 @@ You can also find helpful code snippets for configuring your package manager or 
 
 When you view packages in a group:
 
-- All packages published to the group and its projects are displayed.
+- All projects published to the group and its projects are displayed.
 - Only the projects you can access are displayed.
-- If a project is private, or you are not a member of the project, the packages from that project are not displayed.
+- If a project is private, or you are not a member of the project, it is not displayed.
 
 For information on how to create and upload a package, view the GitLab documentation for your package type.
 
@@ -67,7 +67,7 @@ For most package types, the following credential types are valid:
 - If you are publishing a package via CI/CD pipelines, you must use a CI job token.
 
 NOTE:
-If the "Package registry" feature is turned off for your project at **Settings > General > Visibility, project features, permissions**, you will receive a 403 Forbidden response.
+If you have not activated the "Package registry" feature for your project at **Settings > General > Visibility, project features, permissions**, you receive a 403 Forbidden response.
 Accessing package registry via deploy token is not available when external authorization is enabled.
 
 ## Use GitLab CI/CD
@@ -77,18 +77,21 @@ a package registry.
 
 ### To build packages
 
-You can authenticate with GitLab by using the `CI_JOB_TOKEN`.
+For Maven, NuGet, npm, Conan, Helm, and PyPI packages, and Composer dependencies, you can
+authenticate with GitLab by using the `CI_JOB_TOKEN`.
 
 CI/CD templates, which you can use to get started, are in [this repository](https://gitlab.com/gitlab-org/gitlab/-/tree/master/lib/gitlab/ci/templates).
 
 For more information about using the GitLab package registry with CI/CD, see:
 
+- [Composer](../composer_repository/index.md#publish-a-composer-package-by-using-cicd)
+- [Conan](../conan_repository/index.md#publish-a-conan-package-by-using-cicd)
 - [Generic](../generic_packages/index.md#publish-a-generic-package-by-using-cicd)
 - [Maven](../maven_repository/index.md#create-maven-packages-with-gitlab-cicd)
 - [npm](../npm_registry/index.md#publishing-a-package-by-using-a-cicd-pipeline)
 - [NuGet](../nuget_repository/index.md#publish-a-nuget-package-by-using-cicd)
 - [PyPI](../pypi_repository/index.md#authenticate-with-a-ci-job-token)
-- [Terraform](../terraform_module_registry/index.md#authenticate-to-the-terraform-module-registry)
+- [RubyGems](../rubygems_registry/index.md#authenticate-with-a-ci-job-token)
 
 If you use CI/CD to build a package, extended activity information is displayed
 when you view the package details:
@@ -186,7 +189,7 @@ This table lists unsupported package manager formats that we are accepting contr
 Consider contributing to GitLab. This [development documentation](../../../development/packages/index.md)
 guides you through the process.
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 | Format    | Status                                                        |
 | --------- | ------------------------------------------------------------- |
@@ -202,4 +205,4 @@ guides you through the process.
 | Swift     | [#12233](https://gitlab.com/gitlab-org/gitlab/-/issues/12233) |
 | Vagrant   | [#36899](https://gitlab.com/gitlab-org/gitlab/-/issues/36899) |
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->

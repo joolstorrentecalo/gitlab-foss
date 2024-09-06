@@ -32,10 +32,12 @@ See also:
 
 ## Configure protected paths
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/31246) in GitLab 12.4.
+
 Throttling of protected paths is enabled by default and can be disabled or
 customized.
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > Network**.
 1. Expand **Protected paths**.
 

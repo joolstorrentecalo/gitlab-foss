@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Gitlab::Ci::Build::Artifacts::Metadata, feature_category: :job_artifacts do
+RSpec.describe Gitlab::Ci::Build::Artifacts::Metadata, feature_category: :build_artifacts do
   def metadata(path = '', **opts)
     described_class.new(metadata_file_stream, path, **opts)
   end
@@ -36,13 +36,13 @@ RSpec.describe Gitlab::Ci::Build::Artifacts::Metadata, feature_category: :job_ar
   describe '#full_version' do
     subject { metadata.full_version }
 
-    it { is_expected.to eq 'GitLab Build Artifacts Metadata 0.0.2' }
+    it { is_expected.to eq 'GitLab Build Artifacts Metadata 0.0.1' }
   end
 
   describe '#version' do
     subject { metadata.version }
 
-    it { is_expected.to eq '0.0.2' }
+    it { is_expected.to eq '0.0.1' }
   end
 
   describe '#errors' do
@@ -65,9 +65,7 @@ RSpec.describe Gitlab::Ci::Build::Artifacts::Metadata, feature_category: :job_ar
             'ci_artifacts.txt',
             'other_artifacts_0.1.2/',
             'rails_sample.jpg',
-            'tests_encoding/',
-            'empty_image.png',
-            'generated.yml'
+            'tests_encoding/'
           )
         end
 
@@ -85,7 +83,6 @@ RSpec.describe Gitlab::Ci::Build::Artifacts::Metadata, feature_category: :job_ar
           it 'returns paths to all files and directories at the first level of the directory' do
             expect(find_entries.keys).to contain_exactly(
               'other_artifacts_0.1.2/',
-              'other_artifacts_0.1.2/.DS_Store',
               'other_artifacts_0.1.2/doc_sample.txt',
               'other_artifacts_0.1.2/another-subdirectory/'
             )
@@ -99,8 +96,7 @@ RSpec.describe Gitlab::Ci::Build::Artifacts::Metadata, feature_category: :job_ar
             expect(find_entries.keys).to contain_exactly(
               'other_artifacts_0.1.2/another-subdirectory/',
               'other_artifacts_0.1.2/another-subdirectory/empty_directory/',
-              'other_artifacts_0.1.2/another-subdirectory/banana_sample.gif',
-              'other_artifacts_0.1.2/another-subdirectory/.DS_Store'
+              'other_artifacts_0.1.2/another-subdirectory/banana_sample.gif'
             )
           end
         end
@@ -112,12 +108,10 @@ RSpec.describe Gitlab::Ci::Build::Artifacts::Metadata, feature_category: :job_ar
           it 'returns all paths recursively within the target directory' do
             expect(subject.keys).to contain_exactly(
               'other_artifacts_0.1.2/',
-              'other_artifacts_0.1.2/.DS_Store',
               'other_artifacts_0.1.2/doc_sample.txt',
               'other_artifacts_0.1.2/another-subdirectory/',
               'other_artifacts_0.1.2/another-subdirectory/empty_directory/',
-              'other_artifacts_0.1.2/another-subdirectory/banana_sample.gif',
-              'other_artifacts_0.1.2/another-subdirectory/.DS_Store'
+              'other_artifacts_0.1.2/another-subdirectory/banana_sample.gif'
             )
           end
         end

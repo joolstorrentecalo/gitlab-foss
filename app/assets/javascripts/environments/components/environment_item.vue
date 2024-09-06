@@ -550,7 +550,7 @@ export default {
     upcomingDeploymentCellClasses() {
       return [
         this.tableData.upcoming.spacing,
-        { '!gl-hidden md:!gl-block': !this.upcomingDeployment },
+        { 'gl-display-none gl-md-display-block': !this.upcomingDeployment },
       ];
     },
     tableNameSpacingClass() {
@@ -643,7 +643,7 @@ export default {
 
     <div
       v-if="!isFolder"
-      class="table-section deployment-column gl-hidden md:gl-block"
+      class="table-section deployment-column d-none d-md-block"
       :class="tableData.deploy.spacing"
       role="gridcell"
       data-testid="environment-deployment-id-cell"
@@ -654,7 +654,7 @@ export default {
 
       <span
         v-if="!isFolder && deploymentHasUser"
-        class="text-break-word gl-inline-flex gl-items-center"
+        class="text-break-word gl-display-inline-flex gl-align-items-center"
       >
         <gl-sprintf :message="s__('Environments|by %{avatar}')">
           <template #avatar>
@@ -678,12 +678,12 @@ export default {
 
     <div
       v-if="!isFolder"
-      class="table-section gl-hidden md:gl-block"
+      class="table-section d-none d-md-block"
       :class="tableData.build.spacing"
       role="gridcell"
       data-testid="environment-build-cell"
     >
-      <a v-if="shouldRenderBuildName" :href="buildPath" class="build-link gl-text-primary">
+      <a v-if="shouldRenderBuildName" :href="buildPath" class="build-link cgray">
         <tooltip-on-truncate
           :title="buildName"
           truncate-target="child"
@@ -740,10 +740,10 @@ export default {
       </div>
       <div
         v-if="upcomingDeployment"
-        class="gl-flex gl-w-full gl-flex-row gl-justify-end md:!gl-flex-col"
+        class="gl-w-full gl-display-flex gl-flex-direction-row gl-md-flex-direction-column! gl-justify-content-end"
         data-testid="upcoming-deployment-content"
       >
-        <div class="gl-flex gl-items-center">
+        <div class="gl-display-flex gl-align-items-center">
           <span class="gl-mr-2">{{ upcomingDeploymentInternalId }}</span>
           <gl-link
             v-if="upcomingDeployment.deployable"
@@ -757,7 +757,7 @@ export default {
         </div>
         <span
           v-if="upcomingDeployment.user"
-          class="text-break-word gl-mt-2 gl-inline-flex gl-items-center"
+          class="text-break-word gl-display-inline-flex gl-align-items-center gl-mt-2"
         >
           <gl-sprintf :message="s__('Environments|by %{avatar}')">
             <template #avatar>
@@ -814,7 +814,7 @@ export default {
         <stop-component
           v-if="canStopEnvironment"
           :environment="model"
-          class="gl-z-2"
+          class="gl-z-index-2"
           data-track-action="click_button"
           data-track-label="environment_stop"
         />
@@ -824,7 +824,7 @@ export default {
           no-caret
           icon="ellipsis_v"
           category="secondary"
-          placement="bottom-end"
+          placement="right"
           :toggle-text="__('More actions')"
         >
           <rollback-component

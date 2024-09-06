@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module QA
-  RSpec.describe 'Verify', :runner, product_group: :pipeline_authoring do
+  RSpec.describe 'Verify', :runner, product_group: :pipeline_security do
     describe 'Pipeline with protected variable' do
       let(:executor) { "qa-runner-#{Faker::Alphanumeric.alphanumeric(number: 8)}" }
       let(:protected_value) { Faker::Alphanumeric.alphanumeric(number: 8) }
@@ -42,7 +42,7 @@ module QA
         runner.remove_via_api!
       end
 
-      it 'exposes variable on protected branch', :blocking,
+      it 'exposes variable on protected branch', :reliable,
         quarantine: {
           issue: 'https://gitlab.com/gitlab-org/gitlab/-/issues/419506',
           type: :investigating
@@ -60,7 +60,7 @@ module QA
         end
       end
 
-      it 'does not expose variable on unprotected branch', :smoke,
+      it 'does not expose variable on unprotected branch', :reliable,
         testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/347664' do
         [developer, maintainer].each do |user|
           create_merge_request(Runtime::API::Client.new(:gitlab, user: user))

@@ -8,10 +8,9 @@ module Gitlab
     # Sidekiq's `config.server_middleware` method
     # eg: `config.server_middleware(&Gitlab::SidekiqMiddleware.server_configurator)`
     def self.server_configurator(metrics: true, arguments_logger: true, skip_jobs: true)
-      ->(chain) do
+      lambda do |chain|
         # Size limiter should be placed at the top
         chain.add ::Gitlab::SidekiqMiddleware::SizeLimiter::Server
-        chain.add ::Gitlab::SidekiqMiddleware::ShardAwarenessValidator
         chain.add ::Gitlab::SidekiqMiddleware::Monitor
 
         # Labkit wraps the job in the `Labkit::Context` resurrected from
@@ -20,9 +19,6 @@ module Gitlab
         # `::Gitlab::SidekiqMiddleware::ServerMetrics` (if we're using
         # that).
         chain.add ::Labkit::Middleware::Sidekiq::Server
-        chain.add ::Gitlab::SidekiqMiddleware::RequestStoreMiddleware
-
-        chain.add ::Gitlab::QueryLimiting::SidekiqMiddleware if ::Gitlab::QueryLimiting.enabled_for_env?
 
         if metrics
           chain.add ::Gitlab::SidekiqMiddleware::ServerMetrics
@@ -31,10 +27,10 @@ module Gitlab
         end
 
         chain.add ::Gitlab::SidekiqMiddleware::ArgumentsLogger if arguments_logger
+        chain.add ::Gitlab::SidekiqMiddleware::RequestStoreMiddleware
         chain.add ::Gitlab::SidekiqMiddleware::ExtraDoneLogMetadata
         chain.add ::Gitlab::SidekiqMiddleware::BatchLoader
         chain.add ::Gitlab::SidekiqMiddleware::InstrumentationLogger
-        chain.add ::Gitlab::SidekiqMiddleware::SetIpAddress
         chain.add ::Gitlab::SidekiqMiddleware::AdminMode::Server
         chain.add ::Gitlab::SidekiqMiddleware::QueryAnalyzer
         chain.add ::Gitlab::SidekiqVersioning::Middleware
@@ -55,7 +51,7 @@ module Gitlab
     # Sidekiq's `config.client_middleware` method
     # eg: `config.client_middleware(&Gitlab::SidekiqMiddleware.client_configurator)`
     def self.client_configurator
-      ->(chain) do
+      lambda do |chain|
         chain.add ::Gitlab::SidekiqMiddleware::WorkerContext::Client # needs to be before the Labkit middleware
         chain.add ::Labkit::Middleware::Sidekiq::Client
         # Sidekiq Client Middleware should be placed before DuplicateJobs::Client middleware,

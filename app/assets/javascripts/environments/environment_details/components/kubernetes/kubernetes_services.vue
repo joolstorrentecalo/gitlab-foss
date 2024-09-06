@@ -18,7 +18,6 @@ export default {
     GlLoadingIcon,
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     k8sServices: {
       query: k8sServicesQuery,
       variables() {
@@ -89,7 +88,7 @@ export default {
   <gl-tab>
     <template #title>
       {{ $options.i18n.servicesTitle }}
-      <gl-badge class="gl-tab-counter-badge">{{ servicesItems.length }}</gl-badge>
+      <gl-badge size="sm" class="gl-tab-counter-badge">{{ servicesItems.length }}</gl-badge>
     </template>
 
     <gl-loading-icon v-if="servicesLoading" />

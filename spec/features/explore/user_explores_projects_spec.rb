@@ -3,9 +3,9 @@
 require 'spec_helper'
 
 RSpec.describe 'User explores projects', feature_category: :user_profile do
-  shared_examples 'an "Explore > Projects" page with sidebar and breadcrumbs' do |page_path, params|
+  shared_examples 'an "Explore > Projects" page with sidebar and breadcrumbs' do |page_path|
     before do
-      visit send(page_path, params)
+      visit send(page_path)
     end
 
     describe "sidebar", :js do
@@ -23,21 +23,17 @@ RSpec.describe 'User explores projects', feature_category: :user_profile do
       end
     end
 
-    describe 'breadcrumbs', :js do
+    describe 'breadcrumbs' do
       it 'has "Explore" as its root breadcrumb' do
-        within_testid('breadcrumb-links') do
-          expect(find('li:first-of-type')).to have_link('Explore', href: explore_root_path)
+        within '.gl-breadcrumb-list li:first' do
+          expect(page).to have_link('Explore', href: explore_root_path)
         end
       end
     end
   end
 
   describe '"All" tab' do
-    it_behaves_like(
-      'an "Explore > Projects" page with sidebar and breadcrumbs',
-      :explore_projects_path,
-      { archived: 'true' }
-    )
+    it_behaves_like 'an "Explore > Projects" page with sidebar and breadcrumbs', :explore_projects_path
   end
 
   describe '"Most starred" tab' do
@@ -84,7 +80,7 @@ RSpec.describe 'User explores projects', feature_category: :user_profile do
 
       shared_examples 'empty search results' do
         it 'shows correct empty state message', :js do
-          search('zzzzzzzzzzzzzzzzzzz')
+          fill_in 'name', with: 'zzzzzzzzzzzzzzzzzzz'
 
           expect(page).to have_content('Explore public groups to find projects to contribute to')
         end
@@ -92,7 +88,7 @@ RSpec.describe 'User explores projects', feature_category: :user_profile do
 
       shared_examples 'minimum search length' do
         it 'shows a prompt to enter a longer search term', :js do
-          search('z')
+          fill_in 'name', with: 'z'
 
           expect(page).to have_content('Enter at least three characters to search')
         end
@@ -164,12 +160,5 @@ RSpec.describe 'User explores projects', feature_category: :user_profile do
 
       it_behaves_like 'explore page empty state'
     end
-  end
-
-  def search(term)
-    filter_input = find_by_testid('filtered-search-term-input')
-    filter_input.click
-    filter_input.set(term)
-    click_button 'Search'
   end
 end

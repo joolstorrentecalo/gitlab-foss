@@ -23,8 +23,6 @@ module Gitlab
       deploy_key_upload: 'This deploy key does not have write access to this project.',
       no_repo: 'A repository for this project does not exist yet.',
       project_not_found: "The project you were looking for could not be found or you don't have permission to view it.",
-      auth_by_job_token_forbidden: 'Insufficient permissions to pull from the repository of project %{target_project_path}.',
-      auth_by_job_token_project_not_in_allowlist: 'Authentication by CI/CD job token not allowed from %{source_project_path} to %{target_project_path}.',
       command_not_allowed: "The command you're trying to execute is not allowed.",
       upload_pack_disabled_over_http: 'Pulling over HTTP is not allowed.',
       receive_pack_disabled_over_http: 'Pushing over HTTP is not allowed.',
@@ -45,8 +43,8 @@ module Gitlab
     ALL_COMMANDS = DOWNLOAD_COMMANDS + PUSH_COMMANDS
 
     attr_reader :actor, :protocol, :authentication_abilities,
-      :repository_path, :redirected_path, :auth_result_type,
-      :cmd, :changes, :push_options
+                :repository_path, :redirected_path, :auth_result_type,
+                :cmd, :changes
     attr_accessor :container
 
     def self.error_message(key)
@@ -59,7 +57,7 @@ module Gitlab
       raise ArgumentError, "No error message defined for #{key}"
     end
 
-    def initialize(actor, container, protocol, authentication_abilities:, repository_path: nil, redirected_path: nil, auth_result_type: nil, push_options: nil)
+    def initialize(actor, container, protocol, authentication_abilities:, repository_path: nil, redirected_path: nil, auth_result_type: nil)
       @actor     = actor
       @container = container
       @protocol  = protocol
@@ -67,7 +65,6 @@ module Gitlab
       @repository_path = repository_path
       @redirected_path = redirected_path
       @auth_result_type = auth_result_type
-      @push_options = Gitlab::PushOptions.new(push_options)
     end
 
     def check(cmd, changes)
@@ -144,10 +141,6 @@ module Gitlab
     # when accessing via the CI_JOB_TOKEN
     def build_can_download_code?
       authentication_abilities.include?(:build_download_code) && user_access.can_do_action?(:build_download_code)
-    end
-
-    def build_can_push?
-      authentication_abilities.include?(:build_push_code) && user_access.can_do_action?(:build_push_code)
     end
 
     def build_can_download?
@@ -237,29 +230,14 @@ module Gitlab
           raise ForbiddenError, error_message(:auth_download)
         end
       when *PUSH_COMMANDS
-        unless authentication_abilities.include?(:push_code) || authentication_abilities.include?(:build_push_code)
+        unless authentication_abilities.include?(:push_code)
           raise ForbiddenError, error_message(:auth_upload)
         end
       end
     end
 
     def check_project_accessibility!
-      return if can_read_project?
-
-      if user&.from_ci_job_token?
-
-        policy = ProjectPolicy.new(user, project)
-
-        if policy.project_allowed_for_job_token?
-          raise ForbiddenError, format(error_message(:auth_by_job_token_forbidden), target_project_path: project.path)
-        else
-          source_project = user.ci_job_token_scope.current_project
-
-          raise ForbiddenError, format(error_message(:auth_by_job_token_project_not_in_allowlist), source_project_path: source_project.path, target_project_path: project.path)
-        end
-      else
-        raise NotFoundError, not_found_message
-      end
+      raise NotFoundError, not_found_message unless can_read_project?
     end
 
     def not_found_message
@@ -355,14 +333,12 @@ module Gitlab
     end
 
     def user_can_push?
-      authentication_abilities.include?(:push_code) &&
-        user_access.can_do_action?(push_ability)
+      user_access.can_do_action?(push_ability)
     end
 
     def check_change_access!
       if changes == ANY
         can_push = deploy_key? ||
-          build_can_push? ||
           user_can_push? ||
           project&.any_branch_allows_collaboration?(user_access.user)
 
@@ -380,8 +356,7 @@ module Gitlab
         user_access: user_access,
         project: project,
         protocol: protocol,
-        logger: logger,
-        push_options: push_options
+        logger: logger
       ).validate!
     rescue Checks::TimedLogger::TimeoutError
       raise TimeoutError, logger.full_message

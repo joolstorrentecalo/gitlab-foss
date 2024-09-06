@@ -15,7 +15,7 @@ DETAILS:
 > - [Enabled by default](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/140825) in GitLab 16.8.
 > - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/425242) in GitLab 16.10.
 
-With the compliance frameworks report, you can see all the compliance frameworks in a group. Each row of the report shows:
+With compliance frameworks report, you can see all the compliance frameworks in a group. Each row of the report shows:
 
 - Framework name.
 - Associated projects.
@@ -79,7 +79,10 @@ To delete a compliance framework from the compliance frameworks report:
 ## Export a report of compliance frameworks in a group
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/413736) in GitLab 16.11 [with a flag](../../../administration/feature_flags.md) named `compliance_frameworks_report_csv_export`. Disabled by default.
-> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/152644) in GitLab 17.1. Feature flag `compliance_frameworks_report_csv_export` removed.
+
+FLAG:
+On self-managed GitLab, by default this feature is not available. To make it available, an administrator can [enable the feature flag](../../../administration/feature_flags.md)
+named `compliance_frameworks_report_csv_export`. On GitLab.com, this feature is not available. The feature is not ready for production use.
 
 Exports the contents of a compliance frameworks report in a group. Reports are truncated at 15 MB to avoid a large email attachment.
 

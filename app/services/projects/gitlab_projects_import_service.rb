@@ -17,7 +17,7 @@ module Projects
     end
 
     def execute
-      prepare_template_environment(template_file, current_user)
+      prepare_template_environment(template_file)
 
       prepare_import_params
 
@@ -71,8 +71,6 @@ module Projects
         data[:sample_data] = params.delete(:sample_data) if params.key?(:sample_data)
         params[:import_type] = 'gitlab_project'
       end
-
-      params[:organization_id] = current_namespace.organization_id
 
       params[:import_data] = { data: data } if data.present?
     end

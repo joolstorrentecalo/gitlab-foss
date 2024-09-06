@@ -1,5 +1,5 @@
 user_args = {
-  email:    ENV['GITLAB_ROOT_EMAIL'].presence || "gitlab_admin_#{SecureRandom.hex(3)}@example.com",
+  email:    ENV['GITLAB_ROOT_EMAIL'].presence || 'admin@example.com',
   name:     'Administrator',
   username: 'root',
   admin:    true,
@@ -19,27 +19,25 @@ transient_admin = User.new(admin: true)
 user = Users::CreateService.new(transient_admin, user_args.merge!(skip_confirmation: true)).execute
 
 if user.persisted?
-  Organizations::Organization.default_organization.add_owner(user)
-
-  puts Rainbow("Administrator account created:").green
+  puts "Administrator account created:".color(:green)
   puts
-  puts Rainbow("login:    root").green
+  puts "login:    root".color(:green)
 
   if user_args.key?(:password)
     if ::Settings.gitlab['display_initial_root_password']
-      puts Rainbow("password: #{user_args[:password]}").green
+      puts "password: #{user_args[:password]}".color(:green)
     else
-      puts Rainbow("password: ******").green
+      puts "password: ******".color(:green)
     end
   else
-    puts Rainbow("password: You'll be prompted to create one on your first visit.").green
+    puts "password: You'll be prompted to create one on your first visit.".color(:green)
   end
   puts
 else
-  puts Rainbow("Could not create the default administrator account:").red
+  puts "Could not create the default administrator account:".color(:red)
   puts
   user.errors.full_messages.map do |message|
-    puts Rainbow("--> #{message}").red
+    puts "--> #{message}".color(:red)
   end
   puts
 

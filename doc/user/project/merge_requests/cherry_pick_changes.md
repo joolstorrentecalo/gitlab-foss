@@ -11,6 +11,8 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> Feature flag `pick_into_project` [removed](https://gitlab.com/gitlab-org/gitlab/-/issues/324154) in GitLab 14.0.
+
 In Git, *cherry-picking* is taking a single commit from one branch and adding it
 as the latest commit on another branch. The rest of the commits in the source branch
 are not added to the target. Cherry-pick a commit when you need the
@@ -52,7 +54,7 @@ a downstream fork.
 
 Prerequisites:
 
-- You must have a role for the project that allows you to edit merge requests, and add
+- You must have a role in the project that allows you to edit merge requests, and add
   code to the repository.
 - Your project must use the [merge method](methods/index.md#fast-forward-merge) **Merge Commit**,
   which is set in the project's **Settings > Merge requests**.

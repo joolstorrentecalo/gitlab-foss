@@ -66,14 +66,10 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
 
     let_it_be(:user) { build(:user) }
     let_it_be(:group) { build(:group) }
-    let_it_be(:group_with_id) { build_stubbed(:group) }
     let_it_be(:panel) { {} }
     let_it_be(:panel_type) { 'project' }
     let(:project) { nil }
     let(:current_user_mode) { Gitlab::Auth::CurrentUserMode.new(user) }
-    let(:context_with_group_id) do
-      helper.super_sidebar_context(user, group: group_with_id, project: project, panel: panel, panel_type: panel_type)
-    end
 
     let(:global_shortcut_links) do
       [
@@ -118,14 +114,11 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
       allow(helper).to receive(:current_user_mode).and_return(current_user_mode)
       allow(panel).to receive(:super_sidebar_menu_items).and_return(nil)
       allow(panel).to receive(:super_sidebar_context_header).and_return(nil)
-
-      if user
-        allow(user).to receive(:assigned_open_issues_count).and_return(1)
-        allow(user).to receive(:assigned_open_merge_requests_count).and_return(4)
-        allow(user).to receive(:review_requested_open_merge_requests_count).and_return(0)
-        allow(user).to receive(:todos_pending_count).and_return(3)
-        allow(user).to receive(:pinned_nav_items).and_return({ panel_type => %w[foo bar], 'another_panel' => %w[baz] })
-      end
+      allow(user).to receive(:assigned_open_issues_count).and_return(1)
+      allow(user).to receive(:assigned_open_merge_requests_count).and_return(4)
+      allow(user).to receive(:review_requested_open_merge_requests_count).and_return(0)
+      allow(user).to receive(:todos_pending_count).and_return(3)
+      allow(user).to receive(:pinned_nav_items).and_return({ panel_type => %w[foo bar], 'another_panel' => %w[baz] })
     end
 
     # Tests for logged-out sidebar context
@@ -134,16 +127,6 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
     # Tests for logged-in sidebar context below
     it_behaves_like 'shared super sidebar context'
     it { is_expected.to include({ is_logged_in: true }) }
-
-    it 'returns terms if defined' do
-      stub_application_setting(terms: "My custom Terms of Use")
-
-      is_expected.to include({ terms: "/-/users/terms" })
-    end
-
-    it 'does not return terms if not set' do
-      is_expected.to include({ terms: nil })
-    end
 
     it 'returns sidebar values from user', :use_clean_rails_memory_store_caching do
       expect(subject).to include({
@@ -196,20 +179,7 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
         pinned_items: %w[foo bar],
         update_pins_url: pins_path,
         shortcut_links: global_shortcut_links,
-        track_visits_path: track_namespace_visits_path,
-        work_items: nil
-      })
-    end
-
-    it 'returns sidebar values for work item context with group id', :use_clean_rails_memory_store_caching do
-      expect(context_with_group_id).to include({
-        work_items: {
-          full_path: group_with_id.full_path,
-          has_issuable_health_status_feature: "false",
-          issues_list_path: issues_group_path(group_with_id),
-          labels_manage_path: group_labels_path(group_with_id),
-          can_admin_label: "true"
-        }
+        track_visits_path: track_namespace_visits_path
       })
     end
 
@@ -238,7 +208,7 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
             },
             {
               title: _('Projects'),
-              href: starred_explore_projects_path,
+              href: explore_projects_path,
               css_class: 'dashboard-shortcuts-projects'
             }
           ]
@@ -311,16 +281,6 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
           ]
         }
       ])
-    end
-
-    context 'when merge_request_dashboard feature flag is enabled' do
-      before do
-        stub_feature_flags(merge_request_dashboard: true)
-      end
-
-      it 'returns nil for merge_request_menu' do
-        expect(subject[:merge_request_menu]).to be_nil
-      end
     end
 
     it 'returns "Create new" menu groups without headers', :use_clean_rails_memory_store_caching do
@@ -476,7 +436,7 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
       end
 
       let_it_be(:admin_area_link) do
-        { title: s_('Navigation|Admin area'), link: '/admin', icon: 'admin' }
+        { title: s_('Navigation|Admin Area'), link: '/admin', icon: 'admin' }
       end
 
       subject do

@@ -33,14 +33,11 @@ module WorkItems
         self.class.type
       end
 
-      def initialize(work_item, widget_definition: nil)
+      def initialize(work_item)
         @work_item = work_item
-        @widget_definition = widget_definition
       end
 
-      attr_reader :work_item, :widget_definition
-
-      delegate :widget_options, to: :widget_definition
+      attr_reader :work_item
     end
   end
 end

@@ -23,5 +23,3 @@ module BatchLoaders
     end
   end
 end
-
-BatchLoaders::AwardEmojiVotesBatchLoader.prepend_mod

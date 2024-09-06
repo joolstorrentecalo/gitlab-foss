@@ -34,7 +34,7 @@ const (
 var zipSubcommandsErrorsCounter = promauto.NewCounterVec(
 	prometheus.CounterOpts{
 		Name: "gitlab_workhorse_zip_subcommand_errors_total",
-		Help: "Errors coming from subcommands used for processing ZIP archives",
+		Help: "Errors comming from subcommands used for processing ZIP archives",
 	}, []string{"error"})
 
 type artifactsUploadProcessor struct {
@@ -72,35 +72,20 @@ func (a *artifactsUploadProcessor) generateMetadataFromZip(ctx context.Context, 
 		fileName = file.RemoteURL
 	}
 
-	logWriter := log.ContextLogger(ctx).Writer()
-	defer func() {
-		if closeErr := logWriter.Close(); closeErr != nil {
-			log.ContextLogger(ctx).WithError(closeErr).Error("failed to close gitlab-zip-metadata log writer")
-		}
-	}()
-
 	zipMd := exec.CommandContext(ctx, "gitlab-zip-metadata", "-zip-reader-limit", strconv.FormatInt(readerLimit, 10), fileName)
-	zipMd.Stderr = logWriter
+	zipMd.Stderr = log.ContextLogger(ctx).Writer()
 	zipMd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	zipMdOut, err := zipMd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err = zipMdOut.Close(); err != nil {
-			log.ContextLogger(ctx).WithError(err).Error("Failed to close zip-metadata stdout")
-		}
-	}()
+	defer zipMdOut.Close()
 
-	if err = zipMd.Start(); err != nil {
+	if err := zipMd.Start(); err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err = command.KillProcessGroup(zipMd); err != nil {
-			log.ContextLogger(ctx).WithError(err).Error("Failed to kill zip-metadata process group")
-		}
-	}()
+	defer command.KillProcessGroup(zipMd)
 
 	fh, err := destination.Upload(ctx, zipMdOut, -1, "metadata.gz", metaOpts)
 	if err != nil {
@@ -161,9 +146,7 @@ func (a *artifactsUploadProcessor) ProcessFile(ctx context.Context, formName str
 		}
 
 		for k, v := range fields {
-			if err := writer.WriteField(k, v); err != nil {
-				return fmt.Errorf("write metadata field error: %v", err)
-			}
+			writer.WriteField(k, v)
 		}
 
 		a.Track("metadata", metadata.LocalPath)

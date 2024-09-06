@@ -59,33 +59,35 @@ export default {
 
 <template>
   <div>
-    <h3 class="gl-heading-5 !gl-mb-2">{{ __('Evidence collection') }}</h3>
-    <div v-for="(evidence, index) in evidences" :key="evidenceTitle(index)">
-      <div class="gl-flex gl-items-center">
+    <div class="card-text gl-mt-3">
+      <b>{{ __('Evidence collection') }}</b>
+    </div>
+    <div v-for="(evidence, index) in evidences" :key="evidenceTitle(index)" class="mb-2">
+      <div class="d-flex gl-align-items-center">
         <gl-link
           v-gl-tooltip
-          class="gl-flex gl-items-center gl-font-monospace"
+          class="d-flex gl-align-items-center monospace"
           target="_blank"
           :title="__('Open evidence JSON in new tab')"
           :href="evidenceUrl(index)"
         >
           <gl-icon name="review-list" class="align-middle gl-mr-3" />
           <span>{{ evidenceTitle(index) }}</span>
-          <gl-icon name="external-link" class="gl-ml-2 gl-shrink-0 gl-flex-grow-0" />
+          <gl-icon name="external-link" class="gl-ml-2 gl-flex-shrink-0 gl-flex-grow-0" />
         </gl-link>
 
-        <expand-button class="gl-ml-4 gl-flex gl-items-center gl-gap-2">
+        <expand-button class="gl-ml-4">
           <template #short>
-            <span class="js-short gl-text-secondary gl-font-monospace">{{ shortSha(index) }}</span>
+            <span class="js-short monospace">{{ shortSha(index) }}</span>
           </template>
           <template #expanded>
-            <span class="js-expanded gl-pl-2 gl-font-monospace">{{ sha(index) }}</span>
+            <span class="js-expanded monospace gl-pl-2">{{ sha(index) }}</span>
           </template>
         </expand-button>
         <clipboard-button :title="__('Copy evidence SHA')" :text="sha(index)" category="tertiary" />
       </div>
 
-      <div class="gl-flex gl-items-center gl-text-secondary">
+      <div class="d-flex gl-align-items-center text-muted">
         <gl-icon
           v-gl-tooltip
           name="clock"

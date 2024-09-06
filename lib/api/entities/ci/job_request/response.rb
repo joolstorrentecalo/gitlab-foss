@@ -22,11 +22,7 @@ module API
           end
 
           expose :runner_variables, as: :variables
-          expose :steps, using: Entities::Ci::JobRequest::Step, unless: ->(job) do
-            ::Feature.enabled?(:pipeline_run_keyword, job.project) &&
-              job.execution_config&.run_steps.present?
-          end
-
+          expose :steps, using: Entities::Ci::JobRequest::Step
           expose :runtime_hooks, as: :hooks, using: Entities::Ci::JobRequest::Hook
           expose :image, using: Entities::Ci::JobRequest::Image
           expose :services, using: Entities::Ci::JobRequest::Service
@@ -36,13 +32,6 @@ module API
           expose :features
           expose :dependencies do |job, options|
             Entities::Ci::JobRequest::Dependency.represent(job.all_dependencies, options.merge(running_job: job))
-          end
-
-          expose :run, if: ->(job) {
-                             ::Feature.enabled?(:pipeline_run_keyword, job.project) &&
-                               job.execution_config&.run_steps.present?
-                           } do |job|
-            job.execution_config.run_steps.to_json
           end
         end
       end

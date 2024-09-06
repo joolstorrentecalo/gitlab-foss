@@ -21,9 +21,8 @@ A protected branch controls:
 - Which users can push to the branch.
 - If users can force push to the branch.
 - If changes to files listed in the CODEOWNERS file can be pushed directly to the branch.
-- Which users, groups, or access levels can unprotect the branch using the
-  [Protected branches API](../../api/protected_branches.md#update-a-protected-branch).
-- Which users can modify the branch with the [Commits API](../../api/commits.md).
+- Which users can unprotect the branch.
+- Which users can modify the branch via the [Commits API](../../api/commits.md).
 
 The [default branch](repository/branches/default.md) for your repository is protected by default.
 
@@ -49,7 +48,7 @@ When a branch is protected, the default behavior enforces these restrictions on 
    for that branch at the project level are ignored. All other protections continue
    to use project level settings.
 
-You can implement a [merge request approval policy](../application_security/policies/merge_request_approval_policies.md#approval_settings)
+You can implement a [merge request approval policy](../application_security/policies/scan-result-policies.md#approval_settings)
 to prevent protected branches being unprotected or deleted.
 
 ### When a branch matches multiple rules
@@ -89,7 +88,7 @@ that matches `v1.x` must set `Allowed to push and merge` to `No one`, like this:
 ### Set the default branch protection level
 
 Administrators can set a default branch protection level in the
-[**Admin** area](../project/repository/branches/default.md#instance-level-default-branch-protection).
+[Admin Area](../project/repository/branches/default.md#instance-level-default-branch-protection).
 
 ## Add protection to existing branches
 
@@ -143,7 +142,7 @@ is ignored in favor of the group level setting.
 
 Prerequisites:
 
-- You must have the Owner role for the group.
+- You must have the Owner role in the group.
 
 To protect a branch for all the projects in a group:
 
@@ -193,6 +192,28 @@ To protect multiple branches at the same time:
 
 The protected branch displays in the list of protected branches.
 
+## Create a new branch with protections
+
+Users with at least the Developer role can create new protected branches.
+
+Prerequisites:
+
+- **Allowed to push and merge** is set to **No one**.
+- **Allowed to merge** is set to **Developers**.
+
+You can create a protected branch by using the UI or API only.
+This prevents you from accidentally creating a branch
+from the command line or from a Git client application.
+
+To create a new branch through the user interface:
+
+1. On the left sidebar, select **Search or go to** and find your project.
+1. Select **Code > Branches**.
+1. Select **New branch**.
+1. Fill in the branch name and select an existing branch, tag, or commit to
+   base the new branch on. Only existing protected branches and commits
+   that are already in protected branches are accepted.
+
 ## Require everyone to submit merge requests for a protected branch
 
 You can force everyone to submit a merge request, rather than allowing them to
@@ -207,12 +228,6 @@ check in directly to a protected branch:
 1. From the **Allowed to push and merge** list, select **No one**.
 1. Select **Protect**.
 
-Alternatively, you can [create](repository/branches/index.md#create-a-branch-rule) or [edit](repository/branches/index.md#edit-a-branch-rule) a branch rule. Then:
-
-1. Select **Edit** in the **Allowed to merge** section.
-1. Select **Developers and Maintainers**.
-1. Select **Save changes**.
-
 ## Allow everyone to push directly to a protected branch
 
 You can allow everyone with write access to push to the protected branch.
@@ -225,17 +240,15 @@ You can allow everyone with write access to push to the protected branch.
 1. From the **Allowed to push and merge** list, select **Developers + Maintainers**.
 1. Select **Protect**.
 
-Alternatively, you can [create](repository/branches/index.md#create-a-branch-rule) or [edit](repository/branches/index.md#edit-a-branch-rule) a branch rule. Then:
-
-1. Select **Edit** in the **Allowed to push and merge** section.
-1. Select **Developers and Maintainers**.
-1. Select **Save changes**.
-
 ## Allow deploy keys to push to a protected branch
 
-> - More restrictions on deploy keys [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/425926) in GitLab 16.5 [with a flag](../../administration/feature_flags.md) named `check_membership_in_protected_ref_access`. Disabled by default.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/30769) in GitLab 13.7.
+> - This feature was selectively deployed in GitLab.com 13.7, and may not be available for all users.
+> - This feature is available for all users in GitLab 13.9.
 
-You can push to a protected branch with a [deploy key](deploy_keys/index.md).
+You can permit the owner of a [deploy key](deploy_keys/index.md) to push to a protected branch.
+The deploy key works, even if the user isn't a member of the related project. However, the owner of the deploy
+key must have at least read access to the project.
 
 Prerequisites:
 
@@ -245,9 +258,6 @@ Prerequisites:
   project.
 - The deploy key must have [write access](deploy_keys/index.md#permissions) to your project
   repository.
-- The owner of the deploy key must have at least read access to the project.
-- If the `check_membership_in_protected_ref_access` feature flag is enabled, the owner of the
-  deploy key must also be a member of the project.
 
 To allow a deploy key to push to a protected branch:
 
@@ -262,6 +272,9 @@ To allow a deploy key to push to a protected branch:
 Deploy keys are not available in the **Allowed to merge** dropdown list.
 
 ## Allow force push on a protected branch
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/15611) in GitLab 13.10 [with a flag](../../administration/feature_flags.md) named `allow_force_push_to_protected_branches`. Disabled by default.
+> - [Enabled on GitLab.com and self-managed](https://gitlab.com/gitlab-org/gitlab/-/issues/323431) in GitLab 14.0. Feature flag `allow_force_push_to_protected_branches` removed.
 
 You can allow [force pushes](../../topics/git/git_rebase.md#force-pushing) to
 protected branches.
@@ -283,10 +296,6 @@ To enable force pushes on branches that are already protected:
 1. Select **Settings > Repository**.
 1. Expand **Protected branches**.
 1. Select **Add protected branch**.
-1. In the list of protected branches, next to the branch, turn on the **Allowed to force push** toggle.
-
-Alternatively, you can [create](repository/branches/index.md#create-a-branch-rule) or [edit](repository/branches/index.md#edit-a-branch-rule) a branch rule. Then:
-
 1. In the list of protected branches, next to the branch, turn on the **Allowed to force push** toggle.
 
 Members who can push to this branch can now also force push.
@@ -321,6 +330,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/35097) in GitLab 13.5, users and groups who can push to protected branches do not have to use a merge request to merge their feature branches. This means they can skip merge request approval rules.
+
 For a protected branch, you can require at least one approval by a [Code Owner](codeowners/index.md).
 If a branch is protected by multiple rules, code owner approval is required if _any_ of
 the applicable rules have **Required approval from code owners** enabled.
@@ -343,10 +354,6 @@ To enable Code Owner's approval on branches that are already protected:
 1. Expand **Protected branches**.
 1. Select **Add protected branch**.
 1. In the list of protected branches, next to the branch, turn on the **Code owner approval** toggle.
-
-Alternatively, you can [create](repository/branches/index.md#create-a-branch-rule) or [edit](repository/branches/index.md#edit-a-branch-rule) a branch rule.
-Then, in the list of protected branches, next to the branch,
-turn on the **Code owner approval** toggle.
 
 When enabled, all merge requests for these branches require approval
 by a Code Owner per matched rule before they can be merged.
@@ -373,27 +380,6 @@ or push to the source branch.
 
 See [Security on protected branches](../../ci/pipelines/index.md#pipeline-security-on-protected-branches)
 for details about the pipelines security model.
-
-## Create a new branch with protections
-
-Prerequisites:
-
-- You must have at least the Developer role.
-- To create a protected branch, branch protection must be configured to
-  [require everyone to submit merge requests for a protected branch](#require-everyone-to-submit-merge-requests-for-a-protected-branch).
-
-To create a new branch with protections:
-
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Code > Branches**.
-1. Select **New branch**.
-1. Fill in the branch name and select an existing branch, tag, or commit to
-   base the new branch on. If you [require everyone to submit merge requests for a protected branch](#require-everyone-to-submit-merge-requests-for-a-protected-branch), only existing protected branches and commits
-   that are already in protected branches are accepted.
-
-You can also use [the Branches API](../../api/branches.md) to create a branch with protections.
-
-If branch protection is configured to [allow everyone to push directly to a protected branch](#allow-everyone-to-push-directly-to-a-protected-branch), a branch with protections can also be created from the command line or a Git client application.
 
 ## Delete a protected branch
 

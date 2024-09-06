@@ -134,7 +134,7 @@ To try to resolve this issue you can:
 
 - Choose a lower [level of effort](index.md#security-scanner-configuration).
 - Set the CI/CD variable `JAVA_OPTS` to replace the default `-XX:MaxRAMPercentage=80`, e.g. `-XX:MaxRAMPercentage=90`.
-- [Tag a larger runner](../../../ci/runners/hosted_runners/linux.md#machine-types-available-for-linux---x86-64) in your `spotbugs-sast` job.
+- [Tag a larger runner](../../../ci/runners/hosted_runners/linux.md#machine-types-available-for-linux-x86-64) in your `spotbugs-sast` job.
 
 #### Related topics
 
@@ -154,36 +154,29 @@ If, on the other hand, the class being analyzed is part of your project, conside
 
 This occurs when Flawfinder encounters an invalid UTF-8 character. To fix this, apply [their documented advice](https://github.com/david-a-wheeler/flawfinder#character-encoding-errors) to your entire repository, or only per job using the [`before_script`](../../../ci/yaml/index.md#before_script) feature.
 
-You can configure the `before_script` section in each `.gitlab-ci.yml` file, or use a [pipeline execution policy](../policies/pipeline_execution_policies.md) to install the encoder and run the converter command. For example, you can add a `before_script` section to the `flawfinder-sast` job generated from the security scanner template to convert all files with a `.cpp` extension.
+You can configure the `before_script` section in each `.gitlab-ci.yml` file, or use a [pipeline execution policy action](../policies/scan-execution-policies.md#pipeline-execution-policy-action) to install the encoder and run the converter command. For example, you can add a `before_script` section to the `flawfinder-sast-0` job generated from the execution policy to convert all files with a `.cpp` extension.
 
 ### Example pipeline execution policy YAML
 
 ```yaml
 ---
-pipeline_execution_policy:
+scan_execution_policy:
 - name: SAST
   description: 'Run SAST on C++ application'
   enabled: true
-  pipeline_config_strategy: inject_ci
-  content:
-    include:
-    - project: my-group/compliance-project
-      file: flawfinder.yml
-      ref: main
-```
-
-`flawfinder.yml`:
-
-```yaml
-include:
-  - template: Security/SAST.gitlab-ci.yml
-
-flawfinder-sast:
-  before_script:
-    - pip install cvt2utf
-    - cvt2utf convert "$PWD" -i cpp
+  rules:
+  - type: pipeline
+    branch_type: all
+  actions:
+  - scan: sast
+  - scan: custom
+    ci_configuration: |-
+      flawfinder-sast-0:
+          before_script:
+            - pip install cvt2utf
+            - cvt2utf convert "$PWD" -i cpp
 ```
 
 ## Semgrep slowness, unexpected results, or other errors
 
-If Semgrep is slow, reports too many false positives or false negatives, crashes, fails, or is otherwise broken, see the Semgrep docs for [troubleshooting GitLab SAST](https://semgrep.dev/docs/troubleshooting/semgrep-app#troubleshooting-gitlab-sast).
+If Semgrep is slow, reports too many false positives or false negatives, crashes, fails, or is otherwise broken, see the Semgrep docs for [troubleshooting GitLab SAST](https://semgrep.dev/docs/troubleshooting/semgrep-ci/#troubleshooting-gitlab-sast).

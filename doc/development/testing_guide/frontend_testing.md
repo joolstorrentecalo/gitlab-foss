@@ -23,8 +23,6 @@ information on general testing practices at GitLab.
 
 If you are looking for a guide on Vue component testing, you can jump right away to this [section](../fe_guide/vue.md#testing-vue-components).
 
-Information on testing Vue 3 is contained in [this page](../testing_guide/testing_vue3.md).
-
 ## Jest
 
 We use Jest to write frontend unit and integration tests.
@@ -206,6 +204,7 @@ possible selectors include:
 - A semantic attribute like `name` (also verifies that `name` was setup properly)
 - A `data-testid` attribute ([recommended by maintainers of `@vue/test-utils`](https://github.com/vuejs/vue-test-utils/issues/1498#issuecomment-610133465))
   optionally combined with [`shallowMountExtended` or `mountExtended`](#shallowmountextended-and-mountextended)
+- a Vue `ref` (if using `@vue/test-utils`)
 
 ```javascript
 import { shallowMountExtended } from 'helpers/vue_test_utils_helper'
@@ -224,18 +223,17 @@ it('exists', () => {
   wrapper.find('input[name=foo]');
   wrapper.find('[data-testid="my-foo-id"]');
   wrapper.findByTestId('my-foo-id'); // with shallowMountExtended or mountExtended – check below
+  wrapper.find({ ref: 'foo'});
 
   // Bad
-  wrapper.find({ ref: 'foo'});
   wrapper.find('.js-foo');
-  wrapper.find('.gl-button');
+  wrapper.find('.btn-primary');
 });
 ```
 
 You should use `kebab-case` for `data-testid` attribute.
 
 It is not recommended that you add `.js-*` classes just for testing purposes. Only do this if there are no other feasible options available.
-Avoid using Vue template refs to query DOM elements in tests because they're an implementation detail of the component, not a public API.
 
 ### Querying for child components
 
@@ -625,6 +623,8 @@ it('calls setActiveBoardItemMutation on close', async () => {
 
 ### Jest best practices
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/34209) in GitLab 13.2.
+
 #### Prefer `toBe` over `toEqual` when comparing primitive values
 
 Jest has [`toBe`](https://jestjs.io/docs/expect#tobevalue) and
@@ -768,54 +768,6 @@ Consider replacing `Math.random` with a fake when the test subject depends on it
 beforeEach(() => {
   // https://xkcd.com/221/
   jest.spyOn(Math, 'random').mockReturnValue(0.4);
-});
-```
-
-## Console warnings and errors in tests
-
-Unexpected console warnings and errors are indicative of problems in our production code.
-We want our test environment to be strict, so your tests should fail when unexpected
-`console.error` or `console.warn` calls are made.
-
-### Ignoring console messages from watcher
-
-Since there's a lot of code outside of our control, there are some console messages that
-are ignored by default and will **not** fail a test if used. This list of ignored
-messages can be maintained where we call `setupConsoleWatcher`. Example:
-
-```javascript
-setupConsoleWatcher({
-  ignores: [
-    ...,
-    // Any call to `console.error('Foo bar')` or `console.warn('Foo bar')` will be ignored by our console watcher.
-    'Foo bar',
-    // Use regex to allow for flexible message matching.
-    /Lorem ipsum/,
-  ]
-});
-```
-
-If a specific test needs to ignore a specific message for a `describe` block, use the
-`ignoreConsoleMessages` helper near the top of the `describe`. This automatically
-calls `beforeAll` and `afterAll` to set up/teardown this set of ignored for the test
-context.
-
-Use this sparingly and only if absolutely necessary for test maintainability. Example:
-
-```javascript
-import { ignoreConsoleMessages } from 'helpers/console_watcher';
-
-describe('foos/components/foo.vue', () => {
-  describe('when blooped', () => {
-    // Will not fail a test if `console.warn('Lorem ipsum')` is called
-    ignoreConsoleMessages([
-      /^Lorem ipsum/
-    ]);
-  });
-
-  describe('default', () => {
-    // Will fail a test if `console.warn('Lorem ipsum')` is called
-  });
 });
 ```
 
@@ -1205,12 +1157,12 @@ testAction(
 
 ### Wait until Axios requests finish
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 The Axios Utils mock module located in `spec/frontend/__helpers__/mocks/axios_utils.js` contains two helper methods for Jest tests that spawn HTTP requests.
 These are very useful if you don't have a handle to the request's Promise, for example when a Vue component does a request as part of its life cycle.
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 - `waitFor(url, callback)`: Runs `callback` after a request to `url` finishes (either successfully or unsuccessfully).
 - `waitForAll(callback)`: Runs `callback` once all pending requests have finished. If no requests are pending, runs `callback` on the next tick.
@@ -1264,7 +1216,7 @@ Some regressions only affect a specific browser version. We can install and test
 ### BrowserStack
 
 [BrowserStack](https://www.browserstack.com/) allows you to test more than 1200 mobile devices and browsers.
-You can use it directly through the [live app](https://www.browserstack.com/live) or you can install the [chrome extension](https://chromewebstore.google.com/detail/browserstack/nkihdmlheodkdfojglpcjjmioefjahjb) for easy access.
+You can use it directly through the [live app](https://www.browserstack.com/live) or you can install the [chrome extension](https://chrome.google.com/webstore/detail/browserstack/nkihdmlheodkdfojglpcjjmioefjahjb) for easy access.
 Sign in to BrowserStack with the credentials saved in the **Engineering** vault of the GitLab
 [shared 1Password account](https://handbook.gitlab.com/handbook/security/password-guidelines/#1password-for-teams).
 
@@ -1582,13 +1534,11 @@ Feature tests live in `spec/features` folder. You should look for existing files
 1. Start your `gdk` environment with `gdk start` command.
 1. In your terminal, run:
 
-   ```shell
-    bundle exec rspec path/to/file:line_of_my_test
-   ```
+  ```shell
+   bundle exec rspec path/to/file:line_of_my_test
+  ```
 
 You can also prefix this command with `WEBDRIVER_HEADLESS=0` which will run the test by opening an actual browser on your computer that you can see, which is very useful for debugging.
-
-To use Firefox, instead of Chrome, prefix the command with `WEBDRIVER=firefox`.
 
 ### How to write a test
 
@@ -1596,23 +1546,23 @@ To use Firefox, instead of Chrome, prefix the command with `WEBDRIVER=firefox`.
 
 1. Make all string literals unchangeable
 
-   In all feature tests, the very first line should be:
+  In all feature tests, the very first line should be:
 
-   ```ruby
-   # frozen_string_literal: true
-   ```
+  ```ruby
+  # frozen_string_literal: true
+  ```
 
-   This is in every `Ruby` file and makes all string literals unchangeable. There are also some performance benefits, but this is beyond the scope of this section.
+  This is in every `Ruby` file and makes all string literals unchangeable. There are also some performance benefits, but this is beyond the scope of this section.
 
 1. Import dependencies.
 
-   You should import the modules you need. You will most likely always need to require `spec_helper`:
+  You should import the modules you need. You will most likely always need to require `spec_helper`:
 
-   ```ruby
-   require 'spec_helper'
-   ```
+  ```ruby
+  require 'spec_helper'
+  ```
 
-   Import any other relevant module.
+  Import any other relevant module.
 
 1. Create a global scope for RSpec to define our tests, just like what we do in jest with the initial describe block.
 
@@ -1796,48 +1746,6 @@ If you are stubbing an `ee` feature flag, then use:
   stub_licensed_features(my_feature_flag: false)
 ```
 
-#### Asserting browser console errors
-
-By default, feature specs won't fail if a browser console error is found. Sometimes we want to cover that there are not
-unexpected console errors which could indicate an integration problem.
-
-To set a feature spec to fail if it encounters browser console errors, use `expect_page_to_have_no_console_errors` from
-the `BrowserConsoleHelpers` support module:
-
-```ruby
-RSpec.describe 'Pipeline', :js do
-  after do
-    expect_page_to_have_no_console_errors
-  end
-
-  # ...
-end
-```
-
-NOTE:
-`expect_page_to_have_no_console_errors` will not work on `WEBDRIVER=firefox`. Logs are only captured when
-using the Chrome driver.
-
-Sometimes, there are known console errors that we want to ignore. To ignore a set of messages, such that the test
-**will not** fail if the message is observed, you can pass an `allow:` parameter to
-`expect_page_to_have_no_console_errors`:
-
-```ruby
-RSpec.describe 'Pipeline', :js do
-  after do
-    expect_page_to_have_no_console_errors(allow: [
-      "Blow up!",
-      /Foo.*happens/
-    ])
-  end
-
-  # ...
-end
-```
-
-Update the `BROWSER_CONSOLE_ERROR_FILTER` constant in `spec/support/helpers/browser_console_helpers.rb` to change
-the list of console errors that should be globally ignored.
-
 ### Debugging
 
 You can run your spec with the prefix `WEBDRIVER_HEADLESS=0` to open an actual browser. However, the specs goes though the commands quickly and leaves you no time to look around.
@@ -1849,10 +1757,6 @@ To avoid this problem, you can write `binding.pry` on the line where you want Ca
 - Execute selectors inside the browser console.
 
 Inside the terminal, where capybara is running, you can also execute `next` which goes line by line through the test. This way you can check every single interaction one by one to see what might be causing an issue.
-
-### Improving execution time on the GDK
-
-Running the Jest test suite, the number of workers is set to use 60% of the available cores of your machine; this results in faster execution times but higher memory consumption. For more benchmarks on how this works please refer to this [issue](https://gitlab.com/gitlab-org/gitlab/-/issues/456885).
 
 ### Updating ChromeDriver
 

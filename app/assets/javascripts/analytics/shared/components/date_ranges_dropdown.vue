@@ -2,15 +2,13 @@
 import { GlCollapsibleListbox, GlIcon, GlTooltipDirective } from '@gitlab/ui';
 
 import { isString } from 'lodash';
-import { isValidDate } from '~/lib/utils/datetime_utility';
+import { isValidDate, getDayDifference } from '~/lib/utils/datetime_utility';
 import {
   DATE_RANGE_CUSTOM_VALUE,
-  dateFormats,
-  DEFAULT_DROPDOWN_DATE_RANGES,
+  DEFAULT_DATE_RANGE_OPTIONS,
   NUMBER_OF_DAYS_SELECTED,
 } from '~/analytics/shared/constants';
 import { __ } from '~/locale';
-import dateFormat from '~/lib/dateformat';
 
 export default {
   name: 'DateRangesDropdown',
@@ -25,7 +23,7 @@ export default {
     dateRangeOptions: {
       type: Array,
       required: false,
-      default: () => DEFAULT_DROPDOWN_DATE_RANGES,
+      default: () => DEFAULT_DATE_RANGE_OPTIONS,
       validator: (options) =>
         options.length &&
         options.every(
@@ -52,7 +50,12 @@ export default {
       required: false,
       default: true,
     },
-    disableDateRangeString: {
+    includeEndDateInDaysSelected: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    disableSelectedDayCount: {
       type: Boolean,
       required: false,
       default: false,
@@ -86,22 +89,23 @@ export default {
 
       return this.groupedDateRangeOptionsByValue[this.selectedValue];
     },
-    showDateRangeString() {
+    showDaysSelectedCount() {
       return (
-        !this.disableDateRangeString && !this.isCustomDateRangeSelected && this.dateRangeString
+        !this.disableSelectedDayCount && !this.isCustomDateRangeSelected && this.daysSelectedCount
       );
     },
-    showTooltip() {
-      return !this.isCustomDateRangeSelected && this.tooltip;
-    },
-    dateRangeString() {
+    daysSelectedCount() {
       const { selectedDateRange } = this;
 
       if (!selectedDateRange) return '';
 
       const { startDate, endDate } = selectedDateRange;
 
-      return this.formatDateRangeString(startDate, endDate);
+      const daysCount = getDayDifference(startDate, endDate);
+
+      return this.$options.i18n.daysSelected(
+        this.includeEndDateInDaysSelected ? daysCount + 1 : daysCount,
+      );
     },
   },
   methods: {
@@ -111,12 +115,6 @@ export default {
       } else {
         this.$emit('selected', { value, ...this.selectedDateRange });
       }
-    },
-    formatDateRangeString(startDate, endDate) {
-      const start = dateFormat(startDate, dateFormats.defaultDate);
-      const end = dateFormat(endDate, dateFormats.defaultDate);
-
-      return `${start} - ${end}`;
     },
   },
   customDateRangeItem: {
@@ -130,19 +128,11 @@ export default {
 </script>
 
 <template>
-  <div class="gl-flex gl-items-center gl-gap-3">
+  <div class="gl-display-flex gl-align-items-center gl-gap-3">
     <gl-collapsible-listbox v-model="selectedValue" :items="items" @select="onSelect" />
-    <div v-if="showDateRangeString || showTooltip" class="gl-text-gray-500">
-      <span v-if="showDateRangeString" data-testid="predefined-date-range-string">{{
-        dateRangeString
-      }}</span>
-      <gl-icon
-        v-if="showTooltip"
-        v-gl-tooltip
-        class="gl-ml-2"
-        name="information-o"
-        :title="tooltip"
-      />
+    <div v-if="showDaysSelectedCount" class="gl-text-gray-500">
+      <span data-testid="predefined-date-range-days-count">{{ daysSelectedCount }}</span>
+      <gl-icon v-if="tooltip" v-gl-tooltip class="gl-ml-2" name="information-o" :title="tooltip" />
     </div>
   </div>
 </template>

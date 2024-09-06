@@ -1,8 +1,9 @@
 /*
-Package upstream implements handlers for handling upstream requests.
+The upstream type implements http.Handler.
 
-The upstream package provides functionality for routing requests and interacting with backend servers.
+In this file we handle request routing and interaction with the authBackend.
 */
+
 package upstream
 
 import (
@@ -33,12 +34,11 @@ import (
 )
 
 var (
-	// DefaultBackend is the default URL for the backend.
 	DefaultBackend         = helper.URLMustParse("http://localhost:8080")
 	requestHeaderBlacklist = []string{
 		upload.RewrittenFieldsHeader,
 	}
-	geoProxyAPIPollingInterval = 10 * time.Second
+	geoProxyApiPollingInterval = 10 * time.Second
 )
 
 type upstream struct {
@@ -61,7 +61,6 @@ type upstream struct {
 	watchKeyHandler       builds.WatchKeyHandler
 }
 
-// NewUpstream creates a new HTTP handler for handling upstream requests based on the provided configuration.
 func NewUpstream(cfg config.Config, accessLogger *logrus.Logger, watchKeyHandler builds.WatchKeyHandler) http.Handler {
 	return newUpstream(cfg, accessLogger, configureRoutes, watchKeyHandler)
 }
@@ -216,7 +215,7 @@ func (u *upstream) pollGeoProxyAPI() {
 		}
 
 		u.callGeoProxyAPI()
-		u.geoProxyPollSleep(geoProxyAPIPollingInterval)
+		u.geoProxyPollSleep(geoProxyApiPollingInterval)
 	}
 }
 
@@ -275,8 +274,8 @@ func (u *upstream) updateGeoProxyFieldsFromData(geoProxyData *apipkg.GeoProxyDat
 		proxypkg.WithCustomHeaders(geoProxyWorkhorseHeaders),
 		proxypkg.WithForcedTargetHostHeader(),
 	)
-	u.geoProxyCableRoute = u.wsRoute(newRoute(`^/-/cable\z`, "geo_action_cable", railsBackend), geoProxyUpstream)
-	u.geoProxyRoute = u.route("", newRoute("", "proxy", geoPrimaryBackend), geoProxyUpstream, withGeoProxy())
+	u.geoProxyCableRoute = u.wsRoute(`^/-/cable\z`, geoProxyUpstream)
+	u.geoProxyRoute = u.route("", "", geoProxyUpstream, withGeoProxy())
 }
 
 func httpError(w http.ResponseWriter, r *http.Request, error string, code int) {

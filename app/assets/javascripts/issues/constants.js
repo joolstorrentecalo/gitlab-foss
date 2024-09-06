@@ -12,9 +12,6 @@ export const STATUS_OPEN = 'opened';
 export const STATUS_REOPENED = 'reopened';
 export const STATUS_LOCKED = 'locked';
 export const STATUS_EMPTY = 'empty';
-export const STATUS_ACTIVE = 'active';
-export const STATUS_EXPIRED = 'expired';
-export const STATUS_UPCOMING = 'upcoming';
 
 export const TITLE_LENGTH_MAX = 255;
 
@@ -30,9 +27,6 @@ export const WORKSPACE_GROUP = 'group';
 export const WORKSPACE_PROJECT = 'project';
 
 export const issuableStatusText = {
-  [STATUS_UPCOMING]: __('Upcoming'),
-  [STATUS_ACTIVE]: __('Active'),
-  [STATUS_EXPIRED]: __('Expired'),
   [STATUS_CLOSED]: __('Closed'),
   [STATUS_OPEN]: __('Open'),
   [STATUS_REOPENED]: __('Open'),

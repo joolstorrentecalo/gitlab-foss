@@ -98,7 +98,7 @@ export const MR_FILTER_OPTIONS = [
   {
     text: __('Edits'),
     value: 'edits',
-    systemNoteIcons: ['pencil', 'todo-done'],
+    systemNoteIcons: ['pencil', 'task-done'],
   },
   {
     text: __('Labels'),
@@ -118,7 +118,7 @@ export const MR_FILTER_OPTIONS = [
   {
     text: __('Merge request status'),
     value: 'status',
-    systemNoteIcons: ['merge-request', 'issue-close', 'issues', 'merge-request-close'],
+    systemNoteIcons: ['git-merge', 'issue-close', 'issues', 'merge-request-close'],
   },
   {
     text: __('Tracking'),
@@ -128,5 +128,3 @@ export const MR_FILTER_OPTIONS = [
   },
 ];
 export const MR_FILTER_TRACKING_OPENED = 'user_clicks_comment_filter_dropdown';
-export const MR_FILTER_TRACKING_USER_COMMENTS = 'click_comment_filter_toggle_user_comments_in_mr';
-export const MR_FILTER_TRACKING_BOT_COMMENTS = 'click_comment_filter_toggle_bot_comments_in_mr';

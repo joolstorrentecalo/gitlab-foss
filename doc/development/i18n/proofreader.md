@@ -1,5 +1,5 @@
 ---
-stage: Foundations
+stage: Manage
 group: Import and Integrate
 info: Any user with at least the Maintainer role can merge updates to this content. For details, see https://docs.gitlab.com/ee/development/development_processes.html#development-guidelines-review.
 ---
@@ -11,7 +11,7 @@ are very appreciative of the work done by translators and proofreaders!
 
 ## Proofreaders
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 - Albanian
   - Proofreaders needed.
@@ -73,9 +73,6 @@ are very appreciative of the work done by translators and proofreaders!
 - Japanese
   - Tomo Dote - [GitLab](https://gitlab.com/fu7mu4), [Crowdin](https://crowdin.com/profile/fu7mu4)
   - Tsukasa Komatsubara - [GitLab](https://gitlab.com/tkomatsubara), [Crowdin](https://crowdin.com/profile/tkomatsubara)
-  - Noriko Akiyama - [GitLab](https://gitlab.com/nakiyama-ext), [Crowdin](https://crowdin.com/profile/norikoakiyama)
-  - Naoko Shirakuni - [GitLab](https://gitlab.com/SNaoko), [Crowdin](https://crowdin.com/profile/tamongen)
-  - Megumi Uchikawa - [GitLab](https://gitlab.com/muchikawa), [Crowdin](https://crowdin.com/profile/muchikawa)
 - Korean
   - Sunjung Park - [GitLab](https://gitlab.com/sunjungp), [Crowdin](https://crowdin.com/profile/sunjungp)
   - Hwanyong Lee - [GitLab](https://gitlab.com/hwan_ajou), [Crowdin](https://crowdin.com/profile/grbear)
@@ -103,7 +100,6 @@ are very appreciative of the work done by translators and proofreaders!
 - Spanish
   - David Elizondo - [GitLab](https://gitlab.com/daelmo), [Crowdin](https://crowdin.com/profile/daelmo)
   - Pablo Reyes - [GitLab](https://gitlab.com/pabloryst9n), [Crowdin](https://crowdin.com/profile/pabloryst9n)
-  - Gustavo Román - [GitLab](https://gitlab.com/GustavoStark), [Crowdin](https://crowdin.com/profile/gustavonewton)
 - Swedish
   - Johannes Nilsson - [GitLab](https://gitlab.com/nlssn), [Crowdin](https://crowdin.com/profile/nlssn)
 - Turkish
@@ -112,7 +108,7 @@ are very appreciative of the work done by translators and proofreaders!
   - Andrew Vityuk - [GitLab](https://gitlab.com/3_1_3_u), [Crowdin](https://crowdin.com/profile/andruwa13)
 - Welsh
   - Proofreaders needed.
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 ## Become a proofreader
 

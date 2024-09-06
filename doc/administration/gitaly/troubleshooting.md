@@ -23,8 +23,8 @@ and our advice on [parsing the `gitaly/current` file](../logs/log_parsing.md#par
 When using standalone Gitaly servers, you must make sure they are the same version
 as GitLab to ensure full compatibility:
 
-1. On the left sidebar, at the bottom, select **Admin**.
-1. Select **Overview > Gitaly servers**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
+1. Select **Overview > Gitaly Servers**.
 1. Confirm all Gitaly servers indicate that they are up to date.
 
 ## Find storage resource details
@@ -251,8 +251,10 @@ server.
 
 ## Repository pushes fail with a `deny updating a hidden ref` error
 
-Gitaly has read-only, internal GitLab references that users are not permitted to update. If you attempt to update
-internal references with `git push --mirror`, Git returns the rejection error, `deny updating a hidden ref`.
+Due to [a change](https://gitlab.com/gitlab-org/gitaly/-/merge_requests/3426)
+introduced in GitLab 13.12, Gitaly has read-only, internal GitLab references that users are not
+permitted to update. If you attempt to update internal references with `git push --mirror`, Git
+returns the rejection error, `deny updating a hidden ref`.
 
 The following references are read-only:
 
@@ -331,9 +333,9 @@ This information in the logs is a gRPC call
 If this error occurs, even though
 [the Gitaly auth tokens are set up correctly](troubleshooting_gitaly_cluster.md#praefect-errors-in-logs),
 it's likely that the Gitaly servers are experiencing
-[clock drift](https://en.wikipedia.org/wiki/Clock_drift). The auth tokens sent to Gitaly include a timestamp. To be considered valid, Gitaly requires that timestamp to be within 60 seconds of the Gitaly server time.
+[clock drift](https://en.wikipedia.org/wiki/Clock_drift).
 
-Ensure the Gitaly clients and servers are synchronized, and use a Network Time Protocol (NTP) time
+Ensure the Gitaly clients and servers are synchronized, and use an NTP time
 server to keep them synchronized.
 
 ## Gitaly not listening on new address after reconfiguring
@@ -344,11 +346,9 @@ continue to listen on the old address after a `sudo gitlab-ctl reconfigure`.
 When this occurs, run `sudo gitlab-ctl restart` to resolve the issue. This should no longer be
 necessary because [this issue](https://gitlab.com/gitlab-org/gitaly/-/issues/2521) is resolved.
 
-## Errors in Gitaly logs when accessing repositories from a standalone Gitaly node
+## Permission denied errors appearing in Gitaly logs when accessing repositories from a standalone Gitaly node
 
-You might see permission-denied errors in the Gitaly logs when you access a repository
-from a standalone Gitaly node. This error occurs even though file permissions are correct.
-It's likely that the Gitaly node is
+If this error occurs even though file permissions are correct, it's likely that the Gitaly node is
 experiencing [clock drift](https://en.wikipedia.org/wiki/Clock_drift).
 
 Ensure that the GitLab and Gitaly nodes are synchronized and use an NTP time
@@ -377,7 +377,7 @@ that do not exist in a repository.
 
 ## Git pushes are slow when Dynatrace is enabled
 
-Dynatrace can cause the `sudo -u git -- /opt/gitlab/embedded/bin/gitaly-hooks` reference transaction hook,
+Dynatrace can cause the `/opt/gitlab/embedded/bin/gitaly-hooks` reference transaction hook,
 to take several seconds to start up and shut down. `gitaly-hooks` is executed twice when users
 push, which causes a significant delay.
 
@@ -428,8 +428,8 @@ and:
 
 ## Gitaly fails to fork processes stored on `noexec` file systems
 
-Applying the `noexec` option to a mount point (for example, `/var`) causes Gitaly to throw `permission denied` errors
-related to forking processes. For example:
+Because of changes [introduced](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/5999) in GitLab 14.10, applying the `noexec` option to a mount
+point (for example, `/var`) causes Gitaly to throw `permission denied` errors related to forking processes. For example:
 
 ```shell
 fork/exec /var/opt/gitlab/gitaly/run/gitaly-2057/gitaly-git2go: permission denied
@@ -440,14 +440,9 @@ To resolve this, remove the `noexec` option from the file system mount. An alter
 1. Add `gitaly['runtime_dir'] = '<PATH_WITH_EXEC_PERM>'` to `/etc/gitlab/gitlab.rb` and specify a location without `noexec` set.
 1. Run `sudo gitlab-ctl reconfigure`.
 
-## Commit signing fails with `invalid argument` or `invalid data`
+## Commit signing fails with `invalid argument: signing key is encrypted` or `invalid data: tag byte does not have MSB set.`
 
-If commit signing fails with either of these errors:
-
-- `invalid argument: signing key is encrypted`
-- `invalid data: tag byte does not have MSB set`
-
-This error happens because Gitaly commit signing is headless and not associated with a specific user. The GPG signing key must be created without a passphrase, or the passphrase must be removed before export.
+Because Gitaly commit signing is headless and not associated with a specific user, the GPG signing key must be created without a passphrase, or the passphrase must be removed before export.
 
 ## Gitaly logs show errors in `info` messages
 
@@ -561,13 +556,7 @@ If you find that `fapolicyd` is denying execution, consider the following:
    allow perm=any all : ftype=application/x-executable dir=/var/opt/gitlab/gitaly/
    ```
 
-1. Restart the services:
-
-   ```shell
-   sudo systemctl restart fapolicyd
-
-   sudo gitlab-ctl restart gitaly
-   ```
+1. Restart the service.
 
 ## `Pre-receive hook declined` error when pushing to RHEL instance with `fapolicyd` enabled
 
@@ -593,54 +582,3 @@ To create a rule to allow Gitaly binary execution:
    ```
 
 The new rule takes effect after the daemon restarts.
-
-## Update repositories after removing a storage with a duplicate path
-
-> - Rake task `gitlab:gitaly:update_removed_storage_projects` [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/153008) in GitLab 17.1.
-
-In GitLab 17.0, support for configuring storages with duplicate paths [was removed](https://gitlab.com/gitlab-org/gitaly/-/issues/5598). This can mean that you
-must remove duplicate storage configuration from `gitaly` configuration.
-
-WARNING:
-Only use this Rake task when the old and new storages share the same disk path on the same Gitaly server. Using the this Rake task in any other situation
-causes the repository to become unavailable. Use the [project repository storage moves API](../../api/project_repository_storage_moves.md) to transfer
-projects between storages in all other situations.
-
-When removing from the Gitaly configuration a storage that used the same path as another storage,
-the projects associated with the old storage must be reassigned to the new one.
-
-For example, you might have configuration similar to the following:
-
-```ruby
-gitaly['configuration'] = {
-  storage: [
-    {
-       name: 'default',
-       path: '/var/opt/gitlab/git-data/repositories',
-    },
-    {
-       name: 'duplicate-path',
-       path: '/var/opt/gitlab/git-data/repositories',
-    },
-  ],
-}
-```
-
-If you were removing `duplicate-path` from the configuration, you would run the following
-Rake task to associate any projects assigned to it to `default` instead:
-
-::Tabs
-
-:::TabTitle Linux package installations
-
-```shell
-sudo gitlab-rake "gitlab:gitaly:update_removed_storage_projects[duplicate-path, default]"
-```
-
-:::TabTitle Self-compiled installations
-
-```shell
-sudo -u git -H bundle exec rake "gitlab:gitaly:update_removed_storage_projects[duplicate-path, default]" RAILS_ENV=production
-```
-
-::EndTabs

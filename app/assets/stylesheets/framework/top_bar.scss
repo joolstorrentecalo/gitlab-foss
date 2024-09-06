@@ -3,7 +3,7 @@
 }
 
 .top-bar-fixed {
-  @apply gl-shadow-inner-b-1-gray-100;
+  @include gl-inset-border-b-1-gray-100;
   background-color: $body-bg;
   position: fixed;
   left: var(--application-bar-left);
@@ -12,11 +12,9 @@
   width: calc(100% - var(--application-bar-left));
   z-index: $top-bar-z-index;
 
-  @media (forced-colors: active) {
-    border-bottom: 1px solid;
-  }
-
   @media (prefers-reduced-motion: no-preference) {
-    @apply gl-transition-[width,left,right];
+    transition: left $gl-transition-duration-medium,
+                right $gl-transition-duration-medium,
+                width $gl-transition-duration-medium;
   }
 }

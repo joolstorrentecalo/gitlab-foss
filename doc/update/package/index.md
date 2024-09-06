@@ -15,9 +15,6 @@ GitLab package.
 
 ## Prerequisites
 
-- Create an [upgrade plan](../plan_your_upgrade.md).
-  We recommend upgrading in a test environment first and having a [rollback plan](../plan_your_upgrade.md#rollback-plan)
-  to reduce the risk of unplanned outages and extended downtime.
 - Decide when to upgrade by viewing the [supported upgrade paths](../index.md#upgrade-paths).
   You can't directly skip major versions (for example, go from 10.3 to 12.7 in one step).
 - If you are upgrading from a non-package installation to a GitLab package installation, see
@@ -37,18 +34,18 @@ GitLab package.
 - For single node installations, GitLab is not available to users while an
   upgrade is in progress. The user's web browser shows a `Deploy in progress` message or a `502` error.
 - For multi-node installations, see how to perform
-  [zero-downtime upgrades](../zero_downtime.md).
+  [zero downtime upgrades](../zero_downtime.md).
 - Upgrades to multi-node installations can also be performed
   [with downtime](../with_downtime.md).
 
 ## Version-specific changes
 
 Upgrading versions might need some manual intervention. For more information,
-check the version you are upgrading to:
+check the version your are upgrading to:
 
-- [GitLab 17](../versions/gitlab_17_changes.md)
 - [GitLab 16](../versions/gitlab_16_changes.md)
 - [GitLab 15](../versions/gitlab_15_changes.md)
+- [GitLab 14](../versions/gitlab_14_changes.md)
 
 ### Earlier GitLab versions
 
@@ -171,7 +168,7 @@ NOTE:
 For the GitLab Community Edition, replace `ee` with
 `ce`.
 
-## Download a package manually
+## Upgrade using a manually-downloaded package
 
 NOTE:
 The [package repository](#upgrade-using-the-official-repositories) is recommended over
@@ -181,7 +178,7 @@ If for some reason you don't use the official repositories, you can
 download the package and install it manually. This method can be used to either
 install GitLab for the first time or upgrade it.
 
-To download and install or upgrade GitLab:
+To download and install GitLab:
 
 1. Visit the [official repository](#upgrade-using-the-official-repositories) of your package.
 1. Filter the list by searching for the version you want to install (for example 14.1.8).

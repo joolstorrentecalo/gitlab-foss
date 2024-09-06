@@ -10,12 +10,8 @@ export default class ProtectedTagCreate {
   constructor({ hasLicense }) {
     this.hasLicense = hasLicense;
     this.$form = $('.js-new-protected-tag');
-
-    if (this.$form.length > 0) {
-      this.buildDropdowns();
-      this.bindEvents();
-    }
-
+    this.buildDropdowns();
+    this.bindEvents();
     this.selectedItems = [];
   }
 
@@ -39,7 +35,6 @@ export default class ProtectedTagCreate {
     // Allowed to Create dropdown
     const createTagSelector = 'js-allowed-to-create';
     const [dropdownEl] = this.$form.find(`.${createTagSelector}`);
-
     this.protectedTagAccessDropdown = initAccessDropdown(dropdownEl, {
       toggleClass: createTagSelector,
       hasLicense: this.hasLicense,

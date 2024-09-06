@@ -42,7 +42,7 @@ To deploy GitLab on GCP you must create a virtual machine:
 
 1. On the next page, you can select the type of VM as well as the
    estimated costs. Provide the name of the instance, desired data center, and machine type.
-   Note our [hardware requirements for different user base sizes](../requirements.md#hardware).
+   Note our [hardware requirements for different user base sizes](../requirements.md#hardware-requirements).
 
    ![Launch on Compute Engine](img/vm_details.png)
 
@@ -80,7 +80,7 @@ By default, Google assigns an ephemeral IP to your instance. It is strongly
 recommended to assign a static IP if you are using GitLab in production
 and use a domain name as shown below.
 
-Read Google's documentation on how to [promote an ephemeral IP address](https://cloud.google.com/vpc/docs/reserve-static-external-ip-address#promote_ephemeral_ip).
+Read Google's documentation on how to [promote an ephemeral IP address](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-external-ip-address#promote_ephemeral_ip).
 
 ### Using a domain name
 

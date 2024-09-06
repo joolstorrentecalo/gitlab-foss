@@ -12,7 +12,22 @@ DETAILS:
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/384932) in GitLab 15.9 for GitLab SaaS [with two flags](../../../administration/feature_flags.md) named `license_scanning_sbom_scanner` and `package_metadata_synchronization`. Both flags disabled by default.
 > - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/385176) in GitLab 16.4. Feature flags `license_scanning_sbom_scanner` and `package_metadata_synchronization` removed.
-> - The legacy License Compliance analyzer (`License-Scanning.gitlab-ci.yml`) was [removed](https://gitlab.com/gitlab-org/gitlab/-/issues/439162) in GitLab 17.0.
+
+NOTE:
+The legacy License Compliance analyzer was deprecated in GitLab 15.9 and removed in GitLab 16.3.
+To continue using GitLab for License Compliance, remove the License Compliance template from your
+CI/CD pipeline and add the [Dependency Scanning template](../../application_security/dependency_scanning/index.md#configuration).
+The Dependency Scanning template is now capable of gathering the required license information so it
+is no longer necessary to run a separate License Compliance job. The License Compliance CI/CD
+template should not be removed prior to verifying that the instance has been upgraded to a version
+that supports the new method of license scanning. To begin using the Dependency Scanner quickly at
+scale, you may set up a [scan execution policy](../../application_security/policies/scan-execution-policies.md)
+at the group level to enforce the SBOM-based license scan for all projects in the group.
+Then, you may remove the inclusion of the `Jobs/License-Scanning.gitlab-ci.yml` template from your
+CI/CD configuration. If you wish to continue using the legacy License Compliance feature, you can do
+so by setting the `LICENSE_MANAGEMENT_VERSION CI` variable to `4`. This variable can be set at the
+[project](../../../ci/variables/index.md#for-a-project), [group](../../../ci/variables/index.md#for-a-group)
+or [instance](../../../ci/variables/index.md#for-an-instance) level.
 
 To detect the licenses in use, License Compliance relies on running the
 [Dependency Scanning CI Jobs](../../application_security/dependency_scanning/index.md),
@@ -31,11 +46,9 @@ No contextual information (for example, a list of project dependencies) is sent 
 
 To enable License scanning of CycloneDX files:
 
-- Using the Dependency Scanning template
-  - Enable [Dependency Scanning](../../application_security/dependency_scanning/index.md#enabling-the-analyzer)
-      and ensure that its prerequisites are met.
-  - On GitLab self-managed only, you can [choose package registry metadata to synchronize](../../../administration/settings/security_and_compliance.md#choose-package-registry-metadata-to-sync) in the **Admin** area for the GitLab instance. For this data synchronization to work, you must allow outbound network traffic from your GitLab instance to the domain `storage.googleapis.com`. If you have limited or no network connectivity then refer to the documentation section [running in an offline environment](#running-in-an-offline-environment) for further guidance.
-- Or use the [CI/CD component](../../../ci/components/index.md) for applicable package registries.
+- Enable [Dependency Scanning](../../application_security/dependency_scanning/index.md#enabling-the-analyzer)
+  and ensure that its prerequisites are met.
+- On GitLab self-managed only, you can [choose package registry metadata to synchronize](../../../administration/settings/security_and_compliance.md#choose-package-registry-metadata-to-sync) in the Admin Area for the GitLab instance. For this data synchronization to work, you must allow outbound network traffic from your GitLab instance to the domain `storage.googleapis.com`. If you have limited or no network connectivity then refer to the documentation section [running in an offline environment](#running-in-an-offline-environment) for further guidance.
 
 ## Supported languages and package managers
 
@@ -47,151 +60,75 @@ License scanning is supported for the following languages and package managers:
     <tr>
       <th>Language</th>
       <th>Package Manager</th>
-      <th>Dependency Scanning Template</th>
-      <th>CI/CD Component</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>.NET</td>
       <td rowspan="2"><a href="https://www.nuget.org/">NuGet</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td>C#</td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td>C</td>
       <td rowspan="2"><a href="https://conan.io/">Conan</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td>C++</td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
-      <td>Go<sup><b><a href="#notes-regarding-supported-languages-and-package-managers-1">1</a></b></sup></td>
+      <td>Go</td>
       <td><a href="https://go.dev/">Go</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
-      <td rowspan="3">Java</td>
+      <td rowspan="2">Java</td>
       <td><a href="https://gradle.org/">Gradle</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td><a href="https://maven.apache.org/">Maven</a></td>
-      <td>Yes</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><a href="https://developer.android.com/">Android</a></td>
-      <td>Yes</td>
-      <td><a href="https://gitlab.com/components/android-dependency-scanning">Yes</a></td>
     </tr>
     <tr>
       <td rowspan="3">JavaScript and TypeScript</td>
       <td><a href="https://www.npmjs.com/">npm</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td><a href="https://pnpm.io/">pnpm</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td><a href="https://classic.yarnpkg.com/en/">yarn</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td>PHP</td>
       <td><a href="https://getcomposer.org/">Composer</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td rowspan="4">Python</td>
       <td><a href="https://setuptools.readthedocs.io/en/latest/">setuptools</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td><a href="https://pip.pypa.io/en/stable/">pip</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td><a href="https://pipenv.pypa.io/en/latest/">Pipenv</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td><a href="https://python-poetry.org/">Poetry</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td>Ruby</td>
       <td><a href="https://bundler.io/">Bundler</a></td>
-      <td>Yes</td>
-      <td>No</td>
     </tr>
     <tr>
       <td>Scala</td>
       <td><a href="https://www.scala-sbt.org/">sbt</a></td>
-      <td>Yes</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td>Rust</td>
-      <td><a href="https://doc.rust-lang.org/cargo/">cargo</a></td>
-      <td>No</td>
-      <td><a href="https://gitlab.com/components/dependency-scanning#generating-cargo-sboms">Yes</a></td>
     </tr>
   </tbody>
 </table>
-
-<ol>
-  <li>
-    <a id="notes-regarding-supported-languages-and-package-managers-1"></a>
-    <p>
-      Go standard libraries such as `stdlib` are not supported and will appear with an `unknown`
-      license. Support for these is tracked in
-      <a href="https://gitlab.com/gitlab-org/gitlab/-/issues/480305">issue 480305</a>.
-    </p>
-  </li>
-</ol>
 <!-- markdownlint-disable MD044 -->
 
 The supported files and versions are the ones supported by
 [Dependency Scanning](../../application_security/dependency_scanning/index.md#supported-languages-and-package-managers).
-
-## Data sources
-
-License information for supported packages is obtained from the sources below. GitLab does
-additional processing on the original data, which includes mapping variations to the canonical
-license names.
-
-| Package manager | Source                                                           |
-|-----------------|------------------------------------------------------------------|
-| Cargo           | <https://deps.dev/>                                              |
-| Conan           | <https://github.com/conan-io/conan-center-index>                 |
-| Go              | <https://index.golang.org/>                                      |
-| Maven           | <https://storage.googleapis.com/maven-central>                   |
-| npm             | <https://deps.dev/>                                              |
-| NuGet           | <https://api.nuget.org/v3/catalog0/index.json>                   |
-| Packagist       | <https://packagist.org/packages/list.json>                       |
-| PyPI            | <https://warehouse.pypa.io/api-reference/bigquery-datasets.html> |
-| Rubygems        | <https://rubygems.org/versions>                                  |
 
 ## License expressions
 
@@ -267,14 +204,3 @@ To remove the unneeded data:
    PackageMetadata::PackageVersionLicense.delete_all
    PackageMetadata::PackageVersion.delete_all
    ```
-
-### Dependency licenses are unknown
-
-Open source license information is stored in the database and used to resolve licenses for a
-project's dependencies. A dependency's license may appear as `unknown` if license information does
-not exist or if that data is not yet available in the database.
-
-Lookups for a dependency's licenses are done upon pipeline completion, so if this data was not
-available at that time an `unknown` license is recorded. This license is shown up until a subsequent
-pipeline is executed at which point another license lookup is made. If a lookup confirms the
-dependency's license has changed, the new license is shown at this time.

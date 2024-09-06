@@ -123,12 +123,11 @@ This service is defined in `services/merge_requests/sync_code_owner_approval_rul
 These flowcharts should help explain the flow from the controllers down to the
 models for different features.
 
-A lot of the Code Owners implementations exist in the `EE` variants of the classes.
+Note that many of the Code Owners implementations exist in the `EE` variants of the classes.
 
 ### Push changes to a protected branch with `require_code_owner_approval` enabled, over SSH
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph TD
   Api::Internal::Base --> Gitlab::GitAccess
   Gitlab::GitAccess --> Gitlab::Checks::DiffCheck
@@ -141,7 +140,6 @@ graph TD
 ### Push changes to a protected branch with `require_code_owner_approval` enabled, over HTTPS
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph TD
   Repositories::GitHttpController --> Gitlab::GlRepository
   Gitlab::GlRepository --> Gitlab::GitAccessProject
@@ -155,7 +153,6 @@ graph TD
 ### Sync code owner rules to merge request approval rules
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph TD
   EE::ProtectedBranches::CreateService --> MergeRequest::SyncCodeOwnerApprovalRules
   EE::MergeRequestRefreshService --> MergeRequest::SyncCodeOwnerApprovalRules

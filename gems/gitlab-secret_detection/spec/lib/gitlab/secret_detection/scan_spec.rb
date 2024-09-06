@@ -36,7 +36,7 @@ RSpec.describe Gitlab::SecretDetection::Scan, feature_category: :secret_detectio
         },
         {
           "id" => "gitlab_feed_token_v2",
-          "description" => "GitLab Feed token",
+          "description" => "GitLab Feed Token",
           "regex" => "\bglft-[0-9a-zA-Z_-]{20}\b",
           "tags" => ["gitlab"],
           "keywords" => ["glft"]
@@ -202,6 +202,13 @@ RSpec.describe Gitlab::SecretDetection::Scan, feature_category: :secret_detectio
           expect(scan.secrets_scan(blobs, subprocess: true)).to eq(expected_response)
         end
 
+        it "takes at least same time to run as running in main process" do
+          expect { scan.secrets_scan(large_blobs, subprocess: true) }.to perform_faster_than {
+                                                                           scan.secrets_scan(large_blobs,
+                                                                             subprocess: false)
+                                                                         }.once
+        end
+
         it "allocates less memory than when running in main process" do
           forked_stats = Benchmark::Malloc.new.run { scan.secrets_scan(large_blobs, subprocess: true) }
           non_forked_stats = Benchmark::Malloc.new.run { scan.secrets_scan(large_blobs, subprocess: false) }
@@ -245,23 +252,9 @@ RSpec.describe Gitlab::SecretDetection::Scan, feature_category: :secret_detectio
       it "whole secret detection scan operation times out" do
         scan_timeout_secs = 0.000_001 # 1 micro-sec to intentionally timeout large blob
 
-        expected_response = Gitlab::SecretDetection::Response.new(Gitlab::SecretDetection::Status::SCAN_TIMEOUT)
+        response = Gitlab::SecretDetection::Response.new(Gitlab::SecretDetection::Status::SCAN_TIMEOUT)
 
-        begin
-          response = scan.secrets_scan(blobs, timeout: scan_timeout_secs)
-          expect(response).to eq(expected_response)
-        rescue ArgumentError
-          # When RSpec's main process terminates and attempts to clean up child processes upon completion, it terminates
-          # subprocesses where the scans might be still ongoing. This behavior is not recognized by the
-          # upstream library (parallel), which manages all forked subprocesses it created for running scans. When the
-          # upstream library attempts to close its forked subprocesses which already terminated, it raises an
-          # 'ArgumentError' with the message 'bad signal type NilClass,' resulting in flaky failures in the test
-          # expectations.
-          #
-          # Example: https://gitlab.com/gitlab-org/gitlab/-/jobs/6935051992
-          #
-          puts "skipping the test since the subprocesses forked for SD scanning are terminated by main process"
-        end
+        expect(scan.secrets_scan(blobs, timeout: scan_timeout_secs)).to eq(response)
       end
 
       it "one of the blobs times out while others continue to get scanned" do

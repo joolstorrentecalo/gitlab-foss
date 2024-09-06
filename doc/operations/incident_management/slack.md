@@ -1,5 +1,5 @@
 ---
-stage: Monitor
+stage: Service Management
 group: Respond
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -12,7 +12,7 @@ DETAILS:
 **Status:** Beta
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/344856) in GitLab 15.7 [with a flag](../../administration/feature_flags.md) named `incident_declare_slash_command`. Disabled by default.
-> - [Enabled on GitLab.com](https://gitlab.com/gitlab-org/gitlab/-/issues/378072) in GitLab 15.10 in [beta](../../policy/experiment-beta-support.md#beta).
+> - [Enabled on GitLab.com](https://gitlab.com/gitlab-org/gitlab/-/issues/378072) in GitLab 15.10 in [Beta](../../policy/experiment-beta-support.md#beta).
 
 FLAG:
 On self-managed GitLab, this feature is not available.
@@ -44,7 +44,7 @@ Prerequisites:
 
    To start the authorization flow, try executing a non-incident [Slack slash command](../../user/project/integrations/gitlab_slack_application.md#slash-commands),
    like `/gitlab <project-alias> issue show <id>`.
-   The `<project-alias>` you select must be a project that has the GitLab for Slack app set up. The select dialog has a hard limit of 100 projects.
+   The `<project-alias>` you select must be a project that has the GitLab for Slack app set up.
    For more information, see [issue 377548](https://gitlab.com/gitlab-org/gitlab/-/issues/377548).
 
 After the GitLab for Slack app is configured, you can also use any of the existing [Slack slash commands](../../user/project/integrations/slack_slash_commands.md).

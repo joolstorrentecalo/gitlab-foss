@@ -72,6 +72,7 @@ Example response:
   "sync_object_storage": false,
   "clone_protocol": "http",
   "web_edit_url": "https://primary.example.com/admin/geo/sites/3/edit",
+  "web_geo_projects_url": "https://secondary.example.com/admin/geo/projects",
   "web_geo_replication_details_url": "https://secondary.example.com/admin/geo/sites/3/replication/lfs_objects",
   "_links": {
      "self": "https://primary.example.com/api/v4/geo_nodes/3",
@@ -80,6 +81,10 @@ Example response:
   }
 }
 ```
+
+WARNING:
+The `web_geo_projects_url` attribute is in its end-of-life process. It is [deprecated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/80106)
+in GitLab 14.9.
 
 ## Retrieve configuration about all Geo nodes
 
@@ -138,6 +143,7 @@ Example response:
     "sync_object_storage": true,
     "clone_protocol": "http",
     "web_edit_url": "https://primary.example.com/admin/geo/sites/2/edit",
+    "web_geo_projects_url": "https://secondary.example.com/admin/geo/projects",
     "web_geo_replication_details_url": "https://secondary.example.com/admin/geo/sites/2/replication/lfs_objects",
     "_links": {
       "self":"https://primary.example.com/api/v4/geo_nodes/2",
@@ -147,6 +153,10 @@ Example response:
   }
 ]
 ```
+
+WARNING:
+The `web_geo_projects_url` attribute is in its end-of-life process. It is [deprecated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/80106)
+in GitLab 14.9.
 
 ## Retrieve configuration about a specific Geo node
 
@@ -234,6 +244,7 @@ Example response:
   "sync_object_storage": true,
   "clone_protocol": "http",
   "web_edit_url": "https://primary.example.com/admin/geo/sites/2/edit",
+  "web_geo_projects_url": "https://secondary.example.com/admin/geo/projects",
   "web_geo_replication_details_url": "https://secondary.example.com/admin/geo/sites/2/replication/lfs_objects",
   "_links": {
     "self":"https://primary.example.com/api/v4/geo_nodes/2",
@@ -242,6 +253,10 @@ Example response:
   }
 }
 ```
+
+WARNING:
+The `web_geo_projects_url` attribute is in its end-of-life process. It is [deprecated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/80106)
+in GitLab 14.9.
 
 ## Delete a Geo node
 
@@ -957,3 +972,46 @@ Example response:
 
 NOTE:
 The `health_status` parameter can only be in an "Healthy" or "Unhealthy" state, while the `health` parameter can be empty, "Healthy", or contain the actual error message.
+
+## Retrieve project sync or verification failures that occurred on the current node
+
+This only works on a secondary node.
+
+```plaintext
+GET /geo_nodes/current/failures
+```
+
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `type`         | string  | no | Type of failed objects (`repository`/`wiki`) |
+| `failure_type` | string | no | Type of failures (`sync`/`checksum_mismatch`/`verification`) |
+
+This endpoint uses [Pagination](rest/index.md#pagination).
+
+```shell
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://primary.example.com/api/v4/geo_nodes/current/failures"
+```
+
+Example response:
+
+```json
+[
+  {
+    "project_id": 3,
+    "last_repository_synced_at": "2017-10-31 14:25:55 UTC",
+    "last_repository_successful_sync_at": "2017-10-31 14:26:04 UTC",
+    "last_wiki_synced_at": "2017-10-31 14:26:04 UTC",
+    "last_wiki_successful_sync_at": "2017-10-31 14:26:11 UTC",
+    "repository_retry_count": null,
+    "wiki_retry_count": 1,
+    "last_repository_sync_failure": null,
+    "last_wiki_sync_failure": "Error syncing Wiki repository",
+    "last_repository_verification_failure": "",
+    "last_wiki_verification_failure": "",
+    "repository_verification_checksum_sha": "da39a3ee5e6b4b0d32e5bfef9a601890afd80709",
+    "wiki_verification_checksum_sha": "da39a3ee5e6b4b0d3255bfef9ef0189aafd80709",
+    "repository_checksum_mismatch": false,
+    "wiki_checksum_mismatch": false
+  }
+]
+```

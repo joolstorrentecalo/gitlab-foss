@@ -35,10 +35,7 @@ module Gitlab
                 location: masked_location,
                 blob: masked_blob,
                 raw: nil,
-                extra: {},
-                component: component_attrs # never expose this data in the response
-                # see https://gitlab.com/gitlab-org/gitlab/-/issues/455376
-                # and https://gitlab.com/gitlab-org/gitlab/-/issues/453955
+                extra: extra_attrs
               )
             end
 
@@ -61,13 +58,6 @@ module Gitlab
             private
 
             attr_reader :path, :version
-
-            def content_result
-              context.logger.instrument(:config_component_fetch_content_hash) do
-                super
-              end
-            end
-            strong_memoize_attr :content_result
 
             def component_result
               ::Ci::Components::FetchService.new(
@@ -105,13 +95,13 @@ module Gitlab
             end
             strong_memoize_attr :component_payload
 
-            def component_attrs
+            def extra_attrs
               return {} unless component_payload
 
               {
-                project: component_payload.fetch(:project),
-                sha: component_payload.fetch(:sha),
-                name: component_payload.fetch(:name)
+                component_project: component_payload.fetch(:project),
+                component_sha: component_payload.fetch(:sha),
+                component_name: component_payload.fetch(:name)
               }
             end
           end

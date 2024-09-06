@@ -2,13 +2,17 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Group > Settings > Access tokens', :js, feature_category: :system_access do
+RSpec.describe 'Group > Settings > Access Tokens', :js, feature_category: :system_access do
   include Spec::Support::Helpers::ModalHelpers
 
   let_it_be(:user) { create(:user) }
   let_it_be(:bot_user) { create(:user, :project_bot) }
-  let_it_be(:group) { create(:group, owners: user) }
+  let_it_be(:group) { create(:group) }
   let_it_be(:resource_settings_access_tokens_path) { group_settings_access_tokens_path(group) }
+
+  before_all do
+    group.add_owner(user)
+  end
 
   before do
     sign_in(user)

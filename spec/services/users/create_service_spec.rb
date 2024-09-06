@@ -33,12 +33,6 @@ RSpec.describe Users::CreateService, feature_category: :user_management do
           )
         end
 
-        context 'with user_detail created' do
-          it 'creates the user_detail record' do
-            expect { service.execute }.to change { UserDetail.count }.by(1)
-          end
-        end
-
         context 'when the current_user is not persisted' do
           let(:admin_user) { build(:admin) }
 
@@ -176,12 +170,6 @@ RSpec.describe Users::CreateService, feature_category: :user_management do
           created_by_id: nil,
           admin: false
         )
-      end
-
-      context 'with user_detail created' do
-        it 'creates the user_detail record' do
-          expect { service.execute }.to change { UserDetail.count }.by(1)
-        end
       end
     end
   end

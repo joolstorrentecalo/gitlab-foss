@@ -226,7 +226,7 @@ RSpec.describe Types::BaseObject, feature_category: :api do
         }
       }
 
-      doc = ->(after) do
+      doc = lambda do |after|
         GraphQL.parse(<<~GQL)
         query {
           x {

@@ -9,16 +9,12 @@ module Projects
 
       layout 'project_settings'
       before_action :authorize_admin_pipeline!, except: :show
-      before_action :authorize_show_cicd_settings!, only: :show
+      before_action :authorize_admin_cicd_variables!, only: :show
       before_action :check_builds_available!
       before_action :define_variables
 
       before_action do
         push_frontend_feature_flag(:ci_variables_pages, current_user)
-        push_frontend_feature_flag(:allow_push_repository_for_job_token, @project)
-        push_frontend_feature_flag(:ci_hidden_variables, @project.root_ancestor)
-
-        push_frontend_ability(ability: :admin_project, resource: @project, user: current_user)
       end
 
       helper_method :highlight_badge
@@ -79,15 +75,6 @@ module Projects
 
       private
 
-      def authorize_show_cicd_settings!
-        return if can_any?(current_user, [
-          :admin_cicd_variables,
-          :admin_runner
-        ], project)
-
-        access_denied!
-      end
-
       def highlight_badge(name, content, language = nil)
         Gitlab::Highlight.highlight(name, content, language: language)
       end
@@ -101,8 +88,8 @@ module Projects
           :runners_token, :builds_enabled, :build_allow_git_fetch,
           :build_timeout_human_readable, :public_builds, :ci_separated_caches,
           :auto_cancel_pending_pipelines, :ci_config_path, :auto_rollback_enabled,
-          { auto_devops_attributes: [:id, :domain, :enabled, :deploy_strategy],
-            ci_cd_settings_attributes: [:default_git_depth, :forward_deployment_enabled, :forward_deployment_rollback_allowed] }
+          auto_devops_attributes: [:id, :domain, :enabled, :deploy_strategy],
+          ci_cd_settings_attributes: [:default_git_depth, :forward_deployment_enabled, :forward_deployment_rollback_allowed]
         ].tap do |list|
           list << :max_artifacts_size if can?(current_user, :update_max_artifacts_size, project)
         end
@@ -169,7 +156,7 @@ module Projects
         @ref = params[:ref] || @project.default_branch_or_main
 
         @badges = [Gitlab::Ci::Badge::Pipeline::Status,
-          Gitlab::Ci::Badge::Coverage::Report]
+                   Gitlab::Ci::Badge::Coverage::Report]
 
         @badges.map! do |badge|
           badge.new(@project, @ref).metadata

@@ -1,10 +1,8 @@
 <script>
 import { GlFormGroup, GlFormInput, GlModal, GlAlert, GlLink } from '@gitlab/ui';
 import { helpPagePath } from '~/helpers/help_page_helper';
-import { issuableTypeText, TYPE_ISSUE, TYPE_MERGE_REQUEST } from '~/issues/constants';
-import { isPositiveInteger } from '~/lib/utils/number_utils';
+import { TYPE_ISSUE, TYPE_MERGE_REQUEST } from '~/issues/constants';
 import { s__, __, sprintf } from '~/locale';
-import updateWorkItemMutation from '~/work_items/graphql/update_work_item.mutation.graphql';
 import issueSetTimeEstimateMutation from '../../queries/issue_set_time_estimate.mutation.graphql';
 import mergeRequestSetTimeEstimateMutation from '../../queries/merge_request_set_time_estimate.mutation.graphql';
 import { SET_TIME_ESTIMATE_MODAL_ID } from './constants';
@@ -22,21 +20,15 @@ export default {
     GlAlert,
     GlLink,
   },
-  inject: {
-    issuableType: {
-      default: null,
-    },
-  },
+  inject: ['issuableType'],
   props: {
     fullPath: {
       type: String,
-      required: false,
-      default: '',
+      required: true,
     },
     issuableIid: {
       type: String,
-      required: false,
-      default: '',
+      required: true,
     },
     /**
      * This object must contain the following keys, used to show
@@ -48,21 +40,11 @@ export default {
       type: Object,
       required: true,
     },
-    workItemId: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    workItemType: {
-      type: String,
-      required: false,
-      default: '',
-    },
   },
   data() {
     return {
       currentEstimate: this.timeTracking.timeEstimate ?? 0,
-      timeEstimate: this.timeTracking.humanTimeEstimate ?? '',
+      timeEstimate: this.timeTracking.humanTimeEstimate ?? '0h',
       isSaving: false,
       isResetting: false,
       saveError: '',
@@ -109,17 +91,19 @@ export default {
         ? s__('TimeTracking|Set time estimate')
         : s__('TimeTracking|Edit time estimate');
     },
+    isIssue() {
+      return this.issuableType === TYPE_ISSUE;
+    },
     modalText() {
-      const issuableTypeName = issuableTypeText[this.issuableType || this.workItemType];
       return sprintf(s__('TimeTracking|Set estimated time to complete this %{issuableTypeName}.'), {
-        issuableTypeName,
+        issuableTypeName: this.isIssue ? __('issue') : __('merge request'),
       });
     },
   },
   watch: {
     timeTracking() {
       this.currentEstimate = this.timeTracking.timeEstimate ?? 0;
-      this.timeEstimate = this.timeTracking.humanTimeEstimate ?? '';
+      this.timeEstimate = this.timeTracking.humanTimeEstimate ?? '0h';
     },
   },
   methods: {
@@ -148,41 +132,7 @@ export default {
     updateEstimatedTime(timeEstimate) {
       this.saveError = '';
 
-      if (this.workItemId) {
-        return this.$apollo
-          .mutate({
-            mutation: updateWorkItemMutation,
-            variables: {
-              input: {
-                id: this.workItemId,
-                timeTrackingWidget: {
-                  timeEstimate:
-                    isPositiveInteger(timeEstimate) && timeEstimate > 0
-                      ? `${timeEstimate}h`
-                      : timeEstimate,
-                },
-              },
-            },
-          })
-          .then(({ data }) => {
-            if (data.workItemUpdate.errors.length) {
-              throw new Error(data.workItemUpdate.errors);
-            }
-
-            this.close();
-          })
-          .catch((error) => {
-            this.saveError =
-              error?.message ||
-              s__('TimeTracking|An error occurred while saving the time estimate.');
-          })
-          .finally(() => {
-            this.isSaving = false;
-            this.isResetting = false;
-          });
-      }
-
-      return this.$apollo
+      this.$apollo
         .mutate({
           mutation: MUTATIONS[this.issuableType],
           variables: {
@@ -231,8 +181,12 @@ export default {
     @secondary.prevent="resetTimeEstimate"
     @cancel="close"
   >
-    <p>
+    <p data-testid="timetracking-docs-link">
       {{ modalText }}
+
+      <gl-link :href="timeTrackingDocsPath">{{
+        s__('TimeTracking|How do I estimate and track time?')
+      }}</gl-link>
     </p>
     <form class="js-quick-submit" @submit.prevent="saveTimeEstimate">
       <gl-form-group
@@ -251,14 +205,11 @@ export default {
           autocomplete="off"
         />
       </gl-form-group>
-      <gl-alert v-if="saveError" variant="danger" class="gl-mb-3" :dismissible="false">
+      <gl-alert v-if="saveError" variant="danger" class="gl-mt-5" :dismissible="false">
         {{ saveError }}
       </gl-alert>
       <!-- This is needed to have the quick-submit behaviour (with Ctrl + Enter or Cmd + Enter) -->
       <input type="submit" hidden />
     </form>
-    <gl-link :href="timeTrackingDocsPath">
-      {{ s__('TimeTracking|How do I estimate and track time?') }}
-    </gl-link>
   </gl-modal>
 </template>

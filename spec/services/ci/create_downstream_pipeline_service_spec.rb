@@ -4,7 +4,6 @@ require 'spec_helper'
 
 RSpec.describe Ci::CreateDownstreamPipelineService, '#execute', feature_category: :continuous_integration do
   include Ci::SourcePipelineHelpers
-  include Ci::PipelineMessageHelpers
 
   # Using let_it_be on user and projects for these specs can cause
   # spec-ordering failures due to the project-based permissions
@@ -138,25 +137,6 @@ RSpec.describe Ci::CreateDownstreamPipelineService, '#execute', feature_category
       expect(bridge.reload).to be_success
     end
 
-    it 'returns and tracks an error for invalid status transitions' do
-      allow(bridge).to receive(:success!).and_raise(
-        StateMachines::InvalidTransition.new(
-          bridge,
-          Ci::Bridge.state_machines[:status],
-          'success'
-        )
-      )
-
-      expect(Gitlab::ErrorTracking).to receive(:track_exception).with(
-        instance_of(Ci::Bridge::InvalidTransitionError),
-        { bridge_id: bridge.id, downstream_pipeline_id: anything }
-      ) do |error|
-        expect(error.backtrace).to be_present
-      end
-
-      expect(subject).to be_error
-    end
-
     it 'triggers the upstream pipeline duration calculation', :sidekiq_inline do
       expect { subject }
         .to change { upstream_pipeline.reload.duration }.from(nil).to(an_instance_of(Integer))
@@ -204,8 +184,7 @@ RSpec.describe Ci::CreateDownstreamPipelineService, '#execute', feature_category
         expect { subject }
           .to change { Ci::Pipeline.count }.by(1)
         expect(subject).to be_error
-        expect(subject.message)
-          .to match_array(["jobs job config should implement the script:, run:, or trigger: keyword"])
+        expect(subject.message).to match_array(["jobs job config should implement a script: or a trigger: keyword"])
       end
 
       it 'creates a new pipeline in a downstream project' do
@@ -592,8 +571,7 @@ RSpec.describe Ci::CreateDownstreamPipelineService, '#execute', feature_category
         expect { subject }
           .to change { Ci::Pipeline.count }.by(1)
         expect(subject).to be_error
-        expect(subject.message)
-          .to match_array(["jobs invalid config should implement the script:, run:, or trigger: keyword"])
+        expect(subject.message).to match_array(["jobs invalid config should implement a script: or a trigger: keyword"])
       end
 
       it 'creates a new pipeline in the downstream project' do
@@ -778,12 +756,13 @@ RSpec.describe Ci::CreateDownstreamPipelineService, '#execute', feature_category
       it 'does not create a pipeline and drops the bridge' do
         expect { subject }.not_to change(downstream_project.ci_pipelines, :count)
         expect(subject).to be_error
-        expect(subject.message).to match_array([sanitize_message(Ci::Pipeline.rules_failure_message)])
+        expect(subject.message).to match_array(['Pipeline will not run for the selected trigger. ' \
+          'The rules configuration prevented any jobs from being added to the pipeline.'])
 
         expect(bridge.reload).to be_failed
         expect(bridge.failure_reason).to eq('downstream_pipeline_creation_failed')
-        expect(bridge.options[:downstream_errors]).to match_array(
-          [sanitize_message(Ci::Pipeline.rules_failure_message)])
+        expect(bridge.options[:downstream_errors]).to match_array(['Pipeline will not run for the selected trigger. ' \
+          'The rules configuration prevented any jobs from being added to the pipeline.'])
       end
     end
 
@@ -871,7 +850,7 @@ RSpec.describe Ci::CreateDownstreamPipelineService, '#execute', feature_category
       let_it_be(:child)      { create(:ci_pipeline, child_of: parent) }
       let_it_be(:sibling)    { create(:ci_pipeline, child_of: parent) }
 
-      let(:project) { create(:project, :repository) }
+      let(:project) { build(:project, :repository) }
       let(:bridge) do
         create(:ci_bridge, status: :pending, user: user, options: trigger, pipeline: child, project: project)
       end

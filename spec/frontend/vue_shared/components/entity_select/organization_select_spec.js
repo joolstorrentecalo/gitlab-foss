@@ -2,7 +2,6 @@ import VueApollo from 'vue-apollo';
 import Vue from 'vue';
 import { GlCollapsibleListbox, GlAlert } from '@gitlab/ui';
 import { chunk } from 'lodash';
-import organizationsGraphQlResponse from 'test_fixtures/graphql/organizations/organizations.query.graphql.json';
 import { mountExtended } from 'helpers/vue_test_utils_helper';
 import OrganizationSelect from '~/vue_shared/components/entity_select/organization_select.vue';
 import EntitySelect from '~/vue_shared/components/entity_select/entity_select.vue';
@@ -15,7 +14,7 @@ import {
 } from '~/vue_shared/components/entity_select/constants';
 import getCurrentUserOrganizationsQuery from '~/organizations/shared/graphql/queries/organizations.query.graphql';
 import getOrganizationQuery from '~/organizations/shared/graphql/queries/organization.query.graphql';
-import { pageInfoMultiplePages, pageInfoEmpty } from 'jest/organizations/mock_data';
+import { organizations as nodes, pageInfo, pageInfoEmpty } from '~/organizations/mock_data';
 import waitForPromises from 'helpers/wait_for_promises';
 import createMockApollo from 'helpers/mock_apollo_helper';
 import { getIdFromGraphQLId } from '~/graphql_shared/utils';
@@ -27,13 +26,6 @@ describe('OrganizationSelect', () => {
   let mockApollo;
 
   // Mocks
-  const {
-    data: {
-      currentUser: {
-        organizations: { nodes, pageInfo },
-      },
-    },
-  } = organizationsGraphQlResponse;
   const [organization] = nodes;
   const organizations = {
     nodes,
@@ -155,7 +147,7 @@ describe('OrganizationSelect', () => {
           currentUser: {
             id: 'gid://gitlab/User/1',
             __typename: 'CurrentUser',
-            organizations: { nodes: firstPage, pageInfo: pageInfoMultiplePages },
+            organizations: { nodes: firstPage, pageInfo },
           },
         },
       })
@@ -186,7 +178,7 @@ describe('OrganizationSelect', () => {
     it('calls graphQL query correct `after` variable', () => {
       expect(getCurrentUserOrganizationsQueryMultiplePagesHandler).toHaveBeenCalledWith({
         search: '',
-        after: pageInfoMultiplePages.endCursor,
+        after: pageInfo.endCursor,
         first: DEFAULT_PER_PAGE,
       });
       expect(findListbox().props('infiniteScroll')).toBe(false);

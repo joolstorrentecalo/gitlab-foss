@@ -30,11 +30,11 @@ module Issuable
   include SortableTitle
   include Exportable
   include ReportableChanges
-  include Import::HasImportSource
 
   TITLE_LENGTH_MAX = 255
   TITLE_HTML_LENGTH_MAX = 800
   DESCRIPTION_LENGTH_MAX = 1.megabyte
+  DESCRIPTION_HTML_LENGTH_MAX = 5.megabytes
   SEARCHABLE_FIELDS = %w[title description].freeze
   MAX_NUMBER_OF_ASSIGNEES_OR_REVIEWERS = 200
 
@@ -266,7 +266,7 @@ module Issuable
       return true unless assignees.size > MAX_NUMBER_OF_ASSIGNEES_OR_REVIEWERS
 
       errors.add :assignees,
-        ->(_object, _data) { self.class.max_number_of_assignees_or_reviewers_message }
+        -> (_object, _data) { self.class.max_number_of_assignees_or_reviewers_message }
     end
   end
 
@@ -513,38 +513,46 @@ module Issuable
     false
   end
 
-  # rubocop:disable Metrics/PerceivedComplexity -- Related issue: https://gitlab.com/gitlab-org/gitlab/-/issues/437679
   def hook_association_changes(old_associations)
     changes = {}
 
-    if old_assignees(old_associations) != assignees
-      changes[:assignees] = [old_assignees(old_associations).map(&:hook_attrs), assignees.map(&:hook_attrs)]
+    old_labels = old_associations.fetch(:labels, labels)
+    old_assignees = old_associations.fetch(:assignees, assignees)
+    old_severity = old_associations.fetch(:severity, severity)
+
+    if old_labels != labels
+      changes[:labels] = [old_labels.map(&:hook_attrs), labels.map(&:hook_attrs)]
     end
 
-    if old_labels(old_associations) != labels
-      changes[:labels] = [old_labels(old_associations).map(&:hook_attrs), labels.map(&:hook_attrs)]
+    if old_assignees != assignees
+      changes[:assignees] = [old_assignees.map(&:hook_attrs), assignees.map(&:hook_attrs)]
     end
 
-    if supports_severity? && old_severity(old_associations) != severity
-      changes[:severity] = [old_severity(old_associations), severity]
+    if supports_severity? && old_severity != severity
+      changes[:severity] = [old_severity, severity]
     end
 
-    if is_a?(MergeRequest) && old_target_branch(old_associations) != target_branch
-      changes[:target_branch] = [old_target_branch(old_associations), target_branch]
+    if supports_escalation? && escalation_status
+      current_escalation_status = escalation_status.status_name
+      old_escalation_status = old_associations.fetch(:escalation_status, current_escalation_status)
+
+      if old_escalation_status != current_escalation_status
+        changes[:escalation_status] = [old_escalation_status, current_escalation_status]
+      end
     end
 
-    if supports_escalation? && escalation_status && old_escalation_status(old_associations) != escalation_status.status_name
-      changes[:escalation_status] = [old_escalation_status(old_associations), escalation_status.status_name]
-    end
+    if self.respond_to?(:total_time_spent)
+      old_total_time_spent = old_associations.fetch(:total_time_spent, total_time_spent)
+      old_time_change = old_associations.fetch(:time_change, time_change)
 
-    if self.respond_to?(:total_time_spent) && old_total_time_spent(old_associations) != total_time_spent
-      changes[:total_time_spent] = [old_total_time_spent(old_associations), total_time_spent]
-      changes[:time_change] = [old_time_change(old_associations), time_change]
+      if old_total_time_spent != total_time_spent
+        changes[:total_time_spent] = [old_total_time_spent, total_time_spent]
+        changes[:time_change] = [old_time_change, time_change]
+      end
     end
 
     changes
   end
-  # rubocop:enable Metrics/PerceivedComplexity
 
   def hook_reviewer_changes(old_associations)
     changes = {}
@@ -557,7 +565,7 @@ module Issuable
     changes
   end
 
-  def to_hook_data(user, old_associations: {}, action: nil)
+  def to_hook_data(user, old_associations: {})
     changes = reportable_changes
 
     if old_associations.present?
@@ -565,7 +573,7 @@ module Issuable
       changes.merge!(hook_reviewer_changes(old_associations)) if allows_reviewers?
     end
 
-    Gitlab::DataBuilder::Issuable.new(self).build(user: user, changes: changes, action: action)
+    Gitlab::DataBuilder::Issuable.new(self).build(user: user, changes: changes)
   end
 
   def labels_array
@@ -671,34 +679,6 @@ module Issuable
 
   def supports_health_status?
     false
-  end
-
-  def old_assignees(assoc)
-    @_old_assignees ||= assoc.fetch(:assignees, assignees)
-  end
-
-  def old_labels(assoc)
-    @_old_labels ||= assoc.fetch(:labels, labels)
-  end
-
-  def old_severity(assoc)
-    @_old_severity ||= assoc.fetch(:severity, severity)
-  end
-
-  def old_target_branch(assoc)
-    @_old_target_branch ||= assoc.fetch(:target_branch, target_branch)
-  end
-
-  def old_escalation_status(assoc)
-    @_old_escalation_status ||= assoc.fetch(:escalation_status, escalation_status.status_name) # rubocop:disable Gitlab/ModuleWithInstanceVariables -- This is only used here
-  end
-
-  def old_total_time_spent(assoc)
-    @_old_total_time_spent ||= assoc.fetch(:total_time_spent, total_time_spent) # rubocop:disable Gitlab/ModuleWithInstanceVariables -- This is only used here
-  end
-
-  def old_time_change(assoc)
-    @_old_time_change ||= assoc.fetch(:time_change, time_change) # rubocop:disable Gitlab/ModuleWithInstanceVariables -- This is only used here
   end
 end
 

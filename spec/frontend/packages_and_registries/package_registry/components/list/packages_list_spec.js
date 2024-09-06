@@ -1,13 +1,11 @@
-import { GlAlert, GlButton } from '@gitlab/ui';
+import { GlAlert, GlSprintf } from '@gitlab/ui';
 import { nextTick } from 'vue';
 import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
-import { TEST_HOST } from 'spec/test_constants';
 import { stubComponent } from 'helpers/stub_component';
 import PackagesListRow from '~/packages_and_registries/package_registry/components/list/package_list_row.vue';
 import PackagesListLoader from '~/packages_and_registries/shared/components/packages_list_loader.vue';
 import DeleteModal from '~/packages_and_registries/package_registry/components/delete_modal.vue';
 import RegistryList from '~/packages_and_registries/shared/components/registry_list.vue';
-import setWindowLocation from 'helpers/set_window_location_helper';
 import {
   DELETE_PACKAGE_TRACKING_ACTION,
   DELETE_PACKAGES_TRACKING_ACTION,
@@ -17,7 +15,7 @@ import {
   CANCEL_DELETE_PACKAGES_TRACKING_ACTION,
 } from '~/packages_and_registries/package_registry/constants';
 import PackagesList from '~/packages_and_registries/package_registry/components/list/packages_list.vue';
-import { mockTracking, unmockTracking } from 'helpers/tracking_helper';
+import Tracking from '~/tracking';
 import { defaultPackageGroupSettings, packageData } from '../../mock_data';
 
 describe('packages_list', () => {
@@ -53,12 +51,11 @@ describe('packages_list', () => {
   const findRegistryList = () => wrapper.findComponent(RegistryList);
   const findPackagesListRow = () => wrapper.findComponent(PackagesListRow);
   const findErrorPackageAlert = () => wrapper.findComponent(GlAlert);
-  const findErrorAlertButton = () => findErrorPackageAlert().findComponent(GlButton);
   const findDeletePackagesModal = () => wrapper.findComponent(DeleteModal);
 
   const showMock = jest.fn();
 
-  const mountComponent = ({ props = {}, provide = defaultProvide, stubs = {} } = {}) => {
+  const mountComponent = ({ props = {}, provide = defaultProvide } = {}) => {
     wrapper = shallowMountExtended(PackagesList, {
       provide,
       propsData: {
@@ -71,7 +68,8 @@ describe('packages_list', () => {
             show: showMock,
           },
         }),
-        ...stubs,
+        GlSprintf,
+        RegistryList,
       },
       slots: {
         'empty-state': EmptySlotStub,
@@ -99,7 +97,7 @@ describe('packages_list', () => {
 
   describe('when is not loading', () => {
     beforeEach(() => {
-      mountComponent({ stubs: { RegistryList } });
+      mountComponent();
     });
 
     it('does not show skeleton loader', () => {
@@ -158,17 +156,13 @@ describe('packages_list', () => {
     ${'when the user can destroy the package'}                                | ${findPackagesListRow} | ${firstPackage}
     ${'when the user can bulk destroy packages and deletes only one package'} | ${findRegistryList}    | ${[firstPackage]}
   `('$description', ({ finderFunction, deletePayload }) => {
-    let trackingSpy;
+    let eventSpy;
     const category = 'UI::NpmPackages';
 
     beforeEach(() => {
-      trackingSpy = mockTracking(undefined, undefined, jest.spyOn);
-      mountComponent({ stubs: { RegistryList } });
+      eventSpy = jest.spyOn(Tracking, 'event');
+      mountComponent();
       finderFunction().vm.$emit('delete', deletePayload);
-    });
-
-    afterEach(() => {
-      unmockTracking();
     });
 
     it('passes itemsToBeDeleted to the modal', () => {
@@ -176,7 +170,7 @@ describe('packages_list', () => {
     });
 
     it('requesting delete tracks the right action', () => {
-      expect(trackingSpy).toHaveBeenCalledWith(
+      expect(eventSpy).toHaveBeenCalledWith(
         category,
         REQUEST_DELETE_PACKAGE_TRACKING_ACTION,
         expect.any(Object),
@@ -197,7 +191,7 @@ describe('packages_list', () => {
       });
 
       it('tracks the right action', () => {
-        expect(trackingSpy).toHaveBeenCalledWith(
+        expect(eventSpy).toHaveBeenCalledWith(
           category,
           DELETE_PACKAGE_TRACKING_ACTION,
           expect.any(Object),
@@ -214,7 +208,7 @@ describe('packages_list', () => {
     it('canceling delete tracks the right action', () => {
       findDeletePackagesModal().vm.$emit('cancel');
 
-      expect(trackingSpy).toHaveBeenCalledWith(
+      expect(eventSpy).toHaveBeenCalledWith(
         category,
         CANCEL_DELETE_PACKAGE_TRACKING_ACTION,
         expect.any(Object),
@@ -223,17 +217,13 @@ describe('packages_list', () => {
   });
 
   describe('when the user can bulk destroy packages', () => {
-    let trackingSpy;
+    let eventSpy;
     const items = [firstPackage, secondPackage];
 
     beforeEach(() => {
-      trackingSpy = mockTracking(undefined, undefined, jest.spyOn);
+      eventSpy = jest.spyOn(Tracking, 'event');
       mountComponent();
       findRegistryList().vm.$emit('delete', items);
-    });
-
-    afterEach(() => {
-      unmockTracking();
     });
 
     it('passes itemsToBeDeleted to the modal', () => {
@@ -242,7 +232,7 @@ describe('packages_list', () => {
     });
 
     it('requesting delete tracks the right action', () => {
-      expect(trackingSpy).toHaveBeenCalledWith(
+      expect(eventSpy).toHaveBeenCalledWith(
         undefined,
         REQUEST_DELETE_PACKAGES_TRACKING_ACTION,
         expect.any(Object),
@@ -259,7 +249,7 @@ describe('packages_list', () => {
       });
 
       it('tracks the right action', () => {
-        expect(trackingSpy).toHaveBeenCalledWith(
+        expect(eventSpy).toHaveBeenCalledWith(
           undefined,
           DELETE_PACKAGES_TRACKING_ACTION,
           expect.any(Object),
@@ -276,7 +266,7 @@ describe('packages_list', () => {
     it('canceling delete tracks the right action', () => {
       findDeletePackagesModal().vm.$emit('cancel');
 
-      expect(trackingSpy).toHaveBeenCalledWith(
+      expect(eventSpy).toHaveBeenCalledWith(
         undefined,
         CANCEL_DELETE_PACKAGES_TRACKING_ACTION,
         expect.any(Object),
@@ -287,6 +277,8 @@ describe('packages_list', () => {
   describe('when an error package is present', () => {
     beforeEach(() => {
       mountComponent({ props: { list: [firstPackage, errorPackage] } });
+
+      return nextTick();
     });
 
     it('should display an alert with default body message', () => {
@@ -299,10 +291,12 @@ describe('packages_list', () => {
       );
     });
 
-    it('should display alert body with message set in `statusMessage`', () => {
+    it('should display alert body with message set in `statusMessage`', async () => {
       mountComponent({
         props: { list: [firstPackage, { ...errorPackage, statusMessage: 'custom error message' }] },
       });
+
+      await nextTick();
 
       expect(findErrorPackageAlert().exists()).toBe(true);
       expect(findErrorPackageAlert().props('title')).toBe(
@@ -311,72 +305,14 @@ describe('packages_list', () => {
       expect(findErrorPackageAlert().text()).toBe('custom error message');
     });
 
-    describe('`Delete this package` button', () => {
-      beforeEach(() => {
-        mountComponent({ props: { list: [firstPackage, errorPackage] }, stubs: { GlAlert } });
-      });
+    it('should display the deletion modal when clicked on the confirm button', async () => {
+      findErrorPackageAlert().vm.$emit('primaryAction');
 
-      it('displays the button within the alert', () => {
-        expect(findErrorAlertButton().text()).toBe('Delete this package');
-      });
+      await nextTick();
 
-      it('should display the deletion modal when clicked on the `Delete this package` button', async () => {
-        findErrorAlertButton().vm.$emit('click');
+      expect(showMock).toHaveBeenCalledTimes(1);
 
-        await nextTick();
-
-        expect(showMock).toHaveBeenCalledTimes(1);
-
-        expect(findDeletePackagesModal().props('itemsToBeDeleted')).toStrictEqual([errorPackage]);
-      });
-    });
-
-    describe('when `hideErrorAlert` is true', () => {
-      beforeEach(() => {
-        mountComponent({
-          props: { list: [firstPackage, errorPackage], hideErrorAlert: true },
-        });
-      });
-
-      it('does not display alert message', () => {
-        expect(findErrorPackageAlert().exists()).toBe(false);
-      });
-    });
-  });
-
-  describe('when multiple error packages are present', () => {
-    beforeEach(() => {
-      mountComponent({
-        props: { list: [{ ...firstPackage, status: errorPackage.status }, errorPackage] },
-      });
-    });
-
-    it('should display an alert with default body message', () => {
-      expect(findErrorPackageAlert().props('title')).toBe(
-        'There was an error publishing 2 packages',
-      );
-      expect(findErrorPackageAlert().text()).toBe(
-        '2 packages were not published to the registry. Remove these packages and try again.',
-      );
-    });
-
-    describe('`Show packages with errors` button', () => {
-      beforeEach(() => {
-        setWindowLocation(`${TEST_HOST}/foo?type=maven&after=1234`);
-        mountComponent({
-          props: {
-            list: [{ ...firstPackage, status: errorPackage.status }, errorPackage],
-          },
-          stubs: { GlAlert },
-        });
-      });
-
-      it('is shown with correct href within the alert', () => {
-        expect(findErrorAlertButton().text()).toBe('Show packages with errors');
-        expect(findErrorAlertButton().attributes('href')).toBe(
-          `${TEST_HOST}/foo?type=maven&status=error`,
-        );
-      });
+      expect(findDeletePackagesModal().props('itemsToBeDeleted')).toStrictEqual([errorPackage]);
     });
   });
 

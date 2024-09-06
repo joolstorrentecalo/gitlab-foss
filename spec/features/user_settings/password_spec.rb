@@ -90,7 +90,7 @@ RSpec.describe 'User Settings > Password', feature_category: :user_profile do
         visit edit_user_settings_password_path
 
         expect(page).to have_title('Not Found')
-        expect(page).to have_content('Page not found')
+        expect(page).to have_content('Page Not Found')
       end
     end
   end
@@ -218,7 +218,7 @@ RSpec.describe 'User Settings > Password', feature_category: :user_profile do
       fill_in :user_password,      with: user.password
       fill_in :user_new_password,  with: new_password
       fill_in :user_password_confirmation, with: new_password
-      click_button 'Update password'
+      click_button 'Set new password'
 
       expect(page).to have_current_path new_user_session_path, ignore_query: true
     end
@@ -231,7 +231,7 @@ RSpec.describe 'User Settings > Password', feature_category: :user_profile do
       fill_in :user_password,      with: user.password
       fill_in :user_new_password,  with: "password"
       fill_in :user_password_confirmation, with: "password"
-      click_button 'Update password'
+      click_button 'Set new password'
       expect_snowplow_event(
         category: 'Gitlab::Tracking::Helpers::WeakPasswordErrorEvent',
         action: 'track_weak_password_error',

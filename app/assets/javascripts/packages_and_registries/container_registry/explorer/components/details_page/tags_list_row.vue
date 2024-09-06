@@ -5,10 +5,8 @@ import {
   GlSprintf,
   GlIcon,
   GlDisclosureDropdown,
-  GlBadge,
-  GlLink,
 } from '@gitlab/ui';
-import { localeDateFormat } from '~/lib/utils/datetime_utility';
+import { formatDate } from '~/lib/utils/datetime_utility';
 import { numberToHumanSize } from '~/lib/utils/number_utils';
 import { n__ } from '~/locale';
 import ClipboardButton from '~/vue_shared/components/clipboard_button.vue';
@@ -27,13 +25,7 @@ import {
   NOT_AVAILABLE_SIZE,
   MORE_ACTIONS_TEXT,
   COPY_IMAGE_PATH_TITLE,
-  SIGNATURE_BADGE_TOOLTIP,
-  DOCKER_MEDIA_TYPE,
-  OCI_MEDIA_TYPE,
-  DOCKER_MANIFEST_LIST_TOOLTIP,
-  OCI_INDEX_TOOLTIP,
 } from '../../constants/index';
-import SignatureDetailsModal from './signature_details_modal.vue';
 
 export default {
   components: {
@@ -41,13 +33,10 @@ export default {
     GlFormCheckbox,
     GlIcon,
     GlDisclosureDropdown,
-    GlBadge,
-    GlLink,
     ListItem,
     ClipboardButton,
     TimeAgoTooltip,
     DetailsRow,
-    SignatureDetailsModal,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -83,14 +72,6 @@ export default {
     MISSING_MANIFEST_WARNING_TOOLTIP,
     MORE_ACTIONS_TEXT,
     COPY_IMAGE_PATH_TITLE,
-    SIGNATURE_BADGE_TOOLTIP,
-    DOCKER_MANIFEST_LIST_TOOLTIP,
-    OCI_INDEX_TOOLTIP,
-  },
-  data() {
-    return {
-      selectedDigest: null,
-    };
   },
   computed: {
     items() {
@@ -98,7 +79,7 @@ export default {
         {
           text: this.$options.i18n.REMOVE_TAG_BUTTON_TITLE,
           extraAttrs: {
-            class: '!gl-text-red-500',
+            class: 'gl-text-red-500!',
             'data-testid': 'single-delete-button',
           },
           action: () => {
@@ -107,6 +88,7 @@ export default {
         },
       ];
     },
+
     formattedSize() {
       return this.tag.totalSize
         ? numberToHumanSize(Number(this.tag.totalSize))
@@ -122,11 +104,14 @@ export default {
       // remove sha256: from the string, and show only the first 7 char
       return this.tag.digest?.substring(7, 14) ?? NOT_AVAILABLE_TEXT;
     },
-    publishDateTime() {
+    publishDate() {
       return this.tag.publishedAt || this.tag.createdAt;
     },
-    publishedDateTime() {
-      return localeDateFormat.asDateTimeFull.format(this.publishDateTime);
+    publishedDate() {
+      return formatDate(this.publishDate, 'isoDate');
+    },
+    publishedTime() {
+      return formatDate(this.publishDate, 'HH:MM:ss Z');
     },
     formattedRevision() {
       // to be removed when API response is adjusted
@@ -146,21 +131,6 @@ export default {
     showConfigDigest() {
       return !this.isInvalidTag && !this.isEmptyRevision;
     },
-    signatures() {
-      const referrers = this.tag.referrers || [];
-      // All referrers should be signatures, but we'll filter by signature artifact types as a sanity check.
-      return referrers.filter(
-        ({ artifactType }) => artifactType === 'application/vnd.dev.cosign.artifact.sig.v1+json',
-      );
-    },
-    shouldDisplayLabelsIcon() {
-      return this.tag.mediaType === DOCKER_MEDIA_TYPE || this.tag.mediaType === OCI_MEDIA_TYPE;
-    },
-    labelsIconTooltipText() {
-      return this.tag.mediaType === DOCKER_MEDIA_TYPE
-        ? this.$options.i18n.DOCKER_MANIFEST_LIST_TOOLTIP
-        : this.$options.i18n.OCI_INDEX_TOOLTIP;
-    },
   },
 };
 </script>
@@ -177,11 +147,11 @@ export default {
       />
     </template>
     <template #left-primary>
-      <div class="gl-flex gl-items-center">
+      <div class="gl-display-flex gl-align-items-center">
         <div
-          v-gl-tooltip="tag.name"
+          v-gl-tooltip="{ title: tag.name }"
           data-testid="name"
-          class="gl-overflow-hidden gl-text-ellipsis gl-whitespace-nowrap"
+          class="gl-text-overflow-ellipsis gl-overflow-hidden gl-white-space-nowrap"
           :class="mobileClasses"
         >
           {{ tag.name }}
@@ -193,31 +163,15 @@ export default {
           :text="tag.location"
           category="tertiary"
           :disabled="disabled"
-          class="gl-ml-2"
-          size="small"
         />
 
         <gl-icon
           v-if="isInvalidTag"
-          v-gl-tooltip.d0="$options.i18n.MISSING_MANIFEST_WARNING_TOOLTIP"
+          v-gl-tooltip="{ title: $options.i18n.MISSING_MANIFEST_WARNING_TOOLTIP }"
           name="warning"
-          class="gl-mr-2 gl-text-orange-500"
-        />
-
-        <gl-icon
-          v-if="shouldDisplayLabelsIcon"
-          v-gl-tooltip.d0="labelsIconTooltipText"
-          name="labels"
-          class="gl-mr-2"
-          data-testid="labels-icon"
+          class="gl-text-orange-500 gl-mb-2 gl-ml-2"
         />
       </div>
-    </template>
-
-    <template v-if="signatures.length" #left-after-toggle>
-      <gl-badge v-gl-tooltip.d0="$options.i18n.SIGNATURE_BADGE_TOOLTIP" class="gl-ml-4">
-        {{ s__('ContainerRegistry|Signed') }}
-      </gl-badge>
     </template>
 
     <template #left-secondary>
@@ -231,7 +185,7 @@ export default {
       <span data-testid="time">
         <gl-sprintf :message="$options.i18n.CREATED_AT_LABEL">
           <template #timeInfo>
-            <time-ago-tooltip :time="publishDateTime" />
+            <time-ago-tooltip :time="publishDate" />
           </template>
         </gl-sprintf>
       </span>
@@ -251,8 +205,8 @@ export default {
         :text-sr-only="true"
         category="tertiary"
         no-caret
-        placement="bottom-end"
-        :class="{ 'gl-pointer-events-none gl-opacity-0': disabled }"
+        placement="right"
+        :class="{ 'gl-opacity-0 gl-pointer-events-none': disabled }"
         data-testid="additional-actions"
         :items="items"
       />
@@ -264,8 +218,11 @@ export default {
           <template #repositoryPath>
             <i>{{ tagLocation }}</i>
           </template>
-          <template #dateTime>
-            {{ publishedDateTime }}
+          <template #time>
+            {{ publishedTime }}
+          </template>
+          <template #date>
+            {{ publishedDate }}
           </template>
         </gl-sprintf>
       </details-row>
@@ -303,33 +260,6 @@ export default {
           :disabled="disabled"
         />
       </details-row>
-    </template>
-
-    <template v-if="signatures.length" #details-signatures>
-      <details-row
-        v-for="({ digest }, index) in signatures"
-        :key="index"
-        icon="pencil"
-        data-testid="signatures-detail"
-      >
-        <div class="gl-flex">
-          <span class="gl-mr-3 gl-grow gl-basis-0 gl-truncate">
-            <gl-sprintf :message="s__('ContainerRegistry|Signature digest: %{digest}')">
-              <template #digest>{{ digest }}</template>
-            </gl-sprintf>
-          </span>
-
-          <gl-link @click="selectedDigest = digest">
-            {{ __('View details') }}
-          </gl-link>
-        </div>
-      </details-row>
-
-      <signature-details-modal
-        :visible="Boolean(selectedDigest)"
-        :digest="selectedDigest"
-        @close="selectedDigest = null"
-      />
     </template>
   </list-item>
 </template>

@@ -1,6 +1,5 @@
 import Vue, { nextTick } from 'vue';
 import VueApollo from 'vue-apollo';
-import namespaceWorkItemTypesQueryResponse from 'test_fixtures/graphql/work_items/namespace_work_item_types.query.graphql.json';
 import getIssueDetailsQuery from 'ee_else_ce/work_items/graphql/get_issue_details.query.graphql';
 import { TEST_HOST } from 'helpers/test_constants';
 import createMockApollo from 'helpers/mock_apollo_helper';
@@ -10,7 +9,7 @@ import { createAlert } from '~/alert';
 import Description from '~/issues/show/components/description.vue';
 import eventHub from '~/issues/show/event_hub';
 import createWorkItemMutation from '~/work_items/graphql/create_work_item.mutation.graphql';
-import workItemTypesQuery from '~/work_items/graphql/namespace_work_item_types.query.graphql';
+import workItemTypesQuery from '~/work_items/graphql/project_work_item_types.query.graphql';
 import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
 import TaskList from '~/task_list';
 import { renderGFM } from '~/behaviors/markdown/render_gfm';
@@ -18,6 +17,7 @@ import {
   createWorkItemMutationErrorResponse,
   createWorkItemMutationResponse,
   getIssueDetailsResponse,
+  projectWorkItemTypesQueryResponse,
   workItemByIidResponseFactory,
 } from 'jest/work_items/mock_data';
 import {
@@ -36,7 +36,7 @@ const $toast = {
 };
 
 const issueDetailsResponse = getIssueDetailsResponse();
-const workItemTypesQueryHandler = jest.fn().mockResolvedValue(namespaceWorkItemTypesQueryResponse);
+const workItemTypesQueryHandler = jest.fn().mockResolvedValue(projectWorkItemTypesQueryResponse);
 
 describe('Description component', () => {
   let wrapper;
@@ -269,7 +269,7 @@ describe('Description component', () => {
           });
           await waitForPromises();
 
-          eventHub.$emit('convert-task-list-item', { id: '1', sourcepos: '4:4-8:19' });
+          eventHub.$emit('convert-task-list-item', '4:4-8:19');
           await waitForPromises();
         });
 
@@ -284,10 +284,6 @@ describe('Description component', () => {
         });
 
         it('calls a mutation to create a task', () => {
-          const workItemTypeIdForTask =
-            namespaceWorkItemTypesQueryResponse.data.workspace.workItemTypes.nodes.find(
-              (node) => node.name === 'Task',
-            ).id;
           const { confidential, iteration, milestone } = issueDetailsResponse.data.issue;
           expect(createWorkItemMutationHandler).toHaveBeenCalledWith({
             input: {
@@ -304,7 +300,7 @@ describe('Description component', () => {
               },
               projectPath: 'gitlab-org/gitlab-test',
               title: 'item 2',
-              workItemTypeId: workItemTypeIdForTask,
+              workItemTypeId: 'gid://gitlab/WorkItems::Type/3',
             },
           });
         });
@@ -324,7 +320,7 @@ describe('Description component', () => {
           });
           await waitForPromises();
 
-          eventHub.$emit('convert-task-list-item', { id: '1', sourcepos: '1:1-1:11' });
+          eventHub.$emit('convert-task-list-item', '1:1-1:11');
           await waitForPromises();
         });
 
@@ -355,7 +351,7 @@ describe('Description component', () => {
           props: { descriptionText },
         });
 
-        eventHub.$emit('delete-task-list-item', { id: '1', sourcepos: '4:4-5:19' });
+        eventHub.$emit('delete-task-list-item', '4:4-5:19');
 
         expect(wrapper.emitted('saveDescription')).toEqual([[newDescriptionText]]);
       });

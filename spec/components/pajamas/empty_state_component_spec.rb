@@ -6,10 +6,8 @@ RSpec.describe Pajamas::EmptyStateComponent, type: :component, feature_category:
   let(:title) { 'Empty state title' }
   let(:primary_button_link) { '#learn-more-primary' }
   let(:primary_button_text) { 'Learn more' }
-  let(:primary_button_options) { { data: { testid: 'primary-application-button' } } }
   let(:secondary_button_link) { '#learn-more-secondary' }
   let(:secondary_button_text) { 'Another action' }
-  let(:secondary_button_options) { { data: { testid: 'secondary-application-button' } } }
   let(:description) { 'Empty state description' }
   let(:svg_path) { 'illustrations/empty-state/empty-projects-deleted-md.svg' }
   let(:compact) { false }
@@ -22,10 +20,8 @@ RSpec.describe Pajamas::EmptyStateComponent, type: :component, feature_category:
       empty_state_options: empty_state_options,
       primary_button_link: primary_button_link,
       primary_button_text: primary_button_text,
-      primary_button_options: primary_button_options,
       secondary_button_link: secondary_button_link,
       secondary_button_text: secondary_button_text,
-      secondary_button_options: secondary_button_options,
       compact: compact) do |c|
       c.with_description { description } if description
     end
@@ -33,13 +29,11 @@ RSpec.describe Pajamas::EmptyStateComponent, type: :component, feature_category:
 
   describe 'default' do
     it 'renders the primary action' do
-      expect(find_primary_button).to have_text(primary_button_text)
-      expect(find_primary_button[:href]).to eq(primary_button_link)
+      expect(page).to have_link(primary_button_text, href: primary_button_link)
     end
 
     it 'renders the secondary action' do
-      expect(find_secondary_button).to have_text(secondary_button_text)
-      expect(find_secondary_button[:href]).to eq(secondary_button_link)
+      expect(page).to have_link(secondary_button_text, href: secondary_button_link)
     end
 
     it 'renders image as illustration' do
@@ -60,7 +54,7 @@ RSpec.describe Pajamas::EmptyStateComponent, type: :component, feature_category:
 
     it 'renders section with flex direction column' do
       expect(find_section[:id]).to eq(empty_state_options[:id])
-      expect(find_section[:class]).to eq("gl-flex gl-empty-state gl-text-center gl-flex-col")
+      expect(find_section[:class]).to eq("gl-display-flex gl-empty-state gl-text-center gl-flex-direction-column")
     end
   end
 
@@ -68,7 +62,7 @@ RSpec.describe Pajamas::EmptyStateComponent, type: :component, feature_category:
     let(:compact) { true }
 
     it 'renders section with flex direction row' do
-      expect(find_section[:class]).to eq("gl-flex gl-empty-state gl-flex-row")
+      expect(find_section[:class]).to eq("gl-display-flex gl-empty-state gl-flex-direction-row")
     end
   end
 
@@ -103,13 +97,5 @@ RSpec.describe Pajamas::EmptyStateComponent, type: :component, feature_category:
 
   def find_description
     page.first('[data-testid="empty-state-description"]', minimum: 0)
-  end
-
-  def find_primary_button
-    page.first('[data-testid="primary-application-button"]', minimum: 0)
-  end
-
-  def find_secondary_button
-    page.first('[data-testid="secondary-application-button"]', minimum: 0)
   end
 end

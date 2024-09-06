@@ -138,7 +138,6 @@ export default {
     :suggestions="labels"
     :get-active-token-value="getActiveLabel"
     :default-suggestions="defaultLabels"
-    :value-identifier="getLabelName"
     v-bind="$attrs"
     @fetch-suggestions="fetchLabels"
     v-on="$listeners"
@@ -152,6 +151,7 @@ export default {
           :background-color="getLabelBackgroundColor(label)"
           :scoped="showScopedLabel(label)"
           :title="label"
+          size="sm"
         />
       </gl-intersperse>
       <template v-else>
@@ -162,6 +162,7 @@ export default {
           "
           :scoped="showScopedLabel(activeTokenValue ? getLabelName(activeTokenValue) : inputValue)"
           :title="activeTokenValue ? getLabelName(activeTokenValue) : inputValue"
+          size="sm"
       /></template>
     </template>
     <template #suggestions-list="{ suggestions, selections = [] }">
@@ -171,17 +172,17 @@ export default {
         :value="getLabelName(label)"
       >
         <div
-          class="gl-flex gl-items-center"
+          class="gl-display-flex gl-align-items-center"
           :class="{ 'gl-pl-6': !selections.includes(label.title) }"
         >
           <gl-icon
             v-if="selections.includes(label.title)"
             name="check"
-            class="gl-mr-3 gl-shrink-0 gl-text-secondary"
+            class="gl-mr-3 gl-text-secondary gl-flex-shrink-0"
           />
           <span
             :style="{ backgroundColor: label.color }"
-            class="gl-mr-3 gl-inline-block gl-p-3"
+            class="gl-display-inline-block gl-mr-3 gl-p-3"
           ></span>
           <div>{{ getLabelName(label) }}</div>
         </div>

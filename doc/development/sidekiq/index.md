@@ -7,8 +7,8 @@ info: Any user with at least the Maintainer role can merge updates to this conte
 # Sidekiq development guidelines
 
 We use [Sidekiq](https://github.com/mperham/sidekiq) as our background
-job processor. These guides are for writing jobs that work well on
-GitLab.com and are consistent with our existing worker classes. For
+job processor. These guides are for writing jobs that works well on
+GitLab.com and be consistent with our existing worker classes. For
 information on administering GitLab, see [configuring Sidekiq](../../administration/sidekiq/index.md).
 
 There are pages with additional detail on the following topics:
@@ -18,10 +18,10 @@ There are pages with additional detail on the following topics:
 1. [Limited capacity worker: continuously performing work with a specified concurrency](limited_capacity_worker.md)
 1. [Logging](logging.md)
 1. [Worker attributes](worker_attributes.md)
-   1. **Job urgency** specifies queuing and execution SLOs
-   1. **Resource boundaries** and **external dependencies** for describing the workload
-   1. **Feature categorization**
-   1. **Database load balancing**
+    1. **Job urgency** specifies queuing and execution SLOs
+    1. **Resource boundaries** and **external dependencies** for describing the workload
+    1. **Feature categorization**
+    1. **Database load balancing**
 
 ## ApplicationWorker
 
@@ -41,21 +41,6 @@ Sidekiq::Client.via(pool) do
   ...
 end
 ```
-
-Unrouted Sidekiq calls are caught by the validator in all API requests, Sidekiq jobs on the server-side and in tests.
-We recommend writing application logic with the use of the `Gitlab::SidekiqSharding::Router`. However, since sharding is an
-unreleased feature, if the component does not affect GitLab.com, it is acceptable run it within a `.allow_unrouted_sidekiq_calls` scope like so:
-
-```ruby
-# Add a comment explaining why it is safe to allow unrouted Sidekiq calls in this case
-Gitlab::SidekiqSharding::Validator.allow_unrouted_sidekiq_calls do
-  # your unrouted logic
-end
-```
-
-A past example is the use of `allow_unrouted_sidekiq_calls` in [Geo Rake tasks](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/149958#note_1906072228)
-as it does not affect GitLab.com. However, developer should write shard-aware code where possible since
-that is a pre-requisite for sharding to be [released as a feature to self-managed users](https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/3430).
 
 ## Retries
 
@@ -132,16 +117,12 @@ If you need to perform an action when a job fails after all of its retry attempt
 
 ```ruby
 sidekiq_retries_exhausted do |msg, ex|
-  project = Project.find_by_id(msg['args'].first)
-  return unless project
-
+  project = Project.find(msg['args'].first)
   project.perform_a_rollback # handle the permanent failure
 end
 
 def perform(project_id)
-  project = Project.find_by_id(project_id)
-  return unless project
-
+  project = Project.find(project_id)
   project.some_action # throws an exception
 end
 ```

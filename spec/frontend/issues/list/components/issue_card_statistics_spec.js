@@ -1,6 +1,7 @@
 import { GlIcon } from '@gitlab/ui';
 import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
 import IssueCardStatistics from '~/issues/list/components/issue_card_statistics.vue';
+import { i18n } from '~/issues/list/constants';
 
 describe('IssueCardStatistics CE component', () => {
   let wrapper;
@@ -9,10 +10,14 @@ describe('IssueCardStatistics CE component', () => {
   const findUpvotes = () => wrapper.findByTestId('issuable-upvotes');
   const findDownvotes = () => wrapper.findByTestId('issuable-downvotes');
 
-  const mountComponent = (issue = {}) => {
+  const mountComponent = ({ mergeRequestsCount, upvotes, downvotes } = {}) => {
     wrapper = shallowMountExtended(IssueCardStatistics, {
       propsData: {
-        issue,
+        issue: {
+          mergeRequestsCount,
+          upvotes,
+          downvotes,
+        },
       },
     });
   };
@@ -28,16 +33,15 @@ describe('IssueCardStatistics CE component', () => {
   });
 
   describe('when issue attributes are defined', () => {
-    const issue = { mergeRequestsCount: 1, upvotes: 5, downvotes: 9 };
     beforeEach(() => {
-      mountComponent(issue);
+      mountComponent({ mergeRequestsCount: 1, upvotes: 5, downvotes: 9 });
     });
 
     it('renders merge requests', () => {
       const mergeRequests = findMergeRequests();
 
       expect(mergeRequests.text()).toBe('1');
-      expect(mergeRequests.attributes('title')).toBe('Related merge requests');
+      expect(mergeRequests.attributes('title')).toBe(i18n.relatedMergeRequests);
       expect(mergeRequests.findComponent(GlIcon).props('name')).toBe('merge-request');
     });
 
@@ -45,7 +49,7 @@ describe('IssueCardStatistics CE component', () => {
       const upvotes = findUpvotes();
 
       expect(upvotes.text()).toBe('5');
-      expect(upvotes.attributes('title')).toBe('Upvotes');
+      expect(upvotes.attributes('title')).toBe(i18n.upvotes);
       expect(upvotes.findComponent(GlIcon).props('name')).toBe('thumb-up');
     });
 
@@ -53,20 +57,8 @@ describe('IssueCardStatistics CE component', () => {
       const downvotes = findDownvotes();
 
       expect(downvotes.text()).toBe('9');
-      expect(downvotes.attributes('title')).toBe('Downvotes');
+      expect(downvotes.attributes('title')).toBe(i18n.downvotes);
       expect(downvotes.findComponent(GlIcon).props('name')).toBe('thumb-down');
-    });
-  });
-
-  describe('with work item object', () => {
-    it('renders upvotes and downvotes', () => {
-      const issue = {
-        widgets: [{ type: 'AWARD_EMOJI', downvotes: '4', upvotes: '8' }],
-      };
-      mountComponent(issue);
-
-      expect(findDownvotes().text()).toBe('4');
-      expect(findUpvotes().text()).toBe('8');
     });
   });
 });

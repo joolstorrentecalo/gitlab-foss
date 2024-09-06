@@ -7,25 +7,16 @@
     "admin_cicd_variables": {
       "type": "boolean"
     },
-    "admin_compliance_framework": {
-      "type": "boolean"
-    },
     "admin_group_member": {
-      "type": "boolean"
-    },
-    "admin_integrations": {
       "type": "boolean"
     },
     "admin_merge_request": {
       "type": "boolean"
     },
-    "admin_protected_branch": {
-      "type": "boolean"
-    },
     "admin_push_rules": {
       "type": "boolean"
     },
-    "admin_runners": {
+    "manage_security_policy_link": {
       "type": "boolean"
     },
     "admin_terraform_state": {
@@ -34,31 +25,16 @@
     "admin_vulnerability": {
       "type": "boolean"
     },
-    "admin_web_hook": {
-      "type": "boolean"
-    },
     "archive_project": {
-      "type": "boolean"
-    },
-    "manage_deploy_tokens": {
       "type": "boolean"
     },
     "manage_group_access_tokens": {
       "type": "boolean"
     },
-    "manage_merge_request_settings": {
-      "type": "boolean"
-    },
     "manage_project_access_tokens": {
       "type": "boolean"
     },
-    "manage_security_policy_link": {
-      "type": "boolean"
-    },
     "read_code": {
-      "type": "boolean"
-    },
-    "read_crm_contact": {
       "type": "boolean"
     },
     "read_dependency": {
@@ -71,9 +47,6 @@
       "type": "boolean"
     },
     "remove_project": {
-      "type": "boolean"
-    },
-    "read_runners": {
       "type": "boolean"
     }
   }

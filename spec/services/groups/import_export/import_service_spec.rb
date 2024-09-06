@@ -64,14 +64,14 @@ RSpec.describe Groups::ImportExport::ImportService, feature_category: :importers
     let(:group) { create(:group) }
     let(:import_file) { fixture_file_upload('spec/fixtures/group_export.tar.gz') }
 
-    let(:import_logger) { instance_double(::Import::Framework::Logger) }
+    let(:import_logger) { instance_double(Gitlab::Import::Logger) }
 
     subject(:service) { described_class.new(group: group, user: user) }
 
     before do
-      ImportExportUpload.create!(group: group, import_file: import_file, user: user)
+      ImportExportUpload.create!(group: group, import_file: import_file)
 
-      allow(::Import::Framework::Logger).to receive(:build).and_return(import_logger)
+      allow(Gitlab::Import::Logger).to receive(:build).and_return(import_logger)
       allow(import_logger).to receive(:error)
       allow(import_logger).to receive(:info)
       allow(import_logger).to receive(:warn)
@@ -108,7 +108,7 @@ RSpec.describe Groups::ImportExport::ImportService, feature_category: :importers
       it 'removes import file' do
         service.execute
 
-        expect(group.import_export_upload_by_user(user).import_file.file).to be_nil
+        expect(group.import_export_upload.import_file.file).to be_nil
       end
 
       it 'removes tmp files' do
@@ -181,7 +181,7 @@ RSpec.describe Groups::ImportExport::ImportService, feature_category: :importers
       end
 
       it 'logs the import success' do
-        allow(::Import::Framework::Logger).to receive(:build).and_return(import_logger)
+        allow(Gitlab::Import::Logger).to receive(:build).and_return(import_logger)
 
         expect(import_logger).to receive(:info).with(
           group_id: group.id,
@@ -207,15 +207,15 @@ RSpec.describe Groups::ImportExport::ImportService, feature_category: :importers
     let(:group) { create(:group) }
     let(:import_file) { fixture_file_upload('spec/fixtures/legacy_group_export.tar.gz') }
 
-    let(:import_logger) { instance_double(::Import::Framework::Logger) }
+    let(:import_logger) { instance_double(Gitlab::Import::Logger) }
 
     subject(:service) { described_class.new(group: group, user: user) }
 
     before do
       group.add_owner(user)
-      ImportExportUpload.create!(group: group, import_file: import_file, user: user)
+      ImportExportUpload.create!(group: group, import_file: import_file)
 
-      allow(::Import::Framework::Logger).to receive(:build).and_return(import_logger)
+      allow(Gitlab::Import::Logger).to receive(:build).and_return(import_logger)
       allow(import_logger).to receive(:error)
       allow(import_logger).to receive(:warn)
       allow(import_logger).to receive(:info)

@@ -173,6 +173,122 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
         sign_in(user)
       end
 
+      context "user has access to project" do
+        before do
+          expect(::Gitlab::GitalyClient).to receive(:allow_ref_name_caching).and_call_original
+        end
+
+        context 'when ambiguous_ref_modal is disabled' do
+          before do
+            stub_feature_flags(ambiguous_ref_modal: false)
+          end
+
+          context 'when there is a tag with the same name as the default branch' do
+            let_it_be(:tagged_project) { create(:project, :public, :custom_repo, files: ['somefile']) }
+            let(:tree_with_default_branch) do
+              branch = tagged_project.repository.find_branch(tagged_project.default_branch)
+              project_tree_path(tagged_project, branch.target)
+            end
+
+            before do
+              tagged_project.repository.create_file(
+                tagged_project.creator,
+                'file_for_tag',
+                'content for file',
+                message: "Automatically created file",
+                branch_name: 'branch-to-tag'
+              )
+
+              tagged_project.repository.add_tag(
+                tagged_project.creator,
+                tagged_project.default_branch, # tag name
+                'branch-to-tag' # target
+              )
+            end
+
+            it 'redirects to tree view for the default branch' do
+              get :show, params: { namespace_id: tagged_project.namespace, id: tagged_project }
+              expect(response).to redirect_to(tree_with_default_branch)
+            end
+          end
+
+          context 'when the default branch name is ambiguous' do
+            let_it_be(:project_with_default_branch) do
+              create(:project, :public, :custom_repo, files: ['somefile'])
+            end
+
+            shared_examples 'ambiguous ref redirects' do
+              let(:project) { project_with_default_branch }
+              let(:branch_ref) { "refs/heads/#{ref}" }
+              let(:repo) { project.repository }
+
+              before do
+                repo.create_branch(branch_ref, 'master')
+                repo.change_head(ref)
+              end
+
+              after do
+                repo.change_head('master')
+                repo.delete_branch(branch_ref)
+              end
+
+              subject do
+                get(
+                  :show,
+                  params: {
+                    namespace_id: project.namespace,
+                    id: project
+                  }
+                )
+              end
+
+              context 'when there is no conflicting ref' do
+                let(:other_ref) { 'non-existent-ref' }
+
+                it { is_expected.to have_gitlab_http_status(:ok) }
+              end
+
+              context 'and that other ref exists' do
+                let(:other_ref) { 'master' }
+
+                let(:project_default_root_tree_path) do
+                  sha = repo.find_branch(project.default_branch).target
+                  project_tree_path(project, sha)
+                end
+
+                it 'redirects to tree view for the default branch' do
+                  is_expected.to redirect_to(project_default_root_tree_path)
+                end
+              end
+            end
+
+            context 'when ref starts with ref/heads/' do
+              let(:ref) { "refs/heads/#{other_ref}" }
+
+              include_examples 'ambiguous ref redirects'
+            end
+
+            context 'when ref starts with ref/tags/' do
+              let(:ref) { "refs/tags/#{other_ref}" }
+
+              include_examples 'ambiguous ref redirects'
+            end
+
+            context 'when ref starts with heads/' do
+              let(:ref) { "heads/#{other_ref}" }
+
+              include_examples 'ambiguous ref redirects'
+            end
+
+            context 'when ref starts with tags/' do
+              let(:ref) { "tags/#{other_ref}" }
+
+              include_examples 'ambiguous ref redirects'
+            end
+          end
+        end
+      end
+
       describe "when project repository is disabled" do
         render_views
 
@@ -267,7 +383,7 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
         sign_in(user)
 
         expect_next_instance_of(Repository) do |repository|
-          expect(repository).to receive(:root_ref).and_raise(Gitlab::Git::CommandError, 'get default branch')
+          expect(repository).to receive(:root_ref).and_raise(Gitlab::Git::CommandError, 'get default branch').twice
         end
       end
 
@@ -446,15 +562,6 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
           expect(response).to have_gitlab_http_status(expected_status)
           expect(response).to redirect_to(send(expected_redirect)) if expected_status == :found
         end
-      end
-    end
-
-    context 'redirection from http://someproject.git?ref=master' do
-      it 'redirects to project without .git extension' do
-        get :show, params: { namespace_id: public_project.namespace, id: public_project, ref: 'master', path: '/.gitlab-ci.yml' }, format: :git
-
-        expect(response).to have_gitlab_http_status(:found)
-        expect(response).to redirect_to(project_path(public_project, ref: 'master', path: '/.gitlab-ci.yml'))
       end
     end
 
@@ -1092,7 +1199,6 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
 
       expect { Project.find(orig_id) }.to raise_error(ActiveRecord::RecordNotFound)
       expect(response).to have_gitlab_http_status(:found)
-      expect(flash[:toast]).to eq(format(_("Project '%{project_name}' is being deleted."), project_name: project.full_name))
       expect(response).to redirect_to(dashboard_projects_path)
     end
 
@@ -1349,7 +1455,7 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
     end
 
     it 'renders json in a correct format' do
-      post :preview_markdown, params: { namespace_id: public_project.namespace, project_id: public_project, text: '*Markdown* text' }
+      post :preview_markdown, params: { namespace_id: public_project.namespace, id: public_project, text: '*Markdown* text' }
 
       expect(json_response.keys).to match_array(%w[body references])
     end
@@ -1358,7 +1464,7 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
       let(:private_project) { create(:project, :private) }
 
       it 'returns 404' do
-        post :preview_markdown, params: { namespace_id: private_project.namespace, project_id: private_project, text: '*Markdown* text' }
+        post :preview_markdown, params: { namespace_id: private_project.namespace, id: private_project, text: '*Markdown* text' }
 
         expect(response).to have_gitlab_http_status(:not_found)
       end
@@ -1372,7 +1478,7 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
       it 'renders JSON body with state filter for issues' do
         post :preview_markdown, params: {
                                   namespace_id: public_project.namespace,
-                                  project_id: public_project,
+                                  id: public_project,
                                   text: issue.to_reference
                                 }
 
@@ -1382,7 +1488,7 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
       it 'renders JSON body with state filter for MRs' do
         post :preview_markdown, params: {
                                   namespace_id: public_project.namespace,
-                                  project_id: public_project,
+                                  id: public_project,
                                   text: merge_request.to_reference
                                 }
 
@@ -1394,8 +1500,8 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
       let(:project_with_repo) { create(:project, :repository) }
       let(:preview_markdown_params) do
         {
-          namespace_id: project_with_repo.namespace.full_path,
-          project_id: project_with_repo.path,
+          namespace_id: project_with_repo.namespace,
+          id: project_with_repo,
           text: "![](./logo-white.png)\n",
           path: 'files/images/README.md'
         }
@@ -1418,8 +1524,8 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
       let(:project_with_repo) { create(:project, :repository) }
       let(:preview_markdown_params) do
         {
-          namespace_id: project_with_repo.namespace.full_path,
-          project_id: project_with_repo.path,
+          namespace_id: project_with_repo.namespace,
+          id: project_with_repo,
           text: "![](./logo-white.png)\n",
           ref: 'other_branch',
           path: 'files/images/README.md'
@@ -1632,8 +1738,7 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
     end
 
     describe '#download_export', :clean_gitlab_redis_rate_limiting do
-      let(:project) { create(:project, service_desk_enabled: false, creator: user) }
-      let!(:export) { create(:import_export_upload, project: project, user: user) }
+      let(:project) { create(:project, :with_export, service_desk_enabled: false) }
       let(:action) { :download_export }
 
       context 'object storage enabled' do
@@ -1647,7 +1752,7 @@ RSpec.describe ProjectsController, feature_category: :groups_and_projects do
 
         context 'when project export file is absent' do
           it 'alerts the user and returns 302' do
-            project.export_file(user).file.delete
+            project.export_file.file.delete
 
             get action, params: { namespace_id: project.namespace, id: project }
 

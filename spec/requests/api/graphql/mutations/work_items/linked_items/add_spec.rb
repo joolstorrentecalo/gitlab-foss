@@ -72,6 +72,18 @@ RSpec.describe "Add linked items to a work item", feature_category: :portfolio_m
       )
     end
 
+    context 'when work item is created at the group level' do
+      let(:work_item) { create(:work_item, :group_level, namespace: group) }
+
+      it 'links the work item' do
+        expect do
+          post_graphql_mutation(mutation, current_user: current_user)
+        end.to change { WorkItems::RelatedWorkItemLink.count }.by(2)
+
+        expect(mutation_response['message']).to eq("Successfully linked ID(s): #{related1.id} and #{related2.id}.")
+      end
+    end
+
     context 'when linking a work item fails' do
       let_it_be(:private_project) { create(:project, :private) }
       let_it_be(:related2) { create(:work_item, project: private_project) }
@@ -131,6 +143,14 @@ RSpec.describe "Add linked items to a work item", feature_category: :portfolio_m
           expect_graphql_errors_to_include(error_msg)
         end
       end
+    end
+
+    context 'when `linked_work_items` feature flag is disabled' do
+      before do
+        stub_feature_flags(linked_work_items: false)
+      end
+
+      it_behaves_like 'a mutation that returns a top-level access error'
     end
   end
 end

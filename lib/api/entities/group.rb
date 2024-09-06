@@ -32,7 +32,7 @@ module API
       expose :custom_attributes, using: 'API::Entities::CustomAttribute', if: :with_custom_attributes
 
       expose :statistics, if: :statistics do
-        with_options format_with: ->(value) { value.to_i } do
+        with_options format_with: -> (value) { value.to_i } do
           expose :storage_size
           expose :repository_size
           expose :wiki_size
@@ -43,15 +43,6 @@ module API
           expose :snippets_size
           expose :uploads_size
         end
-      end
-
-      expose :root_storage_statistics, using: Entities::Namespace::RootStorageStatistics,
-        if: ->(group, opts) {
-              expose_root_storage_statistics?(group, opts)
-            }
-
-      def expose_root_storage_statistics?(group, opts)
-        opts[:statistics] && group.root?
       end
     end
   end

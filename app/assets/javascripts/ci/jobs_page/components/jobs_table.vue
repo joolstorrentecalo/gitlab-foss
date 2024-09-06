@@ -39,11 +39,8 @@ export default {
     },
   },
   methods: {
-    showCoverage(coverage) {
-      return coverage || coverage === 0;
-    },
     formatCoverage(coverage) {
-      return `${coverage}%`;
+      return coverage ? `${coverage}%` : '';
     },
   },
 };
@@ -77,7 +74,7 @@ export default {
     </template>
 
     <template #cell(stage)="{ item }">
-      <div class="gl-truncate">
+      <div class="gl-text-truncate">
         <span v-if="item.stage" data-testid="job-stage-name" class="gl-text-secondary">{{
           item.stage.name
         }}</span>
@@ -93,9 +90,9 @@ export default {
     </template>
 
     <template #cell(coverage)="{ item }">
-      <span v-if="showCoverage(item.coverage)" data-testid="job-coverage">
-        {{ formatCoverage(item.coverage) }}
-      </span>
+      <span v-if="item.coverage" data-testid="job-coverage">{{
+        formatCoverage(item.coverage)
+      }}</span>
     </template>
 
     <template #cell(actions)="{ item }">

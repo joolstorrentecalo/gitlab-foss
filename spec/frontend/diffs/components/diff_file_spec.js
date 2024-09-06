@@ -12,7 +12,6 @@ import { createAlert } from '~/alert';
 import DiffContentComponent from 'jh_else_ce/diffs/components/diff_content.vue';
 import DiffFileComponent from '~/diffs/components/diff_file.vue';
 import DiffFileHeaderComponent from '~/diffs/components/diff_file_header.vue';
-import DiffFileDiscussionExpansion from '~/diffs/components/diff_file_discussion_expansion.vue';
 
 import {
   EVT_DISCUSSIONS_ASSIGNED,
@@ -31,6 +30,7 @@ import createNotesStore from '~/notes/stores/modules';
 import diffsModule from '~/diffs/store/modules';
 import { SOMETHING_WENT_WRONG, SAVING_THE_COMMENT_FAILED } from '~/diffs/i18n';
 import diffLineNoteFormMixin from '~/notes/mixins/diff_line_note_form';
+import { SET_PINNED_FILE_HASH } from '~/diffs/store/mutation_types';
 import { getDiffFileMock } from '../mock_data/diff_file';
 import diffFileMockDataUnreadable from '../mock_data/diff_file_unreadable';
 import diffsMockData from '../mock_data/merge_request_diffs';
@@ -71,7 +71,7 @@ function changeViewer(store, index, { automaticallyCollapsed, manuallyCollapsed,
   });
 }
 
-function forceHasDiff({ store, index = 0, inlineLines, parallelLines, expandable }) {
+function forceHasDiff({ store, index = 0, inlineLines, parallelLines, readableText }) {
   const file = store.state.diffs.diffFiles[index];
 
   Object.assign(file, {
@@ -79,10 +79,7 @@ function forceHasDiff({ store, index = 0, inlineLines, parallelLines, expandable
     parallel_diff_lines: parallelLines,
     blob: {
       ...file.blob,
-    },
-    viewer: {
-      ...file.viewer,
-      expandable,
+      readable_text: readableText,
     },
   });
 }
@@ -114,11 +111,9 @@ const makeFileManuallyCollapsed = (store, index = 0) =>
 const changeViewerType = (store, newType, index = 0) =>
   changeViewer(store, index, { name: diffViewerModes[newType] });
 
-// eslint-disable-next-line max-params
 const triggerSaveNote = (wrapper, note, parent, error) =>
   findNoteForm(wrapper).vm.$emit('handleFormUpdate', note, parent, error);
 
-// eslint-disable-next-line max-params
 const triggerSaveDraftNote = (wrapper, note, parent, error) =>
   findNoteForm(wrapper).vm.$emit('handleFormUpdateAddToReview', note, false, parent, error);
 
@@ -126,7 +121,6 @@ describe('DiffFile', () => {
   let wrapper;
   let store;
   let axiosMock;
-  let toggleFileDiscussionMock;
 
   function createComponent({
     file = getReadableFile(),
@@ -135,12 +129,9 @@ describe('DiffFile', () => {
     options = {},
     props = {},
   } = {}) {
-    toggleFileDiscussionMock = jest.fn();
-
     const diffs = diffsModule();
     diffs.actions = {
       ...diffs.actions,
-      toggleFileDiscussion: toggleFileDiscussionMock,
       prefetchFileNeighbors: prefetchFileNeighborsMock,
       saveDiffDiscussion: saveDiffDiscussionMock,
     };
@@ -215,8 +206,8 @@ describe('DiffFile', () => {
     describe('during mount', () => {
       it.each`
         first    | last     | events                                                                 | file
-        ${false} | ${false} | ${[]}                                                                  | ${{ inlineLines: [], parallelLines: [], expandable: true }}
-        ${true}  | ${true}  | ${[]}                                                                  | ${{ inlineLines: [], parallelLines: [], expandable: true }}
+        ${false} | ${false} | ${[]}                                                                  | ${{ inlineLines: [], parallelLines: [], readableText: true }}
+        ${true}  | ${true}  | ${[]}                                                                  | ${{ inlineLines: [], parallelLines: [], readableText: true }}
         ${true}  | ${false} | ${[EVT_PERF_MARK_FIRST_DIFF_FILE_SHOWN]}                               | ${false}
         ${false} | ${true}  | ${[EVT_PERF_MARK_DIFF_FILES_END]}                                      | ${false}
         ${true}  | ${true}  | ${[EVT_PERF_MARK_FIRST_DIFF_FILE_SHOWN, EVT_PERF_MARK_DIFF_FILES_END]} | ${false}
@@ -261,7 +252,7 @@ describe('DiffFile', () => {
 
     describe('after loading the diff', () => {
       it('indicates that it loaded the file', async () => {
-        forceHasDiff({ store, inlineLines: [], parallelLines: [], expandable: true });
+        forceHasDiff({ store, inlineLines: [], parallelLines: [], readableText: true });
         createComponent({
           file: store.state.diffs.diffFiles[0],
           first: true,
@@ -503,12 +494,12 @@ describe('DiffFile', () => {
       });
 
       describe('fetch collapsed diff', () => {
-        const prepFile = async (inlineLines, parallelLines, expandable) => {
+        const prepFile = async (inlineLines, parallelLines, readableText) => {
           forceHasDiff({
             store,
             inlineLines,
             parallelLines,
-            expandable,
+            readableText,
           });
 
           await nextTick();
@@ -523,28 +514,28 @@ describe('DiffFile', () => {
         });
 
         it.each`
-          inlineLines | parallelLines | expandable
+          inlineLines | parallelLines | readableText
           ${[1]}      | ${[1]}        | ${true}
           ${[]}       | ${[1]}        | ${true}
           ${[1]}      | ${[]}         | ${true}
           ${[1]}      | ${[1]}        | ${false}
           ${[]}       | ${[]}         | ${false}
         `(
-          'does not make a request to fetch the diff for a diff file like { inline: $inlineLines, parallel: $parallelLines, expandable: $expandable }',
-          async ({ inlineLines, parallelLines, expandable }) => {
-            await prepFile(inlineLines, parallelLines, expandable);
+          'does not make a request to fetch the diff for a diff file like { inline: $inlineLines, parallel: $parallelLines, readableText: $readableText }',
+          async ({ inlineLines, parallelLines, readableText }) => {
+            await prepFile(inlineLines, parallelLines, readableText);
 
             expect(wrapper.vm.requestDiff).not.toHaveBeenCalled();
           },
         );
 
         it.each`
-          inlineLines | parallelLines | expandable
+          inlineLines | parallelLines | readableText
           ${[]}       | ${[]}         | ${true}
         `(
-          'makes a request to fetch the diff for a diff file like { inline: $inlineLines, parallel: $parallelLines, expandable: $expandable }',
-          async ({ inlineLines, parallelLines, expandable }) => {
-            await prepFile(inlineLines, parallelLines, expandable);
+          'makes a request to fetch the diff for a diff file like { inline: $inlineLines, parallel: $parallelLines, readableText: $readableText }',
+          async ({ inlineLines, parallelLines, readableText }) => {
+            await prepFile(inlineLines, parallelLines, readableText);
 
             expect(wrapper.vm.requestDiff).toHaveBeenCalled();
           },
@@ -696,9 +687,9 @@ describe('DiffFile', () => {
     );
 
     it.each`
-      discussions                                                               | exists   | existsText
-      ${[]}                                                                     | ${false} | ${'does not'}
-      ${[{ id: 1, position: { position_type: 'file' }, expandedOnDiff: true }]} | ${true}  | ${'does'}
+      discussions                                         | exists   | existsText
+      ${[]}                                               | ${false} | ${'does not'}
+      ${[{ id: 1, position: { position_type: 'file' } }]} | ${true}  | ${'does'}
     `('discussions $existsText exist for $discussions', ({ discussions, exists }) => {
       const file = {
         ...getReadableFile(),
@@ -710,37 +701,6 @@ describe('DiffFile', () => {
       });
 
       expect(wrapper.findByTestId('diff-file-discussions').exists()).toEqual(exists);
-    });
-
-    it('hides discussions when expandedOnDiff is false', () => {
-      const file = {
-        ...getReadableFile(),
-        discussions: [{ id: 1, position: { position_type: 'file' }, expandedOnDiff: false }],
-      };
-
-      createComponent({
-        file,
-      });
-
-      expect(wrapper.findByTestId('diff-file-discussions').exists()).toEqual(false);
-    });
-
-    it('calls toggleFileDiscussion when toggle is emited on expansion component', () => {
-      const file = {
-        ...getReadableFile(),
-        discussions: [
-          { id: 1, position: { position_type: 'file' }, expandedOnDiff: false },
-          { id: 2, position: { position_type: 'file' }, expandedOnDiff: false },
-        ],
-      };
-
-      createComponent({
-        file,
-      });
-
-      wrapper.findComponent(DiffFileDiscussionExpansion).vm.$emit('toggle');
-
-      expect(toggleFileDiscussionMock).toHaveBeenCalledTimes(2);
     });
 
     describe('when note-form emits `handleFormUpdate`', () => {
@@ -831,6 +791,15 @@ describe('DiffFile', () => {
           errorCallback,
         );
       });
+    });
+  });
+
+  describe('pinned file', () => {
+    it('passes down pinned prop', async () => {
+      createComponent();
+      store.commit(`diffs/${SET_PINNED_FILE_HASH}`, getReadableFile().file_hash);
+      await nextTick();
+      expect(wrapper.findComponent(DiffFileHeaderComponent).props('pinned')).toBe(true);
     });
   });
 });

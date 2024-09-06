@@ -14,9 +14,10 @@ export const initOrganizationsGroupsNew = () => {
     dataset: { appData },
   } = el;
   const {
+    organizationId,
     basePath,
-    groupsAndProjectsOrganizationPath,
     groupsOrganizationPath,
+    mattermostEnabled,
     availableVisibilityLevels,
     restrictedVisibilityLevels,
     defaultVisibilityLevel,
@@ -33,9 +34,10 @@ export const initOrganizationsGroupsNew = () => {
     name: 'OrganizationGroupsNewRoot',
     apolloProvider,
     provide: {
+      organizationId,
       basePath,
-      groupsAndProjectsOrganizationPath,
       groupsOrganizationPath,
+      mattermostEnabled,
       availableVisibilityLevels,
       restrictedVisibilityLevels,
       defaultVisibilityLevel,

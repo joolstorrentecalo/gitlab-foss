@@ -124,37 +124,6 @@ RSpec.describe Gitlab::AlertManagement::Payload::Base do
         it { is_expected.to be_nil }
       end
     end
-
-    context 'with a time_with_epoch_millis type provided' do
-      let(:timestamp) { 3.hours.ago }
-      let(:epoch_millis) { (timestamp.to_f * 1000).to_i }
-
-      let(:payload_class) do
-        Class.new(described_class) do
-          attribute :test, paths: [['test']], type: :time_with_epoch_millis
-        end
-      end
-
-      it { is_expected.to be_nil }
-
-      context 'with a compatible matching value' do
-        let(:raw_payload) { { 'test' => epoch_millis } }
-
-        it { is_expected.to be_within(1.second).of(timestamp) }
-      end
-
-      context 'with an incompatible matching value' do
-        let(:raw_payload) { { 'test' => String } }
-
-        it { is_expected.to be_nil }
-      end
-
-      context 'with an incompatible matching value' do
-        let(:raw_payload) { { 'test' => 'apple' } }
-
-        it { is_expected.to be_nil }
-      end
-    end
   end
 
   describe '#alert_params' do
@@ -170,6 +139,7 @@ RSpec.describe Gitlab::AlertManagement::Payload::Base do
           gitlab_fingerprint: 'gitlab_fingerprint',
           hosts: 'hosts',
           monitoring_tool: 'monitoring_tool',
+          gitlab_alert: create(:prometheus_alert, project: project),
           service: 'service',
           severity: 'critical',
           starts_at: Time.current,
@@ -187,6 +157,7 @@ RSpec.describe Gitlab::AlertManagement::Payload::Base do
           monitoring_tool: stubs[:monitoring_tool],
           payload: raw_payload,
           project_id: project.id,
+          prometheus_alert: stubs[:gitlab_alert],
           service: stubs[:service],
           severity: stubs[:severity],
           started_at: stubs[:starts_at],

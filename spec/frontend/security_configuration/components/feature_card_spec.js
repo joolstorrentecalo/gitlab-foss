@@ -50,8 +50,6 @@ describe('FeatureCard component', () => {
 
   const findSecondarySection = () => wrapper.findByTestId('secondary-feature');
 
-  const findFeatureStatus = () => wrapper.findByTestId('feature-status');
-
   const expectAction = (action) => {
     const expectEnableAction = action === 'enable';
     const expectConfigureAction = action === 'configure';
@@ -133,7 +131,7 @@ describe('FeatureCard component', () => {
       });
 
       it(`shows the status "${expectedStatus}"`, () => {
-        expect(findFeatureStatus().text()).toBe(expectedStatus);
+        expect(wrapper.findByTestId('feature-status').text()).toBe(expectedStatus);
       });
 
       if (configured) {
@@ -369,7 +367,7 @@ describe('FeatureCard component', () => {
 
       if (expectedStatus) {
         it(`should show the status "${expectedStatus}"`, () => {
-          expect(findFeatureStatus().text()).toBe(expectedStatus);
+          expect(wrapper.findByTestId('feature-status').text()).toBe(expectedStatus);
         });
       }
     });
@@ -387,7 +385,7 @@ describe('FeatureCard component', () => {
       });
 
       it(`should not show a status`, () => {
-        expect(findFeatureStatus().exists()).toBe(false);
+        expect(wrapper.findByTestId('feature-status').exists()).toBe(false);
       });
     });
   });

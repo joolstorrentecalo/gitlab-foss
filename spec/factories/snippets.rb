@@ -50,13 +50,10 @@ FactoryBot.define do
   end
 
   factory :personal_snippet, parent: :snippet, class: :PersonalSnippet do
-    author { association(:author, :with_namespace) }
-    organization { association :organization, :default }
-    project { nil }
-
     trait :secret do
       visibility_level { Snippet::PUBLIC }
       secret { true }
+      project { nil }
     end
   end
 end

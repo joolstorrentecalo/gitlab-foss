@@ -1,6 +1,6 @@
 ---
 stage: Verify
-group: Pipeline Execution
+group: Pipeline Security
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
@@ -82,10 +82,6 @@ Download the artifacts zipped archive from the latest **successful** pipeline fo
 the given reference name and job, provided the job finished successfully. This
 is the same as [getting the job's artifacts](#get-job-artifacts), but by
 defining the job's name instead of its ID.
-
-To determine which pipeline is the latest successful pipeline, GitLab checks the creation time
-of the successful pipelines. The start or end time of individual jobs does not affect
-which pipeline is the latest.
 
 If you use cURL to download artifacts from GitLab.com, use the `--location` parameter
 as the request might redirect through a CDN.
@@ -296,7 +292,7 @@ Delete artifacts of a job.
 
 Prerequisites:
 
-- You must have at least the maintainer role for the project.
+- Must have at least the maintainer role in the project.
 
 ```plaintext
 DELETE /projects/:id/jobs/:job_id/artifacts
@@ -319,6 +315,9 @@ At least Maintainer role is required to delete artifacts.
 If the artifacts were deleted successfully, a response with status `204 No Content` is returned.
 
 ## Delete project artifacts
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/223793) in GitLab 14.7 [with a flag](../administration/feature_flags.md) named `bulk_expire_project_artifacts`. Enabled by default on GitLab self-managed. Enabled on GitLab.com.
+> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/350609) in GitLab 14.10.
 
 Delete artifacts eligible for deletion in a project. By default, artifacts from
 [the most recent successful pipeline of each ref](../ci/jobs/job_artifacts.md#keep-artifacts-from-most-recent-successful-jobs)

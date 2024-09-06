@@ -17,9 +17,9 @@ module SystemCheck
           $stdout.print sanitized_message(project)
 
           if project.namespace
-            $stdout.puts Rainbow('yes').green
+            $stdout.puts 'yes'.color(:green)
           else
-            $stdout.puts Rainbow('no').red
+            $stdout.puts 'no'.color(:red)
             show_error
           end
         end

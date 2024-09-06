@@ -4,12 +4,12 @@ module Gitlab
   module Patch
     module RedisCacheStore
       # We will try keep patched code explicit and matching the original signature in
-      # https://github.com/rails/rails/blob/v7.1.3.4/activesupport/lib/active_support/cache/redis_cache_store.rb#L324
-      def read_multi_entries(...)
+      # https://github.com/rails/rails/blob/v6.1.7.2/activesupport/lib/active_support/cache/redis_cache_store.rb#L361
+      def read_multi_mget(*names) # rubocop:disable Style/ArgumentsForwarding
         return super unless enable_rails_cache_pipeline_patch?
         return super unless use_patched_mget?
 
-        patched_read_multi_entries(...)
+        patched_read_multi_mget(*names) # rubocop:disable Style/ArgumentsForwarding
       end
 
       # `delete_multi_entries` in Rails runs a multi-key `del` command
@@ -17,24 +17,22 @@ module Gitlab
       def delete_multi_entries(entries, **options)
         return super unless enable_rails_cache_pipeline_patch?
 
+        delete_count = 0
         redis.with do |conn|
-          ::Gitlab::Redis::ClusterUtil.batch_del(entries, conn)
+          entries.each_slice(pipeline_batch_size) do |subset|
+            delete_count += conn.pipelined do |pipeline|
+              subset.each { |entry| pipeline.del(entry) }
+            end.sum
+          end
         end
+        delete_count
       end
 
-      # `pipeline_entries` is used by Rails for multi-key writes
-      # patch will run pipelined single-key for Redis Cluster compatibility
-      def pipeline_entries(entries, &block)
-        return super unless enable_rails_cache_pipeline_patch?
-
-        redis.with do |conn|
-          ::Gitlab::Redis::ClusterUtil.batch(entries, conn, &block)
-        end
-      end
-
-      # Copied from https://github.com/rails/rails/blob/v7.1.3.4/activesupport/lib/active_support/cache/redis_cache_store.rb#L324
-      # re-implements `read_multi_entries` using a pipeline of `get`s rather than an `mget`
-      def patched_read_multi_entries(names, **options)
+      # Copied from https://github.com/rails/rails/blob/v6.1.6.1/activesupport/lib/active_support/cache/redis_cache_store.rb
+      # re-implements `read_multi_mget` using a pipeline of `get`s rather than an `mget`
+      #
+      def patched_read_multi_mget(*names)
+        options = names.extract_options!
         options = merged_options(options)
         return {} if names == []
 
@@ -42,23 +40,35 @@ module Gitlab
 
         keys = names.map { |name| normalize_key(name, options) }
 
-        values = failsafe(:patched_read_multi_entries, returning: {}) do
+        values = failsafe(:patched_read_multi_mget, returning: {}) do
           redis.with do |c|
-            ::Gitlab::Redis::ClusterUtil.batch_get(keys, c)
+            pipeline_mget(c, keys)
           end
         end
 
         names.zip(values).each_with_object({}) do |(name, value), results|
-          next unless value
+          if value # rubocop:disable Style/Next
+            entry = deserialize_entry(value, raw: raw)
+            unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
+              results[name] = entry.value
+            end
+          end
+        end
+      end
 
-          entry = deserialize_entry(value, raw: raw)
-          unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
-            results[name] = entry.value
+      def pipeline_mget(conn, keys)
+        keys.each_slice(pipeline_batch_size).flat_map do |subset|
+          conn.pipelined do |p|
+            subset.each { |key| p.get(key) }
           end
         end
       end
 
       private
+
+      def pipeline_batch_size
+        @pipeline_batch_size ||= [ENV['GITLAB_REDIS_CLUSTER_PIPELINE_BATCH_LIMIT'].to_i, 1000].max
+      end
 
       def enable_rails_cache_pipeline_patch?
         redis.with { |c| ::Gitlab::Redis::ClusterUtil.cluster?(c) }

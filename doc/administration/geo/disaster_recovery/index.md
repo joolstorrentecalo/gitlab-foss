@@ -73,9 +73,6 @@ must disable the **primary** site.
   If you plan to [update the primary domain DNS record](#step-4-optional-updating-the-primary-domain-dns-record),
   you may wish to maintain a low TTL to ensure fast propagation of DNS changes.
 
-  NOTE:
-  The primary site's `/etc/gitlab/gitlab.rb` file is not copied to the secondary sites automatically during this process. Make sure that you back up the primary's `/etc/gitlab/gitlab.rb` file, so that you can later restore any needed values on your secondary sites.
-
 ### Step 3. Promoting a **secondary** site
 
 Note the following when promoting a secondary:
@@ -88,14 +85,8 @@ Note the following when promoting a secondary:
   the **secondary** to the **primary**.
 - If you encounter an `ActiveRecord::RecordInvalid: Validation failed: Name has already been taken`
   error message during this process, for more information, see this
-  [troubleshooting advice](failover_troubleshooting.md).md#fixing-errors-during-a-failover-or-when-promoting-a-secondary-to-a-primary-site).
-- If you are using separate URLs, you should [point the primary domain DNS at the newly promoted site](#step-4-optional-updating-the-primary-domain-dns-record). Otherwise, runners must be registered again with the newly promoted site, and all Git remotes, bookmarks, and external integrations must be updated.
-- If you are using [location-aware DNS](../secondary_proxy/index.md#configure-location-aware-dns), the runners should automatically connect to the new primary after the old primary is removed from the DNS entry.
-- If you don't expect the runners connected to the previous primary to come back, you should remove them:
-  - Through the UI:
-    1. On the left sidebar, at the bottom, select **Admin**.
-    1. Select **CI/CD > Runners** and remove them.
-  - Using the [Runners API](../../../api/runners.md).
+  [troubleshooting advice](../replication/troubleshooting/failover.md#fixing-errors-during-a-failover-or-when-promoting-a-secondary-to-a-primary-site).
+- You should [point the primary domain DNS at the newly promoted site](#step-4-optional-updating-the-primary-domain-dns-record). Otherwise, runners must be registered again with the newly promoted site, and all Git remotes, bookmarks, and external integrations must be updated.
 
 #### Promoting a **secondary** site running on a single node
 
@@ -303,6 +294,25 @@ changing Git remotes and API URLs.
 
    This command uses the changed `external_url` configuration defined
    in `/etc/gitlab/gitlab.rb`.
+
+1. For GitLab 12.0 through 12.7, you may need to update the **primary**
+   site's name in the database. This bug has been fixed in GitLab 12.8.
+
+   To determine if you need to do this, search for the
+   `gitlab_rails["geo_node_name"]` setting in your `/etc/gitlab/gitlab.rb`
+   file. If it is commented out with `#` or not found at all, then you
+   need to update the **primary** site's name in the database. You can search for it
+   like so:
+
+   ```shell
+   grep "geo_node_name" /etc/gitlab/gitlab.rb
+   ```
+
+   To update the **primary** site's name in the database:
+
+   ```shell
+   gitlab-rails runner 'Gitlab::Geo.primary_node.update!(name: GeoNode.current_node_name)'
+   ```
 
 1. Verify you can connect to the newly promoted **primary** using its URL.
    If you updated the DNS records for the primary domain, these changes may
@@ -521,4 +531,4 @@ Data that was created on the primary while the secondary was paused is lost.
 
 ## Troubleshooting
 
-This section was moved to [another location](failover_troubleshooting.md#fixing-errors-during-a-failover-or-when-promoting-a-secondary-to-a-primary-site).
+This section was moved to [another location](../replication/troubleshooting/failover.md#fixing-errors-during-a-failover-or-when-promoting-a-secondary-to-a-primary-site).

@@ -14,24 +14,23 @@ RSpec.describe Packages::Protection::UpdateRuleService, '#execute', feature_cate
       :package_protection_rule,
       package_name_pattern: "#{package_protection_rule.package_name_pattern}-updated",
       package_type: 'npm',
-      minimum_access_level_for_push: 'owner'
+      push_protected_up_to_access_level: 'owner'
     )
   end
 
   subject(:service_execute) { service.execute }
 
-  shared_examples 'a successful service response with side effect' do
+  shared_examples 'a successful service response' do
     let(:expected_attributes) { params }
 
-    it_behaves_like 'returning a success service response' do
-      it do
-        is_expected.to have_attributes(
-          errors: be_blank,
-          payload: {
-            package_protection_rule: be_a(Packages::Protection::Rule).and(have_attributes(expected_attributes))
-          }
-        )
-      end
+    it { is_expected.to be_success }
+
+    it do
+      is_expected.to have_attributes(
+        errors: be_blank,
+        message: be_blank,
+        payload: { package_protection_rule: be_a(Packages::Protection::Rule).and(have_attributes(expected_attributes)) }
+      )
     end
 
     it { expect { subject }.not_to change { Packages::Protection::Rule.count } }
@@ -39,24 +38,27 @@ RSpec.describe Packages::Protection::UpdateRuleService, '#execute', feature_cate
     it { subject.tap { expect(package_protection_rule.reload).to have_attributes expected_attributes } }
   end
 
-  shared_examples 'an erroneous service response with side effect' do |message: nil|
-    it_behaves_like 'returning an error service response', message: message do
-      it do
-        is_expected.to have_attributes(errors: be_present,
-          payload: { package_protection_rule: nil })
-      end
+  shared_examples 'an erroneous service response' do
+    it { is_expected.to be_error }
+
+    it do
+      is_expected.to have_attributes(
+        errors: be_present,
+        message: be_present,
+        payload: { package_protection_rule: nil }
+      )
     end
 
     it { expect { subject }.not_to change { Packages::Protection::Rule.count } }
     it { expect { subject }.not_to change { package_protection_rule.reload.updated_at } }
   end
 
-  it_behaves_like 'a successful service response with side effect'
+  it_behaves_like 'a successful service response'
 
   context 'with disallowed params' do
     let(:params) { super().merge!(project_id: 1, unsupported_param: 'unsupported_param_value') }
 
-    it_behaves_like 'a successful service response with side effect' do
+    it_behaves_like 'a successful service response' do
       let(:expected_attributes) { params.except(:project_id, :unsupported_param) }
     end
   end
@@ -64,17 +66,18 @@ RSpec.describe Packages::Protection::UpdateRuleService, '#execute', feature_cate
   context 'when fields are invalid' do
     let(:params) do
       { package_name_pattern: '', package_type: 'unknown_package_type',
-        minimum_access_level_for_push: 1000 }
+        push_protected_up_to_access_level: 1000 }
     end
 
-    it_behaves_like 'an erroneous service response with side effect',
-      message: "'unknown_package_type' is not a valid package_type"
+    it_behaves_like 'an erroneous service response'
+
+    it { is_expected.to have_attributes message: /'unknown_package_type' is not a valid package_type/ }
   end
 
   context 'with empty params' do
     let(:params) { {} }
 
-    it_behaves_like 'a successful service response with side effect' do
+    it_behaves_like 'a successful service response' do
       let(:expected_attributes) { package_protection_rule.attributes }
     end
 
@@ -84,7 +87,7 @@ RSpec.describe Packages::Protection::UpdateRuleService, '#execute', feature_cate
   context 'with nil params' do
     let(:params) { nil }
 
-    it_behaves_like 'a successful service response with side effect' do
+    it_behaves_like 'a successful service response' do
       let(:expected_attributes) { package_protection_rule.attributes }
     end
 
@@ -99,12 +102,18 @@ RSpec.describe Packages::Protection::UpdateRuleService, '#execute', feature_cate
 
     let(:params) { { package_name_pattern: other_existing_package_protection_rule.package_name_pattern } }
 
-    it_behaves_like 'an erroneous service response with side effect',
-      message: ['Package name pattern has already been taken']
+    it_behaves_like 'an erroneous service response'
 
     it do
       expect { service_execute }.not_to(
         change { other_existing_package_protection_rule.reload.package_name_pattern }
+      )
+    end
+
+    it do
+      is_expected.to have_attributes(
+        errors: match_array([/Package name pattern has already been taken/]),
+        message: match_array([/Package name pattern has already been taken/])
       )
     end
   end
@@ -120,8 +129,9 @@ RSpec.describe Packages::Protection::UpdateRuleService, '#execute', feature_cate
     end
 
     with_them do
-      it_behaves_like 'an erroneous service response with side effect',
-        message: 'Unauthorized to update a package protection rule'
+      it_behaves_like 'an erroneous service response'
+
+      it { is_expected.to have_attributes errors: match_array(/Unauthorized/), message: /Unauthorized/ }
     end
   end
 

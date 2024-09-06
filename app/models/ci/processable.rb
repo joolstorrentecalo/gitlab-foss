@@ -9,30 +9,25 @@ module Ci
     include Ci::Metadatable
     extend ::Gitlab::Utils::Override
 
-    ACTIONABLE_WHEN = %w[manual delayed].freeze
-
     self.allow_legacy_sti_class = true
 
     has_one :resource, class_name: 'Ci::Resource', foreign_key: 'build_id', inverse_of: :processable
     has_one :sourced_pipeline, class_name: 'Ci::Sources::Pipeline', foreign_key: :source_job_id, inverse_of: :source_job
 
-    belongs_to :trigger_request
     belongs_to :resource_group, class_name: 'Ci::ResourceGroup', inverse_of: :processables
-
-    delegate :trigger_short_token, to: :trigger_request, allow_nil: true
 
     accepts_nested_attributes_for :needs
 
     scope :preload_needs, -> { preload(:needs) }
     scope :manual_actions, -> { where(when: :manual, status: COMPLETED_STATUSES + %i[manual]) }
 
-    scope :with_needs, ->(names = nil) do
+    scope :with_needs, -> (names = nil) do
       needs = Ci::BuildNeed.scoped_build.select(1)
       needs = needs.where(name: names) if names
       where('EXISTS (?)', needs)
     end
 
-    scope :without_needs, ->(names = nil) do
+    scope :without_needs, -> (names = nil) do
       needs = Ci::BuildNeed.scoped_build.select(1)
       needs = needs.where(name: names) if names
       where('NOT EXISTS (?)', needs)
@@ -74,7 +69,8 @@ module Ci
 
       after_transition any => :waiting_for_resource do |processable|
         processable.run_after_commit do
-          assign_resource_from_resource_group(processable)
+          Ci::ResourceGroups::AssignResourceFromResourceGroupWorker
+            .perform_async(processable.resource_group_id)
         end
       end
 
@@ -84,26 +80,17 @@ module Ci
         processable.resource_group.release_resource_from(processable)
 
         processable.run_after_commit do
-          assign_resource_from_resource_group(processable)
+          Ci::ResourceGroups::AssignResourceFromResourceGroupWorker
+            .perform_async(processable.resource_group_id)
         end
       end
 
       after_transition any => [:failed] do |processable|
-        next if processable.allow_failure?
         next unless processable.can_auto_cancel_pipeline_on_job_failure?
 
         processable.run_after_commit do
           processable.pipeline.cancel_async_on_job_failure
         end
-      end
-    end
-
-    def assign_resource_from_resource_group(processable)
-      if Feature.enabled?(:assign_resource_worker_deduplicate_until_executing, processable.project) &&
-          Feature.disabled?(:assign_resource_worker_deduplicate_until_executing_override, processable.project)
-        Ci::ResourceGroups::AssignResourceFromResourceGroupWorkerV2.perform_async(processable.resource_group_id)
-      else
-        Ci::ResourceGroups::AssignResourceFromResourceGroupWorker.perform_async(processable.resource_group_id)
       end
     end
 
@@ -251,14 +238,6 @@ module Ci
       end
     end
 
-    def manual_job?
-      self.when == 'manual'
-    end
-
-    def manual_confirmation_message
-      options[:manual_confirmation] if manual_job?
-    end
-
     private
 
     def dependencies
@@ -268,5 +247,3 @@ module Ci
     end
   end
 end
-
-Ci::Processable.prepend_mod

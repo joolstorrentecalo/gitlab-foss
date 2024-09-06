@@ -29,7 +29,6 @@ RSpec.describe Ci::Components::FetchService, feature_category: :pipeline_composi
     project.repository.add_tag(project.creator, 'v0.1', project.repository.commit.sha)
 
     create(:release, project: project, tag: 'v0.1', sha: project.repository.commit.sha)
-    create(:ci_catalog_resource, project: project)
 
     project
   end
@@ -64,42 +63,9 @@ RSpec.describe Ci::Components::FetchService, feature_category: :pipeline_composi
         let(:version) { 'master' }
         let(:current_user) { create(:user) }
 
-        it 'returns a generic error response' do
+        it 'returns an error' do
           expect(result).to be_error
           expect(result.reason).to eq(:not_allowed)
-          expect(result.message)
-            .to eq(
-              "Component '#{address}' - " \
-              "project does not exist or you don't have sufficient permissions"
-            )
-        end
-
-        context 'when the user is external and the project is internal' do
-          let(:current_user) { create(:user, :external) }
-          let(:project) do
-            project = create(
-              :project, :custom_repo, :internal,
-              files: {
-                'templates/component/template.yml' => content
-              }
-            )
-            project.repository.add_tag(project.creator, 'v0.1', project.repository.commit.sha)
-
-            create(:release, project: project, tag: 'v0.1', sha: project.repository.commit.sha)
-            create(:ci_catalog_resource, project: project)
-
-            project
-          end
-
-          it 'returns an error response for external user accessing internal project' do
-            expect(result).to be_error
-            expect(result.reason).to eq(:not_allowed)
-            expect(result.message)
-              .to eq(
-                "Component '#{address}' - " \
-                "project is `Internal`, it cannot be accessed by an External User"
-              )
-          end
         end
       end
 
@@ -127,32 +93,6 @@ RSpec.describe Ci::Components::FetchService, feature_category: :pipeline_composi
         it 'returns an error' do
           expect(result).to be_error
           expect(result.reason).to eq(:content_not_found)
-        end
-      end
-
-      context 'when version is ~latest' do
-        let(:version) { '~latest' }
-        let_it_be(:project) { create(:project) }
-
-        context 'and the project is not a catalog resource' do
-          it 'returns an error' do
-            expect(result).to be_error
-            expect(result.message).to eq(
-              "Component '#{current_host}/#{component_path}@~latest' - " \
-              'The ~latest version reference is not supported for non-catalog resources. ' \
-              'Use a tag, branch, or commit SHA instead.'
-            )
-            expect(result.reason).to eq(:invalid_usage)
-          end
-        end
-
-        context 'and the project does not exist' do
-          let(:component_path) { 'unknown' }
-
-          it 'returns an error' do
-            expect(result).to be_error
-            expect(result.reason).to eq(:content_not_found)
-          end
         end
       end
 

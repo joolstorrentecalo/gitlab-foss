@@ -21,7 +21,7 @@ export default {
   i18n,
   links: {
     alertInfoMessageLink: helpPagePath('ci/yaml/index.html', { anchor: 'release' }),
-    alertInfoPublishLink: helpPagePath('ci/components/index', { anchor: 'publish-a-new-release' }),
+    alertInfoPublishLink: helpPagePath('ci/components/index', { anchor: 'release-a-component' }),
   },
   components: {
     GlAlert,
@@ -44,9 +44,6 @@ export default {
     newReleasePath: {
       default: '',
     },
-    atomFeedPath: {
-      default: '',
-    },
   },
   apollo: {
     /**
@@ -55,7 +52,6 @@ export default {
      * quickly than `fullGraphqlResponse`, which allows the page to show
      * meaningful content to the user much earlier.
      */
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     singleGraphqlResponse: {
       query: allReleasesQuery,
       // This trick only works when paginating _forward_.
@@ -77,7 +73,6 @@ export default {
         this.singleRequestError = true;
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     fullGraphqlResponse: {
       query: allReleasesQuery,
       variables() {
@@ -96,7 +91,6 @@ export default {
         });
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     isCatalogResource: {
       query: getCiCatalogSettingsQuery,
       variables() {
@@ -170,9 +164,6 @@ export default {
      */
     isFullRequestLoaded() {
       return Boolean(!this.isFullRequestLoading && this.fullGraphqlResponse?.data.project);
-    },
-    atomFeedBtnTitle() {
-      return this.$options.i18n.atomFeedBtnTitle;
     },
     releaseBtnTitle() {
       return this.isCatalogResource
@@ -269,7 +260,7 @@ export default {
 };
 </script>
 <template>
-  <div class="gl-mt-3 gl-flex gl-flex-col">
+  <div class="gl-display-flex gl-flex-direction-column gl-mt-3">
     <gl-alert
       v-if="isCatalogResource"
       :title="$options.i18n.alertTitle"
@@ -282,7 +273,7 @@ export default {
           <gl-link
             :href="$options.links.alertInfoMessageLink"
             target="_blank"
-            class="gl-mr-2 !gl-no-underline"
+            class="gl-text-decoration-none! gl-mr-2"
           >
             <code class="gl-pr-0">
               {{ content }}
@@ -295,19 +286,8 @@ export default {
       </gl-link>
     </gl-alert>
     <releases-empty-state v-if="shouldRenderEmptyState" />
-    <div v-else class="gl-flex gl-gap-3 gl-self-end">
-      <releases-sort :value="sort" @input="onSortChanged" />
-
-      <gl-button
-        v-if="atomFeedPath"
-        v-gl-tooltip.hover
-        :title="atomFeedBtnTitle"
-        :href="atomFeedPath"
-        icon="rss"
-        class="gl-ml-2"
-        data-testid="atom-feed-btn"
-        :aria-label="atomFeedBtnTitle"
-      />
+    <div v-else class="gl-align-self-end gl-mb-3 gl-display-flex">
+      <releases-sort :value="sort" class="gl-mr-2" @input="onSortChanged" />
 
       <div
         v-if="newReleasePath"
@@ -318,7 +298,6 @@ export default {
         <gl-button
           :disabled="isCatalogResource"
           :href="newReleasePath"
-          class="gl-ml-2"
           category="primary"
           variant="confirm"
           >{{ $options.i18n.newRelease }}</gl-button
@@ -331,10 +310,10 @@ export default {
       :key="getReleaseKey(release, index)"
       :release="release"
       :sort="sort"
-      :class="{ 'linked-card gl-relative': releases.length > 1 && index !== releases.length - 1 }"
+      :class="{ 'linked-card': releases.length > 1 && index !== releases.length - 1 }"
     />
 
-    <release-skeleton-loader v-if="shouldRenderLoadingIndicator" class="gl-mt-5" />
+    <release-skeleton-loader v-if="shouldRenderLoadingIndicator" />
 
     <releases-pagination
       v-if="shouldRenderPagination"
@@ -352,6 +331,6 @@ export default {
   height: 17px;
   top: 100%;
   position: absolute;
-  left: 23px;
+  left: 32px;
 }
 </style>

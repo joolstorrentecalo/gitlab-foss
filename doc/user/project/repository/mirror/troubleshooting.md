@@ -2,7 +2,6 @@
 stage: Create
 group: Source Code
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
-description: "Troubleshooting problems with repository mirroring for GitLab projects."
 ---
 
 # Troubleshooting repository mirroring
@@ -39,7 +38,7 @@ One of these issues might be occurring:
 
 ## Deadline Exceeded
 
-When you upgrade GitLab, a change in how usernames are represented means that you
+When upgrading GitLab, a change in how usernames are represented means that you
 must update your mirroring username and password to ensure that `%40` characters are replaced with `@`.
 
 ## Connection blocked: server only allows public key authentication
@@ -98,6 +97,8 @@ In some cases, pull mirroring does not transfer LFS files. This issue occurs whe
 
 - You use an SSH repository URL. The workaround is to use an HTTPS repository URL instead.
   An issue exists [to fix this problem for SSH URLs](https://gitlab.com/gitlab-org/gitlab/-/issues/11997).
+- You're using GitLab 14.0 or older, and the source repository is a public Bitbucket URL.
+  [Fixed](https://gitlab.com/gitlab-org/gitlab/-/issues/335123) in GitLab 14.0.6.
 - You mirror an external repository using object storage.
   An issue exists [to fix this problem](https://gitlab.com/gitlab-org/gitlab/-/issues/335495).
 
@@ -153,10 +154,10 @@ fail nor succeed. They also do not leave a clear log. To check for this problem:
 
 If you receive this error while setting up mirroring over [SSH](index.md#ssh-authentication), make sure the URL is in a valid format.
 
-Mirroring **does not** support SCP-like clone URLs in the form of
-`git@gitlab.com:gitlab-org/gitlab.git`, with host and project path separated using `:`.
-It requires a [standard URL](https://git-scm.com/docs/git-clone#_git_urls)
-that includes the `ssh://` protocol, like `ssh://git@gitlab.com/gitlab-org/gitlab.git`.
+Mirroring does not support the short version of SSH clone URLs (`git@gitlab.com:gitlab-org/gitlab.git`)
+and requires the full version including the protocol (`ssh://git@gitlab.com/gitlab-org/gitlab.git`).
+
+Make sure that host and project path are separated using `/` instead of `:`.
 
 ## Host key verification failed
 
@@ -248,62 +249,3 @@ The error can be avoided by:
 - Using a reverse proxy to direct all requests from the source instance to the primary Geo node.
 - Adding a local `hosts` file entry on the source to force the target host name to resolve to the Geo primary node's IP address.
 - Configuring a pull mirror on the target instead.
-
-## Pull or push mirror fails to update: `The project is not mirrored`
-
-Pull and push mirrors fail to update when [GitLab Silent Mode](../../../../administration/silent_mode/index.md) is enabled.
-When this happens, the option to allow mirroring on the UI is disabled.
-
-An administrator can check to confirm that GitLab Silent Mode is disabled.
-
-When mirroring fails due to Silent Mode the following are the debug steps:
-
-- [Triggering the mirror using the API](pull.md#trigger-pipelines-for-mirror-updates) shows: `The project is not mirrored`.
-
-- If pull or push mirror was already set up but there are no further updates on the mirrored repository,
-  confirm the [project's pull and push mirror details ans status](../../../../api/projects.md#get-a-projects-pull-mirror-details) are not recent as shown below. This indicates mirroring was paused and disabling GitLab Silent Mode restarts it automatically.
-
-For example, if Silent Mode is what is impeding your imports, the output is similar to the following:
-
-```json
-"id": 1,
-"update_status": "finished",
-"url": "https://test.git"
-"last_error": null,
-"last_update_at": null,
-"last_update_started_at": "2023-12-12T00:01:02.222Z",
-"last_successful_update_at": null
-```
-
-## Initial mirroring fails: `Unable to pull mirror repo: Unable to get pack index`
-
-You might get an error that states something similar to the following:
-
-```plaintext
-13:fetch remote: "error: Unable to open local file /var/opt/gitlab/git-data/repositories/+gitaly/tmp/quarantine-[OMITTED].idx.temp.temp\nerror: Unable to get pack index https://git.example.org/ebtables/objects/pack/pack-[OMITTED].idx\nerror: Unable to find fcde2b2edba56bf408601fb721fe9b5c338d10ee under https://git.example.org/ebtables
-Cannot obtain needed object fcde2b2edba56bf408601fb721fe9b5c338d10ee
-while processing commit 2c26b46b68ffc68ff99b453c1d30413413422d70.
-error: fetch failed.\n": exit status 128.
-```
-
-This issue occurs because Gitaly does not support mirroring or importing repositories over the "dumb" HTTP protocol.
-
-To determine if a server is "smart" or "dumb", use cURL to start a reference discovery for the
-`git-upload-pack` service and emulate a Git "smart" client:
-
-```shell
-$GIT_URL="https://git.example.org/project"
-curl --silent --dump-header - "$GIT_URL/info/refs?service=git-upload-pack"\
-  -o /dev/null | grep -Ei "$content-type:"
-```
-
-- A ["smart" server](https://www.git-scm.com/docs/http-protocol#_smart_server_response)
-  reports `application/x-git-upload-pack-advertisement` in the `Content-Type` response header.
-- A "dumb" server reports `text/plain` in the `Content-Type` response header.
-
-For more information, see the [Git documentation on discovering references](https://www.git-scm.com/docs/http-protocol#_discovering_references).
-
-To resolve this, you can do either of the following:
-
-- Migrate the source repository to a "smart" server.
-- Mirror the repository using the [SSH protocol](index.md#ssh-authentication) (requires authentication).

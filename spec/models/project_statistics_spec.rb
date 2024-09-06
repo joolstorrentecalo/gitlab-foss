@@ -20,7 +20,7 @@ RSpec.describe ProjectStatistics do
 
         requested_stats = described_class.for_project_ids(project_ids).pluck(:id)
 
-        expect(requested_stats).to match_array(expected_ids)
+        expect(requested_stats).to eq(expected_ids)
       end
     end
   end

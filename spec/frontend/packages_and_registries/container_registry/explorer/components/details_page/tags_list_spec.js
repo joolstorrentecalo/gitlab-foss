@@ -4,7 +4,7 @@ import { GlEmptyState } from '@gitlab/ui';
 import VueApollo from 'vue-apollo';
 import createMockApollo from 'helpers/mock_apollo_helper';
 import waitForPromises from 'helpers/wait_for_promises';
-import { mockTracking, unmockTracking } from 'helpers/tracking_helper';
+import Tracking from '~/tracking';
 import component from '~/packages_and_registries/container_registry/explorer/components/details_page/tags_list.vue';
 import TagsListRow from '~/packages_and_registries/container_registry/explorer/components/details_page/tags_list_row.vue';
 import TagsLoader from '~/packages_and_registries/shared/components/tags_loader.vue';
@@ -16,12 +16,11 @@ import deleteContainerRepositoryTagsMutation from '~/packages_and_registries/con
 
 import {
   GRAPHQL_PAGE_SIZE,
-  GRAPHQL_PAGE_SIZE_METADATA_ENABLED,
   NO_TAGS_TITLE,
   NO_TAGS_MESSAGE,
   NO_TAGS_MATCHING_FILTERS_TITLE,
   NO_TAGS_MATCHING_FILTERS_DESCRIPTION,
-} from '~/packages_and_registries/container_registry/explorer/constants';
+} from '~/packages_and_registries/container_registry/explorer/constants/index';
 import { FILTERED_SEARCH_TERM } from '~/vue_shared/components/filtered_search_bar/constants';
 import {
   graphQLDeleteImageRepositoryTagsMock,
@@ -41,13 +40,6 @@ describe('Tags List', () => {
     noContainersImage: 'noContainersImage',
   };
 
-  const queryData = {
-    first: GRAPHQL_PAGE_SIZE,
-    sort: 'NAME_ASC',
-    id: '1',
-    referrers: true,
-  };
-
   const findDeleteModal = () => wrapper.findComponent(DeleteModal);
   const findPersistedPagination = () => wrapper.findComponent(PersistedPagination);
   const findPersistedSearch = () => wrapper.findComponent(PersistedSearch);
@@ -56,13 +48,16 @@ describe('Tags List', () => {
   const findEmptyState = () => wrapper.findComponent(GlEmptyState);
   const findTagsLoader = () => wrapper.findComponent(TagsLoader);
 
-  const mountComponent = ({
-    disabled = false,
-    showContainerRegistryTagSignatures = true,
-    isImageLoading = false,
-    mutationResolver,
-    config = {},
-  } = {}) => {
+  const fireFirstSortUpdate = () => {
+    findPersistedSearch().vm.$emit('update', { sort: 'NAME_ASC', filters: [], pageInfo: {} });
+  };
+
+  const waitForApolloRequestRender = async () => {
+    fireFirstSortUpdate();
+    await waitForPromises();
+  };
+
+  const mountComponent = ({ propsData = { isMobile: false, id: 1 }, mutationResolver } = {}) => {
     Vue.use(VueApollo);
 
     const requestHandlers = [
@@ -73,34 +68,25 @@ describe('Tags List', () => {
     apolloProvider = createMockApollo(requestHandlers);
     wrapper = shallowMount(component, {
       apolloProvider,
-      propsData: {
-        id: 1,
-        disabled,
-        isImageLoading,
-      },
+      propsData,
       stubs: { RegistryList, DeleteModal },
       provide() {
         return {
-          config: {
-            ...defaultConfig,
-            ...config,
-          },
-          glFeatures: { showContainerRegistryTagSignatures },
+          config: defaultConfig,
         };
       },
     });
-
-    findPersistedSearch().vm.$emit('update', { sort: 'NAME_ASC', filters: [], pageInfo: {} });
-    return waitForPromises();
   };
 
   beforeEach(() => {
     resolver = jest.fn().mockResolvedValue(imageTagsMock());
+    jest.spyOn(Tracking, 'event');
   });
 
   describe('registry list', () => {
-    beforeEach(() => {
-      return mountComponent();
+    beforeEach(async () => {
+      mountComponent();
+      await waitForApolloRequestRender();
     });
 
     it('has a persisted search', () => {
@@ -118,7 +104,7 @@ describe('Tags List', () => {
 
     it('binds the correct props', () => {
       expect(findRegistryList().props()).toMatchObject({
-        title: '4 tags',
+        title: '2 tags',
         items: tags,
         idProperty: 'name',
         hiddenDelete: false,
@@ -138,10 +124,12 @@ describe('Tags List', () => {
         // so we expect the resolver to have been called twice
         expect(resolver).toHaveBeenCalledTimes(2);
         expect(resolver).toHaveBeenCalledWith({
-          ...queryData,
           first: null,
+          name: '',
+          sort: 'NAME_ASC',
           before: tagsPageInfo.startCursor,
           last: GRAPHQL_PAGE_SIZE,
+          id: '1',
         });
       });
 
@@ -152,20 +140,16 @@ describe('Tags List', () => {
         // we are fetching next page after load,
         // so we expect the resolver to have been called twice
         expect(resolver).toHaveBeenCalledTimes(2);
-        expect(resolver).toHaveBeenCalledWith({ ...queryData, after: tagsPageInfo.endCursor });
+        expect(resolver).toHaveBeenCalledWith({
+          after: tagsPageInfo.endCursor,
+          first: GRAPHQL_PAGE_SIZE,
+          name: '',
+          sort: 'NAME_ASC',
+          id: '1',
+        });
       });
 
       describe('delete event', () => {
-        let trackingSpy;
-
-        beforeEach(() => {
-          trackingSpy = mockTracking(undefined, undefined, jest.spyOn);
-        });
-
-        afterEach(() => {
-          unmockTracking();
-        });
-
         describe('single item', () => {
           beforeEach(() => {
             findRegistryList().vm.$emit('delete', [tags[0]]);
@@ -180,7 +164,7 @@ describe('Tags List', () => {
           });
 
           it('tracks a single delete event', () => {
-            expect(trackingSpy).toHaveBeenCalledWith(undefined, 'click_button', {
+            expect(Tracking.event).toHaveBeenCalledWith(undefined, 'click_button', {
               label: 'registry_tag_delete',
             });
           });
@@ -200,94 +184,10 @@ describe('Tags List', () => {
           });
 
           it('tracks multiple delete event', () => {
-            expect(trackingSpy).toHaveBeenCalledWith(undefined, 'click_button', {
+            expect(Tracking.event).toHaveBeenCalledWith(undefined, 'click_button', {
               label: 'bulk_registry_tag_delete',
             });
           });
-        });
-      });
-    });
-
-    describe('when metadata database is enabled', () => {
-      beforeEach(() => {
-        return mountComponent({
-          config: { isMetadataDatabaseEnabled: true },
-        });
-      });
-
-      it('has persisted search', () => {
-        expect(findPersistedSearch().props()).toMatchObject({
-          defaultOrder: 'PUBLISHED_AT',
-          defaultSort: 'desc',
-          sortableFields: [
-            {
-              label: 'Published',
-              orderBy: 'PUBLISHED_AT',
-            },
-            {
-              label: 'Name',
-              orderBy: 'NAME',
-            },
-          ],
-        });
-      });
-
-      it('increases page size when paginating next', async () => {
-        findPersistedPagination().vm.$emit('next');
-
-        await waitForPromises();
-
-        expect(resolver).toHaveBeenCalledWith({
-          ...queryData,
-          first: GRAPHQL_PAGE_SIZE_METADATA_ENABLED,
-          after: tagsPageInfo.endCursor,
-        });
-      });
-
-      it('increases page size when paginating prev', async () => {
-        findPersistedPagination().vm.$emit('prev');
-
-        await waitForPromises();
-
-        expect(resolver).toHaveBeenCalledWith({
-          ...queryData,
-          first: null,
-          last: GRAPHQL_PAGE_SIZE_METADATA_ENABLED,
-          before: tagsPageInfo.startCursor,
-        });
-      });
-
-      it('with before calls resolver with pagination params', async () => {
-        findPersistedSearch().vm.$emit('update', {
-          sort: 'NAME_ASC',
-          filters: [],
-          pageInfo: { before: tagsPageInfo.startCursor },
-        });
-
-        await waitForPromises();
-
-        expect(resolver).toHaveBeenLastCalledWith({
-          ...queryData,
-          first: null,
-          before: tagsPageInfo.startCursor,
-          last: GRAPHQL_PAGE_SIZE_METADATA_ENABLED,
-        });
-      });
-
-      it('with after calls resolver with pagination params', async () => {
-        findPersistedSearch().vm.$emit('update', {
-          ...queryData,
-          sort: 'NAME_ASC',
-          filters: [],
-          pageInfo: { after: tagsPageInfo.endCursor },
-        });
-
-        await waitForPromises();
-
-        expect(resolver).toHaveBeenLastCalledWith({
-          ...queryData,
-          first: GRAPHQL_PAGE_SIZE_METADATA_ENABLED,
-          after: tagsPageInfo.endCursor,
         });
       });
     });
@@ -295,36 +195,7 @@ describe('Tags List', () => {
 
   describe('when persisted search emits update', () => {
     beforeEach(() => {
-      return mountComponent();
-    });
-
-    it('with published at sort filter calls resolver with PUBLISHED_AT params', async () => {
-      findPersistedSearch().vm.$emit('update', {
-        sort: 'PUBLISHED_AT_ASC',
-        filters: [],
-        pageInfo: {},
-      });
-      await waitForPromises();
-
-      expect(resolver).toHaveBeenCalledTimes(2);
-      expect(resolver).toHaveBeenLastCalledWith({
-        ...queryData,
-        sort: 'PUBLISHED_AT_ASC',
-      });
-    });
-
-    it('with filtered-search-term filter calls resolver with name params', async () => {
-      findPersistedSearch().vm.$emit('update', {
-        sort: 'NAME_ASC',
-        filters: [{ id: 'token-1', type: 'filtered-search-term', value: { data: 'gl' } }],
-      });
-      await waitForPromises();
-
-      expect(resolver).toHaveBeenCalledTimes(2);
-      expect(resolver).toHaveBeenLastCalledWith({
-        ...queryData,
-        name: 'gl',
-      });
+      mountComponent();
     });
 
     it('with before calls resolver with pagination params', async () => {
@@ -335,12 +206,14 @@ describe('Tags List', () => {
       });
       await waitForPromises();
 
-      expect(resolver).toHaveBeenCalledTimes(2);
-      expect(resolver).toHaveBeenLastCalledWith({
-        ...queryData,
+      expect(resolver).toHaveBeenCalledTimes(1);
+      expect(resolver).toHaveBeenCalledWith({
         first: null,
+        name: '',
+        sort: 'NAME_ASC',
         before: tagsPageInfo.startCursor,
         last: GRAPHQL_PAGE_SIZE,
+        id: '1',
       });
     });
 
@@ -352,23 +225,30 @@ describe('Tags List', () => {
       });
       await waitForPromises();
 
-      expect(resolver).toHaveBeenCalledTimes(2);
-      expect(resolver).toHaveBeenLastCalledWith({
-        ...queryData,
+      expect(resolver).toHaveBeenCalledTimes(1);
+      expect(resolver).toHaveBeenCalledWith({
         after: tagsPageInfo.endCursor,
+        first: GRAPHQL_PAGE_SIZE,
+        name: '',
+        sort: 'NAME_ASC',
+        id: '1',
       });
     });
   });
 
   describe('list rows', () => {
     it('one row exist for each tag', async () => {
-      await mountComponent();
+      mountComponent();
+
+      await waitForApolloRequestRender();
 
       expect(findTagsListRow()).toHaveLength(tags.length);
     });
 
     it('the correct props are bound to it', async () => {
-      await mountComponent({ disabled: true });
+      mountComponent({ propsData: { disabled: true, id: 1 } });
+
+      await waitForApolloRequestRender();
 
       const rows = findTagsListRow();
 
@@ -380,7 +260,8 @@ describe('Tags List', () => {
 
     describe('events', () => {
       it('select event update the selected items', async () => {
-        await mountComponent();
+        mountComponent();
+        await waitForApolloRequestRender();
 
         findTagsListRow().at(0).vm.$emit('select');
 
@@ -391,19 +272,14 @@ describe('Tags List', () => {
 
       describe('delete event', () => {
         let mutationResolver;
-        let trackingSpy;
 
         beforeEach(async () => {
-          trackingSpy = mockTracking(undefined, undefined, jest.spyOn);
           mutationResolver = jest.fn().mockResolvedValue(graphQLDeleteImageRepositoryTagsMock);
           resolver = jest.fn().mockResolvedValue(imageTagsMock());
-          await mountComponent({ mutationResolver });
+          mountComponent({ mutationResolver });
 
+          await waitForApolloRequestRender();
           findTagsListRow().at(0).vm.$emit('delete');
-        });
-
-        afterEach(() => {
-          unmockTracking();
         });
 
         it('opens the modal', () => {
@@ -411,7 +287,7 @@ describe('Tags List', () => {
         });
 
         it('tracks a single delete event', () => {
-          expect(trackingSpy).toHaveBeenCalledWith(undefined, 'click_button', {
+          expect(Tracking.event).toHaveBeenCalledWith(undefined, 'click_button', {
             label: 'registry_tag_delete',
           });
         });
@@ -425,7 +301,12 @@ describe('Tags List', () => {
 
           await waitForPromises();
 
-          expect(resolver).toHaveBeenLastCalledWith(queryData);
+          expect(resolver).toHaveBeenLastCalledWith({
+            first: GRAPHQL_PAGE_SIZE,
+            name: '',
+            sort: 'NAME_ASC',
+            id: '1',
+          });
         });
       });
     });
@@ -438,7 +319,8 @@ describe('Tags List', () => {
         .mockResolvedValue(
           imageTagsMock({ userPermissions: { destroyContainerRepository: false } }),
         );
-      await mountComponent();
+      mountComponent();
+      await waitForApolloRequestRender();
 
       expect(findRegistryList().props('hiddenDelete')).toBe(true);
     });
@@ -447,7 +329,8 @@ describe('Tags List', () => {
   describe('when the list of tags is empty', () => {
     beforeEach(async () => {
       resolver = jest.fn().mockResolvedValue(imageTagsMock({ nodes: [] }));
-      await mountComponent();
+      mountComponent();
+      await waitForApolloRequestRender();
     });
 
     it('does not show the loader', () => {
@@ -484,30 +367,22 @@ describe('Tags List', () => {
     });
   });
 
-  describe('delete modal', () => {
+  describe('modal', () => {
     it('exists', async () => {
-      await mountComponent();
+      mountComponent();
+      await waitForApolloRequestRender();
 
       expect(findDeleteModal().exists()).toBe(true);
     });
 
     describe('cancel event', () => {
-      let trackingSpy;
-
-      beforeEach(() => {
-        trackingSpy = mockTracking(undefined, undefined, jest.spyOn);
-      });
-
-      afterEach(() => {
-        unmockTracking();
-      });
-
       it('tracks cancel_delete', async () => {
-        await mountComponent();
+        mountComponent();
+        await waitForApolloRequestRender();
 
         findDeleteModal().vm.$emit('cancel');
 
-        expect(trackingSpy).toHaveBeenCalledWith(undefined, 'cancel_delete', {
+        expect(Tracking.event).toHaveBeenCalledWith(undefined, 'cancel_delete', {
           label: 'registry_tag_delete',
         });
       });
@@ -519,8 +394,9 @@ describe('Tags List', () => {
       describe('when mutation', () => {
         beforeEach(async () => {
           mutationResolver = jest.fn().mockResolvedValue(graphQLDeleteImageRepositoryTagsMock);
-          await mountComponent({ mutationResolver });
+          mountComponent({ mutationResolver });
 
+          await waitForApolloRequestRender();
           findRegistryList().vm.$emit('delete', [tags[0]]);
 
           findDeleteModal().vm.$emit('confirmDelete');
@@ -575,7 +451,9 @@ describe('Tags List', () => {
       ])('when mutation fails with $description', ({ mutationMock }) => {
         beforeEach(() => {
           mutationResolver = mutationMock;
-          return mountComponent({ mutationResolver });
+          mountComponent({ mutationResolver });
+
+          return waitForApolloRequestRender();
         });
 
         it('when one item is selected to be deleted calls apollo mutation with the right parameters and emits delete event with right arguments', async () => {
@@ -619,7 +497,9 @@ describe('Tags List', () => {
       describe('when mutation is successful', () => {
         beforeEach(() => {
           mutationResolver = jest.fn().mockResolvedValue(graphQLDeleteImageRepositoryTagsMock);
-          return mountComponent({ mutationResolver });
+          mountComponent({ mutationResolver });
+
+          return waitForApolloRequestRender();
         });
 
         it('and one item is selected to be deleted calls apollo mutation with the right parameters and refetches the tags list query', async () => {
@@ -631,7 +511,12 @@ describe('Tags List', () => {
             expect.objectContaining({ tagNames: [tags[0].name] }),
           );
 
-          expect(resolver).toHaveBeenLastCalledWith(queryData);
+          expect(resolver).toHaveBeenLastCalledWith({
+            first: GRAPHQL_PAGE_SIZE,
+            name: '',
+            sort: 'NAME_ASC',
+            id: '1',
+          });
 
           await waitForPromises();
 
@@ -648,7 +533,12 @@ describe('Tags List', () => {
             expect.objectContaining({ tagNames: tagsMock.map((t) => t.name) }),
           );
 
-          expect(resolver).toHaveBeenLastCalledWith(queryData);
+          expect(resolver).toHaveBeenLastCalledWith({
+            first: GRAPHQL_PAGE_SIZE,
+            name: '',
+            sort: 'NAME_ASC',
+            id: '1',
+          });
 
           await waitForPromises();
 
@@ -669,10 +559,9 @@ describe('Tags List', () => {
     `(
       'when the isImageLoading is $isImageLoading, and is $queryExecuting that the query is still executing is $loadingVisible that the loader is shown',
       async ({ isImageLoading, queryExecuting, loadingVisible }) => {
-        if (queryExecuting) {
-          mountComponent({ isImageLoading });
-        } else {
-          await mountComponent({ isImageLoading });
+        mountComponent({ propsData: { isImageLoading, isMobile: false, id: 1 } });
+        if (!queryExecuting) {
+          await waitForApolloRequestRender();
         }
 
         expect(findTagsLoader().exists()).toBe(loadingVisible);
@@ -684,11 +573,5 @@ describe('Tags List', () => {
         }
       },
     );
-  });
-
-  it('sends referrers as false for the tags query when showContainerRegistryTagSignatures feature flag is off', async () => {
-    await mountComponent({ showContainerRegistryTagSignatures: false });
-
-    expect(resolver).toHaveBeenCalledWith({ ...queryData, referrers: false });
   });
 });

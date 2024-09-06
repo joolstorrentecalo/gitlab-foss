@@ -4,7 +4,6 @@ module DesignManagement
   class Design < ApplicationRecord
     include AtomicInternalId
     include Importable
-    include Import::HasImportSource
     include Noteable
     include Gitlab::FileTypeDetection
     include Gitlab::Utils::StrongMemoize
@@ -60,7 +59,7 @@ module DesignManagement
     # e.g:
     #
     #   by_issue_id_and_filename(issue_id: 1, filename: 'homescreen.jpg')
-    #   by_issue_id_and_filename([]) # returns DesignManagement::Design.none
+    #   by_issue_id_and_filename([]) # returns ActiveRecord::NullRelation
     #   by_issue_id_and_filename([
     #     { issue_id: 1, filename: 'homescreen.jpg' },
     #     { issue_id: 2, filename: 'homescreen.jpg' },
@@ -83,7 +82,7 @@ module DesignManagement
     #
     # As a query, we ascertain this by finding the last event prior to
     # (or equal to) the cut-off, and seeing whether that version was a deletion.
-    scope :visible_at_version, ->(version) do
+    scope :visible_at_version, -> (version) do
       deletion = DesignManagement::Action.events[:deletion]
       designs = arel_table
       actions = DesignManagement::Action
@@ -104,7 +103,7 @@ module DesignManagement
 
     scope :in_creation_order, -> { reorder(:id) }
 
-    scope :with_filename, ->(filenames) { where(filename: filenames) }
+    scope :with_filename, -> (filenames) { where(filename: filenames) }
     scope :on_issue, ->(issue) { where(issue_id: issue) }
 
     # Scope called by our REST API to avoid N+1 problems

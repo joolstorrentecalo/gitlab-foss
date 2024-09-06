@@ -27,11 +27,11 @@ RSpec.describe Gitlab::Ci::Badge::Pipeline::Status do
   end
 
   context 'pipeline exists', :sidekiq_might_not_need_inline do
-    let!(:build) { create_pipeline_and_build(project, sha, branch, 2) }
+    let!(:pipeline) { create_pipeline(project, sha, branch) }
 
     context 'pipeline success' do
       before do
-        build.success!
+        pipeline.success!
       end
 
       describe '#status' do
@@ -43,7 +43,7 @@ RSpec.describe Gitlab::Ci::Badge::Pipeline::Status do
 
     context 'pipeline failed' do
       before do
-        build.drop!
+        pipeline.drop!
       end
 
       describe '#status' do
@@ -55,10 +55,10 @@ RSpec.describe Gitlab::Ci::Badge::Pipeline::Status do
 
     context 'when outdated pipeline for given ref exists' do
       before do
-        build.success!
+        pipeline.success!
 
-        old_build = create_pipeline_and_build(project, '11eeffdd', branch, 1)
-        old_build.drop!
+        old_pipeline = create_pipeline(project, '11eeffdd', branch)
+        old_pipeline.drop!
       end
 
       it 'does not take outdated pipeline into account' do
@@ -68,10 +68,10 @@ RSpec.describe Gitlab::Ci::Badge::Pipeline::Status do
 
     context 'when multiple pipelines exist for given sha' do
       before do
-        build.drop!
+        pipeline.drop!
 
-        new_build = create_pipeline_and_build(project, sha, branch, 3)
-        new_build.success!
+        new_pipeline = create_pipeline(project, sha, branch)
+        new_pipeline.success!
       end
 
       it 'does not take outdated pipeline into account' do
@@ -83,7 +83,7 @@ RSpec.describe Gitlab::Ci::Badge::Pipeline::Status do
       let(:new_badge) { described_class.new(project, branch, opts: { ignore_skipped: true }) }
 
       before do
-        build.skip!
+        pipeline.skip!
       end
 
       describe '#status' do
@@ -97,7 +97,7 @@ RSpec.describe Gitlab::Ci::Badge::Pipeline::Status do
       let(:new_badge) { described_class.new(project, branch, opts: { ignore_skipped: false }) }
 
       before do
-        build.skip!
+        pipeline.skip!
       end
 
       describe '#status' do
@@ -116,8 +116,8 @@ RSpec.describe Gitlab::Ci::Badge::Pipeline::Status do
     end
   end
 
-  def create_pipeline_and_build(project, sha, branch, id)
-    pipeline = create(:ci_empty_pipeline, project: project, sha: sha, ref: branch, id: id)
+  def create_pipeline(project, sha, branch)
+    pipeline = create(:ci_empty_pipeline, project: project, sha: sha, ref: branch)
 
     create(:ci_build, pipeline: pipeline, stage: 'notify')
   end

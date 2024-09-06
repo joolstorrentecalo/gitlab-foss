@@ -14,6 +14,8 @@ GitLab supports authentication using smart cards.
 
 ## Existing password authentication
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/33669) in GitLab 12.6.
+
 By default, existing users can continue to sign in with a username and password when smart card
 authentication is enabled.
 
@@ -29,8 +31,10 @@ GitLab supports two authentication methods:
 
 ### Authentication against a local database with X.509 certificates
 
-DETAILS:
-**Status:** Experiment
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/726) in GitLab 11.6 as an experimental feature.
+
+WARNING:
+Smart card authentication against local databases may change or be removed completely in future releases.
 
 Smart cards with X.509 certificates can be used to authenticate with GitLab.
 
@@ -53,19 +57,23 @@ Certificate:
 
 ### Authentication against a local database with X.509 certificates and SAN extension
 
-DETAILS:
-**Status:** Experiment
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/8605) in GitLab 12.3.
 
 Smart cards with X.509 certificates using SAN extensions can be used to authenticate
 with GitLab.
 
-To use a smart card with an X.509 certificate to authenticate against a local
-database with GitLab:
+NOTE:
+This is an experimental feature. Smart card authentication against local databases may
+change or be removed completely in future releases.
 
-- At least one of the `subjectAltName` (SAN) extensions
-  must define the user identity (`email`) within the GitLab instance (`URI`).
-- The `URI` must match `Gitlab.config.host.gitlab`.
-- If your certificate contains only **one** SAN email entry, you don't need to
+To use a smart card with an X.509 certificate to authenticate against a local
+database with GitLab, in:
+
+- GitLab 12.4 and later, at least one of the `subjectAltName` (SAN) extensions
+  need to define the user identity (`email`) within the GitLab instance (`URI`).
+  `URI`: needs to match `Gitlab.config.host.gitlab`.
+- From [GitLab 12.5](https://gitlab.com/gitlab-org/gitlab/-/issues/33907),
+  if your certificate contains only **one** SAN email entry, you don't need to
   add or modify it to match the `email` with the `URI`.
 
 For example:
@@ -92,8 +100,7 @@ Certificate:
 
 ### Authentication against an LDAP server
 
-DETAILS:
-**Status:** Experiment
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/7693) in GitLab 11.8 as an experimental feature. Smart card authentication against an LDAP server may change or be removed completely in the future.
 
 GitLab implements a standard way of certificate matching following
 [RFC4523](https://www.rfc-editor.org/rfc/rfc4523). It uses the

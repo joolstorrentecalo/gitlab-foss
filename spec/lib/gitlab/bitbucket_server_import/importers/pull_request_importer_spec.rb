@@ -33,27 +33,8 @@ RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestImporter, fe
         reviewer_ids: match_array([reviewer_1.id, reviewer_2.id]),
         state: pull_request.state,
         author_id: project.creator_id,
-        description: "*Created by: #{pull_request.author}*\n\n#{pull_request.description}",
-        imported_from: 'bitbucket_server'
+        description: "*Created by: #{pull_request.author}*\n\n#{pull_request.description}"
       )
-    end
-
-    describe 'refs/merge-requests/:iid/head creation' do
-      before do
-        project.repository.create_branch(pull_request.source_branch_name, 'master')
-      end
-
-      after do
-        project.repository.delete_branch(pull_request.source_branch_name)
-      end
-
-      it 'creates head refs for imported merge requests' do
-        importer.execute
-
-        expect(
-          project.repository.commit("refs/#{Repository::REF_MERGE_REQUEST}/#{pull_request.iid}/head")
-        ).to be_present
-      end
     end
 
     context 'when the `bitbucket_server_convert_mentions_to_users` flag is disabled' do

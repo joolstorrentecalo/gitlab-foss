@@ -11,7 +11,7 @@ module ExtractsRef
     REF_TYPES = [BRANCH_REF_TYPE, TAG_REF_TYPE].freeze
 
     attr_reader :repository_container, :params
-    attr_accessor :id, :ref, :commit, :path, :fully_qualified_ref, :repo
+    attr_accessor :id, :ref, :commit, :path, :fully_qualified_ref
 
     class << self
       def ref_type(type)
@@ -37,7 +37,7 @@ module ExtractsRef
 
     def initialize(repository_container, params, override_id: nil)
       @repository_container = repository_container
-      @params = params.slice(:id, :ref, :path, :ref_type)
+      @params = params.extract!(:id, :ref, :path, :ref_type)
       @override_id = override_id
     end
 
@@ -112,12 +112,6 @@ module ExtractsRef
       ]
     end
 
-    def ref_type
-      self.class.ref_type(params[:ref_type])
-    end
-
-    private
-
     def extract_ref_path
       id = extract_id_from_params
       ref, path = extract_ref(id)
@@ -125,11 +119,17 @@ module ExtractsRef
       [id, ref, path]
     end
 
+    def ref_type
+      self.class.ref_type(params[:ref_type])
+    end
+
+    private
+
     def extract_raw_ref(id)
       return ['', ''] unless repository_container
 
       # If the ref appears to be a SHA, we're done, just split the string
-      return $~.captures if id =~ /^(\h{40}\h{24}?)(.*)/
+      return $~.captures if id =~ /^(\h{40})(.+)/
 
       # No slash means we must have a ref and no path
       return [id, ''] unless id.include?('/')

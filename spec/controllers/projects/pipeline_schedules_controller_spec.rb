@@ -7,8 +7,12 @@ RSpec.describe Projects::PipelineSchedulesController, feature_category: :continu
   using RSpec::Parameterized::TableSyntax
 
   let_it_be(:user) { create(:user) }
-  let_it_be_with_reload(:project) { create(:project, :public, :repository, developers: user) }
+  let_it_be_with_reload(:project) { create(:project, :public, :repository) }
   let_it_be_with_reload(:pipeline_schedule) { create(:ci_pipeline_schedule, project: project) }
+
+  before do
+    project.add_developer(user)
+  end
 
   shared_examples 'access update schedule' do
     describe 'security' do
@@ -531,7 +535,7 @@ RSpec.describe Projects::PipelineSchedulesController, feature_category: :continu
         expect(response).to have_gitlab_http_status(:found)
       end
 
-      it 'prevents users from scheduling the same pipeline repeatedly', quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/446117' do
+      it 'prevents users from scheduling the same pipeline repeatedly' do
         2.times { go }
 
         expect(flash.to_a.size).to eq(2)

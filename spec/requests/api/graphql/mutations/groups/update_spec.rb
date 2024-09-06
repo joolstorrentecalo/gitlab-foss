@@ -44,8 +44,6 @@ RSpec.describe 'GroupUpdate', feature_category: :groups_and_projects do
   end
 
   context 'when authorized' do
-    using RSpec::Parameterized::TableSyntax
-
     before do
       group.add_owner(user)
     end
@@ -67,19 +65,20 @@ RSpec.describe 'GroupUpdate', feature_category: :groups_and_projects do
       expect(group.reload.shared_runners_setting).to eq(variables[:shared_runners_setting].downcase)
     end
 
-    where(:field, :value) do
-      'name'   | 'foo bar'
-      'path'   | 'foo-bar'
-      'visibility' | 'private'
-    end
+    context 'when using DISABLED_WITH_OVERRIDE (deprecated)' do
+      let(:variables) do
+        {
+          full_path: group.full_path,
+          shared_runners_setting: 'DISABLED_WITH_OVERRIDE'
+        }
+      end
 
-    with_them do
-      let(:variables) { { full_path: group.full_path, field => value } }
-
-      it "updates #{params[:field]} field" do
+      it 'updates shared runners settings with disabled_and_overridable' do
         post_graphql_mutation(mutation, current_user: user)
 
-        expect(graphql_data_at(:group_update, :group, field.to_sym)).to eq(value)
+        expect(response).to have_gitlab_http_status(:success)
+        expect(graphql_errors).to be_nil
+        expect(group.reload.shared_runners_setting).to eq('disabled_and_overridable')
       end
     end
 

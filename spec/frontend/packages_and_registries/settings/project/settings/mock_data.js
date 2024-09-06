@@ -85,13 +85,13 @@ export const packagesProtectionRulesData = [
     id: `gid://gitlab/Packages::Protection::Rule/${i}`,
     packageNamePattern: `@flight/flight-maintainer-${i}-*`,
     packageType: 'NPM',
-    minimumAccessLevelForPush: 'MAINTAINER',
+    pushProtectedUpToAccessLevel: 'MAINTAINER',
   })),
   {
     id: 'gid://gitlab/Packages::Protection::Rule/16',
     packageNamePattern: '@flight/flight-owner-16-*',
     packageType: 'NPM',
-    minimumAccessLevelForPush: 'OWNER',
+    pushProtectedUpToAccessLevel: 'OWNER',
   },
 ];
 
@@ -132,7 +132,7 @@ export const createPackagesProtectionRuleMutationPayload = ({ override, errors =
 export const createPackagesProtectionRuleMutationInput = {
   packageNamePattern: `@flight/flight-developer-14-*`,
   packageType: 'NPM',
-  minimumAccessLevelForPush: 'MAINTAINER',
+  pushProtectedUpToAccessLevel: 'DEVELOPER',
 };
 
 export const createPackagesProtectionRuleMutationPayloadErrors = [
@@ -154,7 +154,7 @@ export const deletePackagesProtectionRuleMutationPayload = ({
 export const updatePackagesProtectionRuleMutationPayload = ({
   packageProtectionRule = {
     ...packagesProtectionRulesData[0],
-    minimumAccessLevelForPush: 'OWNER',
+    pushProtectedUpToAccessLevel: 'OWNER',
   },
   errors = [],
 } = {}) => ({
@@ -170,14 +170,14 @@ export const containerProtectionRulesData = [
   ...Array.from(Array(15)).map((_e, i) => ({
     id: `gid://gitlab/ContainerRegistry::Protection::Rule/${i}`,
     repositoryPathPattern: `@flight/flight/maintainer-${i}-*`,
-    minimumAccessLevelForPush: 'MAINTAINER',
-    minimumAccessLevelForDelete: 'MAINTAINER',
+    pushProtectedUpToAccessLevel: 'MAINTAINER',
+    deleteProtectedUpToAccessLevel: 'MAINTAINER',
   })),
   {
     id: 'gid://gitlab/ContainerRegistry::Protection::Rule/16',
     repositoryPathPattern: '@flight/flight/owner-16-*',
-    minimumAccessLevelForPush: 'OWNER',
-    minimumAccessLevelForDelete: 'OWNER',
+    pushProtectedUpToAccessLevel: 'OWNER',
+    deleteProtectedUpToAccessLevel: 'OWNER',
   },
 ];
 
@@ -216,39 +216,11 @@ export const createContainerProtectionRuleMutationPayload = ({ override, errors 
 });
 
 export const createContainerProtectionRuleMutationInput = {
-  repositoryPathPattern: `@flight/flight-maintainer-14-*`,
-  minimumAccessLevelForPush: 'MAINTAINER',
-  minimumAccessLevelForDelete: 'MAINTAINER',
+  repositoryPathPattern: `@flight/flight-developer-14-*`,
+  pushProtectedUpToAccessLevel: 'DEVELOPER',
+  deleteProtectedUpToAccessLevel: 'DEVELOPER',
 };
 
 export const createContainerProtectionRuleMutationPayloadErrors = [
-  'Repository path pattern should be a valid container repository path with optional wildcard characters.',
-  "Repository path pattern should start with the project's full path",
+  'Repository path pattern has already been taken',
 ];
-
-export const deleteContainerProtectionRuleMutationPayload = ({
-  containerRegistryProtectionRule = { ...containerProtectionRulesData[0] },
-  errors = [],
-} = {}) => ({
-  data: {
-    deleteContainerRegistryProtectionRule: {
-      containerRegistryProtectionRule,
-      errors,
-    },
-  },
-});
-
-export const updateContainerProtectionRuleMutationPayload = ({
-  containerRegistryProtectionRule = {
-    ...containerProtectionRulesData[0],
-    minimumAccessLevelForPush: 'OWNER',
-  },
-  errors = [],
-} = {}) => ({
-  data: {
-    updateContainerRegistryProtectionRule: {
-      containerRegistryProtectionRule,
-      errors,
-    },
-  },
-});

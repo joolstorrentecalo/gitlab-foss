@@ -535,36 +535,33 @@ describe('Blob content viewer component', () => {
 
     it('simple edit redirects to the simple editor', () => {
       findBlobHeader().vm.$emit('edit', 'simple');
-      expect(urlUtility.visitUrl).toHaveBeenCalledWith(simpleViewerMock.editBlobPath);
+      expect(urlUtility.redirectTo).toHaveBeenCalledWith(simpleViewerMock.editBlobPath); // eslint-disable-line import/no-deprecated
     });
 
     it('IDE edit redirects to the IDE editor', () => {
       findBlobHeader().vm.$emit('edit', 'ide');
-      expect(urlUtility.visitUrl).toHaveBeenCalledWith(simpleViewerMock.ideEditPath);
+      expect(urlUtility.redirectTo).toHaveBeenCalledWith(simpleViewerMock.ideEditPath); // eslint-disable-line import/no-deprecated
     });
 
     it.each`
-      loggedIn | canModifyBlob | isUsingLfs | createMergeRequestIn | forkProject | showSingleFileEditorForkSuggestion
-      ${true}  | ${true}       | ${false}   | ${true}              | ${true}     | ${false}
-      ${true}  | ${false}      | ${false}   | ${true}              | ${true}     | ${true}
-      ${false} | ${false}      | ${false}   | ${true}              | ${true}     | ${false}
-      ${true}  | ${false}      | ${false}   | ${false}             | ${true}     | ${false}
-      ${true}  | ${false}      | ${false}   | ${true}              | ${false}    | ${false}
-      ${true}  | ${false}      | ${true}    | ${true}              | ${true}     | ${false}
+      loggedIn | canModifyBlob | createMergeRequestIn | forkProject | showForkSuggestion
+      ${true}  | ${false}      | ${true}              | ${true}     | ${true}
+      ${false} | ${false}      | ${true}              | ${true}     | ${false}
+      ${true}  | ${true}       | ${false}             | ${true}     | ${false}
+      ${true}  | ${true}       | ${true}              | ${false}    | ${false}
     `(
       'shows/hides a fork suggestion according to a set of conditions',
       async ({
         loggedIn,
         canModifyBlob,
-        isUsingLfs,
         createMergeRequestIn,
         forkProject,
-        showSingleFileEditorForkSuggestion,
+        showForkSuggestion,
       }) => {
         isLoggedIn.mockReturnValueOnce(loggedIn);
         await createComponent(
           {
-            blob: { ...simpleViewerMock, canModifyBlob, storedExternally: isUsingLfs },
+            blob: { ...simpleViewerMock, canModifyBlob },
             createMergeRequestIn,
             forkProject,
           },
@@ -574,42 +571,7 @@ describe('Blob content viewer component', () => {
         findBlobHeader().vm.$emit('edit', 'simple');
         await nextTick();
 
-        expect(findForkSuggestion().exists()).toBe(showSingleFileEditorForkSuggestion);
-      },
-    );
-
-    it.each`
-      loggedIn | canModifyBlobWithWebIde | isUsingLfs | createMergeRequestIn | forkProject | showWebIdeForkSuggestion
-      ${true}  | ${true}                 | ${false}   | ${true}              | ${true}     | ${false}
-      ${true}  | ${false}                | ${false}   | ${true}              | ${true}     | ${true}
-      ${false} | ${false}                | ${false}   | ${true}              | ${true}     | ${false}
-      ${true}  | ${false}                | ${false}   | ${false}             | ${true}     | ${false}
-      ${true}  | ${false}                | ${false}   | ${true}              | ${false}    | ${false}
-      ${true}  | ${false}                | ${true}    | ${true}              | ${true}     | ${false}
-    `(
-      'shows/hides a fork suggestion for WebIDE according to a set of conditions',
-      async ({
-        loggedIn,
-        canModifyBlobWithWebIde,
-        isUsingLfs,
-        createMergeRequestIn,
-        forkProject,
-        showWebIdeForkSuggestion,
-      }) => {
-        isLoggedIn.mockReturnValueOnce(loggedIn);
-        await createComponent(
-          {
-            blob: { ...simpleViewerMock, canModifyBlobWithWebIde, storedExternally: isUsingLfs },
-            createMergeRequestIn,
-            forkProject,
-          },
-          mount,
-        );
-
-        findBlobHeader().vm.$emit('edit', 'ide');
-        await nextTick();
-
-        expect(findForkSuggestion().exists()).toBe(showWebIdeForkSuggestion);
+        expect(findForkSuggestion().exists()).toBe(showForkSuggestion);
       },
     );
   });

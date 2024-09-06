@@ -4,13 +4,13 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
-# Reference architecture: Up to 40 RPS or 2,000 users
+# Reference architecture: 40 RPS or up to 2,000 users 
 
 DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
-This page describes the GitLab reference architecture designed to target a peak load of 40 requests per second (RPS), the typical peak load of up to 2,000 users, both manual and automated, based on real data.
+This page describes the GitLab reference architecture designed to target a peak load of 40 requests per second (RPS), the typical peak load of up to 2,000 users, both manual and automated, based on real data with headroom added.
 
 For a full list of reference architectures, see
 [Available reference architectures](index.md#available-reference-architectures).
@@ -18,9 +18,9 @@ For a full list of reference architectures, see
 > - **Target Load:** API: 40 RPS, Web: 4 RPS, Git (Pull): 4 RPS, Git (Push): 1 RPS
 > - **High Availability:** No. For a highly-available environment, you can
 >   follow a modified [3K or 60 RPS reference architecture](3k_users.md#supported-modifications-for-lower-user-counts-ha).
-> - **Cost calculator template:** [See cost calculator templates section](index.md#cost-calculator-templates)
+> - **Estimated Costs:** [See cost table](index.md#cost-to-run)
 > - **Cloud Native Hybrid:** [Yes](#cloud-native-hybrid-reference-architecture-with-helm-charts-alternative)
-> - **Unsure which Reference Architecture to use?** [Go to this guide for more info](index.md#deciding-which-architecture-to-start-with).
+> - **Unsure which Reference Architecture to use?** [Go to this guide for more info](index.md#deciding-which-architecture-to-use).
 
 | Service                            | Nodes | Configuration          | GCP             | AWS          | Azure    |
 |------------------------------------|-------|------------------------|-----------------|--------------|----------|
@@ -40,14 +40,13 @@ For a full list of reference architectures, see
 1. Can be optionally run on reputable third-party external PaaS PostgreSQL solutions. See [Provide your own PostgreSQL instance](#provide-your-own-postgresql-instance) and [Recommended cloud providers and services](index.md#recommended-cloud-providers-and-services) for more information.
 2. Can be optionally run on reputable third-party external PaaS Redis solutions. See [Provide your own Redis instance](#provide-your-own-redis-instance) and [Recommended cloud providers and services](index.md#recommended-cloud-providers-and-services) for more information.
 3. Recommended to be run with a reputable third-party load balancer or service (LB PaaS).
-   Sizing depends on selected Load Balancer and additional factors such as Network Bandwidth. See [Load Balancers](index.md#load-balancers) for more information.
+   Also note that sizing depends on selected Load Balancer as well as additional factors such as Network Bandwidth. Refer to [Load Balancers](index.md#load-balancers) for more information.
 4. Should be run on reputable Cloud Provider or Self Managed solutions. See [Configure the object storage](#configure-the-object-storage) for more information.
 5. Gitaly specifications are based on the use of normal-sized repositories in good health.
    However, if you have large monorepos (larger than several gigabytes) this can **significantly** impact Git and Gitaly performance and an increase of specifications will likely be required.
    Refer to [large monorepos](index.md#large-monorepos) for more information.
 6. Can be placed in Auto Scaling Groups (ASGs) as the component doesn't store any [stateful data](index.md#autoscaling-of-stateful-nodes).
-   However, [Cloud Native Hybrid setups](#cloud-native-hybrid-reference-architecture-with-helm-charts-alternative) are generally preferred as certain components
-   such as like [migrations](#gitlab-rails-post-configuration) and [Mailroom](../incoming_email.md) can only be run on one node, which is handled better in Kubernetes.
+   However, for GitLab Rails certain processes like [migrations](#gitlab-rails-post-configuration) and [Mailroom](../incoming_email.md) should be run on only one node.
 <!-- markdownlint-enable MD029 -->
 
 NOTE:
@@ -71,16 +70,16 @@ card "**Redis**" as redis #FF6347
 cloud "**Object Storage**" as object_storage #white
 
 elb -[#6a9be7]-> gitlab
-elb -[#6a9be7,norank]--> monitor
+elb -[#6a9be7]--> monitor
 
 gitlab -[#32CD32]--> gitaly
 gitlab -[#32CD32]--> postgres
-gitlab -[#32CD32]> object_storage
+gitlab -[#32CD32]-> object_storage
 gitlab -[#32CD32]--> redis
 
-sidekiq -[#ff8dd1]> object_storage
-sidekiq -[#ff8dd1]--> redis
-sidekiq .[#ff8dd1]--> postgres
+sidekiq -[#ff8dd1]r-> object_storage
+sidekiq -[#ff8dd1]----> redis
+sidekiq .[#ff8dd1]----> postgres
 sidekiq -[hidden]-> monitor
 
 monitor .[#7FFFD4]u-> gitlab
@@ -109,16 +108,16 @@ against the following endpoint throughput targets:
 - Git (Push): 1 RPS
 
 The above targets were selected based on real customer data of total environmental loads corresponding to the user count,
-including CI and other workloads.
+including CI and other workloads along with additional substantial headroom added.
 
 If you have metrics to suggest that you have regularly higher throughput against the above endpoint targets, [large monorepos](index.md#large-monorepos)
 or notable [additional workloads](index.md#additional-workloads) these can notably impact the performance environment and [further adjustments may be required](index.md#scaling-an-environment).
-If this applies to you, we strongly recommended referring to the linked documentation and reaching out to your [Customer Success Manager](https://handbook.gitlab.com/job-families/sales/customer-success-management/) or our [Support team](https://about.gitlab.com/support/) for further guidance.
+If this applies to you, we strongly recommended referring to the linked documentation as well as reaching out to your [Customer Success Manager](https://handbook.gitlab.com/job-families/sales/customer-success-management/) or our [Support team](https://about.gitlab.com/support/) for further guidance.
 
-Testing is done regularly by using our [GitLab Performance Tool (GPT)](https://gitlab.com/gitlab-org/quality/performance) and its dataset, which is available for anyone to use.
+Testing is done regularly via our [GitLab Performance Tool (GPT)](https://gitlab.com/gitlab-org/quality/performance) and its dataset, which is available for anyone to use.
 The results of this testing are [available publicly on the GPT wiki](https://gitlab.com/gitlab-org/quality/performance/-/wikis/Benchmarks/Latest). For more information on our testing strategy [refer to this section of the documentation](index.md#validation-and-test-results).
 
-The load balancers used for testing were HAProxy for Linux package environments or equivalent Cloud Provider services with NGINX Ingress for Cloud Native Hybrids. These selections do not represent a specific requirement or recommendation as most [reputable load balancers are expected to work](#configure-the-external-load-balancer).
+The load balancers used for testing were HAProxy for Linux package environments or equivalent Cloud Provider services via NGINX Ingress for Cloud Native Hybrids. Note that these selections do not represent a specific requirement or recommendation as most [reputable load balancers are expected to work](#configure-the-external-load-balancer).
 
 ## Set up components
 
@@ -272,7 +271,7 @@ A reputable provider or solution should be used for this. [Google Cloud SQL](htt
 
 If you use a third party external service:
 
-1. The HA Linux package PostgreSQL setup encompasses PostgreSQL, PgBouncer and Consul. All of these components would no longer be required when using a third party external service.
+1. Note that the HA Linux package PostgreSQL setup encompasses PostgreSQL, PgBouncer and Consul. All of these components would no longer be required when using a third party external service.
 1. Set up PostgreSQL according to the
    [database requirements document](../../install/requirements.md#database).
 1. Set up a `gitlab` username with a password of your choice. The `gitlab` user
@@ -332,7 +331,7 @@ If you use a third party external service:
 
 1. [Reconfigure GitLab](../restart_gitlab.md#reconfigure-a-linux-package-installation) for the changes to take effect.
 1. Note the PostgreSQL node's IP address or hostname, port, and
-   plain text password. These details are necessary when configuring the
+   plain text password. These will be necessary when configuring the
    [GitLab application server](#configure-gitlab-rails) later.
 
 Advanced [configuration options](https://docs.gitlab.com/omnibus/settings/database.html)
@@ -383,6 +382,8 @@ the Linux package:
    redis['port'] = 6379
    redis['password'] = 'SECRET_PASSWORD_HERE'
 
+   gitlab_rails['enable'] = false
+
    # Set the network addresses that the exporters used for monitoring will listen on
    node_exporter['listen_address'] = '0.0.0.0:9100'
    redis_exporter['listen_address'] = '0.0.0.0:9121'
@@ -390,9 +391,6 @@ the Linux package:
          'redis.addr' => 'redis://0.0.0.0:6379',
          'redis.password' => 'SECRET_PASSWORD_HERE',
    }
-
-   # Prevent database migrations from running on upgrade automatically
-   gitlab_rails['auto_migrate'] = false
    ```
 
 1. Copy the `/etc/gitlab/gitlab-secrets.json` file from the first Linux package node you configured and add or replace
@@ -494,6 +492,10 @@ To configure the Gitaly server, on the server node you want to use for Gitaly:
    # Gitaly
    gitaly['enable'] = true
 
+   # The secret token is used for authentication callbacks from Gitaly to the GitLab internal API.
+   # This must match the respective value in GitLab Rails application setup.
+   gitlab_shell['secret_token'] = 'shellsecret'
+
    # Set the network addresses that the exporters used for monitoring will listen on
    node_exporter['listen_address'] = '0.0.0.0:9100'
 
@@ -540,16 +542,16 @@ To configure the Gitaly server, on the server node you want to use for Gitaly:
 1. [Reconfigure GitLab](../restart_gitlab.md#reconfigure-a-linux-package-installation) for the changes to take effect.
 
 1. Confirm that Gitaly can perform callbacks to the internal API:
-   - For GitLab 15.3 and later, run `sudo -u git -- /opt/gitlab/embedded/bin/gitaly check /var/opt/gitlab/gitaly/config.toml`.
-   - For GitLab 15.2 and earlier, run `sudo -u git -- /opt/gitlab/embedded/bin/gitaly-hooks check /var/opt/gitlab/gitaly/config.toml`.
+   - For GitLab 15.3 and later, run `sudo /opt/gitlab/embedded/bin/gitaly check /var/opt/gitlab/gitaly/config.toml`.
+   - For GitLab 15.2 and earlier, run `sudo /opt/gitlab/embedded/bin/gitaly-hooks check /var/opt/gitlab/gitaly/config.toml`.
 
 ### Gitaly TLS support
 
-Gitaly supports TLS encryption. To communicate
-with a Gitaly instance that listens for secure connections, you must use `tls://` URL
+Gitaly supports TLS encryption. To be able to communicate
+with a Gitaly instance that listens for secure connections you will need to use `tls://` URL
 scheme in the `gitaly_address` of the corresponding storage entry in the GitLab configuration.
 
-You must bring your own certificates as this isn't provided automatically.
+You will need to bring your own certificates as this isn't provided automatically.
 The certificate, or its certificate authority, must be installed on all Gitaly
 nodes (including the Gitaly node using the certificate) and on all client nodes
 that communicate with it following the procedure described in
@@ -618,26 +620,19 @@ NOTE:
 If you find that the environment's Sidekiq job processing is slow with long queues
 you can scale it accordingly. Refer to the [scaling documentation](index.md#scaling-an-environment) for more information.
 
-NOTE:
-When configuring additional GitLab functionality such as Container Registry, SAML, or LDAP,
-update the Sidekiq configuration in addition to the Rails configuration.
-Refer to the [external Sidekiq documentation](../sidekiq/index.md) for more information.
-
 To configure the Sidekiq server, on the server node you want to use for Sidekiq:
 
 1. SSH in to the Sidekiq server.
-1. Confirm that you can access the PostgreSQL, Gitaly, and Redis ports:
-
-   ```shell
-   telnet <GitLab host> 5432 # PostgreSQL
-   telnet <GitLab host> 8075 # Gitaly
-   telnet <GitLab host> 6379 # Redis
-   ```
-
 1. [Download and install](https://about.gitlab.com/install/) the Linux
    package of your choice. Be sure to follow _only_ installation steps 1 and 2
    on the page.
 1. Create or edit `/etc/gitlab/gitlab.rb` and use the following configuration:
+
+   <!--
+   Updates to example must be made at:
+   - https://gitlab.com/gitlab-org/gitlab/blob/master/doc/administration/sidekiq.md
+   - all reference architecture pages
+   -->
 
    ```ruby
    # https://docs.gitlab.com/omnibus/roles/#sidekiq-roles
@@ -652,10 +647,11 @@ To configure the Sidekiq server, on the server node you want to use for Sidekiq:
    gitlab_rails['redis_password'] = 'Redis Password'
 
    # Gitaly and GitLab use two shared secrets for authentication, one to authenticate gRPC requests
-   # to Gitaly, and a second stored in /etc/gitlab/gitlab-secrets.json for authentication callbacks from GitLab-Shell to the GitLab internal API.
-   # The following must be the same as their respective values
+   # to Gitaly, and a second for authentication callbacks from GitLab-Shell to the GitLab internal API.
+   # The following two values must be the same as their respective values
    # of the Gitaly setup
    gitlab_rails['gitaly_token'] = 'gitalysecret'
+   gitlab_shell['secret_token'] = 'shellsecret'
 
    git_data_dirs({
      'default' => { 'gitaly_address' => 'tcp://gitaly1.internal:8075' },
@@ -673,6 +669,7 @@ To configure the Sidekiq server, on the server node you want to use for Sidekiq:
    gitlab_rails['auto_migrate'] = false
 
    # Sidekiq
+   sidekiq['enable'] = true
    sidekiq['listen_address'] = "0.0.0.0"
 
    ## Set number of Sidekiq queue processes to the same number as available CPUs
@@ -773,10 +770,11 @@ On each node perform the following:
    external_url 'https://gitlab.example.com'
 
    # Gitaly and GitLab use two shared secrets for authentication, one to authenticate gRPC requests
-   # to Gitaly, and a second stored in /etc/gitlab/gitlab-secrets.json for authentication callbacks from GitLab-Shell to the GitLab internal API.
-   # The following must be the same as their respective values
+   # to Gitaly, and a second for authentication callbacks from GitLab-Shell to the GitLab internal API.
+   # The following two values must be the same as their respective values
    # of the Gitaly setup
    gitlab_rails['gitaly_token'] = 'gitalysecret'
+   gitlab_shell['secret_token'] = 'shellsecret'
 
    git_data_dirs({
      'default' => { 'gitaly_address' => 'tcp://gitaly1.internal:8075' },
@@ -787,6 +785,7 @@ On each node perform the following:
    ## Disable components that will not be on the GitLab application server
    roles(['application_role'])
    gitaly['enable'] = false
+   nginx['enable'] = true
    sidekiq['enable'] = false
 
    ## PostgreSQL connection details
@@ -914,7 +913,7 @@ the [HTTPS documentation](https://docs.gitlab.com/omnibus/settings/ssl/index.htm
    sudo gitlab-rake gitlab:db:configure
    ```
 
-   This operation requires configuring the Rails node to connect to the primary database
+   Note that this requires the Rails node to be configured to connect to the primary database
    directly, [bypassing PgBouncer](../postgresql/pgbouncer.md#procedure-for-bypassing-pgbouncer).
    After migrations have completed, you must configure the node to pass through PgBouncer again.
 
@@ -957,7 +956,6 @@ running [Prometheus](../monitoring/prometheus/index.md):
    1.1.1.3: gitaly1
    1.1.1.4: rails1
    1.1.1.5: rails2
-   1.1.1.6: sidekiq
    ```
 
    Add the following to `/etc/gitlab/gitlab.rb`:
@@ -1004,13 +1002,13 @@ running [Prometheus](../monitoring/prometheus/index.md):
      {
         'job_name': 'gitlab-sidekiq',
         'static_configs' => [
-        'targets' => ['1.1.1.6:8082'],
+        'targets' => ['1.1.1.4:8082', '1.1.1.5:8082'],
         ],
      },
      {
-        'job_name': 'static-node',
+        'job_name': 'node',
         'static_configs' => [
-        'targets' => ['1.1.1.1:9100', '1.1.1.2:9100', '1.1.1.3:9100', '1.1.1.4:9100', '1.1.1.5:9100', '1.1.1.6:9100'],
+        'targets' => ['1.1.1.1:9100', '1.1.1.2:9100', '1.1.1.3:9100', '1.1.1.4:9100', '1.1.1.5:9100'],
         ],
      },
    ]
@@ -1039,6 +1037,12 @@ There are two ways of specifying object storage configuration in GitLab:
   own object storage [connection and configuration](../object_storage.md#configure-the-connection-settings).
 
 The consolidated form is used in the following examples when available.
+
+NOTE:
+When using the [storage-specific form](../object_storage.md#configure-each-object-type-to-define-its-own-storage-connection-storage-specific-form)
+in GitLab 14.x and earlier, you should enable [direct upload mode](../../development/uploads/index.md#direct-upload).
+The previous [background upload](../../development/uploads/index.md#direct-upload) mode,
+which was deprecated in 14.9, requires shared storage such as NFS.
 
 Using separate buckets for each data type is the recommended approach for GitLab.
 This ensures there are no collisions across the various types of data GitLab stores.
@@ -1114,29 +1118,26 @@ as the typical environment above.
 First are the components that run in Kubernetes. These run across several node groups, although you can change
 the overall makeup as desired as long as the minimum CPU and Memory requirements are observed.
 
-| Component Node Group | Target Node Pool Totals | GCP Example     | AWS Example  |
-|----------------------|-------------------------|-----------------|--------------|
-| Webservice           | 12 vCPU<br/>15 GB memory (request)<br/>21 GB memory (limit) | 3 x `n1-standard-8` | 3 x `c5.2xlarge` |
-| Sidekiq              | 3.6 vCPU<br/>8 GB memory (request)<br/>16 GB memory (limit) | 2 x `n1-standard-4` | 2 x `m5.xlarge`  |
-| Supporting services  | 4 vCPU<br/>15 GB memory | 2 x `n1-standard-2` | 2 x `m5.large`   |
+| Service Node Group  | Nodes | Configuration          | GCP             | AWS          | Min Allocatable CPUs and Memory |
+|---------------------|-------|------------------------|-----------------|--------------|---------------------------------|
+| Webservice          | 3     | 8 vCPU, 7.2 GB memory  | `n1-highcpu-8`  | `c5.2xlarge` | 23.7 vCPU, 16.9 GB memory       |
+| Sidekiq             | 2     | 4 vCPU, 15 GB memory   | `n1-standard-4` | `m5.xlarge`  | 7.8 vCPU, 25.9 GB memory        |
+| Supporting services | 2     | 2 vCPU, 7.5 GB memory  | `n1-standard-2` | `m5.large`   | 1.9 vCPU, 5.5 GB memory         |
 
 - For this setup, we **recommend** and regularly [test](index.md#validation-and-test-results)
   [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine) and [Amazon Elastic Kubernetes Service (EKS)](https://aws.amazon.com/eks/). Other Kubernetes services may also work, but your mileage may vary.
-- GCP and AWS examples of how to reach the Target Node Pool Total are given for convenience. These sizes are used in performance testing but following the example is not required. Different node pool designs can be used as desired as long as the targets are met, and all pods can deploy.
-- The [Webservice](#webservice) and [Sidekiq](#sidekiq) target node pool totals are given for GitLab components only. Additional resources are required for the chosen Kubernetes provider's system processes. The given examples take this into account.
-- The [Supporting](#supporting) target node pool total is given generally to accommodate several resources for supporting the GitLab deployment and any additional deployments you may wish to make depending on your requirements. Similar to the other node pools, the chosen Kubernetes provider's system processes also require resources. The given examples take this into account.
-- In production deployments, it's not required to assign pods to specific nodes. However, it is recommended to have several nodes in each pool spread across different availability zones to align with resilient cloud architecture practices.
-- Enabling autoscaling, such as Cluster Autoscaler, for efficiency reasons is encouraged, but it's generally recommended targeting a floor of 75% for Webservice and Sidekiq pods to ensure ongoing performance.
+- Nodes configuration is shown as it is forced to ensure pod vCPU / memory ratios and avoid scaling during **performance testing**.
+  - In production deployments, there is no need to assign pods to specific nodes. A minimum of three nodes per node group in three different availability zones is strongly recommended to align with resilient cloud architecture practices.
 
 Next are the backend components that run on static compute VMs using the Linux package (or External PaaS
 services where applicable):
 
 | Service                     | Nodes | Configuration          | GCP             | AWS         |
 |-----------------------------|-------|------------------------|-----------------|-------------|
-| PostgreSQL<sup>1</sup>      | 1     | 2 vCPU, 7.5 GB memory  | `n1-standard-2` | `m5.large`  |
-| Redis<sup>2</sup>           | 1     | 1 vCPU, 3.75 GB memory | `n1-standard-1` | `m5.large`  |
+| PostgreSQL <sup>1</sup>     | 1     | 2 vCPU, 7.5 GB memory  | `n1-standard-2` | `m5.large`  |
+| Redis <sup>2</sup>          | 1     | 1 vCPU, 3.75 GB memory | `n1-standard-1` | `m5.large`  |
 | Gitaly                      | 1     | 4 vCPU, 15 GB memory   | `n1-standard-4` | `m5.xlarge` |
-| Object storage<sup>3</sup>  | -     | -                      | -               | -           |
+| Object storage <sup>3</sup> | -     | -                      | -               | -           |
 
 **Footnotes:**
 
@@ -1148,7 +1149,7 @@ services where applicable):
 <!-- markdownlint-enable MD029 -->
 
 NOTE:
-For all PaaS solutions that involve configuring instances, it's recommended to implement a minimum of three nodes in three different availability zones to align with resilient cloud architecture practices.
+For all PaaS solutions that involve configuring instances, it is strongly recommended to implement a minimum of three nodes in three different availability zones to align with resilient cloud architecture practices.
 
 ```plantuml
 @startuml 2k
@@ -1158,11 +1159,11 @@ card "Kubernetes via Helm Charts" as kubernetes {
   card "**External Load Balancer**" as elb #6a9be7
 
   together {
-    collections "**Webservice**" as gitlab #32CD32
-    collections "**Sidekiq**" as sidekiq #ff8dd1
+    collections "**Webservice** x3" as gitlab #32CD32
+    collections "**Sidekiq** x2" as sidekiq #ff8dd1
   }
 
-  collections "**Supporting Services**" as support
+  collections "**Supporting Services** x2" as support
 }
 
 card "**Gitaly**" as gitaly #FF8C00
@@ -1185,43 +1186,36 @@ sidekiq -[#ff8dd1]--> redis
 @enduml
 ```
 
-### Kubernetes component targets
+### Resource usage settings
 
-The following section details the targets used for the GitLab components deployed in Kubernetes.
+The following formulas help when calculating how many pods may be deployed within resource constraints.
+The [2k reference architecture example values file](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/examples/ref/2k.yaml)
+documents how to apply the calculated configuration to the Helm Chart.
 
 #### Webservice
 
-Each Webservice pod (Puma and Workhorse) is recommended to be run with the following configuration:
+Webservice pods typically need about 1 CPU and 1.25 GB of memory _per worker_.
+Each Webservice pod consumes roughly 4 CPUs and 5 GB of memory using
+the [recommended topology](#cluster-topology) because two worker processes
+are created by default and each pod has other small processes running.
 
-- 4 Puma Workers
-- 4 vCPU
-- 5 GB memory (request)
-- 7 GB memory (limit)
+For 40 RPS or 2,000 users we recommend a total Puma worker count of around 12.
+With the [provided recommendations](#cluster-topology) this allows the deployment of up to 3
+Webservice pods with 4 workers per pod and 1 pod per node. Expand available resources using
+the ratio of 1 CPU to 1.25 GB of memory _per each worker process_ for each additional
+Webservice pod.
 
-For 40 RPS or 2,000 users, we recommend a total Puma worker count of around 12 so in turn it's recommended to run at
-least 3 Webservice pods.
-
-For further information on Webservice resource usage, see the Charts documentation on [Webservice resources](https://docs.gitlab.com/charts/charts/gitlab/webservice/#resources).
-
-##### NGINX
-
-It's also recommended deploying the NGINX controller pods across the Webservice nodes as a DaemonSet. This allows the controllers to scale dynamically with the Webservice pods they serve, and takes advantage of the higher network bandwidth larger machine types typically have.
-
-This isn't a strict requirement. The NGINX controller pods can be deployed as desired as long as they have enough resources to handle the web traffic.
+For further information on resource usage, see the [Webservice resources](https://docs.gitlab.com/charts/charts/gitlab/webservice/#resources).
 
 #### Sidekiq
 
-Each Sidekiq pod is recommended to be run with the following configuration:
+Sidekiq pods should generally have 0.9 CPU and 2 GB of memory.
 
-- 1 Sidekiq worker
-- 900m vCPU
-- 2 GB memory (request)
-- 4 GB memory (limit)
+[The provided starting point](#cluster-topology) allows the deployment of up to
+4 Sidekiq pods. Expand available resources using the 0.9 CPU to 2 GB memory
+ratio for each additional pod.
 
-Similar to the standard deployment above, an initial target of 4 Sidekiq workers has been used here.
-Additional workers may be required depending on your specific workflow.
-
-For further information on Sidekiq resource usage, see the Charts documentation on [Sidekiq resources](https://docs.gitlab.com/charts/charts/gitlab/sidekiq/#resources).
+For further information on resource usage, see the [Sidekiq resources](https://docs.gitlab.com/charts/charts/gitlab/sidekiq/#resources).
 
 ### Supporting
 
@@ -1229,28 +1223,15 @@ The Supporting Node Pool is designed to house all supporting deployments that do
 on the Webservice and Sidekiq pools.
 
 This includes various deployments related to the Cloud Provider's implementation and supporting
-GitLab deployments such as [GitLab Shell](https://docs.gitlab.com/charts/charts/gitlab/gitlab-shell/).
+GitLab deployments such as NGINX or [GitLab Shell](https://docs.gitlab.com/charts/charts/gitlab/gitlab-shell/).
 
-If you wish to make any additional deployments such as Container Registry, Pages or Monitoring, it's recommended
+If you wish to make any additional deployments, such as for Monitoring, it's recommended
 to deploy these in this pool where possible and not in the Webservice or Sidekiq pools, as the Supporting pool has been designed
 specifically to accommodate several additional deployments. However, if your deployments don't fit into the
-pool as given, you can increase the node pool accordingly. Conversely, if the pool in your use case is over-provisioned you can reduce accordingly.
-
-### Example config file
-
-An example for the GitLab Helm Charts for the above 40 RPS or 2,000 reference architecture configuration [can be found in the Charts project](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/examples/ref/2k.yaml).
+pool as given, you can increase the node pool accordingly.
 
 <div align="right">
   <a type="button" class="btn btn-default" href="#set-up-components">
     Back to set up components <i class="fa fa-angle-double-up" aria-hidden="true"></i>
   </a>
 </div>
-
-## Next steps
-
-After following this guide you should now have a fresh GitLab environment with core functionality configured accordingly.
-
-You may want to configure additional optional features of GitLab depending on your requirements. See [Steps after installing GitLab](../../install/next_steps.md) for more information.
-
-NOTE:
-Depending on your environment and requirements, additional hardware requirements or adjustments may be required to set up additional features as desired. Refer to the individual pages for more information.

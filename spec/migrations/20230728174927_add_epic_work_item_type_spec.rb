@@ -3,7 +3,9 @@
 require 'spec_helper'
 require_migration!
 
-RSpec.describe AddEpicWorkItemType, :migration_with_transaction, feature_category: :team_planning do
+RSpec.describe AddEpicWorkItemType, :migration, feature_category: :team_planning do
+  include MigrationHelpers::WorkItemTypesHelper
+
   let(:work_item_types) { table(:work_item_types) }
   let(:work_item_widget_definitions) { table(:work_item_widget_definitions) }
   let(:work_item_hierarchy_restrictions) { table(:work_item_hierarchy_restrictions) }
@@ -18,6 +20,12 @@ RSpec.describe AddEpicWorkItemType, :migration_with_transaction, feature_categor
       key_result: 6,
       epic: 7
     }
+  end
+
+  after(:all) do
+    # Make sure base types are recreated after running the migration
+    # because migration specs are not run in a transaction
+    reset_work_item_types
   end
 
   before do

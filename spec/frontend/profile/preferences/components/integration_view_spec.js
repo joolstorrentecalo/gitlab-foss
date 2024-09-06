@@ -1,11 +1,10 @@
-import { nextTick } from 'vue';
 import { GlFormGroup } from '@gitlab/ui';
 import { mountExtended } from 'helpers/vue_test_utils_helper';
 
 import { convertObjectPropsToCamelCase } from '~/lib/utils/common_utils';
 import IntegrationView from '~/profile/preferences/components/integration_view.vue';
 import IntegrationHelpText from '~/vue_shared/components/integrations_help_text.vue';
-import { integrationViews } from '../mock_data';
+import { integrationViews, userFields } from '../mock_data';
 
 const viewProps = convertObjectPropsToCamelCase(integrationViews[0]);
 
@@ -17,12 +16,16 @@ describe('IntegrationView component', () => {
       label: 'Enable foo',
       formName: 'foo_enabled',
     },
-    value: true,
     ...viewProps,
   };
 
-  function createComponent(props = {}) {
+  function createComponent(options = {}) {
+    const { props = {}, provide = {} } = options;
     return mountExtended(IntegrationView, {
+      provide: {
+        userFields,
+        ...provide,
+      },
       propsData: {
         ...defaultProps,
         ...props,
@@ -70,7 +73,19 @@ describe('IntegrationView component', () => {
   });
 
   it('should set the checkbox value to be false when false is provided', () => {
-    wrapper = createComponent({ value: false });
+    wrapper = createComponent({
+      provide: {
+        userFields: {
+          foo_enabled: false,
+        },
+      },
+    });
+
+    expect(findCheckbox().element.checked).toBe(false);
+  });
+
+  it('should set the checkbox value to be false when not provided', () => {
+    wrapper = createComponent({ provide: { userFields: {} } });
 
     expect(findCheckbox().element.checked).toBe(false);
   });
@@ -79,29 +94,5 @@ describe('IntegrationView component', () => {
     wrapper = createComponent();
 
     expect(wrapper.findComponent(IntegrationHelpText).exists()).toBe(true);
-  });
-
-  describe('when prop value changes', () => {
-    beforeEach(async () => {
-      wrapper = createComponent();
-
-      wrapper.setProps({ value: false });
-      await nextTick();
-    });
-
-    it('should update the checkbox value', () => {
-      expect(findCheckbox().element.checked).toBe(false);
-    });
-  });
-
-  it('when checkbox clicked, should update the checkbox value', async () => {
-    wrapper = createComponent({ value: false });
-
-    expect(wrapper.emitted('input')).toBe(undefined);
-
-    findCheckbox().setChecked(true);
-    await nextTick();
-
-    expect(wrapper.emitted('input')).toEqual([[true]]);
   });
 });

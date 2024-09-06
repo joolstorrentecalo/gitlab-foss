@@ -9,7 +9,14 @@ module QA
 
       let(:project) { create(:project, name: 'project-with-pipeline-1') }
       let(:other_project) { create(:project, name: 'project-with-pipeline-2') }
-      let!(:runner) { create(:project_runner, project: project, name: executor, tags: [executor]) }
+
+      let!(:runner) do
+        Resource::ProjectRunner.fabricate! do |runner|
+          runner.project = project
+          runner.name = executor
+          runner.tags = [executor]
+        end
+      end
 
       before do
         Flow::Login.sign_in
@@ -23,7 +30,7 @@ module QA
         runner.remove_via_api!
       end
 
-      it 'runs the pipeline with composed config', :blocking,
+      it 'runs the pipeline with composed config', :reliable,
         testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/348087' do
         Page::Project::Pipeline::Show.perform do |pipeline|
           aggregate_failures 'pipeline has all expected jobs' do
@@ -37,8 +44,8 @@ module QA
 
         Page::Project::Job::Show.perform do |job|
           aggregate_failures 'main CI is not overridden' do
-            expect(job.output).not_to have_content(unexpected_text.to_s)
-            expect(job.output).to have_content(expected_text.to_s)
+            expect(job.output).not_to have_content("#{unexpected_text}")
+            expect(job.output).to have_content("#{expected_text}")
           end
         end
       end

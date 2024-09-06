@@ -31,6 +31,8 @@ To prepare the deployment:
 
 ## Auto DevOps deployment strategy
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab-foss/-/issues/38542) in GitLab 11.0.
+
 When using Auto DevOps to deploy your applications, choose the
 [continuous deployment strategy](../../ci/index.md)
 that works best for your needs:
@@ -62,7 +64,7 @@ To define the base domain, either:
 
 - In the project, group, or instance level: go to your cluster settings and add it there.
 - In the project or group level: add it as an environment variable: `KUBE_INGRESS_BASE_DOMAIN`.
-- In the instance level: go to the **Admin** area, then **Settings > CI/CD > Continuous Integration and Delivery** and add it there.
+- In the instance level: go to the Admin Area, then **Settings > CI/CD > Continuous Integration and Delivery** and add it there.
 
 The base domain variable `KUBE_INGRESS_BASE_DOMAIN` follows the same order of
 [precedence as other environment variables](../../ci/variables/index.md#cicd-variable-precedence).
@@ -129,7 +131,7 @@ To make full use of Auto DevOps with Kubernetes, you need:
 
   Your runner must be configured to run Docker, usually with either the
   [Docker](https://docs.gitlab.com/runner/executors/docker.html)
-  or [Kubernetes](https://docs.gitlab.com/runner/executors/kubernetes/index.html) executors, with
+  or [Kubernetes](https://docs.gitlab.com/runner/executors/kubernetes.html) executors, with
   [privileged mode enabled](https://docs.gitlab.com/runner/executors/docker.html#use-docker-in-docker-with-privileged-mode).
   The runners don't need to be installed in the Kubernetes cluster, but the
   Kubernetes executor is easy to use and automatically autoscales.

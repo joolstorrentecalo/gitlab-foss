@@ -10,7 +10,14 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-> - Agent connection sharing limit [changed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/149844) from 100 to 500 in GitLab 17.0.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/327409) in GitLab 14.1.
+> - The pre-configured variable `$KUBECONFIG` [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/324275) in GitLab 14.2.
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/5784) the `ci_access` attribute in GitLab 14.3.
+> - The ability to authorize groups was [introduced](https://gitlab.com/groups/gitlab-org/-/epics/5784) in GitLab 14.3.
+> - [Moved](https://gitlab.com/groups/gitlab-org/-/epics/6290) to GitLab Free in 14.5.
+> - Support for Linux package installations was [introduced](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/5686) in GitLab 14.5.
+> - The ability to switch between certificate-based clusters and agents was [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/335089) in GitLab 14.9. The certificate-based cluster context is always called `gitlab-deploy`.
+> - [Renamed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/80508) from _CI/CD tunnel_ to _CI/CD workflow_ in GitLab 14.9.
 
 You can use GitLab CI/CD to safely connect, deploy, and update your Kubernetes clusters.
 
@@ -23,10 +30,6 @@ To ensure access to your cluster is safe:
 - Only the project where the agent is configured, and any additional projects you authorize, can access the agent in your cluster.
 
 To use GitLab CI/CD to interact with your cluster, runners must be registered with GitLab. However, these runners do not have to be in the cluster where the agent is.
-
-Prerequisites:
-
-- Make sure [GitLab CI/CD is enabled](../../../ci/pipelines/settings.md#disable-gitlab-cicd-pipelines).
 
 ## Use GitLab CI/CD with your cluster
 
@@ -59,6 +62,7 @@ Authorization configuration can take one or two minutes to propagate.
 
 ### Authorize the agent to access your projects
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/327850) in GitLab 14.4.
 > - [Changed](https://gitlab.com/gitlab-org/gitlab/-/issues/346566) to remove hierarchy restrictions in GitLab 15.6.
 > - [Changed](https://gitlab.com/gitlab-org/gitlab/-/issues/356831) to allow authorizing projects in a user namespace in GitLab 15.7.
 
@@ -76,7 +80,7 @@ To authorize the agent to access the GitLab project where you keep Kubernetes ma
 
    - Authorized projects must have the same root group or user namespace as the agent's configuration project.
    - You can install additional agents into the same cluster to accommodate additional hierarchies.
-   - You can authorize up to 500 projects.
+   - You can authorize up to 100 projects.
 
 All CI/CD jobs now include a `kubeconfig` file with contexts for every shared agent connection.
 The `kubeconfig` path is available in the environment variable `$KUBECONFIG`.
@@ -84,6 +88,7 @@ Choose the context to run `kubectl` commands from your CI/CD scripts.
 
 ### Authorize the agent to access projects in your groups
 
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/5784) in GitLab 14.3.
 > - [Changed](https://gitlab.com/gitlab-org/gitlab/-/issues/346566) to remove hierarchy restrictions in GitLab 15.6.
 
 To authorize the agent to access all of the GitLab projects in a group or subgroup:
@@ -101,7 +106,7 @@ To authorize the agent to access all of the GitLab projects in a group or subgro
    - Authorized groups must have the same root group as the agent's configuration project.
    - You can install additional agents into the same cluster to accommodate additional hierarchies.
    - All of the subgroups of an authorized group also have access to the same agent (without being specified individually).
-   - You can authorize up to 500 groups.
+   - You can authorize up to 100 groups.
 
 All the projects that belong to the group and its subgroups are now authorized to access the agent.
 All CI/CD jobs now include a `kubeconfig` file with contexts for every shared agent connection.
@@ -160,8 +165,10 @@ When you deploy to an environment that has both a
 
 - The certificate-based cluster's context is called `gitlab-deploy`. This context
   is always selected by default.
-- Agent contexts are included in `$KUBECONFIG`.
+- In GitLab 14.9 and later, agent contexts are included in `$KUBECONFIG`.
   You can select them by using `kubectl config use-context <path/to/agent/project>:<agent-name>`.
+- In GitLab 14.8 and earlier, you can still use agent connections, but for environments that
+  already have a certificate-based cluster, the agent connections are not included in `$KUBECONFIG`.
 
 To use an agent connection when certificate-based connections are present, you can manually configure a new `kubectl`
 configuration context. For example:
@@ -199,6 +206,7 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/345014) in GitLab 14.5.
 > - [Changed](https://gitlab.com/gitlab-org/gitlab/-/issues/357934) in GitLab 15.5 to add impersonation support for environment tiers.
 
 By default, your CI/CD job inherits all the permissions from the service account used to install the
@@ -331,60 +339,6 @@ In this example:
 - CI/CD jobs under `project-2` with `staging` or `review/*` environments can access the agent.
   - `*` is a wildcard, so `review/*` matches all environments under `review`.
 - CI/CD jobs for projects under `group-1` with `production` environments can access the agent.
-
-## Restrict access to the agent to protected branches
-
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed, GitLab Dedicated
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/467936) in GitLab 17.3 [with a flag](../../../administration/feature_flags.md) named `kubernetes_agent_protected_branches`. Disabled by default.
-
-FLAG:
-The availability of this feature is controlled by a feature flag.
-For more information, see the history.
-This feature is available for testing, but not ready for production use.
-
-To restrict access to the agent to only jobs run on [protected branches](../../project/protected_branches.md):
-
-- Add `protected_branches_only: true` to `ci_access.projects` or `ci_access.groups`.
-  For example:
-
-  ```yaml
-  ci_access:
-    projects:
-      - id: path/to/project-1
-        protected_branches_only: true
-    groups:
-      - id: path/to/group-1
-        protected_branches_only: true
-        environments:
-          - production
-  ```
-
-By default, `protected_branches_only` is set to `false`, and the agent can be accessed from unprotected and protected branches.
-
-For additional security, you can combine this feature with [environment restrictions](#restrict-project-and-group-access-to-specific-environments).
-
-If a project has multiple configurations, only the most specific configuration is used.
-For example, the following configuration grants access to unprotected branches in `example/my-project`, even though the `example` group is configured to grant access to only protected branches:
-
-```yaml
-# .gitlab/agents/my-agent/config.yaml
-ci_access:
-  project:
-    - id: example/my-project # Project of the group below
-      protected_branches_only: false # This configuration supercedes the group configuration
-      environments:
-        - dev
-  groups:
-    - id: example
-      protected_branches_only: true
-      environments:
-        - dev
-```
-
-For more details, see [Access to Kubernetes from CI](https://gitlab.com/gitlab-org/cluster-integration/gitlab-agent/-/blob/b601fa21cac24f0cdedc8b8eb59ebcba0b70f459/doc/kubernetes_ci_access.md#apiv4joballowed_agents-api).
 
 ## Related topics
 

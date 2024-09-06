@@ -145,7 +145,6 @@ export default {
 <template>
   <todo-button
     v-gl-tooltip
-    category="tertiary"
     :title="tooltipLabel"
     issuable-type="design"
     :issuable-id="design.iid"
@@ -154,6 +153,6 @@ export default {
     :is-icon-button="true"
     @click.stop.prevent="toggleTodo"
   >
-    <gl-icon :class="{ '!gl-fill-blue-500': pendingTodo }" :name="buttonIcon" />
+    <gl-icon :class="{ 'gl-fill-blue-500': pendingTodo }" :name="buttonIcon" />
   </todo-button>
 </template>

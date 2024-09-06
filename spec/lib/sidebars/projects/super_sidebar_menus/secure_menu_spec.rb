@@ -19,6 +19,7 @@ RSpec.describe Sidebars::Projects::SuperSidebarMenus::SecureMenu, feature_catego
       :dashboard,
       :vulnerability_report,
       :dependency_list,
+      :license_compliance,
       :audit_events,
       :scan_policies,
       :on_demand_scans,

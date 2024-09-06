@@ -2,7 +2,6 @@
 
 module Ci
   class RunnerManager < Ci::ApplicationRecord
-    include EachBatch
     include FromUnion
     include RedisCacheable
     include Ci::HasRunnerExecutor
@@ -12,29 +11,9 @@ module Ci
     self.table_name = 'ci_runner_machines'
 
     AVAILABLE_STATUSES = %w[online offline never_contacted stale].freeze
-    AVAILABLE_STATUSES_INCL_DEPRECATED = AVAILABLE_STATUSES
 
     # The `UPDATE_CONTACT_COLUMN_EVERY` defines how often the Runner Machine DB entry can be updated
     UPDATE_CONTACT_COLUMN_EVERY = (40.minutes)..(55.minutes)
-
-    EXECUTOR_NAME_TO_TYPES = {
-      'unknown' => :unknown,
-      'custom' => :custom,
-      'shell' => :shell,
-      'docker' => :docker,
-      'docker-windows' => :docker_windows,
-      'docker-ssh' => :docker_ssh,
-      'ssh' => :ssh,
-      'parallels' => :parallels,
-      'virtualbox' => :virtualbox,
-      'docker+machine' => :docker_machine,
-      'docker-ssh+machine' => :docker_ssh_machine,
-      'kubernetes' => :kubernetes,
-      'docker-autoscaler' => :docker_autoscaler,
-      'instance' => :instance
-    }.freeze
-
-    EXECUTOR_TYPE_TO_NAMES = EXECUTOR_NAME_TO_TYPES.invert.freeze
 
     belongs_to :runner
 
@@ -85,18 +64,18 @@ module Ci
       where(system_xid: system_xid)
     end
 
-    scope :with_executing_builds, -> do
-      where_exists(
-        Ci::Build
+    scope :with_running_builds, -> do
+      where('EXISTS(?)',
+        Ci::Build.select(1)
           .joins(:runner_manager_build)
-          .executing
+          .running
           .where("#{::Ci::Build.quoted_table_name}.runner_id = #{quoted_table_name}.runner_id")
           .where("#{::Ci::RunnerManagerBuild.quoted_table_name}.runner_machine_id = #{quoted_table_name}.id")
+          .limit(1)
       )
     end
 
     scope :order_id_desc, -> { order(id: :desc) }
-    scope :order_contacted_at_desc, -> { order(arel_table[:contacted_at].desc.nulls_last) }
 
     scope :with_version_prefix, ->(value) do
       regex = version_regex_expression_for_version(value)
@@ -127,10 +106,6 @@ module Ci
         .transform_values { |s| Ci::RunnerVersion.statuses.key(s).to_sym }
     end
 
-    def uncached_contacted_at
-      read_attribute(:contacted_at)
-    end
-
     def heartbeat(values, update_contacted_at: true)
       ##
       # We can safely ignore writes performed by a runner heartbeat. We do
@@ -143,7 +118,7 @@ module Ci
         values.merge!(contacted_at: Time.current, creation_state: :finished) if update_contacted_at
 
         if values.include?(:executor)
-          values[:executor_type] = EXECUTOR_NAME_TO_TYPES.fetch(values.delete(:executor), :unknown)
+          values[:executor_type] = Ci::Runner::EXECUTOR_NAME_TO_TYPES.fetch(values.delete(:executor), :unknown)
         end
 
         new_version = values[:version]
@@ -162,7 +137,7 @@ module Ci
       # Use a random threshold to prevent beating DB updates.
       contacted_at_max_age = Random.rand(UPDATE_CONTACT_COLUMN_EVERY)
 
-      real_contacted_at = uncached_contacted_at
+      real_contacted_at = read_attribute(:contacted_at)
       real_contacted_at.nil? ||
         (Time.current - real_contacted_at) >= contacted_at_max_age
     end

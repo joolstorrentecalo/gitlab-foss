@@ -6,16 +6,8 @@ info: Any user with at least the Maintainer role can merge updates to this conte
 
 # Geo proxying
 
-Secondaries proxy nearly all HTTP requests through Workhorse to the primary, so users navigating to the
+With Geo proxying, secondaries now proxy web requests through Workhorse to the primary, so users navigating to the
 secondary see a read-write UI, and are able to do all operations that they can do on the primary.
-
-## High-level components
-
-Proxying of GitLab UI and API HTTP requests is handled by the [`gitlab-workhorse`](../../development/architecture.md#gitlab-workhorse) component. Traffic usually sent to the Rails application on the Geo secondary site is proxied to the [internal URL](../../administration/geo/index.md#internal-url) of the primary Geo site instead.
-
-Proxying of Git over HTTP requests is handled by the [`gitlab-workhorse`](../../development/architecture.md#gitlab-workhorse) component, but the decision to proxy or not is handled by the Rails application, taking into account whether the request is push or pull, and whether the desired Git data is up-to-date.
-
-Proxying of Git over SSH traffic is handled by the [`gitlab-shell`](../../development/architecture.md#gitlab-shell) component, but the decision to proxy or not is handled by the Rails application, taking into account whether the request is push or pull, and whether the desired Git data is up-to-date.
 
 ## Request life cycle
 
@@ -260,8 +252,10 @@ S-->>C: return Git response from primary
 
 ### Git push over HTTP(S)
 
-If a requested repository isn't synced, or we detect is not up to date, the request will be proxied to the primary, a push redirects to a local path formatted as `/-/push_from_secondary/$SECONDARY_ID/*`.
-Further, requests through this path are proxied to the primary, which will handle the push.
+#### Git push over HTTP(S) unified URLs
+
+With unified URLs, a push redirects to a local path formatted as `/-/push_from_secondary/$SECONDARY_ID/*`. Further
+requests through this path are proxied to the primary, which will handle the push.
 
 ```mermaid
 sequenceDiagram
@@ -292,4 +286,33 @@ W->>G: Get connection details from Rails and connects to SmartHTTP Service, Rece
 G-->>W: Return a stream of Proto messages
 W-->>Wsec: Pipe messages to the Git client
 Wsec-->>C: Return piped messages from Git
+```
+
+#### Git push over HTTP(S) with separate URLs
+
+With separate URLs, the secondary will redirect to a URL formatted like `$PRIMARY/-/push_from_secondary/$SECONDARY_ID/*`.
+
+```mermaid
+sequenceDiagram
+participant Wsec as Workhorse (secondary)
+participant C as Git client
+participant W as Workhorse (primary)
+participant R as Rails (primary)
+participant G as Gitaly (primary)
+C->>Wsec: GET $SECONDARY/foo/bar.git/info/refs/?service=git-receive-pack
+Wsec->>C: 302 Redirect to $PRIMARY/-/push_from_secondary/2/foo/bar.git/info/refs?service=git-receive-pack
+C->>W: GET $PRIMARY/-/push_from_secondary/2/foo/bar.git/info/refs/?service=git-receive-pack
+W->>R: <data>
+R-->>W: 401 Unauthorized
+W-->>C: <response>
+C->>W: GET /-/push_from_secondary/2/foo/bar.git/info/refs/?service=git-receive-pack
+W->>R: <data>
+R-->>W: Render Workhorse OK
+W-->>C: <response>
+C->>W: POST /-/push_from_secondary/2/foo/bar.git/git-receive-pack
+W->>R: GitHttpController:git_receive_pack
+R-->>W: Render Workhorse OK
+W->>G: Get connection details from Rails and connects to SmartHTTP Service, ReceivePack RPC
+G-->>W: Return a stream of Proto messages
+W-->>C: Pipe messages to the Git client
 ```

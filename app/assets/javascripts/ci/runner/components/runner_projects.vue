@@ -71,7 +71,6 @@ export default {
       return {
         id: runner.id,
         search: search.length >= SHORT_SEARCH_LENGTH ? search : '',
-        sort: 'ID_ASC',
         ...getPaginationVariables(this.pagination, RUNNER_DETAILS_PROJECTS_PAGE_SIZE),
       };
     },
@@ -104,8 +103,8 @@ export default {
 </script>
 
 <template>
-  <div class="gl-border-t-1 gl-border-t-gray-100 gl-border-t-solid">
-    <h3 class="gl-mt-5 gl-text-lg">
+  <div class="gl-border-t-gray-100 gl-border-t-1 gl-border-t-solid">
+    <h3 class="gl-font-lg gl-mt-5">
       {{ heading }}
     </h3>
     <gl-search-box-by-type
@@ -125,7 +124,7 @@ export default {
       <runner-assigned-item
         v-for="(project, i) in projects.items"
         :key="project.id"
-        :class="{ 'gl-border-t-1 gl-border-t-gray-100 gl-border-t-solid': i !== 0 }"
+        :class="{ 'gl-border-t-gray-100 gl-border-t-1 gl-border-t-solid': i !== 0 }"
         :href="project.webUrl"
         :name="project.name"
         :full-name="project.nameWithNamespace"

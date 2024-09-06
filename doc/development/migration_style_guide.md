@@ -415,18 +415,18 @@ are run. It's important to maintain a rough correlation between:
 1. When a migration is added to the GitLab codebase.
 1. The timestamp of the migration itself.
 
-A new migration's timestamp should *never* be before the previous [required upgrade stop](database/required_stops.md).
+A new migration's timestamp should *never* be before the previous hard stop.
 Migrations are occasionally squashed, and if a migration is added whose timestamp
-falls before the previous required stop, a problem like what happened in
+falls before the previous hard stop, a problem like what happened in
 [issue 408304](https://gitlab.com/gitlab-org/gitlab/-/issues/408304) can occur.
 
 For example, if we are currently developing against GitLab 16.0, the previous
-required stop is 15.11. 15.11 was released on April 23rd, 2023. Therefore, the
+hard stop is 15.11. 15.11 was released on April 23rd, 2023. Therefore, the
 minimum acceptable timestamp would be 20230424000000.
 
 #### Best practice
 
-While the above should be considered a hard rule, it is a best practice to try to keep migration timestamps to within three weeks of the date it is anticipated that the migration will be merged upstream, regardless of how much time has elapsed since the last required stop.
+While the above should be considered a hard rule, it is a best practice to try to keep migration timestamps to within three weeks of the date it is anticipated that the migration will be merged upstream, regardless of how much time has elapsed since the last hard stop.
 
 To update a migration timestamp:
 
@@ -441,6 +441,8 @@ To update a migration timestamp:
 1. Recreate the migration following the [migration style guide](#choose-an-appropriate-migration-type).
 
 ## Migration helpers and versioning
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/339115) in GitLab 14.3.
 
 Various helper methods are available for many common patterns in database migrations. Those
 helpers can be found in `Gitlab::Database::MigrationHelpers` and related modules.
@@ -466,6 +468,11 @@ end
 Do not include `Gitlab::Database::MigrationHelpers` directly into a
 migration. Instead, use the latest version of `Gitlab::Database::Migration`, which exposes the latest
 version of migration helpers automatically.
+
+Migration helpers and versioning were [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/68986)
+in GitLab 14.3.
+For merge requests targeting previous stable branches, use the old format and still inherit from
+`ActiveRecord::Migration[6.1]` instead of `Gitlab::Database::Migration[2.1]`.
 
 ## Retry mechanism when acquiring database locks
 
@@ -537,7 +544,7 @@ end
 
 #### Changing default value for a column
 
-Changing column defaults can cause application downtime if a multi-release process is not followed.
+Note that changing column defaults can cause application downtime if a multi-release process is not followed.
 See [avoiding downtime in migrations for changing column defaults](database/avoiding_downtime_in_migrations.md#changing-column-defaults) for details.
 
 ```ruby
@@ -627,7 +634,7 @@ disable_ddl_transaction!
 
 def up
   with_lock_retries do
-    add_column(:users, :name, :text, if_not_exists: true)
+    add_column :users, :name, :text unless column_exists?(:users, :name)
   end
 
   add_text_limit :users, :name, 255 # Includes constraint validation (full table scan)
@@ -749,7 +756,7 @@ ALTER TABLE my_notes ADD COLUMN title text;
 The lock retry helper would repeatedly try the same transaction
 at different time intervals until it succeeded.
 
-`SET LOCAL` scopes the parameter (`lock_timeout`) change to
+Note that `SET LOCAL` scopes the parameter (`lock_timeout`) change to
 the transaction.
 
 ## Removing indexes
@@ -773,13 +780,13 @@ class MyMigration < Gitlab::Database::Migration[2.1]
 end
 ```
 
-You can verify that the index is not being used with [Grafana](https://dashboards.gitlab.net/explore?schemaVersion=1&panes=%7B%22pum%22:%7B%22datasource%22:%22mimir-gitlab-gprd%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22sum%20by%20%28type%29%28rate%28pg_stat_user_indexes_idx_scan%7Benv%3D%5C%22gprd%5C%22,%20indexrelname%3D%5C%22INSERT%20INDEX%20NAME%20HERE%5C%22%7D%5B30d%5D%29%29%22,%22range%22:true,%22instant%22:true,%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22mimir-gitlab-gprd%22%7D,%22editorMode%22:%22code%22,%22legendFormat%22:%22__auto%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D%7D&orgId=1):
+You can verify that the index is not being used with [Thanos](https://thanos-query.ops.gitlab.net/graph?g0.expr=sum%20by%20(type)(rate(pg_stat_user_indexes_idx_scan%7Benv%3D%22gprd%22%2C%20indexrelname%3D%22INSERT%20INDEX%20NAME%20HERE%22%7D%5B30d%5D))&g0.tab=1&g0.stacked=0&g0.range_input=1h&g0.max_source_resolution=0s&g0.deduplicate=1&g0.partial_response=0&g0.store_matches=%5B%5D):
 
 ```sql
 sum by (type)(rate(pg_stat_user_indexes_idx_scan{env="gprd", indexrelname="INSERT INDEX NAME HERE"}[30d]))
 ```
 
-It is not necessary to check if the index exists prior to
+Note that it is not necessary to check if the index exists prior to
 removing it, however it is required to specify the name of the
 index that is being removed. This can be done either by passing the name
 as an option to the appropriate form of `remove_index` or `remove_concurrent_index`,
@@ -841,11 +848,13 @@ You can read more about adding [foreign key constraints to an existing column](d
 
 ## `NOT NULL` constraints
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/38358) in GitLab 13.0.
+
 See the style guide on [`NOT NULL` constraints](database/not_null_constraints.md) for more information.
 
 ## Adding Columns With Default Values
 
-With PostgreSQL 11 being the minimum version in GitLab, adding columns with default values has become much easier and
+With PostgreSQL 11 being the minimum version in GitLab 13.0 and later, adding columns with default values has become much easier and
 the standard `add_column` helper should be used in all cases.
 
 Before PostgreSQL 11, adding a column with a default was problematic as it would
@@ -1163,6 +1172,8 @@ add_column(:projects, :foo, :integer, default: 10, limit: 8)
 
 ## Strings and the Text data type
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/30453) in GitLab 13.0.
+
 See the [text data type](database/strings_and_the_text_data_type.md) style guide for more information.
 
 ## Timestamp column type
@@ -1276,6 +1287,8 @@ You can now use `restricted_visibility_levels` as an ActiveRecord attribute:
 ```
 
 ## Encrypted attributes
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/227779) in GitLab 14.0.
 
 Do not store `attr_encrypted` attributes as `:text` in the database; use
 `:binary` instead. This uses the `bytea` type in PostgreSQL and makes storage more
@@ -1447,9 +1460,9 @@ class AddAndSeedMyColumn < Gitlab::Database::Migration[2.1]
 end
 ```
 
-The underlying table is modified and then accessed by using ActiveRecord.
+The underlying table is modified and then accessed via ActiveRecord.
 
-This also needs to be used if the table is modified in a previous, different migration,
+Note that this also needs to be used if the table is modified in a previous, different migration,
 if both migrations are run in the same `db:migrate` process.
 
 This results in the following. Note the inclusion of `my_column`:
@@ -1493,11 +1506,11 @@ different features of GitLab with different usage patterns, thus making assumpti
 on GitLab.com not enough.
 
 To identify a high-traffic table for GitLab.com the following measures are considered.
-The metrics linked here are GitLab-internal only:
+Note that the metrics linked here are GitLab-internal only:
 
-- [Read operations](https://dashboards.gitlab.net/explore?schemaVersion=1&panes=%7B%22m95%22:%7B%22datasource%22:%22e58c2f51-20f8-4f4b-ad48-2968782ca7d6%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22topk%28500,%20sum%20by%20%28relname%29%20%28rate%28pg_stat_user_tables_seq_tup_read%7Benvironment%3D%5C%22gprd%5C%22%7D%5B12h%5D%29%20%2B%20rate%28pg_stat_user_tables_idx_scan%7Benvironment%3D%5C%22gprd%5C%22%7D%5B12h%5D%29%20%2B%20rate%28pg_stat_user_tables_idx_tup_fetch%7Benvironment%3D%5C%22gprd%5C%22%7D%5B12h%5D%29%29%29%22,%22range%22:true,%22instant%22:true,%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22e58c2f51-20f8-4f4b-ad48-2968782ca7d6%22%7D,%22editorMode%22:%22code%22,%22legendFormat%22:%22__auto%22%7D%5D,%22range%22:%7B%22from%22:%22now-12h%22,%22to%22:%22now%22%7D%7D%7D&orgId=1)
-- [Number of records](https://dashboards.gitlab.net/explore?schemaVersion=1&panes=%7B%22m95%22:%7B%22datasource%22:%22e58c2f51-20f8-4f4b-ad48-2968782ca7d6%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22topk%28500,%20max%20by%20%28relname%29%20%28pg_stat_user_tables_n_live_tup%7Benvironment%3D%5C%22gprd%5C%22%7D%29%29%22,%22range%22:true,%22instant%22:true,%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22e58c2f51-20f8-4f4b-ad48-2968782ca7d6%22%7D,%22editorMode%22:%22code%22,%22legendFormat%22:%22__auto%22%7D%5D,%22range%22:%7B%22from%22:%22now-6h%22,%22to%22:%22now%22%7D%7D%7D&orgId=1)
-- [Size](https://dashboards.gitlab.net/explore?schemaVersion=1&panes=%7B%22m95%22:%7B%22datasource%22:%22e58c2f51-20f8-4f4b-ad48-2968782ca7d6%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22topk%28500,%20max%20by%20%28relname%29%20%28pg_total_relation_size_bytes%7Benvironment%3D%5C%22gprd%5C%22%7D%29%29%22,%22range%22:true,%22instant%22:true,%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22e58c2f51-20f8-4f4b-ad48-2968782ca7d6%22%7D,%22editorMode%22:%22code%22,%22legendFormat%22:%22__auto%22%7D%5D,%22range%22:%7B%22from%22:%22now-6h%22,%22to%22:%22now%22%7D%7D%7D&orgId=1) is greater than 10 GB
+- [Read operations](https://thanos.gitlab.net/graph?g0.range_input=2h&g0.max_source_resolution=0s&g0.expr=topk(500%2C%20sum%20by%20(relname)%20(rate(pg_stat_user_tables_seq_tup_read%7Benvironment%3D%22gprd%22%7D%5B12h%5D)%20%2B%20rate(pg_stat_user_tables_idx_scan%7Benvironment%3D%22gprd%22%7D%5B12h%5D)%20%2B%20rate(pg_stat_user_tables_idx_tup_fetch%7Benvironment%3D%22gprd%22%7D%5B12h%5D)))&g0.tab=1)
+- [Number of records](https://thanos.gitlab.net/graph?g0.range_input=2h&g0.max_source_resolution=0s&g0.expr=topk(500%2C%20max%20by%20(relname)%20(pg_stat_user_tables_n_live_tup%7Benvironment%3D%22gprd%22%7D))&g0.tab=1)
+- [Size](https://thanos.gitlab.net/graph?g0.range_input=2h&g0.max_source_resolution=0s&g0.expr=topk(500%2C%20max%20by%20(relname)%20(pg_total_relation_size_bytes%7Benvironment%3D%22gprd%22%7D))&g0.tab=1) is greater than 10 GB
 
 Any table which has some high read operation compared to current [high-traffic tables](https://gitlab.com/gitlab-org/gitlab/-/blob/master/rubocop/rubocop-migrations.yml#L4) might be a good candidate.
 

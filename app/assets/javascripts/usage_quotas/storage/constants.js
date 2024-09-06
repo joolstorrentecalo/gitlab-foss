@@ -23,7 +23,7 @@ export const containerRegistryPopover = {
   ),
   docsLink: helpPagePath(
     'user/packages/container_registry/reduce_container_registry_storage.html',
-    { anchor: 'view-container-registry-usage' },
+    { anchor: 'check-container-registry-storage-use' },
   ),
 };
 
@@ -36,10 +36,10 @@ export const usageQuotasHelpPaths = {
   }),
   usageQuotas: helpPagePath('user/usage_quotas'),
   usageQuotasProjectStorageLimit: helpPagePath('user/usage_quotas', {
-    anchor: 'view-storage',
+    anchor: 'project-storage-limit',
   }),
   usageQuotasNamespaceStorageLimit: helpPagePath('user/usage_quotas', {
-    anchor: 'view-storage',
+    anchor: 'namespace-storage-limit',
   }),
 };
 

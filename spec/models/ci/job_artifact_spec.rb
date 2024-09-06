@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Ci::JobArtifact, feature_category: :job_artifacts do
+RSpec.describe Ci::JobArtifact, feature_category: :build_artifacts do
   let(:artifact) { create(:ci_job_artifact, :archive) }
 
   describe "Associations" do
@@ -24,7 +24,7 @@ RSpec.describe Ci::JobArtifact, feature_category: :job_artifacts do
   it_behaves_like 'UpdateProjectStatistics', :with_counter_attribute do
     let_it_be(:job, reload: true) { create(:ci_build) }
 
-    subject { build(:ci_job_artifact, :archive, job: job, size: ci_artifact_fixture_size) }
+    subject { build(:ci_job_artifact, :archive, job: job, size: 107464) }
   end
 
   describe 'after_create_commit callback' do
@@ -111,14 +111,8 @@ RSpec.describe Ci::JobArtifact, feature_category: :job_artifacts do
     describe 'coverage_reports' do
       let(:report_type) { :coverage }
 
-      context 'when there is a cobertura report' do
+      context 'when there is a coverage report' do
         let!(:artifact) { create(:ci_job_artifact, :cobertura) }
-
-        it { is_expected.to eq([artifact]) }
-      end
-
-      context 'when there is a jacoco report' do
-        let!(:artifact) { create(:ci_job_artifact, :jacoco) }
 
         it { is_expected.to eq([artifact]) }
       end
@@ -451,7 +445,7 @@ RSpec.describe Ci::JobArtifact, feature_category: :job_artifacts do
     let(:artifact) { create(:ci_job_artifact, :archive, project: project) }
 
     it 'sets the size from the file size' do
-      expect(artifact.size).to eq(ci_artifact_fixture_size)
+      expect(artifact.size).to eq(107464)
     end
   end
 
@@ -841,10 +835,6 @@ RSpec.describe Ci::JobArtifact, feature_category: :job_artifacts do
     shared_examples_for 'returning attributes for object deletion' do
       it 'returns the file store' do
         expect(attributes[:file_store]).to eq(artifact.file_store)
-      end
-
-      it 'returns the project_id' do
-        expect(attributes[:project_id]).to eq(artifact.project_id)
       end
 
       context 'when pick_up_at is present' do

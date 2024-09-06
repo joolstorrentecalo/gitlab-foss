@@ -179,61 +179,6 @@ module Gitlab
           Gitlab::Diff::Parser.new.parse(raw_diff.each_line, diff_file: self).to_a
       end
 
-      def diff_lines_by_hunk
-        [].tap do |a|
-          lines = { added: [], removed: [] }
-
-          diff_lines.each do |line|
-            lines[:added] << line if line.added? && !line.meta?
-            lines[:removed] << line if line.removed? && !line.meta?
-
-            next unless line.type == 'match'
-
-            # If diff hunk is first line on diff file, skip it and continue iterating
-            # without resetting lines.
-            next if lines[:added].empty? && lines[:removed].empty?
-
-            a << lines
-
-            # Reset lines since we'll be creating a new hunk when a new diff
-            # hunk is seen.
-            lines = { added: [], removed: [] }
-          end
-
-          a << lines
-        end
-      end
-
-      def diff_hunks
-        [].tap do |hunks|
-          lines_text = []
-          hunk = {}
-
-          diff_lines.each do |line|
-            if line.type == 'match'
-              unless lines_text.empty?
-                # Ending previous hunk
-                hunk[:text] = lines_text.join("\n")
-                hunks << hunk
-
-                # Starting a new hunk
-                lines_text = []
-                hunk = {}
-              end
-            elsif !line.meta?
-              # Add new line
-              hunk[:last_removed_line_pos] = line.old_pos if line.removed?
-              hunk[:last_added_line_pos] = line.new_pos if line.added?
-              lines_text << line.text
-            end
-          end
-
-          # Handle the last diff_line
-          hunk[:text] = lines_text.join("\n")
-          hunks << hunk
-        end
-      end
-
       # Changes diff_lines according to the given position. That is,
       # it checks whether the position requires blob lines into the diff
       # in order to be presented.
@@ -387,11 +332,6 @@ module Gitlab
         @rich_viewer = rich_viewer_class&.new(self)
       end
 
-      # This is going to be updated with viewer components
-      def view_component_viewer
-        has_renderable? ? rendered.viewer : viewer
-      end
-
       def alternate_viewer
         alternate_viewer_class&.new(self)
       end
@@ -443,10 +383,6 @@ module Gitlab
       def add_blobs_to_batch_loader
         new_blob_lazy
         old_blob_lazy
-      end
-
-      def ai_reviewable?
-        diffable? && !deleted_file?
       end
 
       private

@@ -148,7 +148,7 @@ export default {
           :is-overview-tab="isOverviewTab"
           :should-scroll-to-note="shouldScrollToNote"
           :internal-note="isDiscussionInternal"
-          :class="{ '!gl-border-t-0': isFileDiscussion }"
+          :class="{ 'gl-border-top-0!': isFileDiscussion }"
           @handleDeleteNote="$emit('deleteNote')"
           @startReplying="$emit('startReplying')"
         >
@@ -201,7 +201,6 @@ export default {
           :is-overview-tab="isOverviewTab"
           :should-scroll-to-note="shouldScrollToNote"
           :internal-note="isDiscussionInternal"
-          :variant="diffLine ? 'diff' : ''"
           @handleDeleteNote="$emit('deleteNote')"
         >
           <template #avatar-badge>

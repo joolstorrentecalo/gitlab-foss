@@ -58,7 +58,7 @@ RSpec.shared_examples 'GET access tokens are paginated and ordered' do
     end
   end
 
-  context "when active tokens returned are ordered" do
+  context "when tokens returned are ordered" do
     let(:expires_1_day_from_now) { 1.day.from_now.to_date }
     let(:expires_2_day_from_now) { 2.days.from_now.to_date }
 
@@ -92,33 +92,6 @@ RSpec.shared_examples 'GET access tokens are paginated and ordered' do
 
   def expect_header(header_name, header_val)
     expect(response.headers[header_name]).to eq(header_val)
-  end
-end
-
-RSpec.shared_examples 'GET access tokens includes inactive tokens' do
-  context "when inactive tokens returned are ordered" do
-    let(:one_day_ago) { 1.day.ago.to_date }
-    let(:two_days_ago) { 2.days.ago.to_date }
-
-    before do
-      create(:personal_access_token, :revoked, user: access_token_user, name: "Token1").update!(updated_at: one_day_ago)
-      create(:personal_access_token, :expired, user: access_token_user,
-        name: "Token2").update!(updated_at: two_days_ago)
-    end
-
-    it "orders token list descending on updated_at" do
-      get_access_tokens
-
-      first_token = assigns(:inactive_access_tokens).first.as_json
-      expect(first_token['name']).to eq("Token1")
-    end
-  end
-
-  context "when there are no inactive tokens" do
-    it "returns an empty array" do
-      get_access_tokens
-      expect(assigns(:inactive_access_tokens)).to eq([])
-    end
   end
 end
 
@@ -186,64 +159,27 @@ RSpec.shared_examples 'POST resource access tokens available' do
 end
 
 RSpec.shared_examples 'PUT resource access tokens available' do
-  context "when retain bot user ff is disabled" do
-    before do
-      stub_feature_flags(retain_resource_access_token_user_after_revoke: false)
-    end
+  it 'calls delete user worker' do
+    expect(DeleteUserWorker).to receive(:perform_async).with(user.id, access_token_user.id, skip_authorization: true)
 
-    it 'revokes the token' do
-      subject
-      expect(resource_access_token.reload).to be_revoked
-    end
-
-    it 'calls delete user worker' do
-      expect(DeleteUserWorker).to receive(:perform_async).with(user.id, access_token_user.id, skip_authorization: true)
-
-      subject
-    end
-
-    it 'removes membership of bot user' do
-      subject
-
-      resource_bots = if resource.is_a?(Project)
-                        resource.bots
-                      elsif resource.is_a?(Group)
-                        User.bots.id_in(resource.all_group_members.non_invite.pluck(:user_id))
-                      end
-
-      expect(resource_bots).not_to include(access_token_user)
-    end
-
-    it 'creates GhostUserMigration records to handle migration in a worker' do
-      expect { subject }.to(
-        change { Users::GhostUserMigration.count }.from(0).to(1))
-    end
-  end
-
-  it 'revokes the token' do
-    subject
-    expect(resource_access_token.reload).to be_revoked
-  end
-
-  it 'does not call delete user worker' do
-    expect(DeleteUserWorker).not_to receive(:perform_async)
     subject
   end
 
-  it 'does not remove membership of the bot' do
+  it 'removes membership of bot user' do
     subject
 
     resource_bots = if resource.is_a?(Project)
                       resource.bots
                     elsif resource.is_a?(Group)
-                      User.bots.id_in(resource.all_group_members.non_invite.pluck(:user_id))
+                      User.bots.id_in(resource.all_group_members.non_invite.pluck_primary_key)
                     end
 
-    expect(resource_bots).to include(access_token_user)
+    expect(resource_bots).not_to include(access_token_user)
   end
 
-  it 'does not create GhostUserMigration records to handle migration in a worker' do
-    expect { subject }.not_to change { Users::GhostUserMigration.count }
+  it 'creates GhostUserMigration records to handle migration in a worker' do
+    expect { subject }.to(
+      change { Users::GhostUserMigration.count }.from(0).to(1))
   end
 
   context 'when unsuccessful' do

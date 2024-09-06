@@ -8,7 +8,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 DETAILS:
 **Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed, GitLab Dedicated
+**Offering:** Self-managed
 
 IP address restrictions help prevent malicious users hiding their activities behind multiple IP addresses.
 
@@ -23,7 +23,7 @@ unique IP addresses. Therefore, the IP addresses per user limit should take into
 
 ## Configure IP address restrictions
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > Reporting**.
 1. Expand **Spam and Anti-bot Protection**.
 1. Update the IP address restrictions settings:

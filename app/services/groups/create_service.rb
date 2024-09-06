@@ -2,6 +2,9 @@
 
 module Groups
   class CreateService < Groups::BaseService
+    VisibilityError = Class.new(StandardError)
+    PermissionError = Class.new(StandardError)
+
     def initialize(user, params = {})
       @current_user = user
       @params = params.dup
@@ -12,29 +15,27 @@ module Groups
       build_group
       after_build_hook
 
-      return error_response unless valid?
+      validate_visibility_level!
+      validate_user_permissions!
 
       @group.name ||= @group.path.dup
 
       create_chat_team
-      Namespace.with_disabled_organization_validation { create_group }
+      create_group
 
-      return error_response unless @group.persisted?
+      if @group.persisted?
+        after_successful_creation_hook
 
-      after_successful_creation_hook
+        ServiceResponse.success(payload: { group: @group })
+      else
+        ServiceResponse.error(message: 'Group has errors', payload: { group: @group })
+      end
 
-      ServiceResponse.success(payload: { group: @group })
+    rescue VisibilityError, PermissionError
+      ServiceResponse.error(message: 'Group has errors', payload: { group: @group })
     end
 
     private
-
-    def valid?
-      valid_visibility_level? && valid_user_permissions?
-    end
-
-    def error_response
-      ServiceResponse.error(message: 'Group has errors', payload: { group: @group })
-    end
 
     def create_chat_team
       return unless valid_to_create_chat_team?
@@ -47,15 +48,14 @@ module Groups
 
     def build_group
       remove_unallowed_params
+      invert_emails_disabled_to_emails_enabled
 
       set_visibility_level
 
-      except_keys = ::NamespaceSetting.allowed_namespace_settings_params + [:organization_id, :import_export_upload]
-      @group = Group.new(params.except(*except_keys))
+      @group = Group.new(params.except(*::NamespaceSetting.allowed_namespace_settings_params))
 
       set_organization
 
-      @group.import_export_uploads << params[:import_export_upload] if params[:import_export_upload]
       @group.build_namespace_settings
       handle_namespace_settings
     end
@@ -67,8 +67,7 @@ module Groups
         Group.transaction do
           if @group.save
             @group.add_owner(current_user)
-            @group.add_creator(current_user)
-            Integration.create_from_default_integrations(@group, :group_id)
+            Integration.create_from_active_default_integrations(@group, :group_id)
           end
         end
       end
@@ -89,8 +88,6 @@ module Groups
       end
 
       params.delete(:allow_mfa_for_subgroups)
-      params.delete(:remove_dormant_members)
-      params.delete(:remove_dormant_members_period)
       params.delete(:math_rendering_limits_enabled)
       params.delete(:lock_math_rendering_limits_enabled)
     end
@@ -99,29 +96,29 @@ module Groups
       Gitlab.config.mattermost.enabled && @chat_team && @group.chat_team.nil?
     end
 
-    def valid_user_permissions?
+    def validate_user_permissions!
       if @group.subgroup?
         unless can?(current_user, :create_subgroup, @group.parent)
           @group.parent = nil
           @group.errors.add(:parent_id, s_('CreateGroup|You don’t have permission to create a subgroup in this group.'))
 
-          return false
+          raise PermissionError
         end
       else
         unless can?(current_user, :create_group)
           @group.errors.add(:base, s_('CreateGroup|You don’t have permission to create groups.'))
 
-          return false
+          raise PermissionError
         end
       end
 
-      return true if organization_setting_valid?
+      return if organization_setting_valid?
 
       # We are unsetting this here to match behavior of invalid parent_id above and protect against possible
       # committing to the database of a value that isn't allowed.
       @group.organization = nil
 
-      false
+      raise PermissionError
     end
 
     def can_create_group_in_organization?
@@ -160,12 +157,12 @@ module Groups
       can_create_group_in_organization? && matches_parent_organization?
     end
 
-    def valid_visibility_level?
-      return true if Gitlab::VisibilityLevel.allowed_for?(current_user, visibility_level)
+    def validate_visibility_level!
+      return if Gitlab::VisibilityLevel.allowed_for?(current_user, visibility_level)
 
       deny_visibility_level(@group)
 
-      false
+      raise VisibilityError, 'Visibility level not allowed'
     end
 
     def set_visibility_level
@@ -183,9 +180,12 @@ module Groups
 
     def set_organization
       if params[:organization_id]
-        @group.organization_id = params[:organization_id]
+        nil # nothing to do, already assigned from params
       elsif @group.parent_id
         @group.organization = @group.parent.organization
+      # Rely on middleware setting of the organization, but sometimes it won't be set, so we need to guard it here.
+      elsif Current.organization
+        @group.organization = Current.organization
       end
     end
   end

@@ -85,8 +85,7 @@ export default {
       },
       update({ project: { jobs: { nodes = [], pageInfo = {} } = {} } }) {
         this.pageInfo = pageInfo;
-
-        const jobNodes = nodes
+        return nodes
           .map(mapArchivesToJobNodes)
           .map(mapBooleansToJobNodes)
           .map((jobNode) => {
@@ -97,12 +96,6 @@ export default {
               _showDetails: this.expandedJobs.includes(jobNode.id),
             };
           });
-
-        if (jobNodes.some((jobNode) => !jobNode.hasArtifacts)) {
-          this.$apollo.queries.jobArtifacts.refetch();
-        }
-
-        return jobNodes;
       },
       error() {
         createAlert({
@@ -149,7 +142,7 @@ export default {
         this.canBulkDestroyArtifacts && {
           key: 'checkbox',
           label: '',
-          thClass: 'gl-w-1/20',
+          thClass: 'gl-w-5p',
         },
         ...this.$options.fields,
       ];
@@ -220,7 +213,6 @@ export default {
 
       scrollToElement(this.$el);
     },
-    // eslint-disable-next-line max-params
     handleRowToggle(toggleDetails, hasArtifacts, id, detailsShowing) {
       if (!hasArtifacts) return;
       toggleDetails();
@@ -336,29 +328,29 @@ export default {
     {
       key: 'artifacts',
       label: I18N_ARTIFACTS,
-      thClass: 'gl-w-1/8',
+      thClass: 'gl-w-eighth',
     },
     {
       key: 'job',
       label: I18N_JOB,
-      thClass: 'gl-w-7/20',
+      thClass: 'gl-w-35p',
     },
     {
       key: 'size',
       label: I18N_SIZE,
-      thClass: 'gl-w-3/20 gl-text-right',
+      thClass: 'gl-w-15p gl-text-right',
       tdClass: 'gl-text-right',
     },
     {
       key: 'created',
       label: I18N_CREATED,
-      thClass: 'gl-w-1/8 gl-text-center',
+      thClass: 'gl-w-eighth gl-text-center',
       tdClass: 'gl-text-center',
     },
     {
       key: 'actions',
       label: '',
-      thClass: 'gl-w-4/20',
+      thClass: 'gl-w-20p',
       tdClass: 'gl-text-right',
     },
   ],
@@ -374,9 +366,6 @@ export default {
     sizeLabel: I18N_SIZE,
     createdLabel: I18N_CREATED,
     artifactsCount: I18N_ARTIFACTS_COUNT,
-  },
-  TBODY_TR_ATTR: {
-    'data-testid': 'job-artifact-table-row',
   },
 };
 </script>
@@ -401,8 +390,7 @@ export default {
       :fields="fields"
       :busy="$apollo.queries.jobArtifacts.loading"
       stacked="sm"
-      details-td-class="!gl-bg-gray-10 !gl-p-0 gl-overflow-auto"
-      :tbody-tr-attr="$options.TBODY_TR_ATTR"
+      details-td-class="gl-bg-gray-10! gl-p-0! gl-overflow-auto"
     >
       <template #table-busy>
         <gl-skeleton-loader v-for="i in 20" :key="i" :width="1000" :height="75">
@@ -460,7 +448,7 @@ export default {
         </span>
       </template>
       <template #cell(job)="{ item }">
-        <div class="gl-mb-3 gl-inline-flex gl-items-center gl-gap-3">
+        <div class="gl-display-inline-flex gl-align-items-center gl-mb-3 gl-gap-3">
           <span data-testid="job-artifacts-job-status">
             <ci-icon :status="item.detailedStatus" />
           </span>
@@ -473,17 +461,20 @@ export default {
           <gl-link :href="item.pipeline.path" class="gl-mr-2">
             {{ pipelineId(item) }}
           </gl-link>
-          <span class="gl-inline-block gl-rounded-base gl-bg-gray-50 gl-px-2">
+          <span class="gl-display-inline-block gl-rounded-base gl-px-2 gl-bg-gray-50">
             <gl-icon name="commit" :size="12" class="gl-mr-2" />
-            <gl-link :href="item.commitPath" class="gl-text-sm gl-text-default gl-font-monospace">
+            <gl-link
+              :href="item.commitPath"
+              class="gl-text-black-normal gl-font-sm gl-font-monospace"
+            >
               {{ item.shortSha }}
             </gl-link>
           </span>
         </div>
         <div>
-          <span class="gl-inline-block gl-rounded-base gl-bg-gray-50 gl-px-2">
+          <span class="gl-display-inline-block gl-rounded-base gl-px-2 gl-bg-gray-50">
             <gl-icon name="branch" :size="12" class="gl-mr-1" />
-            <gl-link :href="item.refPath" class="gl-text-sm gl-text-default gl-font-monospace">
+            <gl-link :href="item.refPath" class="gl-text-black-normal gl-font-sm gl-font-monospace">
               {{ item.refName }}
             </gl-link>
           </span>

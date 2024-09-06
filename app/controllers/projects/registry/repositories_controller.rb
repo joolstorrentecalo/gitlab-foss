@@ -6,14 +6,6 @@ module Projects
       include PackagesHelper
       include ::Registry::ConnectionErrorsHandler
 
-      before_action only: [:index, :show] do
-        push_frontend_feature_flag(:show_container_registry_tag_signatures, project)
-      end
-
-      before_action only: [:index, :show] do
-        push_frontend_feature_flag(:container_registry_protected_containers, project)
-      end
-
       before_action :authorize_update_container_image!, only: [:destroy]
 
       def index
@@ -61,5 +53,3 @@ module Projects
     end
   end
 end
-
-Projects::Registry::RepositoriesController.prepend_mod

@@ -132,14 +132,14 @@ export default {
 
 <template>
   <div>
-    <p class="gl-mt-3 gl-whitespace-nowrap gl-text-gray-900">
+    <p class="gl-text-gray-900 gl-white-space-nowrap gl-mt-3">
       {{ s__('ImportProjects|Select the repositories you want to import') }}
     </p>
     <template v-if="hasIncompatibleRepos">
       <slot name="incompatible-repos-warning"></slot>
     </template>
     <slot name="filter" v-bind="{ showImportAllModal, importAllButtonText }">
-      <div class="gl-mb-5 gl-flex gl-flex-wrap gl-justify-between">
+      <div class="gl-display-flex gl-justify-content-space-between gl-flex-wrap gl-mb-5">
         <gl-button
           variant="confirm"
           :loading="isImportingAnyRepo"
@@ -187,10 +187,10 @@ export default {
       <table class="table gl-table">
         <thead>
           <tr>
-            <th class="gl-w-1/2">
+            <th class="gl-w-half">
               {{ fromHeaderText }}
             </th>
-            <th class="gl-w-1/2">
+            <th class="gl-w-half">
               {{ __('To GitLab') }}
             </th>
             <th>

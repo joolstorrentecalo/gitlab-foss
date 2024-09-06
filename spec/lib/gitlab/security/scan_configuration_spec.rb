@@ -95,7 +95,7 @@ RSpec.describe ::Gitlab::Security::ScanConfiguration do
     where(:scan_type, :features_hash) do
       :sast | { name: "Static Application Security Testing (SAST)",
          short_name: "SAST",
-         description: "Analyze your source code for vulnerabilities.",
+         description: "Analyze your source code for known vulnerabilities.",
          help_path: "/help/user/application_security/sast/index",
          configuration_help_path: "/help/user/application_security/sast/index#configuration",
          type: "sast" }
@@ -109,7 +109,7 @@ RSpec.describe ::Gitlab::Security::ScanConfiguration do
         badge: { text: "Available on demand",
                  tooltip_text: "On-demand scans run outside of the DevOps " \
                                "cycle and find vulnerabilities in your projects",
-                 variant: "neutral" },
+                 variant: "info" },
         secondary: {
           type: "dast_profiles",
           name: "DAST profiles",
@@ -137,15 +137,8 @@ RSpec.describe ::Gitlab::Security::ScanConfiguration do
         help_path: "/help/user/application_security/container_scanning/index",
         configuration_help_path: "/help/user/application_security/container_scanning/index#configuration",
         type: "container_scanning" }
-      :pre_receive_secret_detection | { name: _("Secret push protection"),
-        description: "Block secrets such as keys and API tokens from being pushed to your repositories. " \
-                     "Secret push protection is triggered when commits are pushed to a repository. " \
-                     "If any secrets are detected, the push is blocked.",
-        help_path: Gitlab::Routing.url_helpers.help_page_path(
-          "user/application_security/secret_detection/secret_push_protection/index"),
-        type: "pre_receive_secret_detection" }
-      :secret_detection | { name: "Pipeline Secret Detection",
-        description: "Analyze your source code and Git history for secrets by using CI/CD pipelines.",
+      :secret_detection | { name: "Secret Detection",
+        description: "Analyze your source code and Git history for secrets.",
         help_path: "/help/user/application_security/secret_detection/pipeline/index",
         configuration_help_path: "/help/user/application_security/secret_detection/pipeline/index#configuration",
         type: "secret_detection" }
@@ -170,7 +163,7 @@ RSpec.describe ::Gitlab::Security::ScanConfiguration do
                  tooltip_text: "Breach and Attack Simulation is an incubating feature " \
                                "extending existing security " \
                                "testing by simulating adversary activity.",
-                 variant: "neutral" },
+                 variant: "info" },
         description: "Simulate breach and attack scenarios against your running " \
                      "application by attempting to detect " \
                      "and exploit known vulnerabilities.",

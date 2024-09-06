@@ -157,73 +157,7 @@ cookies manually with JavaScript.
 
 By default, every project in a group shares the same domain, for example, `group.gitlab.io`. This means that cookies are also shared for all projects in a group.
 
-To ensure each project uses different cookies, enable the Pages [unique domains](#unique-domains) feature for your project.
-
-## Unique domains
-
-> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/9347) in GitLab 15.9 [with a flag](../../../administration/feature_flags.md) named `pages_unique_domain`. Disabled by default.
-> - [Enabled by default](https://gitlab.com/gitlab-org/gitlab/-/issues/388151) in GitLab 15.11.
-> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/122229) in GitLab 16.3.
-
-By default, every new project uses pages unique domain. This is to avoid projects on the same group
-to share cookies.
-
-The project maintainer can disable this feature on:
-
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Deploy > Pages**.
-1. Deselect the **Use unique domain** checkbox.
-1. Select **Save changes**.
-
-## Expiring deployments
-
-DETAILS:
-**Tier:** Premium, Ultimate
-**Offering:** GitLab.com, Self-managed, GitLab Dedicated
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/162826) in GitLab 17.4.
-
-You can configure your Pages deployments to be automatically deleted after
-a period of time has passed by specifying a duration at `pages.expire_in`:
-
-```yaml
-pages:
-  stage: deploy
-  script:
-    - ...
-  pages:
-    expire_in: 1 week
-  artifacts:
-    paths:
-      - public
-```
-
-By default, [extra deployments](#create-multiple-deployments) expire automatically after 24 hours.
-To disable this behavior, set `pages.expire_in` to `never`.
-
-Expired deployments are stopped by a cron job that runs every 10 minutes.
-Stopped deployments are subsequently deleted by another cron job that also
-runs every 10 minutes. To recover it, follow the steps described in
-[Recover a stopped deployment](#recover-a-stopped-deployment).
-
-A stopped or deleted deployment is no longer available on the web. Users will
-see a 404 Not found error page at its URL, until another deployment is created
-with the same URL configuration.
-
-### Recover a stopped deployment
-
-Prerequisites:
-
-- You must have at least the Maintainer role for the project.
-
-To recover a stopped deployment that has not yet been deleted:
-
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Deploy > Pages**.
-1. Near **Deployments** turn on the **Include stopped deployments** toggle.
-   If your deployment has not been deleted yet, it should be included in the
-   list.
-1. Expand the deployment you want to recover and select **Restore**.
+To ensure each project uses different cookies, enable the Pages [unique domains](introduction.md#enable-unique-domains) feature for your project.
 
 ## Create multiple deployments
 
@@ -232,39 +166,17 @@ DETAILS:
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 **Status:** Experiment
 
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/129534) in GitLab 16.7 as an [experiment](../../../policy/experiment-beta-support.md) [with a flag](../../feature_flags.md) named `pages_multiple_versions_setting`, disabled by default.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/129534) in GitLab 16.7 as an [Experiment](../../../policy/experiment-beta-support.md) [with a flag](../../feature_flags.md) named `pages_multiple_versions_setting`, disabled by default.
 
 FLAG:
 On self-managed GitLab, by default this feature is not available. To make it available,
 an administrator can [enable the feature flag](../../../administration/feature_flags.md) named
 `pages_multiple_versions_setting`. On GitLab.com and GitLab Dedicated, this feature is not available. This feature is not ready for production use.
 
-Use the [`pages.path_prefix`](../../../ci/yaml/index.md#pagespagespath_prefix) CI/CD option to configure a prefix for the GitLab Pages URL.
-A prefix allows you to differentiate between multiple GitLab Pages deployments:
+Use the [`pages.path_prefix`](../../../ci/yaml/index.md#pagespagespath_prefix) CI/CD option to configure a prefix for the GitLab Pages URL. A prefix allows you
+to differentiate between multiple GitLab Pages deployments.
 
-- Main Pages deployment: a Pages deployment created with a blank `path_prefix`.
-- Extra Pages deployment: a Pages deployment created with a non-blank `path_prefix`
-
-The value of `pages.path_prefix` is:
-
-- Converted to lowercase.
-- Shortened to 63 bytes.
-- Any character except numbers (`0-9`) and letter (`a-z`) is replaced with a hyphen (`-`).
-- Leading and trailing hyphens (`-`) are removed.
-
-### Example configuration
-
-Consider a project such as `https://gitlab.example.com/namespace/project`. By default, its main Pages deployment can be accessed through:
-
-- When using a [unique domain](#unique-domains): `https://project-namespace-uniqueid.gitlab.io/`.
-- When not using a unique domain: `https://namespace.gitlab.io/project`.
-
-If a `pages.path_prefix` is configured to the project branch names,
-like `path_prefix = $CI_COMMIT_BRANCH`, and there's a
-branch named `username/testing_feature`, this extra Pages deployment would be accessible through:
-
-- When using a [unique domain](#unique-domains): `https://project-namespace-uniqueid.gitlab.io/username-testing-feature`.
-- When not using a unique domain: `https://namespace.gitlab.io/project/username-testing-feature`.
+Multiple GitLab Pages deployments (pages created with a `path_prefix`) count toward your [storage](../../../user/usage_quotas.md) usage.
 
 ### Enable multiple deployments
 
@@ -273,33 +185,6 @@ To enable multiple GitLab Pages deployments:
 1. On the left sidebar, select **Search or go to** and find your project.
 1. Select **Deploy > Pages**.
 1. Select **Use multiple deployments**.
-
-### Limits
-
-The number of extra deployments is limited by the root-level namespace. For specific limits for:
-
-- GitLab.com, see [Other limits](../../gitlab_com/index.md#other-limits).
-- Self-managed GitLab instances, see
-  [Number of extra Pages deployments when using multiple deployments](../../../administration/instance_limits.md#number-of-extra-pages-deployments-when-using-multiple-deployments).
-
-To immediately reduce the number of active deployments in your namespace,
-delete some deployments. For more information, see
-[Delete a deployment](#delete-a-deployment).
-
-To configure an expiry time to automatically
-delete older deployments, see
-[Expiring deployments](#expiring-deployments).
-
-### Expiration
-
-By default, extra deployments expire after 24 hours, after which they are deleted.
-If you're using a self-hosted instance, your instance admin can
-[configure a different default duration](../../../administration/pages/index.md#configure-the-default-expiry-for-extra-deployments).
-
-To customize the expiry time, [configure `pages.expire_in`](#expiring-deployments).
-
-To prevent deployments from automatically expiring, set `pages.expire_in` to
-`never`.
 
 ### Path clash
 
@@ -326,28 +211,27 @@ pages:
   script:
     - echo "Pages accessible through ${CI_PAGES_URL}/${PAGES_PREFIX}"
   variables:
-    PAGES_PREFIX: "" # No prefix by default (master)
+    PAGES_PREFIX: ""  # No prefix by default (master)
   pages:
     path_prefix: "$PAGES_PREFIX"
   artifacts:
     paths:
     - public
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Run on default branch (with default PAGES_PREFIX)
-    - if: $CI_COMMIT_BRANCH == "staging" # Run on master (with default PAGES_PREFIX)
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run on default branch (with default PAGES_PREFIX)
+    - if: $CI_COMMIT_BRANCH == "staging"  # Run on master (with default PAGES_PREFIX)
       variables:
-        PAGES_PREFIX: '_stg' # Prefix with _stg for the staging branch
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # Conditionally change the prefix for Merge Requests
-      when: manual # Run pages manually on Merge Requests
+        PAGES_PREFIX: '_stg'  # Prefix with _stg for the staging branch
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"  # Conditionally change the prefix for Merge Requests
+      when: manual  # Run pages manually on Merge Requests
       variables:
-        PAGES_PREFIX: 'mr-$CI_MERGE_REQUEST_IID' # Prefix with the mr-<iid>, like `mr-123`
+        PAGES_PREFIX: 'mr$CI_MERGE_REQUEST_IID' # Prefix with the mr<iid>, like `mr123`
 ```
 
 Some other examples of mixing [variables](../../../ci/variables/index.md) with strings for dynamic prefixes:
 
-- `pages.path_prefix: 'mr-$CI_COMMIT_REF_SLUG'`: Branch or tag name prefixed with `mr-`, like `mr-branch-name`.
-- `pages.path_prefix: '_${CI_MERGE_REQUEST_IID}_'`: Merge request number
-  prefixed ans suffixed with `_`, like `_123_`.
+- `pages.path_prefix: '__$CI_COMMIT_REF_SLUG'`: Branch or tag name prefixed with `__`, like `__branch-name`.
+- `pages.path_prefix: '-${CI_MERGE_REQUEST_IID}-'`: Merge request number prefixed and suffixed with `-`, like `-123-`.
 
 ### Use multiple deployments to create pages environments
 
@@ -376,32 +260,9 @@ pages:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" # conditionally change the prefix on Merge Requests
       when: manual # run pages manually on Merge Requests
       variables:
-        PAGES_PREFIX: 'mr-$CI_MERGE_REQUEST_IID' # prefix with the mr-<iid>, like `mr-123`
+        PAGES_PREFIX: 'mr$CI_MERGE_REQUEST_IID' # prefix with the mr<iid>, like `mr123`
 ```
 
 With this configuration, users will have the access to each GitLab Pages deployment through the UI.
 When using [environments](../../../ci/environments/index.md) for pages, all pages environments are
 listed on the project environment list.
-
-You can also [group similar environments](../../../ci/environments/index.md#group-similar-environments) together.
-
-### Delete a Deployment
-
-To delete a deployment:
-
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Deploy > Pages**.
-1. Under **Deployments**, select any area on the deployment you wish to delete.
-   The deployment details expand.
-1. Select **Delete**.
-
-When you select **Delete**, your deployment is stopped immediately.
-Stopped deployments are deleted by a cron job running every 10 minutes.
-
-To restore a stopped deployment that has not been deleted yet, see
-[Recover a stopped deployment](#recover-a-stopped-deployment).
-
-#### Auto-clean
-
-Extra Pages deployments, created by a merge request with a `path_prefix`, are automatically deleted when the
-merge request is closed or merged.

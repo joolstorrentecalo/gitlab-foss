@@ -2,7 +2,6 @@
 stage: Create
 group: Source Code
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
-description: "Why you should sign your GitLab commits cryptographically, and how to verify signed commits."
 ---
 
 # Signed commits
@@ -54,7 +53,13 @@ to check a commit's signature.
 ### Verify commits made in the web UI
 
 GitLab signs the commits created using the web UI using SSH.
-To verify these commits locally, use the [Web Commits API](../../../../api/web_commits.md#get-public-signing-key) to get the GitLab public key for signing web commits.
+To verify these commits locally, [follow the steps for SSH](ssh.md#verify-commits-locally)
+and add the following public key to the `allowed_signers` file:
+`ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIADOCCUoN3Q1UPQqUvp845fKy7haJH17qsSkVXzWXilW`.
+
+```plaintext
+noreply@gitlab.com namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIADOCCUoN3Q1UPQqUvp845fKy7haJH17qsSkVXzWXilW
+```
 
 ## Troubleshooting
 

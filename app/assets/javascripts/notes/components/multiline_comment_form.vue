@@ -74,7 +74,7 @@ export default {
 </script>
 
 <template>
-  <div class="gl-flex gl-flex-wrap gl-items-center gl-gap-2">
+  <div>
     <gl-sprintf
       :message="
         s__('MergeRequestDiffs|Commenting on lines %{selectStart}start%{selectEnd} to %{end}')
@@ -89,6 +89,7 @@ export default {
           :value="commentLineStart"
           :options="commentLineOptions"
           width="sm"
+          class="gl-w-auto gl-vertical-align-baseline"
           @change="updateCommentLineStart"
         />
       </template>

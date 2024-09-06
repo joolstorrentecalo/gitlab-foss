@@ -28,7 +28,6 @@ For more information on:
 
 ## Hashed storage
 
-> - Support for legacy storage, where repository paths were generated based on the project path, has been completely removed in GitLab 14.0.
 > - **Storage name** field [renamed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/128416) from **Gitaly storage name** and **Relative path** field [renamed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/128416) from **Gitaly relative path** in GitLab 16.3.
 
 Hashed storage stores projects on disk in a location based on a hash of the project's ID. This makes the folder
@@ -66,12 +65,12 @@ translate between the human-readable project name and the hashed storage path. Y
 
 Administrators can look up a project's hashed path from its name or ID using:
 
-- The [**Admin** area](../administration/admin_area.md#administering-projects).
+- The [Admin Area](../administration/admin_area.md#administering-projects).
 - A Rails console.
 
-To look up a project's hash path in the **Admin** area:
+To look up a project's hash path in the Admin Area:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Overview > Projects** and select the project.
 1. Locate the **Relative path** field. The value is similar to:
 
@@ -177,7 +176,7 @@ For example:
 
 If Gitaly Cluster is used, Praefect manages storage locations. The internal path used by Praefect for the repository
 differs from the hashed path. For more information, see
-[Praefect-generated replica paths](gitaly/index.md#praefect-generated-replica-paths).
+[Praefect-generated replica paths](gitaly/index.md#praefect-generated-replica-paths-gitlab-150-and-later).
 
 ### Object storage support
 
@@ -226,9 +225,9 @@ LFS objects are also [S3-compatible](lfs/index.md#storing-lfs-objects-in-remote-
 
 ## Configure where new repositories are stored
 
-After you [configure multiple repository storages](https://docs.gitlab.com/omnibus/settings/configuration.html#store-git-data-in-an-alternative-directory), you can choose where new repositories are stored:
+After you configure multiple repository storages, you can choose where new repositories are stored:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > Repository**.
 1. Expand **Repository storage**.
 1. Enter values in the **Storage nodes for new repositories** fields.

@@ -42,17 +42,6 @@ RSpec.describe API::Helpers::PackagesHelpers, feature_category: :package_registr
         expect(subject).to eq nil
       end
     end
-
-    context 'with read_public_package_registry permission' do
-      subject { helper.authorize_packages_access!(group, :read_package_within_public_registries) }
-
-      it 'authorizes packages access' do
-        expect(helper).to receive(:require_packages_enabled!)
-        expect(helper).to receive(:authorize!).with(:read_package_within_public_registries, instance_of(::Packages::Policies::Group))
-
-        expect(subject).to eq nil
-      end
-    end
   end
 
   describe 'authorize_read_package!' do
@@ -73,7 +62,7 @@ RSpec.describe API::Helpers::PackagesHelpers, feature_category: :package_registr
     end
   end
 
-  %i[create_package destroy_package admin_package].each do |action|
+  %i[create_package destroy_package].each do |action|
     describe "authorize_#{action}!" do
       subject { helper.send("authorize_#{action}!", project) }
 
@@ -306,28 +295,6 @@ RSpec.describe API::Helpers::PackagesHelpers, feature_category: :package_registr
       end
     end
 
-    context 'with internal event event' do
-      let(:user) { project.creator }
-      let(:category) { described_class.name }
-      let(:namespace) { project.namespace }
-
-      it 'calls internal events' do
-        expect(Gitlab::InternalEvents).to receive(:track_event)
-          .with('pull_package_from_registry',
-            additional_properties: {
-              label: 'terraform_module',
-              property: 'user'
-            },
-            user: user,
-            project: project,
-            namespace: namespace
-          )
-
-        args = { category: category, user: user, project: project, namespace: namespace }
-        helper.track_package_event('pull_package', :terraform_module, **args)
-      end
-    end
-
     context 'when using deploy token and action is push package' do
       let(:user) { create(:deploy_token, write_registry: true, projects: [project]) }
       let(:scope) { :rubygems }
@@ -336,7 +303,7 @@ RSpec.describe API::Helpers::PackagesHelpers, feature_category: :package_registr
       let(:label) { 'counts.package_events_i_package_push_package_by_deploy_token' }
       let(:property) { 'i_package_push_package_by_deploy_token' }
       let(:service_ping_context) do
-        [Gitlab::Tracking::ServicePingContext.new(data_source: :redis, event: 'package_pushed_using_deploy_token').to_h]
+        [Gitlab::Usage::MetricDefinition.context_for('counts.package_events_i_package_push_package_by_deploy_token').to_h]
       end
 
       it 'logs a snowplow event' do
@@ -364,7 +331,7 @@ RSpec.describe API::Helpers::PackagesHelpers, feature_category: :package_registr
       let(:label) { 'counts.package_events_i_package_pull_package_by_guest' }
       let(:property) { 'i_package_pull_package_by_guest' }
       let(:service_ping_context) do
-        [Gitlab::Tracking::ServicePingContext.new(data_source: :redis, event: 'package_pulled_by_guest').to_h]
+        [Gitlab::Usage::MetricDefinition.context_for('counts.package_events_i_package_pull_package_by_guest').to_h]
       end
 
       it 'logs a snowplow event' do

@@ -5,7 +5,7 @@ module QA
     module Test
       module Instance
         class Blocking < All
-          tags :smoke, :blocking, *Specs::Runner::DEFAULT_SKIPPED_TAGS.map { |tag| :"~#{tag}" }
+          tags :reliable, :blocking, *Specs::Runner::DEFAULT_SKIPPED_TAGS.map { |tag| :"~#{tag}" }
         end
       end
     end

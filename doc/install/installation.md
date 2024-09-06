@@ -50,15 +50,14 @@ If the highest number stable branch is unclear, check the [GitLab blog](https://
 | Software                | Minimum version | Notes                                                                                                                                                                                                                                                                                  |
 |:------------------------|:----------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Ruby](#2-ruby)         | `3.1.x`         | From GitLab 16.7, Ruby 3.1 is required. You must use the standard MRI implementation of Ruby. We love [JRuby](https://www.jruby.org/) and [Rubinius](https://github.com/rubinius/rubinius#the-rubinius-language-platform), but GitLab needs several Gems that have native extensions. |
-| [RubyGems](#3-rubygems) | `3.5.x`         | A specific RubyGems version is not required, but you should update to benefit from some known performance improvements. |
-| [Go](#4-go)             | `1.22.x`        | From GitLab 17.1, Go 1.22 or later is required.                                                                                                                                                                                                                                        |
-| [Git](#git)             | `2.45.x`        | From GitLab 17.3, Git 2.45.x and later is required. You should use the [Git version provided by Gitaly](#git).                                                                                                                                                   |
-| [Node.js](#5-node)      | `20.13.x`       | From GitLab 17.0, Node.js 20.13 or later is required.                                                                                                                                                                                                                                  |
-| [PostgreSQL](#7-database) | `14.x`          | From GitLab 17.0, PostgreSQL 14 or later is required.                                                                                                                                                                                                                                  |
+| [RubyGems](#3-rubygems) | `3.4.x`         | A specific RubyGems version is not fully needed, but it's recommended to update so you can enjoy some known performance improvements.                                                                                                                                                  |
+| [Go](#4-go)             | `1.20.x`        | From GitLab 16.4, Go 1.20 or later is required.                                                                                                                                                                                                                                        |
+| [Git](#git)             | `2.42.x`        | From GitLab 16.5, Git 2.42.x and later is required. You should use the [Git version provided by Gitaly](#git).                                                                                                                                                   |
+| [Node.js](#5-node)      | `18.17.x`       | From GitLab 16.3, Node.js 18.17 or later is required.                                                                                                                                                                                                                                  |
 
 ## GitLab directory structure
 
-The following directories are created as you go through the installation steps:
+When following the instructions on this page, you create this directory structure:
 
 ```plaintext
 |-- home
@@ -81,8 +80,6 @@ The following directories are created as you go through the installation steps:
 
 The default locations for repositories can be configured in `config/gitlab.yml`
 of GitLab and `config.yml` of GitLab Shell.
-
-It is not necessary to create these directories manually now, and doing so can cause errors later in the installation.
 
 For a more in-depth overview, see the [GitLab architecture doc](../development/architecture.md).
 
@@ -132,7 +129,7 @@ you might have to install 1.1 manually.
 
 ### Git
 
-You should use the
+From GitLab 13.6, we recommend you use the
 [Git version provided by Gitaly](https://gitlab.com/gitlab-org/gitaly/-/issues/2729)
 that:
 
@@ -147,7 +144,7 @@ that:
 
 1. Clone the Gitaly repository and compile Git. Replace `<X-Y-stable>` with the
    stable branch that matches the GitLab version you want to install. For example,
-   if you want to install GitLab 16.7, use the branch name `16-7-stable`:
+   if you want to install GitLab 13.6, use the branch name `13-6-stable`:
 
    ```shell
    git clone https://gitlab.com/gitlab-org/gitaly.git -b <X-Y-stable> /tmp/gitaly
@@ -248,17 +245,17 @@ gem update --system
 GitLab has several daemons written in Go. To install
 GitLab we need a Go compiler. The instructions below assume you use 64-bit
 Linux. You can find downloads for other platforms at the
-[Go download page](https://go.dev/dl/).
+[Go download page](https://go.dev/dl).
 
 ```shell
 # Remove former Go installation folder
 sudo rm -rf /usr/local/go
 
-curl --remote-name --location --progress-bar "https://go.dev/dl/go1.22.5.linux-amd64.tar.gz"
-echo '904b924d435eaea086515bc63235b192ea441bd8c9b198c507e85009e6e4c7f0  go1.22.5.linux-amd64.tar.gz' | shasum -a256 -c - && \
-  sudo tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
+curl --remote-name --location --progress-bar "https://go.dev/dl/go1.20.8.linux-amd64.tar.gz"
+echo 'cc97c28d9c252fbf28f91950d830201aa403836cbed702a05932e63f7f0c7bc4  go1.20.8.linux-amd64.tar.gz' | shasum -a256 -c - && \
+  sudo tar -C /usr/local -xzf go1.20.8.linux-amd64.tar.gz
 sudo ln -sf /usr/local/go/bin/{go,gofmt} /usr/local/bin/
-rm go1.22.5.linux-amd64.tar.gz
+rm go1.20.8.linux-amd64.tar.gz
 ```
 
 ## 5. Node
@@ -267,8 +264,8 @@ GitLab requires the use of Node to compile JavaScript
 assets, and Yarn to manage JavaScript dependencies. The current minimum
 requirements for these are:
 
-- `node` 20.x releases (v20.13.0 or later).
-  [Other LTS versions of Node.js](https://github.com/nodejs/release#release-schedule) might be able to build assets, but we only guarantee Node.js 20.x.
+- `node` 18.x releases (v18.17.0 or later).
+  [Other LTS versions of Node.js](https://github.com/nodejs/release#release-schedule) might be able to build assets, but we only guarantee Node.js 18.x.
 - `yarn` = v1.22.x (Yarn 2 is not supported yet)
 
 In many distributions,
@@ -276,8 +273,8 @@ the versions provided by the official package repositories are out of date, so
 we must install through the following commands:
 
 ```shell
-# install node v20.x
-curl --location "https://deb.nodesource.com/setup_20.x" | sudo bash -
+# install node v18.x
+curl --location "https://deb.nodesource.com/setup_18.x" | sudo bash -
 sudo apt-get install -y nodejs
 
 npm install --global yarn
@@ -296,8 +293,7 @@ sudo adduser --disabled-login --gecos 'GitLab' git
 ## 7. Database
 
 NOTE:
-Only PostgreSQL is supported.
-In GitLab 17.0 and later, we [require PostgreSQL 14+](requirements.md#postgresql).
+In GitLab 12.1 and later, only PostgreSQL is supported. In GitLab 16.0 and later, we [require PostgreSQL 13+](requirements.md#postgresql-requirements).
 
 1. Install the database packages.
 
@@ -343,7 +339,7 @@ In GitLab 17.0 and later, we [require PostgreSQL 14+](requirements.md#postgresql
    sudo -u postgres psql -d template1 -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
    ```
 
-1. Create the `btree_gist` extension:
+1. Create the `btree_gist` extension (required for GitLab 13.1+):
 
    ```shell
    sudo -u postgres psql -d template1 -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"
@@ -644,6 +640,8 @@ sudo -u git -H chmod o-rwx config/database.yml
 
 You should have two sections in your `database.yml`: `main:` and `ci:`. The `ci`:
 connection [must be to the same database](../administration/postgresql/multiple_databases.md).
+If, for any reason, you wish to remain on a single database connection, remove the `ci:`
+section from `config/database.yml`.
 
 ### Install Gems
 

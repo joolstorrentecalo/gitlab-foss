@@ -99,11 +99,11 @@ Download and install Go (for Linux, 64-bit):
 # Remove former Go installation folder
 sudo rm -rf /usr/local/go
 
-curl --remote-name --location --progress-bar "https://go.dev/dl/go1.22.5.linux-amd64.tar.gz"
-echo '904b924d435eaea086515bc63235b192ea441bd8c9b198c507e85009e6e4c7f0  go1.22.5.linux-amd64.tar.gz' | shasum -a256 -c - && \
-  sudo tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
+curl --remote-name --location --progress-bar "https://go.dev/dl/go1.20.8.linux-amd64.tar.gz"
+echo 'cc97c28d9c252fbf28f91950d830201aa403836cbed702a05932e63f7f0c7bc4  go1.20.8.linux-amd64.tar.gz' | shasum -a256 -c - && \
+  sudo tar -C /usr/local -xzf go1.20.8.linux-amd64.tar.gz
 sudo ln -sf /usr/local/go/bin/{go,gofmt} /usr/local/bin/
-rm go1.22.5.linux-amd64.tar.gz
+rm go1.20.8.linux-amd64.tar.gz
 ```
 
 ### 6. Update Git
@@ -111,7 +111,9 @@ rm go1.22.5.linux-amd64.tar.gz
 To check you are running the minimum required Git version, see
 [Git versions](../install/installation.md#software-requirements).
 
-Use the [Git version provided by Gitaly](https://gitlab.com/gitlab-org/gitaly/-/issues/2729) that:
+From GitLab 13.6, you should use the
+[Git version provided by Gitaly](https://gitlab.com/gitlab-org/gitaly/-/issues/2729)
+that:
 
 - Is always at the version required by GitLab.
 - May contain custom patches required for proper operation.
@@ -129,19 +131,19 @@ sudo make git GIT_PREFIX=/usr/local
 ```
 
 Replace `<X-Y-stable>` with the stable branch that matches the GitLab version you want to
-install. For example, if you want to install GitLab 16.7, use the branch name `16-7-stable`.
+install. For example, if you want to install GitLab 13.6, use the branch name `13-6-stable`.
 
 Remember to set `git -> bin_path` to `/usr/local/bin/git` in `config/gitlab.yml`.
 
 ### 7. Update PostgreSQL
 
 WARNING:
-GitLab 17.0 requires at least PostgreSQL 14.
+GitLab 16.0 requires at least PostgreSQL 13.
 
 The latest version of GitLab might depend on a more recent PostgreSQL version
 than what you are running. You may also have to enable some
 extensions. For more information, see the
-[PostgreSQL requirements](../install/requirements.md#postgresql)
+[PostgreSQL requirements](../install/requirements.md#postgresql-requirements)
 
 To upgrade PostgreSQL, refer to its [documentation](https://www.postgresql.org/docs/11/upgrading.html).
 
@@ -283,7 +285,7 @@ sudo systemctl daemon-reload
 ### 10. Install libraries, migrations, etc
 
 Make sure you have the required
-[PostgreSQL extensions](../install/requirements.md#postgresql),
+[PostgreSQL extensions](../install/requirements.md#postgresql-requirements),
 then proceed to install the needed libraries:
 
 ```shell
@@ -331,16 +333,11 @@ sudo -u git -H bundle exec rake "gitlab:workhorse:install[/home/git/gitlab-workh
 
 ### 13. Update Gitaly
 
-If Gitaly is located on its own server, or you use Gitaly Cluster, see [Zero-downtime upgrades](zero_downtime.md).
+If Gitaly is located on its own server, or you use Gitaly Cluster, see [Zero Downtime upgrades](zero_downtime.md).
 
 #### Compile Gitaly
 
-During the build process, Gitaly [compiles and embeds Git binaries](https://gitlab.com/gitlab-org/gitaly/-/issues/6089), which requires additional dependencies.
-
 ```shell
-# Install dependencies
-sudo apt-get install -y libcurl4-openssl-dev libexpat1-dev gettext libz-dev libssl-dev libpcre2-dev build-essential
-
 # Fetch Gitaly source with Git and compile with Go
 cd /home/git/gitlab
 sudo -u git -H bundle exec rake "gitlab:gitaly:install[/home/git/gitaly,/home/git/repositories]" RAILS_ENV=production
@@ -409,8 +406,8 @@ steps that apply to self-compiled installations.
 To revert to a previous version, you must follow the upgrading guides
 for the previous version.
 
-For example, if you have upgraded to GitLab 16.6 and want to revert back to
-16.5, follow the guides for upgrading from 16.4 to 16.5. You can
+For example, if you have upgraded to GitLab 12.6 and want to revert back to
+12.5, follow the guides for upgrading from 12.4 to 12.5. You can
 use the version dropdown list at the top of the page to select the right version.
 
 When reverting, you should **not** follow the database migration guides, as the

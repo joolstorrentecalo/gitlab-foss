@@ -18,4 +18,4 @@ Tracking.enableFormTracking({
 
 initLanguageSwitcher();
 initPasswordInput();
-renderGFM(document.getElementById('js-custom-sign-in-description'));
+renderGFM(document.body);

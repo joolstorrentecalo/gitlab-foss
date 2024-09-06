@@ -1,0 +1,11 @@
+query projectWorkItemTypes($fullPath: ID!, $name: IssueType) {
+  workspace: project(fullPath: $fullPath) {
+    id
+    workItemTypes(name: $name) {
+      nodes {
+        id
+        name
+      }
+    }
+  }
+}

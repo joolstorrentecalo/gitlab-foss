@@ -58,13 +58,12 @@ export default {
           key: 'active',
           label: '',
           thClass: 'gl-w-7',
-          tdClass: '!gl-border-b-0 !gl-align-middle',
+          tdClass: 'gl-vertical-align-middle!',
         },
         {
           key: 'title',
           label: __('Integration'),
           thClass: 'd-sm-table-cell',
-          tdClass: '!gl-border-b-0',
         },
       );
 
@@ -72,8 +71,8 @@ export default {
         fields.push({
           key: 'updated_at',
           label: this.showUpdatedAt ? __('Last updated') : '',
-          thClass: 'gl-hidden d-sm-table-cell gl-text-right',
-          tdClass: '!gl-border-b-0 gl-text-right gl-hidden d-sm-table-cell !gl-align-middle',
+          thClass: 'gl-display-none d-sm-table-cell gl-text-right',
+          tdClass: 'gl-text-right gl-display-none d-sm-table-cell gl-vertical-align-middle!',
         });
       }
 
@@ -81,7 +80,6 @@ export default {
         key: 'edit_path',
         label: '',
         thClass: 'gl-w-15',
-        tdClass: '!gl-border-b-0',
       });
 
       return fields;
@@ -107,14 +105,7 @@ export default {
 </script>
 
 <template>
-  <gl-table
-    :items="filteredIntegrations"
-    :fields="fields"
-    :empty-text="emptyText"
-    show-empty
-    fixed
-    class="gl-mb-0"
-  >
+  <gl-table :items="filteredIntegrations" :fields="fields" :empty-text="emptyText" show-empty fixed>
     <template #cell(active)="{ item }">
       <gl-icon
         v-if="item.configured"

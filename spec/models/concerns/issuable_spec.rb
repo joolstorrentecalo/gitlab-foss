@@ -162,7 +162,7 @@ RSpec.describe Issuable, feature_category: :team_planning do
 
   describe '.any_label' do
     let_it_be(:issue_with_label) { create(:labeled_issue, labels: [create(:label)]) }
-    let_it_be(:issue_with_multiple_labels) { create(:labeled_issue, labels: create_list(:label, 2)) }
+    let_it_be(:issue_with_multiple_labels) { create(:labeled_issue, labels: [create(:label), create(:label)]) }
     let_it_be(:issue_without_label) { create(:issue) }
 
     it 'returns an issuable with at least one label' do
@@ -452,7 +452,7 @@ RSpec.describe Issuable, feature_category: :team_planning do
     end
 
     it 'skips coercion for not Integer values' do
-      expect { issue.time_estimate = nil }.to change { issue.read_attribute(:time_estimate) }.to(nil)
+      expect { issue.time_estimate = nil }.to change { issue.time_estimate }.to(nil)
       expect { issue.time_estimate = 'invalid time' }.not_to raise_error
       expect { issue.time_estimate = 22.33 }.not_to raise_error
     end
@@ -475,11 +475,10 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'delegates to Gitlab::DataBuilder::Issuable#build and does not set labels, assignees, nor total_time_spent' do
         expect(builder).to receive(:build).with(
           user: user,
-          changes: hash_not_including(:total_time_spent, :labels, :assignees),
-          action: 'open')
+          changes: hash_not_including(:total_time_spent, :labels, :assignees))
 
         # In some cases, old_associations is empty, e.g. on a close event
-        issue.to_hook_data(user, action: 'open')
+        issue.to_hook_data(user)
       end
     end
 
@@ -495,12 +494,11 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'delegates to Gitlab::DataBuilder::Issuable#build' do
         expect(builder).to receive(:build).with(
           user: user,
-          action: 'update',
           changes: hash_including(
             'labels' => [[labels[0].hook_attrs], [labels[1].hook_attrs]]
           ))
 
-        issue.to_hook_data(user, old_associations: { labels: [labels[0]] }, action: 'update')
+        issue.to_hook_data(user, old_associations: { labels: [labels[0]] })
       end
     end
 
@@ -515,12 +513,11 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'delegates to Gitlab::DataBuilder::Issuable#build' do
         expect(builder).to receive(:build).with(
           user: user,
-          action: 'update',
           changes: hash_including(
             'total_time_spent' => [1, 2]
           ))
 
-        issue.to_hook_data(user, old_associations: { total_time_spent: 1 }, action: 'update')
+        issue.to_hook_data(user, old_associations: { total_time_spent: 1 })
       end
     end
 
@@ -536,12 +533,11 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'delegates to Gitlab::DataBuilder::Issuable#build' do
         expect(builder).to receive(:build).with(
           user: user,
-          action: 'update',
           changes: hash_including(
             'assignees' => [[user.hook_attrs], [user.hook_attrs, user2.hook_attrs]]
           ))
 
-        issue.to_hook_data(user, old_associations: { assignees: [user] }, action: 'update')
+        issue.to_hook_data(user, old_associations: { assignees: [user] })
       end
     end
 
@@ -559,12 +555,11 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'delegates to Gitlab::DataBuilder::Issuable#build' do
         expect(builder).to receive(:build).with(
           user: user,
-          action: 'update',
           changes: hash_including(
             'assignees' => [[user.hook_attrs], [user.hook_attrs, user2.hook_attrs]]
           ))
 
-        merge_request.to_hook_data(user, old_associations: { assignees: [user] }, action: 'update')
+        merge_request.to_hook_data(user, old_associations: { assignees: [user] })
       end
     end
 
@@ -582,11 +577,10 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'delegates to Gitlab::DataBuilder::Issuable#build' do
         expect(builder).to receive(:build).with(
           user: user,
-          action: 'update',
           changes: hash_including(
             'reviewers' => [[user.hook_attrs], [user.hook_attrs, user2.hook_attrs]]
           ))
-        merge_request.to_hook_data(user, old_associations: { reviewers: [user] }, action: 'update')
+        merge_request.to_hook_data(user, old_associations: { reviewers: [user] })
       end
     end
 
@@ -602,12 +596,11 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'delegates to Gitlab::DataBuilder::Issuable#build' do
         expect(builder).to receive(:build).with(
           user: user,
-          action: 'update',
           changes: hash_including(
             'severity' => %w[unknown low]
           ))
 
-        issue.to_hook_data(user, old_associations: { severity: 'unknown' }, action: 'update')
+        issue.to_hook_data(user, old_associations: { severity: 'unknown' })
       end
     end
 
@@ -624,12 +617,11 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'delegates to Gitlab::DataBuilder::Issuable#build' do
         expect(builder).to receive(:build).with(
           user: user,
-          action: 'update',
           changes: hash_including(
             'escalation_status' => %i[triggered acknowledged]
           ))
 
-        issue.to_hook_data(user, old_associations: { escalation_status: :triggered }, action: 'update')
+        issue.to_hook_data(user, old_associations: { escalation_status: :triggered })
       end
     end
 
@@ -647,12 +639,11 @@ RSpec.describe Issuable, feature_category: :team_planning do
       it 'includes the cumulative changes of both saves' do
         expect(builder).to receive(:build).with(
           user: user,
-          action: 'update',
           changes: hash_including(
             'title' => ["initial title", "final title"],
             'target_branch' => %w[initial-branch final-branch]
           ))
-        merge_request.to_hook_data(user, action: 'update')
+        merge_request.to_hook_data(user)
       end
     end
   end

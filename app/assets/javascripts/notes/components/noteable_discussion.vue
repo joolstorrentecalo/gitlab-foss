@@ -4,7 +4,7 @@ import { GlTooltipDirective, GlIcon } from '@gitlab/ui';
 import { mapActions, mapGetters } from 'vuex';
 import DraftNote from '~/batch_comments/components/draft_note.vue';
 import { createAlert } from '~/alert';
-import { clearDraft, getDraft, getAutoSaveKeyFromDiscussion } from '~/lib/utils/autosave';
+import { clearDraft, getDiscussionReplyKey } from '~/lib/utils/autosave';
 import { isLoggedIn } from '~/lib/utils/common_utils';
 import { confirmAction } from '~/lib/utils/confirm_via_gl_modal/confirm_via_gl_modal';
 import { ignoreWhilePending } from '~/lib/utils/ignore_while_pending';
@@ -12,7 +12,7 @@ import { s__, __, sprintf } from '~/locale';
 import diffLineNoteFormMixin from '~/notes/mixins/diff_line_note_form';
 import TimelineEntryItem from '~/vue_shared/components/notes/timeline_entry_item.vue';
 import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
-import { detectAndConfirmSensitiveTokens } from '~/lib/utils/secret_detection';
+import { containsSensitiveToken, confirmSensitiveAction } from '~/lib/utils/secret_detection';
 import eventHub from '../event_hub';
 import noteable from '../mixins/noteable';
 import resolvable from '../mixins/resolvable';
@@ -119,10 +119,13 @@ export default {
       return this.discussion.internal ? __('internal note') : __('comment');
     },
     autosaveKey() {
-      return getAutoSaveKeyFromDiscussion(this.discussion);
+      return getDiscussionReplyKey(this.firstNote.noteable_type, this.discussion.id);
     },
     newNotePath() {
       return this.getNoteableData.create_note_path;
+    },
+    firstNote() {
+      return this.discussion.notes.slice(0, 1)[0];
     },
     saveButtonTitle() {
       return this.discussion.internal ? __('Reply internally') : __('Reply');
@@ -178,20 +181,15 @@ export default {
     },
     discussionHolderClass() {
       return {
-        'is-replying': this.isReplying,
+        'is-replying gl-pt-0!': this.isReplying,
         'internal-note': this.isDiscussionInternal,
-        '!gl-pt-0': !this.discussion.diff_discussion && this.isReplying,
+        'public-note': !this.isDiscussionInternal,
+        'gl-pt-0!': !this.discussion.diff_discussion && this.isReplying,
       };
-    },
-    hasDraft() {
-      return Boolean(getDraft(this.autosaveKey));
     },
   },
   created() {
     eventHub.$on('startReplying', this.onStartReplying);
-    if (this.hasDraft) {
-      this.showReplyForm();
-    }
   },
   beforeDestroy() {
     eventHub.$off('startReplying', this.onStartReplying);
@@ -242,11 +240,12 @@ export default {
         return;
       }
 
-      const confirmSubmit = await detectAndConfirmSensitiveTokens({ content: noteText });
-
-      if (!confirmSubmit) {
-        callback();
-        return;
+      if (containsSensitiveToken(noteText)) {
+        const confirmed = await confirmSensitiveAction();
+        if (!confirmed) {
+          callback();
+          return;
+        }
       }
 
       const postData = {
@@ -341,7 +340,7 @@ export default {
                 <li
                   v-else-if="canShowReplyActions && showReplies"
                   data-testid="reply-wrapper"
-                  class="discussion-reply-holder clearfix gl-bg-subtle"
+                  class="discussion-reply-holder gl-border-t-0! gl-pb-5! clearfix"
                   :class="discussionHolderClass"
                 >
                   <discussion-actions
@@ -361,7 +360,6 @@ export default {
                     :diff-file="diffFile"
                     :line="diffLine"
                     :save-button-title="saveButtonTitle"
-                    :autofocus="!hasDraft"
                     :autosave-key="autosaveKey"
                     @handleFormUpdateAddToReview="addReplyToReview"
                     @handleFormUpdate="saveReply"

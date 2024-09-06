@@ -29,9 +29,11 @@ See also:
 
 These styles are not backed by a RuboCop rule.
 
-For every style added to this section, link the discussion from the section's [history note](../documentation/styleguide/availability_details.md#history) to provide context and serve as a reference.
+For every style added to this section, link the discussion from the section's [history note](../documentation/versions.md#add-a-history-item) to provide context and serve as a reference.
 
 ### Instance variable access using `attr_reader`
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/52351) in GitLab 14.1.
 
 Instance variables can be accessed in a variety of ways in a class:
 
@@ -84,7 +86,7 @@ accessed internally, as long as there is consistency in related code.
 
 ### Newlines style guide
 
-In addition to the RuboCop's `Layout/EmptyLinesAroundMethodBody` and `Cop/LineBreakAroundConditionalBlock` that enforce some newline styles, we have the following guidelines that are not backed by RuboCop.
+In addition to the RuboCops `Layout/EmptyLinesAroundMethodBody` and `Cop/LineBreakAroundConditionalBlock` that enforce some newline styles, we have the following guidelines that are not backed by RuboCop.
 
 #### Rule: separate code with newlines only to group together related logic
 

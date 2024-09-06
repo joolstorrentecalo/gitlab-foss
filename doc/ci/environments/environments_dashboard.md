@@ -10,6 +10,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/3713) in GitLab 12.5.
+
 The Environments Dashboard provides a cross-project
 environment-based view that lets you see the big picture
 of what is going on in each environment. From a single
@@ -25,7 +27,7 @@ a more systemic problem you need to investigate.
 1. Select **Your work**.
 1. Select **Environments**.
 
-![Environments Dashboard with projects.](img/environments_dashboard_v12_5.png)
+![Environments Dashboard with projects](img/environments_dashboard_v12_5.png)
 
 The Environments dashboard displays a paginated list of projects that includes
 up to three environments per project.

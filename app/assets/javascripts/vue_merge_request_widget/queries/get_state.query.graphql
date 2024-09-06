@@ -1,5 +1,3 @@
-#import "ee_else_ce/vue_merge_request_widget/queries/states/merge_train_position.fragment.graphql"
-
 query getState($projectPath: ID!, $iid: String!) {
   project(fullPath: $projectPath) {
     id
@@ -23,6 +21,12 @@ query getState($projectPath: ID!, $iid: String!) {
         status
         warnings
       }
+      pipelines(first: 1) {
+        nodes {
+          id
+          mergeRequestEventType
+        }
+      }
       shouldBeRebased
       sourceBranchExists
       state
@@ -31,8 +35,6 @@ query getState($projectPath: ID!, $iid: String!) {
         canMerge
       }
       draft
-
-      ...MergeTrainPosition
     }
   }
 }

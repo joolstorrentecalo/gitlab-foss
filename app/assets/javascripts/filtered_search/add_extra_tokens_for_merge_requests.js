@@ -186,8 +186,10 @@ export default (
     tag: '@merge_user',
     hideNotEqual: true,
   };
-  IssuableTokenKeys.tokenKeys.splice(3, 0, mergeUserToken);
-  IssuableTokenKeys.tokenKeysWithAlternative.splice(3, 0, mergeUserToken);
+  if (gon.features.mrMergeUserFilter) {
+    IssuableTokenKeys.tokenKeys.splice(3, 0, mergeUserToken);
+    IssuableTokenKeys.tokenKeysWithAlternative.splice(3, 0, mergeUserToken);
+  }
 
   if (!disableEnvironmentFilter) {
     const environmentToken = {

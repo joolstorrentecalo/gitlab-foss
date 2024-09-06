@@ -124,7 +124,7 @@ module ApplicationSettingsHelper
 
   def oauth_providers_checkboxes(form)
     button_based_providers.map do |source|
-      checked = @application_setting.disabled_oauth_sign_in_sources.exclude?(source.to_s)
+      checked = !@application_setting.disabled_oauth_sign_in_sources.include?(source.to_s)
       name = Gitlab::Auth::OAuth::Provider.label_for(source)
 
       form.gitlab_ui_checkbox_component(
@@ -161,8 +161,8 @@ module ApplicationSettingsHelper
   end
 
   def external_authorization_description
-    s_("ExternalAuthorization|Access to projects is validated on an external service "\
-        "using their classification label.")
+    s_("ExternalAuthorization|Access to projects is validated on an external service"\
+        " using their classification label.")
   end
 
   def external_authorization_allow_token_help_text
@@ -196,8 +196,8 @@ module ApplicationSettingsHelper
   end
 
   def external_authorization_client_url_help_text
-    s_("ExternalAuthorization|Classification label to use when requesting authorization if no specific  "\
-      "label is defined on the project.")
+    s_("ExternalAuthorization|Classification label to use when requesting authorization if no specific "\
+      " label is defined on the project.")
   end
 
   def sidekiq_job_limiter_mode_help_text
@@ -318,7 +318,6 @@ module ApplicationSettingsHelper
       :jira_connect_public_key_storage_enabled,
       :jira_connect_proxy_url,
       :math_rendering_limits_enabled,
-      :max_artifacts_content_include_size,
       :max_artifacts_size,
       :max_attachment_size,
       :max_decompressed_archive_size,
@@ -348,7 +347,6 @@ module ApplicationSettingsHelper
       :plantuml_url,
       :diagramsnet_enabled,
       :diagramsnet_url,
-      :pages_extra_deployments_default_expiry_seconds,
       :polling_interval_multiplier,
       :project_export_enabled,
       :prometheus_metrics_enabled,
@@ -368,6 +366,7 @@ module ApplicationSettingsHelper
       :session_expire_delay,
       :shared_runners_enabled,
       :shared_runners_text,
+      :sign_in_text,
       :signup_enabled,
       :silent_mode_enabled,
       :slack_app_enabled,
@@ -413,9 +412,6 @@ module ApplicationSettingsHelper
       :throttle_unauthenticated_files_api_enabled,
       :throttle_unauthenticated_files_api_period_in_seconds,
       :throttle_unauthenticated_files_api_requests_per_period,
-      :throttle_unauthenticated_git_http_enabled,
-      :throttle_unauthenticated_git_http_period_in_seconds,
-      :throttle_unauthenticated_git_http_requests_per_period,
       :throttle_unauthenticated_deprecated_api_enabled,
       :throttle_unauthenticated_deprecated_api_period_in_seconds,
       :throttle_unauthenticated_deprecated_api_requests_per_period,
@@ -475,6 +471,15 @@ module ApplicationSettingsHelper
       :package_registry_cleanup_policies_worker_capacity,
       :container_registry_expiration_policies_worker_capacity,
       :container_registry_cleanup_tags_service_max_list_size,
+      :container_registry_import_max_tags_count,
+      :container_registry_import_max_retries,
+      :container_registry_import_start_max_retries,
+      :container_registry_import_max_step_duration,
+      :container_registry_pre_import_tags_rate,
+      :container_registry_pre_import_timeout,
+      :container_registry_import_timeout,
+      :container_registry_import_target_plan,
+      :container_registry_import_created_before,
       :keep_latest_artifact,
       :whats_new_variant,
       :user_deactivation_emails_enabled,
@@ -502,24 +507,11 @@ module ApplicationSettingsHelper
       :bulk_import_concurrent_pipeline_batch_limit,
       :bulk_import_enabled,
       :bulk_import_max_download_file_size,
-      :silent_admin_exports_enabled,
       :allow_runner_registration_token,
       :user_defaults_to_private_profile,
       :deactivation_email_additional_text,
       :projects_api_rate_limit_unauthenticated,
-      :group_api_limit,
-      :group_invited_groups_api_limit,
-      :group_shared_groups_api_limit,
-      :group_projects_api_limit,
-      :groups_api_limit,
-      :project_api_limit,
-      :project_invited_groups_api_limit,
-      :projects_api_limit,
-      :user_contributed_projects_api_limit,
-      :user_projects_api_limit,
-      :user_starred_projects_api_limit,
       :gitlab_dedicated_instance,
-      :gitlab_environment_toolkit_instance,
       :ci_max_includes,
       :allow_account_deletion,
       :gitlab_shell_operation_limit,
@@ -530,16 +522,12 @@ module ApplicationSettingsHelper
       :allow_project_creation_for_guest_and_below,
       :downstream_pipeline_trigger_limit_per_project_user_sha,
       :asciidoc_max_includes,
-      :ai_action_api_rate_limit,
-      :code_suggestions_api_rate_limit,
-      :require_personal_access_token_expiry,
-      :observability_backend_ssl_verification_enabled
+      :require_personal_access_token_expiry
     ].tap do |settings|
-      unless Gitlab.com?
-        settings << :deactivate_dormant_users
-        settings << :deactivate_dormant_users_period
-        settings << :nuget_skip_metadata_url_validation
-      end
+      next if Gitlab.com?
+
+      settings << :deactivate_dormant_users
+      settings << :deactivate_dormant_users_period
     end
   end
 

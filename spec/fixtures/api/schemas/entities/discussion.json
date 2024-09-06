@@ -198,16 +198,6 @@
               "null"
             ]
           },
-          "imported": {
-            "type": [
-              "boolean"
-            ]
-          },
-          "imported_from": {
-            "type": [
-              "string"
-            ]
-          },
           "external_author": {
             "type": [
               "string",

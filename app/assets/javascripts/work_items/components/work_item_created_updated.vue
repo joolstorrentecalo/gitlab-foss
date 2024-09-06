@@ -5,6 +5,7 @@ import LockedBadge from '~/issuable/components/locked_badge.vue';
 import { WORKSPACE_PROJECT } from '~/issues/constants';
 import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
 import ConfidentialityBadge from '~/vue_shared/components/confidentiality_badge.vue';
+import groupWorkItemByIidQuery from '../graphql/group_work_item_by_iid.query.graphql';
 import workItemByIidQuery from '../graphql/work_item_by_iid.query.graphql';
 import { isNotesWidget } from '../utils';
 import WorkItemStateBadge from './work_item_state_badge.vue';
@@ -21,6 +22,7 @@ export default {
     ConfidentialityBadge,
     GlLoadingIcon,
   },
+  inject: ['isGroup'],
   props: {
     fullPath: {
       type: String,
@@ -40,6 +42,9 @@ export default {
   computed: {
     createdAt() {
       return this.workItem?.createdAt || '';
+    },
+    updatedAt() {
+      return this.workItem?.updatedAt || '';
     },
     author() {
       return this.workItem?.author ?? {};
@@ -64,9 +69,10 @@ export default {
     },
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     workItem: {
-      query: workItemByIidQuery,
+      query() {
+        return this.isGroup ? groupWorkItemByIidQuery : workItemByIidQuery;
+      },
       variables() {
         return {
           fullPath: this.fullPath,
@@ -77,7 +83,7 @@ export default {
         return !this.workItemIid;
       },
       update(data) {
-        return data.workspace.workItem ?? {};
+        return data.workspace.workItems.nodes[0] ?? {};
       },
     },
   },
@@ -86,31 +92,35 @@ export default {
 </script>
 
 <template>
-  <div class="gl-mb-3 gl-mt-3 gl-text-gray-700">
+  <div class="gl-mb-3 gl-text-gray-700 gl-mt-3">
     <work-item-state-badge v-if="workItemState" :work-item-state="workItemState" />
     <gl-loading-icon v-if="updateInProgress" inline />
     <confidentiality-badge
       v-if="isWorkItemConfidential"
-      class="gl-align-middle"
+      class="gl-vertical-align-middle gl-display-inline-flex!"
       :issuable-type="workItemType"
       :workspace-type="$options.WORKSPACE_PROJECT"
       hide-text-in-small-screens
     />
-    <locked-badge v-if="isDiscussionLocked" class="gl-align-middle" :issuable-type="workItemType" />
+    <locked-badge
+      v-if="isDiscussionLocked"
+      class="gl-vertical-align-middle"
+      :issuable-type="workItemType"
+    />
     <work-item-type-icon
-      class="gl-align-middle"
+      class="gl-vertical-align-middle"
       :work-item-icon-name="workItemIconName"
       :work-item-type="workItemType"
       show-text
     />
-    <span data-testid="work-item-created" class="gl-align-middle">
+    <span data-testid="work-item-created" class="gl-vertical-align-middle">
       <gl-sprintf v-if="author.name" :message="__('created %{timeAgo} by %{author}')">
         <template #timeAgo>
           <time-ago-tooltip :time="createdAt" />
         </template>
         <template #author>
           <gl-avatar-link
-            class="js-user-link gl-font-bold gl-text-primary"
+            class="js-user-link gl-text-body gl-font-weight-bold"
             :title="author.name"
             :data-user-id="authorId"
             :href="author.webUrl"
@@ -122,6 +132,18 @@ export default {
       <gl-sprintf v-else-if="createdAt" :message="__('created %{timeAgo}')">
         <template #timeAgo>
           <time-ago-tooltip :time="createdAt" />
+        </template>
+      </gl-sprintf>
+    </span>
+
+    <span
+      v-if="updatedAt"
+      class="gl-ml-5 gl-display-none gl-sm-display-inline-block gl-vertical-align-middle"
+      data-testid="work-item-updated"
+    >
+      <gl-sprintf :message="__('Updated %{timeAgo}')">
+        <template #timeAgo>
+          <time-ago-tooltip :time="updatedAt" />
         </template>
       </gl-sprintf>
     </span>

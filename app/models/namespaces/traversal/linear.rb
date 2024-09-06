@@ -88,10 +88,6 @@ module Namespaces
         read_attribute(:traversal_ids).presence || transient_traversal_ids || []
       end
 
-      def traversal_path
-        "#{traversal_ids.join('/')}/"
-      end
-
       def use_traversal_ids?
         traversal_ids.present?
       end
@@ -265,7 +261,17 @@ module Namespaces
         skope = self.class
 
         if top
-          skope = skope.where("traversal_ids @> ('{?}')", top.id)
+          if ::Feature.enabled?(:optimize_top_bound_lineage_search, self)
+            lower = top.traversal_ids
+            upper = lower.dup
+            upper[-1] = upper[-1].next
+
+            skope = skope
+              .where("traversal_ids >= ('{?}')", lower)
+              .where("traversal_ids < ('{?}')", upper)
+          else
+            skope = skope.where("traversal_ids @> ('{?}')", top.id)
+          end
         end
 
         if bottom

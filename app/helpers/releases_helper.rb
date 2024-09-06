@@ -21,8 +21,7 @@ module ReleasesHelper
       project_id: @project.id,
       project_path: @project.full_path,
       illustration_path: illustration,
-      documentation_path: releases_help_page_path,
-      atom_feed_path: project_releases_path(@project, rss_url_options)
+      documentation_path: releases_help_page_path
     }.tap do |data|
       if can?(current_user, :create_release, @project)
         data[:new_release_path] = new_project_release_path(@project)

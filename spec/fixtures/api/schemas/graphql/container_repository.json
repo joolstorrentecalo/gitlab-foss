@@ -8,11 +8,11 @@
     "createdAt",
     "updatedAt",
     "tagsCount",
+    "canDelete",
     "expirationPolicyCleanupStatus",
     "project",
     "lastCleanupDeletedTagsCount",
-    "userPermissions",
-    "protectionRuleExists"
+    "userPermissions"
   ],
   "properties": {
     "id": {
@@ -47,6 +47,9 @@
     },
     "tagsCount": {
       "type": "integer"
+    },
+    "canDelete": {
+      "type": "boolean"
     },
     "expirationPolicyCleanupStatus": {
       "type": "string",

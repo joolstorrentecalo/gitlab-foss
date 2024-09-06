@@ -2,10 +2,10 @@
 import { GlSprintf, GlLink } from '@gitlab/ui';
 import { s__, __, sprintf } from '~/locale';
 import { helpPagePath } from '~/helpers/help_page_helper';
-import axios from '~/lib/utils/axios_utils';
-import NewEditForm from '~/groups/components/new_edit_form.vue';
+import NewGroupForm from '~/groups/components/new_group_form.vue';
 import { FORM_FIELD_NAME, FORM_FIELD_PATH, FORM_FIELD_VISIBILITY_LEVEL } from '~/groups/constants';
 import { VISIBILITY_LEVELS_INTEGER_TO_STRING } from '~/visibility_level/constants';
+import { createGroup } from '~/rest_api';
 import { createAlert } from '~/alert';
 import { visitUrlWithAlerts } from '~/lib/utils/url_utility';
 
@@ -29,12 +29,13 @@ export default {
   components: {
     GlLink,
     GlSprintf,
-    NewEditForm,
+    NewGroupForm,
   },
   inject: [
+    'organizationId',
     'basePath',
-    'groupsAndProjectsOrganizationPath',
     'groupsOrganizationPath',
+    'mattermostEnabled',
     'availableVisibilityLevels',
     'restrictedVisibilityLevels',
     'defaultVisibilityLevel',
@@ -63,12 +64,11 @@ export default {
     }) {
       try {
         this.loading = true;
-        const { data: group } = await axios.post(this.groupsOrganizationPath, {
-          group: {
-            name,
-            path,
-            visibility_level: VISIBILITY_LEVELS_INTEGER_TO_STRING[visibilityLevelInteger],
-          },
+        const { data: group } = await createGroup({
+          organization_id: this.organizationId,
+          name,
+          path,
+          visibility: VISIBILITY_LEVELS_INTEGER_TO_STRING[visibilityLevelInteger],
         });
 
         visitUrlWithAlerts(group.web_url, [
@@ -90,7 +90,7 @@ export default {
 
 <template>
   <div class="gl-py-6">
-    <h1 class="gl-mt-0 gl-text-size-h-display">{{ $options.i18n.pageTitle }}</h1>
+    <h1 class="gl-mt-0 gl-font-size-h-display">{{ $options.i18n.pageTitle }}</h1>
     <p>
       <gl-sprintf :message="$options.i18n.description1">
         <template #link="{ content }">
@@ -105,12 +105,12 @@ export default {
         </template>
       </gl-sprintf>
     </p>
-    <new-edit-form
+    <new-group-form
       :loading="loading"
       :base-path="basePath"
       :path-maxlength="pathMaxlength"
       :path-pattern="pathPattern"
-      :cancel-path="groupsAndProjectsOrganizationPath"
+      :cancel-path="groupsOrganizationPath"
       :available-visibility-levels="availableVisibilityLevels"
       :restricted-visibility-levels="restrictedVisibilityLevels"
       :initial-form-values="initialFormValues"

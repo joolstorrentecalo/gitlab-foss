@@ -4,7 +4,7 @@ require "spec_helper"
 
 RSpec.describe SystemHook, feature_category: :webhooks do
   it_behaves_like 'a hook that does not get automatically disabled on failure' do
-    let(:hook) { build(:system_hook) }
+    let(:hook) { create(:system_hook) }
     let(:hook_factory) { :system_hook }
     let(:default_factory_arguments) { {} }
 
@@ -180,8 +180,7 @@ RSpec.describe SystemHook, feature_category: :webhooks do
     let(:hook_name) { 'system_hook' }
 
     it '#execute' do
-      expect(WebHookService).to receive(:new).with(hook, data, hook_name, idempotency_key: anything,
-        force: false).and_call_original
+      expect(WebHookService).to receive(:new).with(hook, data, hook_name, force: false).and_call_original
 
       expect_any_instance_of(WebHookService).to receive(:execute)
 
@@ -189,7 +188,7 @@ RSpec.describe SystemHook, feature_category: :webhooks do
     end
 
     it '#async_execute' do
-      expect(WebHookService).to receive(:new).with(hook, data, hook_name, idempotency_key: anything).and_call_original
+      expect(WebHookService).to receive(:new).with(hook, data, hook_name).and_call_original
 
       expect_any_instance_of(WebHookService).to receive(:async_execute)
 

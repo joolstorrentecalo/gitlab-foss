@@ -19,8 +19,6 @@ gitlab:
     bootsnap: false
     hostname: gdk.test
     application_settings_cache_seconds: 0
-    puma:
-      threads_max: 6
 gitlab_k8s_agent:
   enabled: false
 gitlab_pages:
@@ -30,6 +28,3 @@ prometheus:
 tracer:
   jaeger:
     enabled: false
-# https://gitlab.com/gitlab-org/gitlab/-/issues/471172
-gitlab_http_router:
-  enabled: false

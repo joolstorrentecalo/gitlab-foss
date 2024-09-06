@@ -287,8 +287,8 @@ export default {
     onInput(value) {
       this.updatedNoteBody = value;
     },
-    handleKeySubmit(forceUpdate = false) {
-      if (this.showBatchCommentsActions && !forceUpdate) {
+    handleKeySubmit() {
+      if (this.showBatchCommentsActions) {
         this.handleAddToReview();
       } else {
         this.isSubmittingWithKeydown = true;
@@ -372,10 +372,8 @@ export default {
           :disabled="isSubmitting"
           supports-quick-actions
           :autofocus="autofocus"
-          @keydown.shift.meta.enter="handleKeySubmit((forceUpdate = true))"
-          @keydown.shift.ctrl.enter="handleKeySubmit((forceUpdate = true))"
-          @keydown.meta.enter.exact="handleKeySubmit()"
-          @keydown.ctrl.enter.exact="handleKeySubmit()"
+          @keydown.meta.enter="handleKeySubmit()"
+          @keydown.ctrl.enter="handleKeySubmit()"
           @keydown.exact.up="editMyLastNote()"
           @keydown.exact.esc="cancelHandler(true)"
           @input="onInput"
@@ -399,12 +397,12 @@ export default {
         </template>
 
         <template v-if="showBatchCommentsActions">
-          <div class="-gl-mb-3 gl-flex gl-flex-wrap">
+          <div class="gl-display-flex gl-flex-wrap gl-mb-n3">
             <gl-button
               :disabled="isDisabled"
               category="primary"
               variant="confirm"
-              class="gl-mb-3 sm:gl-mr-3"
+              class="gl-sm-mr-3 gl-mb-3"
               data-testid="start-review-button"
               @click="handleAddToReview"
             >
@@ -416,13 +414,13 @@ export default {
               category="secondary"
               variant="confirm"
               data-testid="comment-now-button"
-              class="js-comment-button gl-mb-3 sm:gl-mr-3"
+              class="gl-sm-mr-3 gl-mb-3 js-comment-button"
               @click="handleUpdate()"
             >
               {{ __('Add comment now') }}
             </gl-button>
             <gl-button
-              class="note-edit-cancel js-close-discussion-note-form gl-mb-3"
+              class="note-edit-cancel gl-mb-3 js-close-discussion-note-form"
               category="secondary"
               variant="default"
               data-testid="cancelBatchCommentsEnabled"
@@ -433,13 +431,13 @@ export default {
           </div>
         </template>
         <template v-else>
-          <div class="gl-display-sm-flex gl-font-size-0 gl-flex-wrap">
+          <div class="gl-display-sm-flex gl-flex-wrap gl-font-size-0">
             <gl-button
               :disabled="isDisabled"
               category="primary"
               variant="confirm"
               data-testid="reply-comment-button"
-              class="js-vue-issue-save js-comment-button gl-mb-3 sm:gl-mb-0 sm:gl-mr-3"
+              class="gl-sm-mr-3 gl-mb-3 gl-sm-mb-0 js-vue-issue-save js-comment-button"
               @click="handleUpdate()"
             >
               {{ saveButtonTitle }}

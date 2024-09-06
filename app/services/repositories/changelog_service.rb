@@ -88,7 +88,7 @@ module Repositories
       # the number of SQL queries needed to get this data.
       mrs_finder = MergeRequests::OldestPerCommitFinder.new(@project)
       release = Gitlab::Changelog::Release
-        .new(version: @version, date: @date, config: config)
+        .new(version: @version, date: @date, config: config, project: @project)
 
       commits =
         ChangelogCommitsFinder.new(project: @project, from: from, to: @to)
@@ -142,6 +142,8 @@ module Repositories
     end
 
     def verify_commit_range!(from, to)
+      return unless Feature.enabled?(:changelog_commits_limitation, @project)
+
       commits = @project.repository.commits_by(oids: [from, to])
 
       raise Gitlab::Changelog::Error, "Invalid or not found commit value in the given range" unless commits.count == 2

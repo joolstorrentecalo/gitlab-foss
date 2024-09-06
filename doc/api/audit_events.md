@@ -4,15 +4,16 @@ group: Compliance
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
-# Audit events API
+# Audit Events API
 
 DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/121) in GitLab 12.4.
 > - [Author Email added to the response body](https://gitlab.com/gitlab-org/gitlab/-/issues/386322) in GitLab 15.9.
 
-## Instance audit events
+## Instance Audit Events
 
 DETAILS:
 **Tier:** Premium, Ultimate
@@ -167,7 +168,7 @@ Example response:
 }
 ```
 
-## Group audit events
+## Group Audit Events
 
 > - Support for keyset pagination [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/333968) in GitLab 15.2.
 
@@ -284,7 +285,9 @@ Example response:
 }
 ```
 
-## Project audit events
+## Project Audit Events
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/219238) in GitLab 13.1.
 
 Use this API to retrieve project audit events.
 

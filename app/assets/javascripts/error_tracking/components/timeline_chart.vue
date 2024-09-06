@@ -1,9 +1,9 @@
 <script>
 import { GlChart } from '@gitlab/ui/dist/charts';
-import { DATA_VIZ_BLUE_500 } from '@gitlab/ui/src/tokens/build/js/tokens';
+import { DATA_VIZ_BLUE_500 } from '@gitlab/ui/dist/tokens/js/tokens';
 import { hexToRgba } from '@gitlab/ui/dist/utils/utils';
 import { isNumber } from 'lodash';
-import { localeDateFormat } from '~/lib/utils/datetime/locale_dateformat';
+import { formatDate } from '~/lib/utils/datetime/date_format_utility';
 import { logError } from '~/lib/logger';
 
 function parseTimelineData(timelineData) {
@@ -23,7 +23,7 @@ function parseTimelineData(timelineData) {
     if (rawDate !== undefined && count !== undefined) {
       // dates/timestamps are in seconds
       const date = isNumber(rawDate) ? rawDate * 1000 : rawDate;
-      xData.push(localeDateFormat.asDateTimeFull.format(date));
+      xData.push(formatDate(date));
       yData.push(count);
     } else {
       invalidDataPoints.push(f);

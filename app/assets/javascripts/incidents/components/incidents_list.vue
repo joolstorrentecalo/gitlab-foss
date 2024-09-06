@@ -54,7 +54,7 @@ export default {
       key: 'severity',
       label: s__('IncidentManagement|Severity'),
       variant: 'secondary',
-      thClass: `gl-w-3/20`,
+      thClass: `gl-w-15p`,
       tdClass: `${tdClass} sortable-cell`,
       actualSortKey: 'SEVERITY',
       sortable: true,
@@ -70,7 +70,7 @@ export default {
       key: 'escalationStatus',
       label: s__('IncidentManagement|Status'),
       variant: 'secondary',
-      thClass: `gl-w-1/8`,
+      thClass: `gl-w-eighth`,
       tdClass: `${tdClass} sortable-cell`,
       actualSortKey: 'ESCALATION_STATUS',
       sortable: true,
@@ -80,7 +80,7 @@ export default {
       key: 'createdAt',
       label: s__('IncidentManagement|Date created'),
       variant: 'secondary',
-      thClass: `gl-w-1/8`,
+      thClass: `gl-w-eighth`,
       tdClass: `${tdClass} sortable-cell`,
       actualSortKey: 'CREATED',
       sortable: true,
@@ -90,7 +90,7 @@ export default {
       key: 'incidentSla',
       label: s__('IncidentManagement|Time to SLA'),
       variant: 'secondary',
-      thClass: `gl-text-right gl-w-2/20`,
+      thClass: `gl-text-right gl-w-10p`,
       tdClass: `${tdClass} gl-text-right`,
       thAttr: TH_INCIDENT_SLA_TEST_ID,
       actualSortKey: 'SLA_DUE_AT',
@@ -99,7 +99,7 @@ export default {
     {
       key: 'assignees',
       label: s__('IncidentManagement|Assignees'),
-      thClass: 'gl-pointer-events-none gl-w-3/20',
+      thClass: 'gl-pointer-events-none gl-w-15',
       tdClass,
     },
     {
@@ -360,7 +360,7 @@ export default {
       <template #header-actions>
         <gl-button
           v-if="isHeaderButtonVisible"
-          class="create-incident-button gl-my-3 gl-mr-5"
+          class="gl-my-3 gl-mr-5 create-incident-button"
           data-testid="create-incident-button"
           :loading="redirecting"
           :disabled="redirecting"
@@ -406,7 +406,7 @@ export default {
           <template #cell(title)="{ item }">
             <div
               :class="{
-                'gl-flex gl-max-w-full gl-items-center': isClosed(item),
+                'gl-display-flex gl-align-items-center gl-max-w-full': isClosed(item),
               }"
             >
               <gl-link
@@ -414,14 +414,14 @@ export default {
                 :href="showIncidentLink(item)"
                 class="gl-min-w-0"
               >
-                <tooltip-on-truncate :title="item.title" class="gl-block gl-truncate">
+                <tooltip-on-truncate :title="item.title" class="gl-text-truncate gl-display-block">
                   {{ item.title }}
                 </tooltip-on-truncate>
               </gl-link>
               <gl-icon
                 v-if="isClosed(item)"
                 name="issue-close"
-                class="gl-ml-2 gl-shrink-0 gl-fill-blue-500"
+                class="gl-ml-2 gl-fill-blue-500 gl-flex-shrink-0"
                 :size="16"
                 data-testid="incident-closed"
               />
@@ -432,14 +432,17 @@ export default {
             <tooltip-on-truncate
               :title="getEscalationStatus(item.escalationStatus)"
               data-testid="incident-escalation-status"
-              class="gl-block gl-truncate"
+              class="gl-display-block gl-text-truncate"
             >
               {{ getEscalationStatus(item.escalationStatus) }}
             </tooltip-on-truncate>
           </template>
 
           <template #cell(createdAt)="{ item }">
-            <time-ago-tooltip :time="item.createdAt" class="gl-block gl-max-w-full gl-truncate" />
+            <time-ago-tooltip
+              :time="item.createdAt"
+              class="gl-display-block gl-max-w-full gl-text-truncate"
+            />
           </template>
 
           <template v-if="slaFeatureAvailable" #cell(incidentSla)="{ item }">
@@ -448,7 +451,7 @@ export default {
               :issue-iid="item.iid"
               :project-path="projectPath"
               :sla-due-at="item.slaDueAt"
-              class="gl-block gl-max-w-full gl-truncate"
+              class="gl-display-block gl-max-w-full gl-text-truncate"
             />
           </template>
 

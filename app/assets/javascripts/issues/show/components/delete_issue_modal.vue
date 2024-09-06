@@ -42,7 +42,7 @@ export default {
     },
     bodyText() {
       return this.issueType.toLowerCase() === TYPE_EPIC
-        ? __('Delete this epic and release all child items?')
+        ? __('Delete this epic and all descendants?')
         : sprintf(__('%{issuableType} will be removed! Are you sure?'), {
             issuableType: capitalizeFirstCharacter(this.issueType),
           });

@@ -1,36 +1,24 @@
 import { createWrapper } from '@vue/test-utils';
 import MembersTabs from '~/members/components/members_tabs.vue';
-import { CONTEXT_TYPE, MEMBERS_TAB_TYPES } from '~/members/constants';
+import { MEMBER_TYPES } from '~/members/constants';
 import { initMembersApp } from '~/members/index';
-import membersStore from '~/members/store';
-import { parseDataAttributes } from '~/members/utils';
-import { dataAttribute } from './mock_data';
-
-jest.mock('~/members/store');
-membersStore.mockImplementation(jest.requireActual('~/members/store').default);
+import { members, pagination, dataAttribute } from './mock_data';
 
 describe('initMembersApp', () => {
-  /** @type {HTMLDivElement} */
   let el;
   let vm;
-  /** @type {import('@vue/test-utils').Wrapper<MembersTabs>} */
   let wrapper;
 
-  const options = {
-    [MEMBERS_TAB_TYPES.user]: {
-      tableFields: ['account'],
-      tableAttrs: { table: { 'data-testid': 'members-list' } },
-      tableSortableFields: ['account'],
-      requestFormatter: () => ({}),
-      filteredSearchBar: { show: false },
-    },
-    [MEMBERS_TAB_TYPES.placeholder]: {
-      requestFormatter: () => ({}),
-    },
-  };
-
   const setup = () => {
-    vm = initMembersApp(el, CONTEXT_TYPE.GROUP, options);
+    vm = initMembersApp(el, {
+      [MEMBER_TYPES.user]: {
+        tableFields: ['account'],
+        tableAttrs: { table: { 'data-testid': 'members-list' } },
+        tableSortableFields: ['account'],
+        requestFormatter: () => ({}),
+        filteredSearchBar: { show: false },
+      },
+    });
     wrapper = createWrapper(vm);
   };
 
@@ -51,24 +39,55 @@ describe('initMembersApp', () => {
     expect(wrapper.findComponent(MembersTabs).exists()).toBe(true);
   });
 
-  describe('members Vuex store', () => {
-    it('inits members store with parsed data', () => {
-      const parsedData = parseDataAttributes(el);
-      setup();
+  it('parses and sets `members` in Vuex store', () => {
+    setup();
 
-      expect(membersStore).toHaveBeenCalledWith({
-        ...parsedData[MEMBERS_TAB_TYPES.user],
-        ...options[MEMBERS_TAB_TYPES.user],
-      });
+    expect(vm.$store.state[MEMBER_TYPES.user].members).toEqual(members);
+  });
+
+  it('parses and sets `pagination` in Vuex store', () => {
+    setup();
+
+    expect(vm.$store.state[MEMBER_TYPES.user].pagination).toEqual(pagination);
+  });
+
+  it('sets `tableFields` in Vuex store', () => {
+    setup();
+
+    expect(vm.$store.state[MEMBER_TYPES.user].tableFields).toEqual(['account']);
+  });
+
+  it('sets `tableAttrs` in Vuex store', () => {
+    setup();
+
+    expect(vm.$store.state[MEMBER_TYPES.user].tableAttrs).toEqual({
+      table: { 'data-testid': 'members-list' },
     });
+  });
 
-    it('inits placeholders store', () => {
-      setup();
+  it('sets `tableSortableFields` in Vuex store', () => {
+    setup();
 
-      expect(membersStore).toHaveBeenCalledTimes(Object.keys(options).length);
-      expect(membersStore).toHaveBeenCalledWith({
-        ...options[MEMBERS_TAB_TYPES.placeholder],
-      });
-    });
+    expect(vm.$store.state[MEMBER_TYPES.user].tableSortableFields).toEqual(['account']);
+  });
+
+  it('sets `requestFormatter` in Vuex store', () => {
+    setup();
+
+    expect(vm.$store.state[MEMBER_TYPES.user].requestFormatter()).toEqual({});
+  });
+
+  it('sets `filteredSearchBar` in Vuex store', () => {
+    setup();
+
+    expect(vm.$store.state[MEMBER_TYPES.user].filteredSearchBar).toEqual({ show: false });
+  });
+
+  it('sets `memberPath` in Vuex store', () => {
+    setup();
+
+    expect(vm.$store.state[MEMBER_TYPES.user].memberPath).toBe(
+      '/groups/foo-bar/-/group_members/:id',
+    );
   });
 });

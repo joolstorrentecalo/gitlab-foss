@@ -5,38 +5,35 @@ module Onboarding
     self.table_name = 'onboarding_progresses'
 
     include IgnorableColumns
-
-    ignore_columns %i[
-      git_pull_at
-      subscription_created_at
-      scoped_label_created_at
-      security_scan_enabled_at
-      issue_auto_closed_at
-      repository_imported_at
-      repository_mirrored_at
-      secure_container_scanning_run_at
-      secure_secret_detection_run_at
-      secure_coverage_fuzzing_run_at
-      secure_cluster_image_scanning_run_at
-      secure_api_fuzzing_run_at
-    ],
-      remove_with: '17.5', remove_after: '2024-09-14'
+    ignore_column :promote_ultimate_features_at, remove_with: '17.0', remove_after: '2024-04-13'
 
     belongs_to :namespace, optional: false
 
     validate :namespace_is_root_namespace
 
     ACTIONS = [
+      :git_pull,
       :git_write,
       :merge_request_created,
       :pipeline_created,
       :user_added,
       :trial_started,
+      :subscription_created,
       :required_mr_approvals_enabled,
       :code_owners_enabled,
+      :scoped_label_created,
+      :security_scan_enabled,
       :issue_created,
+      :issue_auto_closed,
+      :repository_imported,
+      :repository_mirrored,
       :secure_dependency_scanning_run,
+      :secure_container_scanning_run,
       :secure_dast_run,
+      :secure_secret_detection_run,
+      :secure_coverage_fuzzing_run,
+      :secure_api_fuzzing_run,
+      :secure_cluster_image_scanning_run,
       :license_scanning_run,
       :code_added
     ].freeze
@@ -67,7 +64,7 @@ module Onboarding
       end
 
       def onboarding?(namespace)
-        where(namespace: namespace, ended_at: nil).any?
+        where(namespace: namespace).any?
       end
 
       def register(namespace, actions)
@@ -82,18 +79,18 @@ module Onboarding
         return if nil_actions.empty?
 
         updates = nil_actions.inject({}) { |sum, action| sum.merge!({ column_name(action) => now }) }
-        onboarding_progress.update(updates)
+        onboarding_progress.update!(updates)
       end
 
       def completed?(namespace, action)
-        return false unless root_namespace?(namespace) && ACTIONS.include?(action)
+        return unless root_namespace?(namespace) && ACTIONS.include?(action)
 
         action_column = column_name(action)
         where(namespace: namespace).where.not(action_column => nil).exists?
       end
 
       def not_completed?(namespace_id, action)
-        return false unless ACTIONS.include?(action)
+        return unless ACTIONS.include?(action)
 
         action_column = column_name(action)
         exists?(namespace_id: namespace_id, action_column => nil)

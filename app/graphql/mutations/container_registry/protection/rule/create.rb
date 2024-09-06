@@ -21,32 +21,27 @@ module Mutations
           argument :repository_path_pattern,
             GraphQL::Types::String,
             required: true,
-            validates: { allow_blank: false },
-            description: copy_field_description(
-              Types::ContainerRegistry::Protection::RuleType,
-              :repository_path_pattern
-            )
+            description:
+              'Container repository path pattern protected by the protection rule. ' \
+              'For example `my-project/my-container-*`. Wildcard character `*` allowed.'
 
-          argument :minimum_access_level_for_delete,
+          argument :push_protected_up_to_access_level,
             Types::ContainerRegistry::Protection::RuleAccessLevelEnum,
-            required: false,
-            description: copy_field_description(
-              Types::ContainerRegistry::Protection::RuleType,
-              :minimum_access_level_for_delete
-            )
+            required: true,
+            description:
+              'Max GitLab access level to prevent from pushing container images to the container registry. ' \
+              'For example `DEVELOPER`, `MAINTAINER`, `OWNER`.'
 
-          argument :minimum_access_level_for_push,
+          argument :delete_protected_up_to_access_level,
             Types::ContainerRegistry::Protection::RuleAccessLevelEnum,
-            required: false,
-            description: copy_field_description(
-              Types::ContainerRegistry::Protection::RuleType,
-              :minimum_access_level_for_push
-            )
+            required: true,
+            description:
+              'Max GitLab access level to prevent from deleting container images in the container registry. ' \
+              'For example `DEVELOPER`, `MAINTAINER`, `OWNER`.'
 
           field :container_registry_protection_rule,
             Types::ContainerRegistry::Protection::RuleType,
             null: true,
-            alpha: { milestone: '16.6' },
             description: 'Container registry protection rule after mutation.'
 
           def resolve(project_path:, **kwargs)

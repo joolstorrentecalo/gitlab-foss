@@ -44,9 +44,6 @@ module Gitlab
 
         private
 
-        attr_reader :user, :relation_factory
-        alias_method :current_user, :user
-
         def bulk_insert_without_cache_or_touch
           Gitlab::Database.all_uncached do
             ActiveRecord::Base.no_touching do
@@ -236,7 +233,7 @@ module Gitlab
             transform_sub_relations!(data_hash, sub_relation_key, sub_relation_definition, relation_index)
           end
 
-          relation = persist_relation(**relation_factory_params(relation_key, relation_index, data_hash))
+          relation = @relation_factory.create(**relation_factory_params(relation_key, relation_index, data_hash))
 
           if relation && !relation.valid?
             @shared.logger.warn(
@@ -311,8 +308,7 @@ module Gitlab
             members_mapper: @members_mapper,
             object_builder: @object_builder,
             user: @user,
-            excluded_keys: excluded_keys_for_relation(relation_key),
-            import_source: ::Import::SOURCE_GROUP_EXPORT_IMPORT
+            excluded_keys: excluded_keys_for_relation(relation_key)
           }
         end
 
@@ -362,13 +358,7 @@ module Gitlab
         def external_identifiers(data_hash)
           { iid: data_hash['iid'] }.compact
         end
-
-        def persist_relation(attributes)
-          @relation_factory.create(**attributes)
-        end
       end
     end
   end
 end
-
-Gitlab::ImportExport::Group::RelationTreeRestorer.prepend_mod

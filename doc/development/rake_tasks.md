@@ -55,7 +55,7 @@ DETAILS:
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
 You can seed issues specifically for working with the
-[Insights charts](../user/project/insights/index.md) with the
+[Insights charts](../user/group/insights/index.md) with the
 `gitlab:seed:insights:issues` task:
 
 ```shell
@@ -283,9 +283,9 @@ To run several tests inside one directory:
 
 - `bin/rspec spec/requests/api/` for the RSpec tests if you want to test API only
 
-### Run RSpec tests which failed in merge request pipeline on your machine
+### Run RSpec tests which failed in Merge Request pipeline on your machine
 
-If your merge request pipeline failed with RSpec test failures,
+If your Merge Request pipeline failed with RSpec test failures,
 you can run all the failed tests on your machine with the following Rake task:
 
 ```shell
@@ -294,7 +294,7 @@ bin/rake spec:merge_request_rspec_failure
 
 There are a few caveats for this Rake task:
 
-- You need to be on the same branch on your machine as the source branch of the merge request.
+- You need to be on the same branch on your machine as the source branch of the Merge Request.
 - The pipeline must have been completed.
 - You may need to wait for the test report to be parsed and retry again.
 
@@ -566,16 +566,3 @@ This task clones the remote repository, recursively walks the file system lookin
 ending in `.pub`, parses those files as SSH public keys, and then adds the public key fingerprints
 to `output_file`. The contents of `config/security/banned_ssh_keys.yml` is read by GitLab and kept
 in memory. It is not recommended to increase the size of this file beyond 1 megabyte in size.
-
-## Output current navigation structure to YAML
-
-_This task relies on your current environment setup (licensing, feature flags, projects/groups), so output may vary from run-to-run or environment-to-environment. We may look to standardize output in a future iteration._
-
-Product, UX, and tech writing need a way to audit the entire GitLab navigation,
-yet may not be comfortable directly reviewing the code in `lib/sidebars`. You
-can dump the entire nav structure to YAML via the `gitlab:nav:dump_structure`
-Rake task:
-
-```shell
-bundle exec rake gitlab:nav:dump_structure
-```

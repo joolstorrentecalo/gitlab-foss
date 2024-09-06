@@ -6,10 +6,9 @@ module InternalEventsCli
   class UsageViewer
     include Helpers
 
-    PROPERTY_EXAMPLES = {
-      'label' => "'string'",
-      'property' => "'string'",
-      'value' => '72'
+    IDENTIFIER_EXAMPLES = {
+      %w[namespace project user] => { "namespace" => "project.namespace" },
+      %w[namespace user] => { "namespace" => "group" }
     }.freeze
 
     attr_reader :cli, :event
@@ -48,7 +47,6 @@ module InternalEventsCli
         { name: 'javascript (plain)', value: :js },
         { name: 'vue template', value: :vue_template },
         { name: 'haml', value: :haml },
-        { name: 'Manual testing in GDK', value: :gdk },
         { name: 'View examples for a different event', value: :other_event },
         { name: 'Exit', value: :exit }
       ]
@@ -82,9 +80,6 @@ module InternalEventsCli
       when :vue_template
         vue_template_examples
         prompt_for_usage_location('vue template')
-      when :gdk
-        gdk_examples
-        prompt_for_usage_location('Manual testing in GDK')
       when :other_event
         self.class.new(cli).run
       when :exit
@@ -93,22 +88,10 @@ module InternalEventsCli
     end
 
     def rails_examples
-      identifier_args = identifiers.map do |identifier|
-        "  #{identifier}: #{identifier}"
+      args = Array(event['identifiers']).map do |identifier|
+        "  #{identifier}: #{identifier_examples[identifier]}"
       end
-
-      property_args = format_additional_properties do |property, value, description|
-        "    #{property}: #{value}, # #{description}"
-      end
-
-      if property_args.any?
-        # remove trailing comma after last arg but keep any other commas
-        property_args.last.sub!(',', '')
-        property_arg = "  additional_properties: {\n#{property_args.join("\n")}\n  }"
-      end
-
-      args = ["'#{action}'", *identifier_args, property_arg].compact.join(",\n")
-      args = "\n  #{args}\n" if args.lines.count > 1
+      action = args.any? ? "\n  '#{event['action']}',\n" : "'#{event['action']}'"
 
       cli.say format_warning <<~TEXT
         #{divider}
@@ -116,68 +99,52 @@ module InternalEventsCli
 
         include Gitlab::InternalEventsTracking
 
-        track_internal_event(#{args})
+        track_internal_event(#{action}#{args.join(",\n")}#{"\n" unless args.empty?})
 
         #{divider}
       TEXT
     end
 
     def rspec_examples
-      identifier_args = identifiers.map do |identifier|
-        "  let(:#{identifier}) { create(:#{identifier}) }\n"
-      end.join('')
-
-      property_args = format_additional_properties do |property, value|
-        "    #{property}: #{value}"
-      end
-
-      if property_args.any?
-        property_arg = format_prefix '  ', <<~TEXT
-          let(:additional_properties) do
-            {
-          #{property_args.join(",\n")}
-            }
-          end
-        TEXT
-      end
-
-      args = [*identifier_args, *property_arg].join('')
-
       cli.say format_warning <<~TEXT
         #{divider}
         #{format_help('# RSPEC')}
 
         it_behaves_like 'internal event tracking' do
-          let(:event) { '#{action}' }
-        #{args}end
+          let(:event) { '#{event['action']}' }
+        #{
+          Array(event['identifiers']).map do |identifier|
+            "  let(:#{identifier}) { #{identifier_examples[identifier]} }\n"
+          end.join('')
+        }end
 
         #{divider}
       TEXT
     end
 
+    def identifier_examples
+      event['identifiers']
+        .to_h { |identifier| [identifier, identifier] }
+        .merge(IDENTIFIER_EXAMPLES[event['identifiers'].sort] || {})
+    end
+
     def haml_examples
-      property_args = format_additional_properties do |property, value, _|
-        "event_#{property}: #{value}"
-      end
-
-      args = ["event_tracking: '#{action}'", *property_args].join(', ')
-
       cli.say <<~TEXT
         #{divider}
         #{format_help('# HAML -- ON-CLICK')}
 
-        .inline-block{ #{format_warning("data: { #{args} }")} }
+        .gl-display-inline-block{ #{format_warning("data: { event_tracking: '#{event['action']}' }")} }
           = _('Important Text')
 
         #{divider}
         #{format_help('# HAML -- COMPONENT ON-CLICK')}
 
-        = render Pajamas::ButtonComponent.new(button_options: { #{format_warning("data: { #{args} }")} })
+        = render Pajamas::ButtonComponent.new(button_options: { #{format_warning("data: { event_tracking: '#{event['action']}' }")} })
 
         #{divider}
         #{format_help('# HAML -- COMPONENT ON-LOAD')}
 
-        = render Pajamas::ButtonComponent.new(button_options: { #{format_warning("data: { event_tracking_load: true, #{args} }")} })
+        = render Pajamas::ButtonComponent.new(button_options: { #{format_warning("data: { event_tracking_load: true, event_tracking: '#{event['action']}' }")} })
 
         #{divider}
       TEXT
@@ -186,9 +153,6 @@ module InternalEventsCli
     end
 
     def vue_template_examples
-      on_click_args = template_formatted_args('data-event-tracking', indent: 2)
-      on_load_args = template_formatted_args('data-event-tracking-load', indent: 2)
-
       cli.say <<~TEXT
         #{divider}
         #{format_help('// VUE TEMPLATE -- ON-CLICK')}
@@ -202,7 +166,7 @@ module InternalEventsCli
         </script>
 
         <template>
-          <gl-button#{on_click_args}
+          <gl-button #{format_warning("data-event-tracking=\"#{event['action']}\"")}>
             Click Me
           </gl-button>
         </template>
@@ -219,7 +183,7 @@ module InternalEventsCli
         </script>
 
         <template>
-          <gl-button#{on_load_args}
+          <gl-button #{format_warning("data-event-tracking-load=\"#{event['action']}\"")}>
             Click Me
           </gl-button>
         </template>
@@ -231,8 +195,6 @@ module InternalEventsCli
     end
 
     def js_examples
-      args = js_formatted_args(indent: 2)
-
       cli.say <<~TEXT
         #{divider}
         #{format_help('// FRONTEND -- RAW JAVASCRIPT')}
@@ -240,7 +202,7 @@ module InternalEventsCli
         #{format_warning("import { InternalEvents } from '~/tracking';")}
 
         export const performAction = () => {
-          #{format_warning("InternalEvents.trackEvent#{args}")}
+          #{format_warning("InternalEvents.trackEvent('#{event['action']}');")}
 
           return true;
         };
@@ -253,8 +215,6 @@ module InternalEventsCli
     end
 
     def vue_examples
-      args = js_formatted_args(indent: 6)
-
       cli.say <<~TEXT
         #{divider}
         #{format_help('// VUE')}
@@ -270,7 +230,7 @@ module InternalEventsCli
           components: { GlButton },
           methods: {
             performAction() {
-              #{format_warning("this.trackEvent#{args}")}
+              #{format_warning("this.trackEvent('#{event['action']}');")}
             },
           },
         };
@@ -284,107 +244,6 @@ module InternalEventsCli
       TEXT
 
       cli.say("Want to see the implementation details? See app/assets/javascripts/tracking/internal_events.js\n\n")
-    end
-
-    private
-
-    def action
-      event['action']
-    end
-
-    def identifiers
-      Array(event['identifiers']).tap do |ids|
-        # We always auto assign namespace if project is provided
-        ids.delete('namespace') if ids.include?('project')
-      end
-    end
-
-    def additional_properties
-      Array(event['additional_properties'])
-    end
-
-    def format_additional_properties
-      additional_properties.map do |property, details|
-        example_value = PROPERTY_EXAMPLES[property]
-        description = details['description'] || 'TODO'
-
-        yield(property, example_value, description)
-      end
-    end
-
-    def js_formatted_args(indent:)
-      return "('#{action}');" if additional_properties.none?
-
-      property_args = format_additional_properties do |property, value, description|
-        "    #{property}: #{value}, // #{description}"
-      end
-
-      [
-        '(',
-        "  '#{action}',",
-        '  {',
-        *property_args,
-        '  },',
-        ');'
-      ].join("\n#{' ' * indent}")
-    end
-
-    def template_formatted_args(data_attr, indent:)
-      return " #{data_attr}=\"#{action}\">" if additional_properties.none?
-
-      spacer = ' ' * indent
-      property_args = format_additional_properties do |property, value, _|
-        "  data-event-#{property}=#{value.tr("'", '"')}"
-      end
-
-      args = [
-        '', # start args on next line
-        "  #{data_attr}=\"#{action}\"",
-        *property_args
-      ].join("\n#{spacer}")
-
-      "#{format_warning(args)}\n#{spacer}>"
-    end
-
-    def gdk_examples
-      key_paths = cli.global.metrics.select { |metric| metric.actions&.include?(event.action) }.map(&:key_path)
-
-      cli.say <<~TEXT
-        #{divider}
-        #{format_help('# TERMINAL -- monitor events & changes to service ping metrics as they occur')}
-
-        1. From `gitlab/` directory, run the monitor script:
-
-        #{format_warning("bin/rails runner scripts/internal_events/monitor.rb #{event.action}")}
-
-        2. View metric updates within the terminal
-
-        3. [Optional] Configure gdk with snowplow micro to see individual events: https://gitlab.com/gitlab-org/gitlab-development-kit/-/blob/main/doc/howto/snowplow_micro.md
-
-        #{divider}
-        #{format_help('# RAILS CONSOLE -- generate service ping payload, including most recent usage data')}
-
-        #{format_warning("require_relative 'spec/support/helpers/service_ping_helpers.rb'")}
-
-        #{format_help('# Get current value of a metric')}
-        #{
-          if key_paths.any?
-            key_paths.map { |key_path| format_warning("ServicePingHelpers.get_current_usage_metric_value('#{key_path}')") }.join("\n")
-          else
-            format_help("# Warning: There are no metrics for #{event.action} yet. When there are, replace <key_path> below.\n") +
-            format_warning('ServicePingHelpers.get_current_usage_metric_value(<key_path>)')
-          end
-        }
-
-        #{format_help('# View entire service ping payload')}
-        #{format_warning('ServicePingHelpers.get_current_service_ping_payload')}
-        #{divider}
-        Need to test something else? Check these docs:
-        - https://docs.gitlab.com/ee/development/internal_analytics/internal_event_instrumentation/local_setup_and_debugging.html
-        - https://docs.gitlab.com/ee/development/internal_analytics/service_ping/troubleshooting.html
-        - https://docs.gitlab.com/ee/development/internal_analytics/review_guidelines.html
-
-      TEXT
     end
   end
 end

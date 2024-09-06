@@ -23,8 +23,6 @@ export default {
     DeploymentApprovals: () =>
       import('ee_component/deployments/components/deployment_approvals.vue'),
     DeploymentTimeline: () => import('ee_component/deployments/components/deployment_timeline.vue'),
-    ApprovalsEmptyState: () =>
-      import('ee_else_ce/deployments/components/approvals_empty_state.vue'),
   },
   inject: ['projectPath', 'deploymentIid', 'environmentName', 'graphqlEtagKey'],
   apollo: {
@@ -72,9 +70,6 @@ export default {
     isManual() {
       return this.deployment.job?.manualJob;
     },
-    isLoading() {
-      return this.$apollo.queries.deployment.loading;
-    },
   },
   mounted() {
     toggleQueryPollingByVisibility(
@@ -92,9 +87,9 @@ export default {
 </script>
 <template>
   <div>
-    <div class="gl-flex gl-justify-between">
-      <div class="gl-grow">
-        <h1 class="page-title gl-text-size-h-display">
+    <div class="gl-display-flex gl-justify-content-space-between">
+      <div class="gl-flex-grow-1">
+        <h1 class="page-title gl-font-size-h-display">
           <gl-sprintf :message="$options.i18n.header">
             <template #iid>{{ deploymentIid }}</template>
           </gl-sprintf>
@@ -104,38 +99,33 @@ export default {
           v-else
           :deployment="deployment"
           :environment="environment"
-          :loading="isLoading"
+          :loading="$apollo.queries.deployment.loading"
         />
-        <details-feedback class="gl-mt-6 gl-w-9/10" />
+        <details-feedback class="gl-mt-6 gl-w-90p" />
         <deployment-approvals
           v-if="hasApprovalSummary"
           :approval-summary="deployment.approvalSummary"
           :deployment="deployment"
-          class="gl-mt-6 gl-w-9/10"
+          class="gl-mt-6 gl-w-90p"
           @change="$apollo.queries.deployment.refetch()"
         />
         <deployment-deploy-block
           v-if="isManual"
           :deployment="deployment"
-          class="gl-mt-4 gl-w-9/10"
+          class="gl-w-90p gl-mt-4"
         />
         <deployment-timeline
           v-if="hasApprovalSummary"
           :approval-summary="deployment.approvalSummary"
-          class="gl-w-9/10"
-        />
-        <approvals-empty-state
-          v-if="!isLoading"
-          :approval-summary="deployment.approvalSummary"
-          class="gl-w-9/10"
+          class="gl-w-90p"
         />
       </div>
       <deployment-aside
         v-if="!hasError"
-        :loading="isLoading"
+        :loading="$apollo.queries.deployment.loading"
         :deployment="deployment"
         :environment="environment"
-        class="gl-w-1/5"
+        class="gl-w-20p"
       />
     </div>
   </div>

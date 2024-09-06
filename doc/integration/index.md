@@ -1,5 +1,5 @@
 ---
-stage: Foundations
+stage: Manage
 group: Import and Integrate
 description: Projects, issues, authentication, security providers.
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
@@ -24,7 +24,7 @@ You can configure an [external issue tracker](external-issue-tracker.md) and use
 
 You can integrate GitLab with authentication providers like LDAP and SAML.
 
-For more information, see [GitLab authentication and authorization](../administration/auth/index.md).
+For more information, see [GitLab authentication and authorization](../administration/auth).
 
 ## Security improvements
 
@@ -32,10 +32,10 @@ Solutions like Akismet and reCAPTCHA are available for spam protection.
 
 You can also integrate GitLab with the following security partners:
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 - [Anchore](https://docs.anchore.com/current/docs/integration/ci_cd/gitlab/)
-- [Prisma Cloud](https://docs.prismacloud.io/en/enterprise-edition/content-collections/application-security/get-started/connect-code-and-build-providers/code-repositories/add-gitlab)
+- [Bridgecrew](https://docs.bridgecrew.io/docs/integrate-with-gitlab-self-managed)
 - [Checkmarx](https://checkmarx.atlassian.net/wiki/spaces/SD/pages/1929937052/GitLab+Integration)
 - [CodeSecure](https://codesecure.com/our-integrations/codesonar-sast-gitlab-ci-pipeline/)
 - [Deepfactor](https://www.deepfactor.io/docs/integrate-deepfactor-scanner-in-your-ci-cd-pipelines/#gitlab)
@@ -45,11 +45,11 @@ You can also integrate GitLab with the following security partners:
 - [Mend](https://www.mend.io/gitlab/)
 - [Semgrep](https://semgrep.dev/for/gitlab/)
 - [StackHawk](https://docs.stackhawk.com/continuous-integration/gitlab.html)
-- [Tenable](https://docs.tenable.com/vulnerability-management/Content/ContainerSecurity/Dashboard.htm)
+- [Tenable](https://docs.tenable.com/vulnerability-management/Content/ContainerSecurity/GetStarted.htm)
 - [Venafi](https://marketplace.venafi.com/xchange/620d2d6ed419fb06a5c5bd36/solution/6292c2ef7550f2ee553cf223)
 - [Veracode](https://community.veracode.com/s/knowledgeitem/gitlab-ci-MCEKSYPRWL35BRTGOVI55SK5RI4A)
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 GitLab can check your application for security vulnerabilities.
 For more information, see [Secure your application](../user/application_security/secure_your_application.md).

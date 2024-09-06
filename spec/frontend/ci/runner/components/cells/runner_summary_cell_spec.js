@@ -1,4 +1,5 @@
 import { GlSprintf } from '@gitlab/ui';
+import { __ } from '~/locale';
 import { mountExtended, shallowMountExtended } from 'helpers/vue_test_utils_helper';
 import RunnerSummaryCell from '~/ci/runner/components/cells/runner_summary_cell.vue';
 import TimeAgo from '~/vue_shared/components/time_ago_tooltip.vue';
@@ -90,7 +91,7 @@ describe('RunnerTypeCell', () => {
   });
 
   it('Displays the runner version', () => {
-    expect(wrapper.text()).toContain(mockRunner.managers.nodes[0].version);
+    expect(wrapper.text()).toContain(mockRunner.version);
   });
 
   it('Displays the runner description', () => {
@@ -111,7 +112,7 @@ describe('RunnerTypeCell', () => {
     });
 
     expect(findRunnerSummaryField('clock').findComponent(TimeAgo).exists()).toBe(false);
-    expect(findRunnerSummaryField('clock').text()).toContain('Never');
+    expect(findRunnerSummaryField('clock').text()).toContain(__('Never'));
   });
 
   describe('IP address', () => {

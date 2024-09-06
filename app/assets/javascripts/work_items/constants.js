@@ -28,9 +28,6 @@ export const WIDGET_TYPE_NOTES = 'NOTES';
 export const WIDGET_TYPE_HEALTH_STATUS = 'HEALTH_STATUS';
 export const WIDGET_TYPE_LINKED_ITEMS = 'LINKED_ITEMS';
 export const WIDGET_TYPE_COLOR = 'COLOR';
-export const WIDGET_TYPE_DESIGNS = 'DESIGNS';
-export const WIDGET_TYPE_DEVELOPMENT = 'DEVELOPMENT';
-export const WIDGET_TYPE_CRM_CONTACTS = 'CRM_CONTACTS';
 
 export const WORK_ITEM_TYPE_ENUM_INCIDENT = 'INCIDENT';
 export const WORK_ITEM_TYPE_ENUM_ISSUE = 'ISSUE';
@@ -52,8 +49,6 @@ export const WORK_ITEM_TYPE_VALUE_OBJECTIVE = 'Objective';
 
 export const WORK_ITEM_TITLE_MAX_LENGTH = 255;
 
-export const SEARCH_DEBOUNCE = 500;
-
 export const i18n = {
   fetchErrorTitle: s__('WorkItem|Work item not found'),
   fetchError: s__(
@@ -64,9 +59,6 @@ export const i18n = {
 
 export const I18N_WORK_ITEM_ERROR_FETCHING_LABELS = s__(
   'WorkItem|Something went wrong when fetching labels. Please try again.',
-);
-export const I18N_WORK_ITEM_ERROR_FETCHING_CRM_CONTACTS = s__(
-  'WorkItem|Something went wrong when fetching CRM contacts. Please try again.',
 );
 export const I18N_WORK_ITEM_ERROR_FETCHING_TYPES = s__(
   'WorkItem|Something went wrong when fetching work item types. Please try again',
@@ -87,10 +79,6 @@ export const I18N_WORK_ITEM_DELETE = s__('WorkItem|Delete %{workItemType}');
 export const I18N_WORK_ITEM_ARE_YOU_SURE_DELETE = s__(
   'WorkItem|Are you sure you want to delete the %{workItemType}? This action cannot be reversed.',
 );
-export const I18N_WORK_ITEM_ARE_YOU_SURE_DELETE_HIERARCHY = s__(
-  'WorkItem|Delete this %{workItemType} and release all child items? This action cannot be reversed.',
-);
-export const I18N_WORK_ITEM_CREATED = s__('WorkItem|%{workItemType} created');
 export const I18N_WORK_ITEM_DELETED = s__('WorkItem|%{workItemType} deleted');
 
 export const I18N_WORK_ITEM_FETCH_ITERATIONS_ERROR = s__(
@@ -126,6 +114,11 @@ export const I18N_WORK_ITEM_ERROR_COPY_EMAIL = s__(
   'WorkItem|Something went wrong while copying the %{workItemType} email address. Please try again.',
 );
 
+export const I18N_MAX_CHARS_IN_WORK_ITEM_TITLE_MESSAGE = sprintf(
+  s__('WorkItem|Title cannot have more than %{WORK_ITEM_TITLE_MAX_LENGTH} characters.'),
+  { WORK_ITEM_TITLE_MAX_LENGTH },
+);
+
 export const I18N_WORK_ITEM_COPY_CREATE_NOTE_EMAIL = s__(
   'WorkItem|Copy %{workItemType} email address',
 );
@@ -140,6 +133,7 @@ export const I18N_MAX_WORK_ITEMS_NOTE_LABEL = sprintf(
   s__('WorkItem|Add a maximum of %{MAX_WORK_ITEMS} items at a time.'),
   { MAX_WORK_ITEMS },
 );
+export const I18N_WORK_ITEM_SHOW_LABELS = s__('WorkItem|Show labels');
 
 export const sprintfWorkItem = (msg, workItemTypeArg, parentWorkItemType = '') => {
   const workItemType = workItemTypeArg || s__('WorkItem|item');
@@ -208,14 +202,23 @@ export const WORK_ITEM_TYPE_VALUE_MAP = {
   [WORK_ITEM_TYPE_VALUE_KEY_RESULT]: WORK_ITEM_TYPE_ENUM_KEY_RESULT,
   [WORK_ITEM_TYPE_VALUE_ISSUE]: WORK_ITEM_TYPE_ENUM_ISSUE,
   [WORK_ITEM_TYPE_VALUE_EPIC]: WORK_ITEM_TYPE_ENUM_EPIC,
-  [WORK_ITEM_TYPE_VALUE_TASK]: WORK_ITEM_TYPE_ENUM_TASK,
 };
 
-export const WORK_ITEMS_TREE_TEXT = {
-  title: s__('WorkItem|Child items'),
-  empty: s__(
-    'WorkItem|No child items are currently assigned. Use child items to break down work into smaller parts.',
-  ),
+export const WORK_ITEMS_TREE_TEXT_MAP = {
+  [WORK_ITEM_TYPE_VALUE_OBJECTIVE]: {
+    title: s__('WorkItem|Child objectives and key results'),
+    empty: s__('WorkItem|No objectives or key results are currently assigned.'),
+  },
+  [WORK_ITEM_TYPE_VALUE_ISSUE]: {
+    title: s__('WorkItem|Tasks'),
+    empty: s__(
+      'WorkItem|No tasks are currently assigned. Use tasks to break down this issue into smaller parts.',
+    ),
+  },
+  [WORK_ITEM_TYPE_VALUE_EPIC]: {
+    title: s__('WorkItem|Child items'),
+    empty: s__('WorkItem|No epics or issues are currently assigned.'),
+  },
 };
 
 export const FORM_TYPES = {
@@ -227,9 +230,9 @@ export const FORM_TYPES = {
   },
 };
 
-export const DEFAULT_PAGE_SIZE_NOTES = 20; // Set to 20 to not exceed query complexity
+export const DEFAULT_PAGE_SIZE_ASSIGNEES = 10;
+export const DEFAULT_PAGE_SIZE_NOTES = 30;
 export const DEFAULT_PAGE_SIZE_EMOJIS = 100;
-export const DEFAULT_PAGE_SIZE_CHILD_ITEMS = 50;
 
 export const WORK_ITEM_NOTES_SORT_ORDER_KEY = 'sort_direction_work_item';
 
@@ -267,7 +270,6 @@ export const TEST_ID_LOCK_ACTION = 'lock-action';
 export const TEST_ID_COPY_REFERENCE_ACTION = 'copy-reference-action';
 export const TEST_ID_COPY_CREATE_NOTE_EMAIL_ACTION = 'copy-create-note-email-action';
 export const TEST_ID_TOGGLE_ACTION = 'state-toggle-action';
-export const TEST_ID_REPORT_ABUSE = 'report-abuse-action';
 
 export const TODO_ADD_ICON = 'todo-add';
 export const TODO_DONE_ICON = 'todo-done';
@@ -277,17 +279,14 @@ export const TODO_PENDING_STATE = 'pending';
 export const EMOJI_THUMBSUP = 'thumbsup';
 export const EMOJI_THUMBSDOWN = 'thumbsdown';
 
-export const WORK_ITEM_TO_ISSUABLE_MAP = {
+export const WORK_ITEM_TO_ISSUE_MAP = {
   [WIDGET_TYPE_ASSIGNEES]: 'assignees',
   [WIDGET_TYPE_LABELS]: 'labels',
   [WIDGET_TYPE_MILESTONE]: 'milestone',
   [WIDGET_TYPE_WEIGHT]: 'weight',
-  [WIDGET_TYPE_ITERATION]: 'iteration',
   [WIDGET_TYPE_START_AND_DUE_DATE]: 'dueDate',
   [WIDGET_TYPE_HEALTH_STATUS]: 'healthStatus',
   [WIDGET_TYPE_AWARD_EMOJI]: 'awardEmoji',
-  [WIDGET_TYPE_TIME_TRACKING]: 'timeEstimate',
-  [WIDGET_TYPE_COLOR]: 'color',
 };
 
 export const LINKED_CATEGORIES_MAP = {
@@ -313,7 +312,6 @@ export const SUPPORTED_PARENT_TYPE_MAP = {
   [WORK_ITEM_TYPE_VALUE_KEY_RESULT]: [WORK_ITEM_TYPE_ENUM_OBJECTIVE],
   [WORK_ITEM_TYPE_VALUE_TASK]: [WORK_ITEM_TYPE_ENUM_ISSUE],
   [WORK_ITEM_TYPE_VALUE_EPIC]: [WORK_ITEM_TYPE_ENUM_EPIC],
-  [WORK_ITEM_TYPE_VALUE_ISSUE]: [WORK_ITEM_TYPE_ENUM_EPIC],
 };
 
 export const LINKED_ITEMS_ANCHOR = 'linkeditems';
@@ -340,29 +338,3 @@ export const EPIC_COLORS = [
 ];
 
 export const DEFAULT_EPIC_COLORS = '#1068bf';
-
-export const MAX_FREQUENT_PROJECTS = 3;
-export const CREATE_NEW_WORK_ITEM_MODAL = 'create_new_work_item_modal';
-
-export const WORK_ITEM_REFERENCE_CHAR = '#';
-
-export const NEW_WORK_ITEM_IID = 'new-work-item-iid';
-
-export const NEW_WORK_ITEM_GID = 'gid://gitlab/WorkItem/new';
-
-export const NEW_EPIC_FEEDBACK_PROMPT_EXPIRY = '2024-11-01';
-export const FEATURE_NAME = 'work_item_epic_feedback';
-
-export const CLEAR_VALUE = 'CLEAR_VALUE';
-
-export const DETAIL_VIEW_QUERY_PARAM_NAME = 'show';
-export const ROUTES = {
-  index: 'workItemList',
-  workItem: 'workItem',
-  new: 'new',
-  design: 'design',
-};
-
-export const WORKITEM_LINKS_SHOWLABELS_LOCALSTORAGEKEY = 'workItemLinks.showLabels';
-export const WORKITEM_TREE_SHOWLABELS_LOCALSTORAGEKEY = 'workItemTree.showLabels';
-export const WORKITEM_RELATIONSHIPS_SHOWLABELS_LOCALSTORAGEKEY = 'workItemRelationships.showLabels';

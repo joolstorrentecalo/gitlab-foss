@@ -16,7 +16,7 @@ const tableCell = (config) => ({
   tdClass: (value, key, item) => {
     return {
       // eslint-disable-next-line no-underscore-dangle
-      '!gl-border-b-0': item._showDetails,
+      'gl-border-b-0!': item._showDetails,
     };
   },
   ...config,
@@ -54,12 +54,12 @@ export default {
     tableCell({
       key: 'source',
       label: s__('BulkImport|Source'),
-      thClass: 'gl-w-3/10',
+      thClass: 'gl-w-30p',
     }),
     tableCell({
       key: 'destination',
       label: s__('BulkImport|Destination'),
-      thClass: 'gl-w-4/10',
+      thClass: 'gl-w-40p',
     }),
     tableCell({
       key: 'created_at',
@@ -127,10 +127,10 @@ export default {
 <template>
   <div>
     <div
-      class="gl-flex gl-items-center gl-border-0 gl-border-b-1 gl-border-solid gl-border-gray-200"
+      class="gl-border-solid gl-border-gray-200 gl-border-0 gl-border-b-1 gl-display-flex gl-align-items-center"
     >
-      <h1 class="gl-my-0 gl-py-4 gl-text-size-h1">
-        <img :src="assets.gitlabLogo" class="gl-mb-2 gl-mr-2 gl-inline gl-h-6 gl-w-6" />
+      <h1 class="gl-my-0 gl-py-4 gl-font-size-h1">
+        <img :src="assets.gitlabLogo" class="gl-w-6 gl-h-6 gl-mb-2 gl-display-inline gl-mr-2" />
         {{ s__('BulkImport|Project import history') }}
       </h1>
     </div>
@@ -150,7 +150,7 @@ export default {
               target="_blank"
             >
               {{ item.import_url }}
-              <gl-icon name="external-link" class="gl-align-middle" />
+              <gl-icon name="external-link" class="gl-vertical-align-middle" />
             </gl-link>
             <span v-else>{{ item.import_url }}</span>
           </template>
@@ -165,7 +165,7 @@ export default {
           <time-ago :time="value" />
         </template>
         <template #cell(status)="{ item, toggleDetails, detailsShowing }">
-          <import-status :status="item.import_status" class="gl-inline-block gl-w-13" />
+          <import-status :status="item.import_status" class="gl-display-inline-block gl-w-13" />
           <gl-button
             v-if="item.import_status === 'failed'"
             class="gl-ml-3"

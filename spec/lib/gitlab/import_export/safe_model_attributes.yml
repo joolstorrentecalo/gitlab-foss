@@ -34,8 +34,6 @@ Issue:
 - external_key
 - issue_type
 - email_message_id
-- imported
-- imported_from
 Event:
 - id
 - target_type
@@ -46,8 +44,6 @@ Event:
 - action
 - author_id
 - fingerprint
-- imported
-- imported_from
 WikiPage::Meta:
 - id
 - title
@@ -91,8 +87,6 @@ Note:
 - confidential
 - last_edited_at
 - internal
-- imported
-- imported_from
 Notes::NoteMetadata:
 - note_id
 - email_participant
@@ -139,8 +133,6 @@ ProjectSnippet:
 - file_name
 - type
 - visibility_level
-- imported
-- imported_from
 Release:
 - id
 - name
@@ -186,8 +178,7 @@ ProjectMember:
 User:
 - id
 - username
-- name
-- public_email
+- email
 MergeRequest:
 - id
 - target_branch
@@ -226,8 +217,6 @@ MergeRequest:
 - allow_maintainer_to_push
 - merge_ref_sha
 - draft
-- imported
-- imported_from
 MergeRequestDiff:
 - id
 - state
@@ -270,7 +259,6 @@ MergeRequestDiffFile:
 - b_mode
 - too_large
 - binary
-- encoded_file_path
 MergeRequestContextCommit:
 - id
 - authored_date
@@ -796,6 +784,26 @@ ProjectCustomAttribute:
 - project_id
 - key
 - value
+PrometheusMetric:
+- id
+- created_at
+- updated_at
+- project_id
+- y_label
+- unit
+- legend
+- title
+- query
+- group
+- common
+- identifier
+- dashboard_path
+PrometheusAlert:
+- threshold
+- operator
+- environment_id
+- project_id
+- prometheus_metric_id
 Badge:
 - id
 - name
@@ -988,12 +996,9 @@ Epic:
   - total_closed_issue_weight
   - total_opened_issue_count
   - total_closed_issue_count
-  - imported
-  - imported_from
 EpicIssue:
   - id
   - relative_position
-  - namespace_id
 SystemNoteMetadata:
   - id
   - commit_count
@@ -1002,6 +1007,10 @@ SystemNoteMetadata:
   - updated_at
 ProjectSecuritySetting:
   - project_id
+  - auto_fix_container_scanning
+  - auto_fix_dast
+  - auto_fix_dependency_scanning
+  - auto_fix_sast
   - created_at
   - updated_at
 IssuableSla:

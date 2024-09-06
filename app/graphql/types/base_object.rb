@@ -27,12 +27,8 @@ module Types
       GitlabSchema.id_from_object(object)
     end
 
-    def self.authorization_scopes
-      [:api, :read_api]
-    end
-
     def self.authorization
-      @authorization ||= ::Gitlab::Graphql::Authorize::ObjectAuthorization.new(authorize, authorization_scopes)
+      @authorization ||= ::Gitlab::Graphql::Authorize::ObjectAuthorization.new(authorize)
     end
 
     def self.authorized?(object, context)

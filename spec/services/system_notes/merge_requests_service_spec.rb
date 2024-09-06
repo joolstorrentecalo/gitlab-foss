@@ -49,20 +49,6 @@ RSpec.describe ::SystemNotes::MergeRequestsService, feature_category: :code_revi
     it "posts the 'abort auto merge' system note" do
       expect(subject.note).to eq "aborted the automatic merge because merge request was closed"
     end
-
-    context "when reason is upcased" do
-      subject { service.abort_auto_merge(::Ci::Pipeline.workflow_rules_failure_message) }
-
-      let(:expected_note) do
-        reason = ::Ci::Pipeline.workflow_rules_failure_message
-        reason[0] = reason[0].downcase
-        "aborted the automatic merge because #{reason}"
-      end
-
-      it "formats the system note correctly" do
-        expect(subject.note).to eq expected_note
-      end
-    end
   end
 
   describe '.merge_when_pipeline_succeeds' do
@@ -100,20 +86,6 @@ RSpec.describe ::SystemNotes::MergeRequestsService, feature_category: :code_revi
 
     it "posts the 'merge when pipeline succeeds' system note" do
       expect(subject.note).to eq "aborted the automatic merge because merge request was closed"
-    end
-
-    context "when reason is upcased" do
-      subject { service.abort_merge_when_pipeline_succeeds(::Ci::Pipeline.workflow_rules_failure_message) }
-
-      let(:expected_note) do
-        reason = ::Ci::Pipeline.workflow_rules_failure_message
-        reason[0] = reason[0].downcase
-        "aborted the automatic merge because #{reason}"
-      end
-
-      it "formats the system note correctly" do
-        expect(subject.note).to eq expected_note
-      end
     end
   end
 
@@ -263,7 +235,7 @@ RSpec.describe ::SystemNotes::MergeRequestsService, feature_category: :code_revi
         subject { service.change_branch('target', 'invalid', old_branch, new_branch) }
 
         it 'raises exception' do
-          expect { subject }.to raise_error(/invalid value for event_type/)
+          expect { subject }.to raise_error /invalid value for event_type/
         end
       end
     end
@@ -358,20 +330,6 @@ RSpec.describe ::SystemNotes::MergeRequestsService, feature_category: :code_revi
     context 'when merge request approved' do
       it 'sets the note text' do
         expect(subject.note).to eq "approved this merge request"
-      end
-    end
-  end
-
-  describe '#requested_changes' do
-    subject { described_class.new(noteable: noteable, project: project, author: author).requested_changes }
-
-    it_behaves_like 'a system note' do
-      let(:action) { 'requested_changes' }
-    end
-
-    context 'when the user has requested changes' do
-      it 'sets the note text' do
-        expect(subject.note).to eq "requested changes"
       end
     end
   end

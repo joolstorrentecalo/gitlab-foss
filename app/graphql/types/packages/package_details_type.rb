@@ -11,7 +11,7 @@ module Types
       authorize :read_package
 
       field :versions, ::Types::Packages::PackageBaseType.connection_type, null: true,
-        description: 'Other versions of the package.'
+                                                                           description: 'Other versions of the package.'
 
       field :package_files, Types::Packages::PackageFileType.connection_type, null: true, method: :installable_package_files, description: 'Package files.'
 
@@ -29,6 +29,10 @@ module Types
       field :last_downloaded_at, Types::TimeType, null: true, description: 'Last time that a file of this package was downloaded.'
 
       field :public_package, GraphQL::Types::Boolean, null: true, description: 'Indicates if there is public access to the package.'
+
+      def versions
+        object.versions
+      end
 
       def composer_config_repository_url
         composer_config_repository_name(object.project.group&.id)

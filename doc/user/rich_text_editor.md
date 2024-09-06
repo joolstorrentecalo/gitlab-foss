@@ -10,6 +10,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/5643) for [wikis](project/wiki/index.md#rich-text-editor) in GitLab 14.0.
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/371931) for editing issue descriptions in GitLab 15.5 [with a flag](../administration/feature_flags.md) named `content_editor_on_issues`. Disabled by default.
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/382636) for [discussions](discussions/index.md), and creating and editing issues and merge requests in GitLab 15.11 with the same flag.
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/407507) for epics in GitLab 16.1 with the same flag.
@@ -70,7 +71,7 @@ Supported input rules:
 | `**bold**` or `__bold__`                                  | Bold text            |
 | `_italics_` or `*italics*`                                | Italicized text      |
 | `~~strike~~`                                              | Strikethrough        |
-| `[link](https://example.com)`                             | Hyperlink            |
+| `[link](url)`                                             | Hyperlink            |
 | `code`                                                    | Inline code          |
 | <code>&#96;&#96;&#96;rb</code> + <kbd>Enter</kbd> <br> <code>&#96;&#96;&#96;js</code> + <kbd>Enter</kbd> | Code block           |
 | `* List item`, or<br> `- List item`, or<br> `+ List item` | Unordered list       |
@@ -89,7 +90,7 @@ To insert a table:
 1. Select **Insert table** **{table}**.
 1. From the dropdown list, select the dimensions of the new table.
 
-![A table size selector with 3 rows and 3 columns.](img/rich_text_editor_02_v16_2.png)
+![Alt text](img/rich_text_editor_02_v16_2.png)
 
 ### Edit a table
 
@@ -97,7 +98,7 @@ Inside a table cell, you can use a menu to insert or delete rows or columns.
 
 To open the menu: In the upper-right corner of a cell, select the chevron **{chevron-down}**.
 
-![An active chevron menu showing table actions.](img/rich_text_editor_03_v16_2.png)
+![Alt text](img/rich_text_editor_03_v16_2.png)
 
 ### Operations on multiple cells
 

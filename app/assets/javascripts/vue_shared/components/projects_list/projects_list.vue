@@ -1,8 +1,4 @@
 <script>
-import {
-  TIMESTAMP_TYPE_CREATED_AT,
-  TIMESTAMP_TYPE_UPDATED_AT,
-} from '~/vue_shared/components/resource_lists/constants';
 import ProjectsListItem from './projects_list_item.vue';
 
 export default {
@@ -28,7 +24,6 @@ export default {
      *   };
      *   descriptionHtml: string;
      *   updatedAt: string;
-     *   createdAt: string;
      * }[]
      */
     projects: {
@@ -45,27 +40,18 @@ export default {
       required: false,
       default: '',
     },
-    timestampType: {
-      type: String,
-      required: false,
-      default: TIMESTAMP_TYPE_CREATED_AT,
-      validator(value) {
-        return [TIMESTAMP_TYPE_CREATED_AT, TIMESTAMP_TYPE_UPDATED_AT].includes(value);
-      },
-    },
   },
 };
 </script>
 
 <template>
-  <ul class="gl-list-none gl-p-0">
+  <ul class="gl-p-0 gl-list-style-none">
     <projects-list-item
       v-for="project in projects"
       :key="project.id"
       :project="project"
       :show-project-icon="showProjectIcon"
       :class="listItemClass"
-      :timestamp-type="timestampType"
       @delete="$emit('delete', $event)"
     />
   </ul>

@@ -10,18 +10,9 @@ module QA
           logger.info("Fetching group #{group_name}...")
 
           group_search_response = get Runtime::API::Request.new(api_client, "/groups/#{group_name}").url
-
-          if group_search_response.code != HTTP_STATUS_OK
-            logger.error("Response code #{group_search_response.code}: #{group_search_response.body}")
-            exit 1 if group_search_response.code == HTTP_STATUS_UNAUTHORIZED
-            return
-          end
-
           group = parse_body(group_search_response)
 
-          logger.warn("Top level group #{group_name} not found") if group[:id].nil?
-
-          group[:id]
+          group[:id].nil? ? logger.warn("Top level group #{group_name} not found") : group[:id]
         end
       end
     end

@@ -47,16 +47,12 @@ RSpec.describe 'Runners', feature_category: :fleet_visibility do
   context 'when a project has enabled shared_runners' do
     let_it_be(:project) { create(:project) }
 
-    before_all do
+    before do
       project.add_maintainer(user)
     end
 
     context 'when a project_type runner is activated on the project' do
       let_it_be(:project_runner) { create(:ci_runner, :project, projects: [project]) }
-
-      let_it_be(:project_runner_manager) do
-        create(:ci_runner_machine, runner: project_runner, platform: 'darwin')
-      end
 
       it 'user sees the project runner' do
         visit project_runners_path(project)
@@ -67,7 +63,7 @@ RSpec.describe 'Runners', feature_category: :fleet_visibility do
 
         click_on project_runner.short_sha
 
-        expect(page).to have_content(project_runner_manager.platform)
+        expect(page).to have_content(project_runner.platform)
       end
 
       it 'user can pause and resume the project runner' do
@@ -100,39 +96,45 @@ RSpec.describe 'Runners', feature_category: :fleet_visibility do
         expect(page).not_to have_content(project_runner.display_name)
       end
 
-      it 'user edits runner to set it as protected', :js do
-        visit project_runners_path(project)
-
-        within_testid 'assigned_project_runners' do
-          first('[data-testid="edit-runner-link"]').click
-        end
-
-        expect(page.find_field('protected')).not_to be_checked
-
-        check 'protected'
-        click_button 'Save changes'
-
-        expect(page).to have_content 'Protected Yes'
-      end
-
-      context 'when a runner has a tag', :js do
+      context 'when the project_runner_edit_form_vue feature is disabled' do
         before do
-          project_runner.update!(tag_list: ['tag'])
+          stub_feature_flags(project_runner_edit_form_vue: false)
         end
 
-        it 'user edits runner to not run untagged jobs' do
+        it 'user edits the runner to be protected' do
           visit project_runners_path(project)
 
           within_testid 'assigned_project_runners' do
             first('[data-testid="edit-runner-link"]').click
           end
 
-          expect(page.find_field('run-untagged')).to be_checked
+          expect(page.find_field('runner[access_level]')).not_to be_checked
 
-          uncheck 'run-untagged'
+          check 'runner_access_level'
           click_button 'Save changes'
 
-          expect(page).to have_content 'Can run untagged jobs No'
+          expect(page).to have_content 'Protected Yes'
+        end
+
+        context 'when a runner has a tag' do
+          before do
+            project_runner.update!(tag_list: ['tag'])
+          end
+
+          it 'user edits runner not to run untagged jobs' do
+            visit project_runners_path(project)
+
+            within_testid 'assigned_project_runners' do
+              first('[data-testid="edit-runner-link"]').click
+            end
+
+            expect(page.find_field('runner[run_untagged]')).to be_checked
+
+            uncheck 'runner_run_untagged'
+            click_button 'Save changes'
+
+            expect(page).to have_content 'Can run untagged jobs No'
+          end
         end
       end
 
@@ -184,8 +186,12 @@ RSpec.describe 'Runners', feature_category: :fleet_visibility do
     end
 
     context 'when a project runner exists in another project' do
-      let_it_be(:another_project) { create(:project, maintainers: user, organization: project.organization) }
-      let_it_be(:project_runner) { create(:ci_runner, :project, projects: [another_project]) }
+      let(:another_project) { create(:project) }
+      let!(:project_runner) { create(:ci_runner, :project, projects: [another_project]) }
+
+      before do
+        another_project.add_maintainer(user)
+      end
 
       it 'user enables and disables a project runner' do
         visit project_runners_path(project)

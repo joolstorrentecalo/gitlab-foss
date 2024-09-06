@@ -14,8 +14,8 @@ describe QA::Tools::ReliableReport do
     allow(Slack::Notifier).to receive(:new).and_return(slack_notifier)
     allow(InfluxDB2::Client).to receive(:new).and_return(influx_client)
 
-    allow(query_api).to receive(:query).with(query: flux_query(blocking: false)).and_return(runs)
-    allow(query_api).to receive(:query).with(query: flux_query(blocking: true)).and_return(reliable_runs)
+    allow(query_api).to receive(:query).with(query: flux_query(reliable: false)).and_return(runs)
+    allow(query_api).to receive(:query).with(query: flux_query(reliable: true)).and_return(reliable_runs)
   end
 
   let(:slack_notifier) { instance_double("Slack::Notifier", post: nil) }
@@ -36,7 +36,7 @@ describe QA::Tools::ReliableReport do
       "stage" => "create",
       "product_group" => "code_review",
       "testcase" => "https://testcase/url",
-      "run_type" => "e2e-test-on-omnibus",
+      "run_type" => "e2e-package-and-test",
       "_time" => time
     }
   end
@@ -49,7 +49,7 @@ describe QA::Tools::ReliableReport do
       "stage" => "manage",
       "product_group" => "import_and_integrate",
       "testcase" => "https://testcase/url",
-      "run_type" => "e2e-test-on-omnibus",
+      "run_type" => "e2e-package-and-test",
       "_time" => time
     }
   end
@@ -86,7 +86,7 @@ describe QA::Tools::ReliableReport do
       "job_url" => "https://job/url",
       "testcase" => "https://testcase/url",
       "failure_issue" => "https://issues/url",
-      "run_type" => "e2e-test-on-omnibus",
+      "run_type" => "e2e-package-and-test",
       "_time" => time
     }
   end
@@ -102,7 +102,7 @@ describe QA::Tools::ReliableReport do
       "job_url" => "https://job/url",
       "testcase" => "https://testcase/url",
       "failure_issue" => "https://issues/url",
-      "run_type" => "e2e-test-on-omnibus",
+      "run_type" => "e2e-package-and-test",
       "_time" => time
     }
   end
@@ -128,7 +128,7 @@ describe QA::Tools::ReliableReport do
     ]
   end
 
-  def flux_query(blocking:)
+  def flux_query(reliable:)
     <<~QUERY
       from(bucket: "e2e-test-stats-main")
         |> range(start: -#{range}d)
@@ -137,7 +137,7 @@ describe QA::Tools::ReliableReport do
           r.run_type == "staging-sanity" or
           r.run_type == "production-full" or
           r.run_type == "production-sanity" or
-          r.run_type == "e2e-test-on-omnibus" or
+          r.run_type == "e2e-package-and-test" or
           r.run_type == "e2e-test-on-gdk" or
           r.run_type == "nightly"
         )
@@ -148,7 +148,7 @@ describe QA::Tools::ReliableReport do
           r.merge_request == "false" and
           r.quarantined == "false" and
           r.smoke == "false" and
-          r.blocking == "#{blocking}"
+          (r.reliable == "#{reliable}" #{reliable ? 'or' : 'and'} r.blocking == "#{reliable}")
         )
         |> filter(fn: (r) => r["_field"] == "job_url" or
           r["_field"] == "failure_exception" or
@@ -299,7 +299,7 @@ describe QA::Tools::ReliableReport do
           <<~TXT.strip
             [[_TOC_]]
 
-            # Candidates for promotion to blocking (#{Date.today - range} - #{Date.today})
+            # Candidates for promotion to reliable/blocking (#{Date.today - range} - #{Date.today})
 
             **Note: MRs will be auto-created for promoting the top #{QA::Tools::ReliableReport::PROMOTION_BATCH_LIMIT} specs sorted by most number of successful runs**
 
@@ -311,11 +311,11 @@ describe QA::Tools::ReliableReport do
 
             #{expected_stage_markdown([[name_column('stable spec2'), 3, 0, '0%']], 'manage', 'import and integrate', :stable)}
 
-            # Blocking specs with failures (#{Date.today - range} - #{Date.today})
+            # Reliable specs with failures (#{Date.today - range} - #{Date.today})
 
             **Note:**
 
-            * Only failures from the nightly, e2e-test-on-omnibus and e2e-test-on-gdk pipelines are considered
+            * Only failures from the nightly, e2e-package-and-test and e2e-test-on-gdk pipelines are considered
 
             * Only specs that have a failure rate of equal or greater than 1 percent are considered
 
@@ -350,7 +350,7 @@ describe QA::Tools::ReliableReport do
           <<~TXT.strip
             [[_TOC_]]
 
-            # Candidates for promotion to blocking (#{Date.today - range} - #{Date.today})
+            # Candidates for promotion to reliable/blocking (#{Date.today - range} - #{Date.today})
 
             **Note: MRs will be auto-created for promoting the top #{QA::Tools::ReliableReport::PROMOTION_BATCH_LIMIT} specs sorted by most number of successful runs**
 
@@ -520,15 +520,15 @@ describe QA::Tools::ReliableReport do
       allow(reliable_report).to receive(:report_web_url).and_return(report_web_url)
     end
 
-    shared_examples "spec attributes" do |blocking|
-      it "returns #{blocking} spec attributes" do
+    shared_examples "spec attributes" do |reliable|
+      it "returns #{reliable} spec attributes" do
         stub_const("QA::Tools::ReliableReport::PROMOTION_BATCH_LIMIT", promotion_batch_limit)
 
-        expect(reliable_report.send(:specs_attributes, blocking: blocking)).to eq(expected_specs_attributes)
+        expect(reliable_report.send(:specs_attributes, reliable: reliable)).to eq(expected_specs_attributes)
       end
     end
 
-    context "with blocking true" do
+    context "with reliable true" do
       let(:expected_specs_attributes) do
         { type: "Unstable Specs",
           report_issue: "https://report/url",
@@ -545,8 +545,8 @@ describe QA::Tools::ReliableReport do
                 failure_rate: 66.67,
                 testcase: "https://testcase/url",
                 file_path: "/qa/qa/specs/features/some/spec.rb",
-                all_run_type: ["e2e-test-on-omnibus"],
-                failed_run_type: ["e2e-test-on-omnibus"] },
+                all_run_type: ["e2e-package-and-test"],
+                failed_run_type: ["e2e-package-and-test"] },
               { stage: "manage",
                 product_group: "import_and_integrate",
                 name: "unstable spec",
@@ -558,15 +558,15 @@ describe QA::Tools::ReliableReport do
                 failure_rate: 66.67,
                 testcase: "https://testcase/url",
                 file_path: "/qa/qa/specs/features/some/spec.rb",
-                all_run_type: ["e2e-test-on-omnibus"],
-                failed_run_type: ["e2e-test-on-omnibus"] }
+                all_run_type: ["e2e-package-and-test"],
+                failed_run_type: ["e2e-package-and-test"] }
             ] }
       end
 
       it_behaves_like "spec attributes", true
     end
 
-    context "with blocking false" do
+    context "with reliable false" do
       let(:expected_specs_attributes) do
         {
           type: "Stable Specs",
@@ -584,7 +584,7 @@ describe QA::Tools::ReliableReport do
                 failure_rate: 0,
                 testcase: "https://testcase/url",
                 file_path: "/qa/qa/specs/features/some/spec.rb",
-                all_run_type: ["e2e-test-on-omnibus"],
+                all_run_type: ["e2e-package-and-test"],
                 failed_run_type: [] },
               { stage: "create",
                 product_group: "code_review",
@@ -597,7 +597,7 @@ describe QA::Tools::ReliableReport do
                 failure_rate: 0,
                 testcase: "https://testcase/url",
                 file_path: "/qa/qa/specs/features/some/spec.rb",
-                all_run_type: ["e2e-test-on-omnibus"],
+                all_run_type: ["e2e-package-and-test"],
                 failed_run_type: [] }
             ]
         }
@@ -645,7 +645,7 @@ describe QA::Tools::ReliableReport do
                   failure_rate: 0,
                   testcase: "https://testcase/url",
                   file_path: "/qa/qa/specs/features/some/spec.rb",
-                  all_run_type: ["e2e-test-on-omnibus"],
+                  all_run_type: ["e2e-package-and-test"],
                   failed_run_type: [] }
               ]
           }
@@ -656,13 +656,13 @@ describe QA::Tools::ReliableReport do
     end
   end
 
-  describe "#skip_blocking_spec_record?" do
+  describe "#skip_reliable_spec_record?" do
     subject(:reliable_report) { described_class.new(14) }
 
     using RSpec::Parameterized::TableSyntax
 
     where(:failed_count, :failure_issue, :failed_run_type, :failure_rate, :result) do
-      1 | 'https://failure/issues/url' | ['e2e-test-on-omnibus'] | 2 | false
+      1 | 'https://failure/issues/url' | ['e2e-package-and-test'] | 2 | false
       1 | 'https://failure/issues/url' | ['e2e-test-on-gdk'] | 2 | false
       1 | 'https://failure/issues/url' | ['nightly'] | 2 | false
       0 | 'https://failure/issues/url' | ['e2e-test-on-gdk'] | 2 | true
@@ -673,7 +673,7 @@ describe QA::Tools::ReliableReport do
 
     with_them do
       it do
-        expect(reliable_report.send(:skip_blocking_spec_record?, failed_count: failed_count,
+        expect(reliable_report.send(:skip_reliable_spec_record?, failed_count: failed_count,
           failure_issue: failure_issue, failed_run_type: failed_run_type, failure_rate: failure_rate))
           .to eq result
       end

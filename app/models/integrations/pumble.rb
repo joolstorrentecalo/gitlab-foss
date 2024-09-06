@@ -2,8 +2,6 @@
 
 module Integrations
   class Pumble < BaseChatNotification
-    include HasAvatar
-
     field :webhook,
       section: SECTION_TYPE_CONNECTION,
       help: 'https://api.pumble.com/workspaces/x/...',
@@ -33,10 +31,15 @@ module Integrations
     end
 
     def self.help
-      build_help_page_url(
-        'user/project/integrations/pumble',
-        s_("PumbleIntegration|Send notifications about project events to Pumble.")
+      docs_link = ActionController::Base.helpers.link_to(
+        _('Learn more.'),
+        Rails.application.routes.url_helpers.help_page_url('user/project/integrations/pumble'),
+        target: '_blank',
+        rel: 'noopener noreferrer'
       )
+      # rubocop:disable Layout/LineLength
+      s_("PumbleIntegration|Send notifications about project events to Pumble. %{docs_link}") % { docs_link: docs_link.html_safe }
+      # rubocop:enable Layout/LineLength
     end
 
     def default_channel_placeholder
@@ -44,7 +47,7 @@ module Integrations
 
     def self.supported_events
       %w[push issue confidential_issue merge_request note confidential_note tag_push
-        pipeline wiki_page]
+         pipeline wiki_page]
     end
 
     private

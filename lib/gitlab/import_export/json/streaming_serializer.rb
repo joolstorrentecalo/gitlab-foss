@@ -5,7 +5,6 @@ module Gitlab
     module Json
       class StreamingSerializer
         include Gitlab::ImportExport::CommandLineUtil
-        include Gitlab::Utils::StrongMemoize
 
         BATCH_SIZE = 100
         SMALLER_BATCH_SIZE = 2
@@ -177,8 +176,6 @@ module Gitlab
               items << exportable_json_record(record, options, key)
 
               increment_exported_objects_counter
-
-              after_read_callback(record)
             end
           end
 
@@ -189,8 +186,6 @@ module Gitlab
           log_relation_export(key)
 
           json = exportable_json_record(record, options, key)
-
-          after_read_callback(record)
 
           json_writer.write_relation(@exportable_path, key, json)
 
@@ -232,7 +227,8 @@ module Gitlab
                 order_expression: order_expression,
                 reversed_order_expression: reverse_order_expression,
                 order_direction: direction,
-                nullable: nulls_position
+                nullable: nulls_position,
+                distinct: false
               ),
               ::Gitlab::Pagination::Keyset::ColumnOrderDefinition.new(
                 attribute_name: klass.primary_key,
@@ -257,10 +253,6 @@ module Gitlab
         end
 
         def after_read_callback(record)
-          if Feature.enabled?(:importer_user_mapping, current_user)
-            user_contributions_export_mapper.cache_user_contributions_on_record(record)
-          end
-
           remove_cached_external_diff(record)
         end
 
@@ -269,11 +261,6 @@ module Gitlab
 
           record.merge_request_diff&.remove_cached_external_diff
         end
-
-        def user_contributions_export_mapper
-          BulkImports::UserContributionsExportMapper.new(exportable)
-        end
-        strong_memoize_attr :user_contributions_export_mapper
 
         def log_base_data
           log = { importer: 'Import/Export' }

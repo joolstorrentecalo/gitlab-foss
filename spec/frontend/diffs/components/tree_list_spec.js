@@ -6,7 +6,7 @@ import createStore from '~/diffs/store/modules';
 import DiffFileRow from '~/diffs/components//diff_file_row.vue';
 import { stubComponent } from 'helpers/stub_component';
 import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
-import { SET_LINKED_FILE_HASH, SET_TREE_DATA, SET_DIFF_FILES } from '~/diffs/store/mutation_types';
+import { SET_PINNED_FILE_HASH, SET_TREE_DATA, SET_DIFF_FILES } from '~/diffs/store/mutation_types';
 import { generateTreeList } from '~/diffs/utils/tree_worker_utils';
 import { sortTree } from '~/ide/stores/utils';
 
@@ -62,7 +62,7 @@ describe('Diffs tree list component', () => {
           getters: {
             allBlobs: getters.allBlobs,
             flatBlobsList: getters.flatBlobsList,
-            linkedFile: getters.linkedFile,
+            pinnedFile: getters.pinnedFile,
           },
           mutations: { ...mutations },
           actions: {
@@ -175,7 +175,8 @@ describe('Diffs tree list component', () => {
       it('hides scroller for no matches', async () => {
         const input = findDiffTreeSearch();
 
-        input.vm.$emit('input', '*.md');
+        input.element.value = '*.md';
+        input.trigger('input');
 
         await nextTick();
 
@@ -192,7 +193,8 @@ describe('Diffs tree list component', () => {
       `('returns $itemSize item for $extension', async ({ extension, itemSize }) => {
         const input = findDiffTreeSearch();
 
-        input.vm.$emit('input', extension);
+        input.element.value = extension;
+        input.trigger('input');
 
         await nextTick();
 
@@ -241,7 +243,7 @@ describe('Diffs tree list component', () => {
     });
   });
 
-  describe('linked file', () => {
+  describe('pinned file', () => {
     const filePaths = [
       ['nested-1.rb', 'folder/sub-folder/'],
       ['nested-2.rb', 'folder/sub-folder/'],
@@ -254,8 +256,8 @@ describe('Diffs tree list component', () => {
       ['root-last.rb'],
     ];
 
-    const linkFile = (fileHash) => {
-      store.commit(`diffs/${SET_LINKED_FILE_HASH}`, fileHash);
+    const pinFile = (fileHash) => {
+      store.commit(`diffs/${SET_PINNED_FILE_HASH}`, fileHash);
     };
 
     const setupFiles = (diffFiles) => {
@@ -280,8 +282,8 @@ describe('Diffs tree list component', () => {
     });
 
     describe('files in folders', () => {
-      it.each(filePaths.map((path) => path[0]))('links %s file', async (linkedFile) => {
-        linkFile(linkedFile);
+      it.each(filePaths.map((path) => path[0]))('pins %s file', async (pinnedFile) => {
+        pinFile(pinnedFile);
         await nextTick();
         const items = getScroller().props('items');
         expect(

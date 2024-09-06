@@ -214,7 +214,7 @@ the related documentation.
 | Scheduled Pipeline Cron                                                          | `*/5 * * * *`                                                                                                             | See [Pipeline schedules advanced configuration](../../administration/cicd.md#change-maximum-scheduled-pipeline-frequency). |
 | Maximum jobs in active pipelines                                                 | `500` for Free tier, `1000` for all trial tiers, `20000` for Premium, and `100000` for Ultimate.                                                 | See [Number of jobs in active pipelines](../../administration/instance_limits.md#number-of-jobs-in-active-pipelines). |
 | Maximum CI/CD subscriptions to a project                                         | `2`                                                                                                                       | See [Number of CI/CD subscriptions to a project](../../administration/instance_limits.md#number-of-cicd-subscriptions-to-a-project). |
-| Maximum number of pipeline triggers in a project                                 | `25000` for all tiers                                                                                                     | See [Limit the number of pipeline triggers](../../administration/instance_limits.md#limit-the-number-of-pipeline-triggers). |
+| Maximum number of pipeline triggers in a project                                 | `25000` for Free and trial tiers, Unlimited for all paid tiers                                                            | See [Limit the number of pipeline triggers](../../administration/instance_limits.md#limit-the-number-of-pipeline-triggers). |
 | Maximum pipeline schedules in projects                                           | `10` for Free tier, `50` for all paid tiers                                                                               | See [Number of pipeline schedules](../../administration/instance_limits.md#number-of-pipeline-schedules). |
 | Maximum pipelines per schedule                                                   | `24` for Free tier, `288` for all paid tiers                                                                              | See [Limit the number of pipelines created by a pipeline schedule per day](../../administration/instance_limits.md#limit-the-number-of-pipelines-created-by-a-pipeline-schedule-per-day). |
 | Maximum number of schedule rules defined for each security policy project        | Unlimited for all paid tiers                                                                                              | See [Number of schedule rules defined for each security policy project](../../administration/instance_limits.md#limit-the-number-of-schedule-rules-defined-for-security-policy-project). |
@@ -273,15 +273,9 @@ this limit. Repository limits apply to both public and private projects.
 The [import sources](../project/import/index.md#supported-import-sources) that are available to you by default depend on
 which GitLab you use:
 
-- GitLab.com: All available import sources are enabled by default.
-- GitLab self-managed: No import sources are enabled by default and must be
+- GitLab.com: all available import sources are enabled by default.
+- GitLab self-managed: no import sources are enabled by default and must be
   [enabled](../../administration/settings/import_and_export_settings.md#configure-allowed-import-sources).
-
-## Import placeholder user limits
-
-The number of [placeholder users](../../user/project/import/index.md#placeholder-users) created during an import on GitLab.com is limited per top-level namespace. The limits
-differ depending on your plan and seat count.
-For more information, see the [table of placeholder user limits for GitLab.com](../../user/project/import/index.md#placeholder-user-limits).
 
 ## IP range
 
@@ -292,11 +286,9 @@ from those IPs and allow them.
 GitLab.com is fronted by Cloudflare. For incoming connections to GitLab.com, you might need to allow CIDR blocks of Cloudflare ([IPv4](https://www.cloudflare.com/ips-v4/) and [IPv6](https://www.cloudflare.com/ips-v6/)).
 
 For outgoing connections from CI/CD runners, we are not providing static IP addresses.
-Most GitLab.com instance runners are deployed into Google Cloud Platform (GCP) in `us-east1`, except _Linux GPU-enabled_ and _Linux Arm64_, hosted in `us-central1`.
-You can configure any IP-based firewall by looking up
+All GitLab.com instance runners are deployed into Google Cloud Platform (GCP) in `us-east1`.
+Any IP-based firewall can be configured by looking up
 [IP address ranges or CIDR blocks for GCP](https://cloud.google.com/compute/docs/faq#find_ip_range).
-MacOS runners are hosted on AWS and have a different IP range.
-For more information, see [AWS IP address ranges](https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-ranges.html).
 
 ## Hostname list
 
@@ -330,25 +322,23 @@ The limit varies depending on your plan and the number of seats in your subscrip
 
 ### Other limits
 
-| Setting                                                        | Default for GitLab.com |
-|:---------------------------------------------------------------|:-----------------------|
-| Number of webhooks                                             | 100 per project, 50 per group (subgroup webhooks are not counted towards parent group limits ) |
-| Maximum payload size                                           | 25 MB                  |
-| Timeout                                                        | 10 seconds             |
-| [Multiple Pages deployments](../project/pages/index.md#limits) | 100 extra deployments (Premium tier), 500 extra deployments (Ultimate tier) |
+| Setting              | Default for GitLab.com  |
+|----------------------|-------------------------|
+| Number of webhooks   | `100` per project, `50` per group (subgroup webhooks are not counted towards parent group limits ) |
+| Maximum payload size | 25 MB                   |
+| Timeout              | 10 seconds              |
 
 For self-managed instance limits, see:
 
 - [Webhook rate limit](../../administration/instance_limits.md#webhook-rate-limit).
 - [Number of webhooks](../../administration/instance_limits.md#number-of-webhooks).
 - [Webhook timeout](../../administration/instance_limits.md#webhook-timeout).
-- [Multiple Pages deployments](../../administration/instance_limits.md#number-of-extra-pages-deployments-when-using-multiple-deployments).
 
-## GitLab-hosted runners
+## Runner SaaS
 
-You can use GitLab-hosted runners to run your CI/CD jobs on GitLab.com and GitLab Dedicated to seamlessly build, test, and deploy your application on different environments.
+Runner SaaS is the hosted, secure, and managed build environment you can use to run CI/CD jobs for your GitLab.com hosted project.
 
-For more information, see [GitLab-hosted runners](../../ci/runners/index.md).
+For more information, see [Runner SaaS](../../ci/runners/index.md).
 
 ## Puma
 
@@ -443,17 +433,17 @@ with details, such as the affected IP address.
 
 #### Git and container registry failed authentication ban
 
-GitLab.com responds with HTTP status code `403` for 15 minutes, if 300 failed
-authentication requests were received in a 1-minute period from a single IP address.
+GitLab.com responds with HTTP status code `403` for 1 hour, if 30 failed
+authentication requests were received in a 3-minute period from a single IP address.
 
 This applies only to Git requests and container registry (`/jwt/auth`) requests
 (combined).
 
 This limit:
 
-- Is reset by requests that authenticate successfully. For example, 299
+- Is reset by requests that authenticate successfully. For example, 29
   failed authentication requests followed by 1 successful request, followed by
-  299 more failed authentication requests would not trigger a ban.
+  29 more failed authentication requests would not trigger a ban.
 - Does not apply to JWT requests authenticated by `gitlab-ci-token`.
 
 No response headers are provided.

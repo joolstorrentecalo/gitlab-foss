@@ -73,8 +73,7 @@ module JavaScriptFixturesHelpers
     typename = Graphlyte::Syntax::Field.new(name: '__typename')
 
     @editor ||= Graphlyte::Editor.new.on_field do |field|
-      is_typename = field.selection.respond_to?(:name) && field.selection.map(&:name).include?('__typename')
-      field.selection << typename unless field.selection.empty? || is_typename
+      field.selection << typename unless field.selection.empty? || field.selection.map(&:name).include?('__typename')
     end
   end
 

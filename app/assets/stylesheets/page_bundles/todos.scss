@@ -8,7 +8,7 @@
 .todos-list > .todo {
   // workaround because we cannot use border-collapse
   padding: 6px 12px !important;
-  margin-top: -1px;
+  border-top: 1px solid transparent;
 
   span:not(.todo-label),
   button,
@@ -73,7 +73,7 @@
 .todo-body {
   p {
     display: inline;
-    color: var(--gl-text-color-default);
+    color: var(--gl-text-color, $gl-text-color);
   }
 
   pre.code.highlight {
@@ -86,10 +86,9 @@
     border-radius: $gl-border-radius-base;
     display: inline-flex;
     background: var(--gray-50, $gray-50);
-    color: var(--gl-text-color-default);
+    color: var(--gl-text-color, $gl-text-color);
   }
 
-  // stylelint-disable-next-line gitlab/no-gl-class
   .gl-label-scoped {
     --label-inset-border: inset 0 0 0 1px currentColor;
   }

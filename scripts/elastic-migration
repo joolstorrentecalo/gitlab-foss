@@ -132,10 +132,9 @@ end
     "# frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'migration_shared_examples'
 require File.expand_path('#{file_path}')
 
-# See https://docs.gitlab.com/ee/development/testing_guide/best_practices.html#elasticsearch-specs
-# for more information on how to write search migration specs for GitLab.
 RSpec.describe #{options.name}, feature_category: :#{options.group.parameterize.underscore} do
   let(:version) { #{timestamp} }
 end
@@ -152,7 +151,7 @@ end
       'version' => timestamp,
       'description' => options.description,
       'group' => "group::#{options.group}",
-      'milestone' => options.milestone.to_s,
+      'milestone' => options.milestone,
       'introduced_by_url' => options.introduced_by_url,
       'obsolete' => false,
       'marked_obsolete_by_url' => nil,
@@ -166,3 +165,5 @@ end
 end
 
 ElasticMigrationCreator.new.execute if $PROGRAM_NAME == __FILE__
+
+# vim: ft=ruby

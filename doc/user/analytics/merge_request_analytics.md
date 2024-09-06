@@ -11,6 +11,9 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/229045) in GitLab 13.3.
+> - Moved to GitLab Premium in 13.9.
+
 Use merge request analytics to view:
 
 - The number of merge requests your organization merged per month.
@@ -34,6 +37,9 @@ To view merge request analytics:
 1. Select **Analyze > Merge request analytics**.
 
 ## View the number of merge requests in a date range
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/232651) in GitLab 13.3.
+> - Filtering [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/229266) in GitLab 13.4
 
 To view the number of merge requests merged during a specific date range:
 
@@ -63,6 +69,8 @@ the following information about each merge request:
 - Assignees
 
 ## View average time between merge request creation and merge
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/229389) in GitLab 13.9.
 
 The number in **Mean time to merge** shows the average time between when a merge request is
 created and when it's merged. Closed and not yet merged merge requests are not included.

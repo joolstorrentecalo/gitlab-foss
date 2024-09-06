@@ -1,28 +1,23 @@
 import { GlModal } from '@gitlab/ui';
 import { stubComponent } from 'helpers/stub_component';
 import { TEST_HOST } from 'helpers/test_constants';
-import waitForPromises from 'helpers/wait_for_promises';
-import axios from '~/lib/utils/axios_utils';
 import { mountExtended } from 'helpers/vue_test_utils_helper';
 import DeleteLabelModal from '~/labels/components/delete_label_modal.vue';
-import eventHub, {
-  EVENT_DELETE_LABEL_MODAL_SUCCESS,
-  EVENT_OPEN_DELETE_LABEL_MODAL,
-} from '~/labels/event_hub';
 
 describe('~/labels/components/delete_label_modal', () => {
   let wrapper;
 
-  const openEventData = {
-    labelId: '1',
-    labelName: 'label 1',
-    subjectName: 'GitLab Org',
-    destroyPath: `${TEST_HOST}/1`,
-  };
-  const mountComponent = (propsData = {}) => {
+  const mountComponent = () => {
+    const button = document.createElement('button');
+    button.classList.add('js-test-btn');
+    button.dataset.destroyPath = `${TEST_HOST}/1`;
+    button.dataset.labelName = 'label 1';
+    button.dataset.subjectName = 'GitLab Org';
+    document.body.append(button);
+
     wrapper = mountExtended(DeleteLabelModal, {
       propsData: {
-        ...propsData,
+        selector: '.js-test-btn',
       },
       stubs: {
         GlModal: stubComponent(GlModal, {
@@ -32,15 +27,11 @@ describe('~/labels/components/delete_label_modal', () => {
       },
     });
 
-    eventHub.$emit(EVENT_OPEN_DELETE_LABEL_MODAL, openEventData);
+    button.click();
   };
 
-  afterEach(() => {
-    eventHub.dispose();
-  });
-
   const findModal = () => wrapper.findComponent(GlModal);
-  const findDeleteButton = () => wrapper.findByTestId('delete-button');
+  const findDeleteButton = () => wrapper.findByRole('link', { name: 'Delete label' });
 
   describe('when modal data is set', () => {
     beforeEach(() => {
@@ -59,29 +50,6 @@ describe('~/labels/components/delete_label_modal', () => {
 
     it('passes the destroyPath to the button', () => {
       expect(findDeleteButton().attributes('href')).toBe('http://test.host/1');
-    });
-  });
-
-  describe('when modal uses remote action', () => {
-    beforeEach(() => {
-      mountComponent({ remoteDestroy: true });
-    });
-
-    it('calls delete endpoint', async () => {
-      jest.spyOn(axios, 'delete').mockImplementation((url) => {
-        expect(url).toBe(`${openEventData.destroyPath}.js`);
-        return Promise.resolve({});
-      });
-      jest.spyOn(eventHub, '$emit');
-
-      findDeleteButton().trigger('click');
-
-      await waitForPromises();
-
-      expect(eventHub.$emit).toHaveBeenCalledWith(
-        EVENT_DELETE_LABEL_MODAL_SUCCESS,
-        openEventData.labelId,
-      );
     });
   });
 });

@@ -10,6 +10,8 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/2673) in GitLab 12.10.
+
 GitLab can be used as a backend for [Terraform](../user/infrastructure/index.md) state
 files. The files are encrypted before being stored. This feature is enabled by default.
 
@@ -32,9 +34,9 @@ When Terraform state administration is disabled:
 - On the left sidebar, you cannot select **Operate > Terraform states**.
 - Any CI/CD jobs that access the Terraform state fail with this error:
 
-  ```shell
-  Error refreshing state: HTTP remote state endpoint invalid auth
-  ```
+    ```shell
+    Error refreshing state: HTTP remote state endpoint invalid auth
+    ```
 
 To disable Terraform administration, follow the steps below according to your installation.
 
@@ -119,6 +121,8 @@ The following settings are:
 
 ### Migrate to object storage
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/247042) in GitLab 13.9.
+
 WARNING:
 It's not possible to migrate Terraform state files from object storage back to local storage,
 so proceed with caution. [An issue exists](https://gitlab.com/gitlab-org/gitlab/-/issues/350187)
@@ -138,10 +142,26 @@ To migrate Terraform state files to object storage:
   sudo -u git -H bundle exec rake gitlab:terraform_states:migrate RAILS_ENV=production
   ```
 
+For GitLab 13.8 and earlier versions, you can use a workaround for the Rake task:
+
+1. Open the GitLab [Rails console](operations/rails_console.md).
+1. Run the following commands:
+
+   ```ruby
+   Terraform::StateUploader.alias_method(:upload, :model)
+
+   Terraform::StateVersion.where(file_store: ::ObjectStorage::Store::LOCAL).   find_each(batch_size: 10) do |terraform_state_version|
+     puts "Migrating: #{terraform_state_version.inspect}"
+
+     terraform_state_version.file.migrate!(::ObjectStorage::Store::REMOTE)
+   end
+   ```
+
 You can optionally track progress and verify that all Terraform state files migrated successfully using the
 [PostgreSQL console](https://docs.gitlab.com/omnibus/settings/database.html#connecting-to-the-bundled-postgresql-database):
 
-- `sudo gitlab-rails dbconsole --database main` for Linux package installations.
+- `sudo gitlab-rails dbconsole` for Linux package installations running GitLab 14.1 and earlier.
+- `sudo gitlab-rails dbconsole --database main` for Linux package installations running GitLab 14.2 and later.
 - `sudo -u git -H psql -d gitlabhq_production` for self-compiled installations.
 
 Verify `objectstg` below (where `file_store=2`) has count of all states:
@@ -162,7 +182,7 @@ sudo find /var/opt/gitlab/gitlab-rails/shared/terraform_state -type f | grep -v 
 
 ### S3-compatible connection settings
 
-You should use the
+In GitLab 13.2 and later, you should use the
 [consolidated object storage settings](object_storage.md#configure-a-single-storage-connection-for-all-object-types-consolidated-form).
 This section describes the earlier configuration format.
 

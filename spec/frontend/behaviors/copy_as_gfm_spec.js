@@ -4,13 +4,6 @@ import initCopyAsGFM, { CopyAsGFM } from '~/behaviors/markdown/copy_as_gfm';
 jest.mock('~/emoji');
 
 describe('CopyAsGFM', () => {
-  beforeAll(() => {
-    initCopyAsGFM();
-
-    // Fake call to nodeToGfm so the import of lazy bundle happened
-    return CopyAsGFM.nodeToGFM(document.createElement('div'));
-  });
-
   describe('CopyAsGFM.pasteGFM', () => {
     let target;
 
@@ -97,6 +90,13 @@ describe('CopyAsGFM', () => {
 
       return waitForPromises();
     };
+
+    beforeAll(() => {
+      initCopyAsGFM();
+
+      // Fake call to nodeToGfm so the import of lazy bundle happened
+      return CopyAsGFM.nodeToGFM(document.createElement('div'));
+    });
 
     beforeEach(() => jest.spyOn(clipboardData, 'setData'));
 

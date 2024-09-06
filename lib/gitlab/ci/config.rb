@@ -19,19 +19,17 @@ module Gitlab
         Config::Yaml::Tags::TagError
       ].freeze
 
-      attr_reader :root, :context, :source_ref_path, :source, :logger, :inject_edge_stages, :pipeline_policy_context
+      attr_reader :root, :context, :source_ref_path, :source, :logger, :inject_edge_stages
 
       # rubocop: disable Metrics/ParameterLists
-      def initialize(config, project: nil, pipeline: nil, sha: nil, ref: nil, user: nil, parent_pipeline: nil, source: nil, pipeline_config: nil, logger: nil, inject_edge_stages: true, pipeline_policy_context: nil)
+      def initialize(config, project: nil, pipeline: nil, sha: nil, user: nil, parent_pipeline: nil, source: nil, pipeline_config: nil, logger: nil, inject_edge_stages: true)
         @logger = logger || ::Gitlab::Ci::Pipeline::Logger.new(project: project)
         @source_ref_path = pipeline&.source_ref_path
         @project = project
         @inject_edge_stages = inject_edge_stages
-        @pipeline_policy_context = pipeline_policy_context
 
         @context = self.logger.instrument(:config_build_context, once: true) do
-          pipeline ||= ::Ci::Pipeline.new(project: project, sha: sha, ref: ref, user: user, source: source)
-
+          pipeline ||= ::Ci::Pipeline.new(project: project, sha: sha, user: user, source: source)
           build_context(project: project, pipeline: pipeline, sha: sha, user: user, parent_pipeline: parent_pipeline, pipeline_config: pipeline_config)
         end
 
@@ -39,18 +37,16 @@ module Gitlab
 
         @source = source
 
-        Gitlab::Ci::Config::FeatureFlags.with_actor(project) do
-          @config = self.logger.instrument(:config_expand, once: true) do
-            expand_config(config)
-          end
+        @config = self.logger.instrument(:config_expand, once: true) do
+          expand_config(config)
+        end
 
-          @root = self.logger.instrument(:config_root, once: true) do
-            Entry::Root.new(@config, project: project, user: user, logger: self.logger)
-          end
+        @root = self.logger.instrument(:config_root, once: true) do
+          Entry::Root.new(@config, project: project, user: user, logger: self.logger)
+        end
 
-          self.logger.instrument(:config_root_compose, once: true) do
-            @root.compose!
-          end
+        self.logger.instrument(:config_root_compose, once: true) do
+          @root.compose!
         end
       rescue *rescue_errors => e
         raise Config::ConfigError, e.message
@@ -76,55 +72,36 @@ module Gitlab
       ##
       # Temporary method that should be removed after refactoring
       #
-      # rubocop:disable Gitlab/NoCodeCoverageComment -- This is an existing method and probably never called
-      # :nocov:
       def variables
-        Gitlab::Ci::Config::FeatureFlags.with_actor(@project) do
-          root.variables_value
-        end
+        root.variables_value
       end
-      # rubocop:enable Gitlab/NoCodeCoverageComment
 
       def variables_with_data
-        Gitlab::Ci::Config::FeatureFlags.with_actor(@project) do
-          root.variables_entry.value_with_data
-        end
+        root.variables_entry.value_with_data
       end
 
       def variables_with_prefill_data
-        Gitlab::Ci::Config::FeatureFlags.with_actor(@project) do
-          root.variables_entry.value_with_prefill_data
-        end
+        root.variables_entry.value_with_prefill_data
       end
 
       def stages
-        Gitlab::Ci::Config::FeatureFlags.with_actor(@project) do
-          root.stages_value
-        end
+        root.stages_value
       end
 
       def jobs
-        Gitlab::Ci::Config::FeatureFlags.with_actor(@project) do
-          root.jobs_value
-        end
+        root.jobs_value
       end
 
       def workflow_rules
-        Gitlab::Ci::Config::FeatureFlags.with_actor(@project) do
-          root.workflow_entry.rules_value
-        end
+        root.workflow_entry.rules_value
       end
 
       def workflow_name
-        Gitlab::Ci::Config::FeatureFlags.with_actor(@project) do
-          root.workflow_entry.name
-        end
+        root.workflow_entry.name
       end
 
       def workflow_auto_cancel
-        Gitlab::Ci::Config::FeatureFlags.with_actor(@project) do
-          root.workflow_entry.auto_cancel_value
-        end
+        root.workflow_entry.auto_cancel_value
       end
 
       def normalized_jobs
@@ -136,7 +113,7 @@ module Gitlab
       end
 
       def included_components
-        @context.includes.filter_map { |i| i[:component] if i[:type] == :component }.uniq
+        @context.includes.filter_map { |i| i[:extra] if i[:type] == :component }.uniq
       end
 
       def metadata

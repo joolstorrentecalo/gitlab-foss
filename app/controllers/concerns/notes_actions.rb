@@ -211,7 +211,7 @@ module NotesActions
   end
 
   def authorize_admin_note!
-    access_denied! unless can?(current_user, :admin_note, note)
+    return access_denied! unless can?(current_user, :admin_note, note)
   end
 
   def create_note_params
@@ -287,7 +287,6 @@ module NotesActions
   def note_serializer
     ProjectNoteSerializer.new(project: project, noteable: noteable, current_user: current_user)
   end
-  strong_memoize_attr :note_serializer
 
   def discussion_serializer
     DiscussionSerializer.new(project: project, noteable: noteable, current_user: current_user, note_entity: ProjectNoteEntity)

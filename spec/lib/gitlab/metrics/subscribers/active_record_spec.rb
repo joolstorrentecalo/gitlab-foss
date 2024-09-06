@@ -169,14 +169,6 @@ RSpec.describe Gitlab::Metrics::Subscribers::ActiveRecord do
       end
     end
 
-    shared_examples 'captures max transaction duration in request store' do
-      it do
-        subscriber.transaction(event)
-
-        expect(::Gitlab::SafeRequestStore[:txn_duration]['main']).to be >= 0
-      end
-    end
-
     context 'when both web and background transaction are available' do
       before do
         allow(::Gitlab::Metrics::WebTransaction).to receive(:current)
@@ -197,7 +189,6 @@ RSpec.describe Gitlab::Metrics::Subscribers::ActiveRecord do
       end
 
       it_behaves_like 'logs transaction info'
-      it_behaves_like 'captures max transaction duration in request store'
     end
 
     context 'when web transaction is available' do
@@ -222,7 +213,6 @@ RSpec.describe Gitlab::Metrics::Subscribers::ActiveRecord do
       end
 
       it_behaves_like 'logs transaction info'
-      it_behaves_like 'captures max transaction duration in request store'
     end
 
     context 'when background transaction is available' do
@@ -247,7 +237,6 @@ RSpec.describe Gitlab::Metrics::Subscribers::ActiveRecord do
       end
 
       it_behaves_like 'logs transaction info'
-      it_behaves_like 'captures max transaction duration in request store'
     end
   end
 
@@ -410,14 +399,14 @@ RSpec.describe Gitlab::Metrics::Subscribers::ActiveRecord do
           end
 
           it 'does not record DB role metrics' do
-            expect(transaction).not_to receive(:increment).with(:gitlab_transaction_db_primary_count_total, any_args)
-            expect(transaction).not_to receive(:increment).with(:gitlab_transaction_db_replica_count_total, any_args)
+            expect(transaction).not_to receive(:increment).with("gitlab_transaction_db_primary_count_total".to_sym, any_args)
+            expect(transaction).not_to receive(:increment).with("gitlab_transaction_db_replica_count_total".to_sym, any_args)
 
-            expect(transaction).not_to receive(:increment).with(:gitlab_transaction_db_primary_cached_count_total, any_args)
-            expect(transaction).not_to receive(:increment).with(:gitlab_transaction_db_replica_cached_count_total, any_args)
+            expect(transaction).not_to receive(:increment).with("gitlab_transaction_db_primary_cached_count_total".to_sym, any_args)
+            expect(transaction).not_to receive(:increment).with("gitlab_transaction_db_replica_cached_count_total".to_sym, any_args)
 
-            expect(transaction).not_to receive(:observe).with(:gitlab_sql_primary_duration_seconds, any_args)
-            expect(transaction).not_to receive(:observe).with(:gitlab_sql_replica_duration_seconds, any_args)
+            expect(transaction).not_to receive(:observe).with("gitlab_sql_primary_duration_seconds".to_sym, any_args)
+            expect(transaction).not_to receive(:observe).with("gitlab_sql_replica_duration_seconds".to_sym, any_args)
 
             subscriber.sql(event)
           end

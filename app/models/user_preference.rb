@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-class UserPreference < ApplicationRecord
-  include IgnorableColumns
-
-  ignore_column :use_web_ide_extension_marketplace, remove_with: '17.4', remove_after: '2024-08-15'
-
+class UserPreference < MainClusterwide::ApplicationRecord
   # We could use enums, but Rails 4 doesn't support multiple
   # enum options with same name for multiple fields, also it creates
   # extra methods that aren't really needed here.
@@ -44,12 +40,8 @@ class UserPreference < ApplicationRecord
   attribute :project_shortcut_buttons, default: true
   attribute :keyboard_shortcuts_enabled, default: true
   attribute :use_web_ide_extension_marketplace, default: false
-  attribute :dpop_enabled, default: false
 
-  enum :visibility_pipeline_id_type, { id: 0, iid: 1 }, scopes: false
-
-  enum extensions_marketplace_opt_in_status: Enums::WebIde::ExtensionsMarketplaceOptInStatus.statuses
-  enum organization_groups_projects_display: { projects: 0, groups: 1 }
+  enum visibility_pipeline_id_type: { id: 0, iid: 1 }
 
   class << self
     def notes_filters
@@ -79,6 +71,19 @@ class UserPreference < ApplicationRecord
     self[notes_filter_field_for(resource)]
   end
 
+  def tab_width
+    read_attribute(:tab_width) || self.class.column_defaults['tab_width']
+  end
+
+  def tab_width=(value)
+    if value.nil?
+      default = self.class.column_defaults['tab_width']
+      super(default)
+    else
+      super(value)
+    end
+  end
+
   class << self
     def time_display_formats
       {
@@ -89,25 +94,32 @@ class UserPreference < ApplicationRecord
     end
   end
 
-  def early_access_event_tracking?
-    early_access_program_participant? && early_access_program_tracking?
+  def time_display_relative
+    value = read_attribute(:time_display_relative)
+    return value unless value.nil?
+
+    self.class.column_defaults['time_display_relative']
   end
 
-  # NOTE: Despite this returning a boolean, it does not end in `?` out of
-  #       symmetry with the other integration fields like `gitpod_enabled`
-  def extensions_marketplace_enabled
-    extensions_marketplace_opt_in_status == "enabled"
-  end
-
-  def extensions_marketplace_enabled=(value)
-    status = ActiveRecord::Type::Boolean.new.cast(value) ? 'enabled' : 'disabled'
-
-    self.extensions_marketplace_opt_in_status = status
-  end
-
-  def dpop_enabled=(value)
+  def time_display_relative=(value)
     if value.nil?
-      default = self.class.column_defaults['dpop_enabled']
+      default = self.class.column_defaults['time_display_relative']
+      super(default)
+    else
+      super(value)
+    end
+  end
+
+  def render_whitespace_in_code
+    value = read_attribute(:render_whitespace_in_code)
+    return value unless value.nil?
+
+    self.class.column_defaults['render_whitespace_in_code']
+  end
+
+  def render_whitespace_in_code=(value)
+    if value.nil?
+      default = self.class.column_defaults['render_whitespace_in_code']
       super(default)
     else
       super(value)

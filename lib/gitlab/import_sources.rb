@@ -4,6 +4,7 @@
 #
 # Define import sources that can be used
 # during the creation of new project
+#
 module Gitlab
   module ImportSources
     ImportSource = Struct.new(:name, :title, :importer)

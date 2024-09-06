@@ -7,7 +7,6 @@ module IdeHelper
       'use-new-web-ide' => use_new_web_ide?.to_s,
       'new-web-ide-help-page-path' => help_page_path('user/project/web_ide/index', anchor: 'vscode-reimplementation'),
       'sign-in-path' => new_session_path(current_user),
-      'sign-out-path' => destroy_user_session_path,
       'user-preferences-path' => profile_preferences_path
     }.merge(use_new_web_ide? ? new_ide_data(project: project) : legacy_ide_data(project: project))
 
@@ -19,18 +18,6 @@ module IdeHelper
       'file-path' => params[:path],
       'merge-request' => params[:merge_request_id]
     )
-  end
-
-  def show_web_ide_oauth_callback_mismatch_callout?
-    return false unless ::WebIde::DefaultOauthApplication.feature_enabled?(current_user)
-
-    callback_urls = ::WebIde::DefaultOauthApplication.oauth_application_callback_urls
-    callback_url_domains = callback_urls.map { |url| URI.parse(url).origin }
-    callback_url_domains.any? && callback_url_domains.exclude?(request.base_url)
-  end
-
-  def web_ide_oauth_application_id
-    ::WebIde::DefaultOauthApplication.oauth_application_id
   end
 
   def use_new_web_ide?
@@ -66,15 +53,15 @@ module IdeHelper
   end
 
   def new_ide_oauth_data
-    return {} unless ::WebIde::DefaultOauthApplication.feature_enabled?(current_user)
-    return {} unless ::WebIde::DefaultOauthApplication.oauth_application
+    return {} unless ::Gitlab::WebIde::DefaultOauthApplication.feature_enabled?(current_user)
+    return {} unless ::Gitlab::WebIde::DefaultOauthApplication.oauth_application
 
-    client_id = ::WebIde::DefaultOauthApplication.oauth_application.uid
-    callback_urls = ::WebIde::DefaultOauthApplication.oauth_application_callback_urls
+    client_id = ::Gitlab::WebIde::DefaultOauthApplication.oauth_application.uid
+    callback_url = ::Gitlab::WebIde::DefaultOauthApplication.oauth_callback_url
 
     {
       'client-id' => client_id,
-      'callback-urls' => callback_urls
+      'callback-url' => callback_url
     }
   end
 
@@ -82,8 +69,9 @@ module IdeHelper
     {
       'project-path' => project&.path_with_namespace,
       'csp-nonce' => content_security_policy_nonce,
-      'editor-font' => new_ide_fonts.to_json,
-      'extensions-gallery-settings' => extensions_gallery_settings
+      # We will replace these placeholders in the FE
+      'ide-remote-path' => ide_remote_path(remote_host: ':remote_host', remote_path: ':remote_path'),
+      'editor-font' => new_ide_fonts.to_json
     }.merge(new_ide_code_suggestions_data).merge(new_ide_oauth_data)
   end
 
@@ -116,9 +104,5 @@ module IdeHelper
 
   def has_dismissed_ide_environments_callout?
     current_user.dismissed_callout?(feature_name: 'web_ide_ci_environments_guidance')
-  end
-
-  def extensions_gallery_settings
-    WebIde::ExtensionsMarketplace.webide_extensions_gallery_settings(user: current_user).to_json
   end
 end

@@ -34,16 +34,12 @@ module Gitlab
             state_id: MergeRequest.available_states[object[:state]],
             author_id: user_finder.author_id(object),
             created_at: object[:created_at],
-            updated_at: object[:updated_at],
-            imported_from: ::Import::HasImportSource::IMPORT_SOURCES[:bitbucket_server]
+            updated_at: object[:updated_at]
           }
 
           creator = Gitlab::Import::MergeRequestCreator.new(project)
 
-          merge_request = creator.execute(attributes)
-
-          # Create refs/merge-requests/iid/head reference for the merge request
-          merge_request.fetch_ref!
+          creator.execute(attributes)
 
           log_info(import_stage: 'import_pull_request', message: 'finished', iid: object[:iid])
         end
@@ -74,7 +70,7 @@ module Gitlab
           return [] unless object[:reviewers].present?
 
           object[:reviewers].filter_map do |reviewer|
-            if Feature.enabled?(:bitbucket_server_user_mapping_by_username, project, type: :ops)
+            if Feature.enabled?(:bitbucket_server_user_mapping_by_username, type: :ops)
               user_finder.find_user_id(by: :username, value: reviewer.dig('user', 'slug'))
             else
               user_finder.find_user_id(by: :email, value: reviewer.dig('user', 'emailAddress'))

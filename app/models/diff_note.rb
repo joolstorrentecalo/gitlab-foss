@@ -19,7 +19,7 @@ class DiffNote < Note
   validates :line_code, presence: true, line_code: true, if: :on_text?
   # We need to evaluate the `noteable` types when running the validation since
   # EE might have added a type when the module was prepended
-  validates :noteable_type, inclusion: { in: ->(_note) { noteable_types } }
+  validates :noteable_type, inclusion: { in: -> (_note) { noteable_types } }
   validate :positions_complete
   validate :verify_supported, unless: :importing?
 
@@ -46,14 +46,14 @@ class DiffNote < Note
     diff_line = diff_file.line_for_position(self.original_position)
     unless diff_line
       raise NoteDiffFileCreationError, DIFF_LINE_NOT_FOUND_MESSAGE % {
-        file_path: diff_file.file_path,
-        old_line: original_position.old_line,
-        new_line: original_position.new_line
+          file_path: diff_file.file_path,
+          old_line: original_position.old_line,
+          new_line: original_position.new_line
       }
     end
 
     creation_params = diff_file.diff.to_hash
-      .except(:too_large, :generated, :encoded_file_path)
+      .except(:too_large, :generated)
       .merge(diff: diff_file.diff_hunk(diff_line))
 
     create_note_diff_file(creation_params)

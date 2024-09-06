@@ -1,6 +1,6 @@
 ---
 stage: Verify
-group: Pipeline Execution
+group: Pipeline Security
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
@@ -177,7 +177,8 @@ WARNING:
 In a multi-server setup you must use one of the options to
 [eliminate local disk usage for job logs](job_logs.md#prevent-local-disk-usage), or job logs could be lost.
 
-You should use the [consolidated object storage settings](object_storage.md#configure-a-single-storage-connection-for-all-object-types-consolidated-form).
+In GitLab 13.2 and later, you should use the
+[consolidated object storage settings](object_storage.md#configure-a-single-storage-connection-for-all-object-types-consolidated-form).
 
 ### Migrating to object storage
 
@@ -382,13 +383,13 @@ To change the default schedule on which expired artifacts are deleted:
 ## Set the maximum file size of the artifacts
 
 If artifacts are enabled, you can change the maximum file size of the
-artifacts through the [**Admin** area settings](../administration/settings/continuous_integration.md#maximum-artifacts-size).
+artifacts through the [Admin Area settings](../administration/settings/continuous_integration.md#maximum-artifacts-size).
 
 ## Storage statistics
 
 You can see the total storage used for job artifacts for groups and projects in:
 
-- The **Admin** area
+- The Admin Area
 - The [groups](../api/groups.md) and [projects](../api/projects.md) APIs
 
 ## Implementation details

@@ -271,92 +271,6 @@ gitlab_rails['omniauth_providers'] = [
 
 Microsoft has documented how its platform works with [the OIDC protocol](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc).
 
-#### Migrate to Generic OpenID Connect configuration
-
-You can migrate to the Generic OpenID Connect configuration from both `azure_activedirectory_v2` and `azure_oauth2`.
-
-First, set the `uid_field`. Both the `uid_field` and the `sub` claim that you can select as a `uid_field` vary depending on the provider. Signing in without setting the `uid_field` results in additional identities being created within GitLab that have to be manually modified:
-
-| Provider                                                                                                        | `uid_field` | Supporting information  |
-|-----------------------------------------------------------------------------------------------------------------|-------|-----------------------------------------------------------------------|
-| [`omniauth-azure-oauth2`](https://gitlab.com/gitlab-org/gitlab/-/tree/master/vendor/gems/omniauth-azure-oauth2) | `sub` | Additional attributes `oid` and `tid` are offered within the `info` object. |
-| [`omniauth-azure-activedirectory-v2`](https://github.com/RIPAGlobal/omniauth-azure-activedirectory-v2/)         | `oid` | You must configure `oid` as `uid_field` when migrating. |
-| [`omniauth_openid_connect`](https://github.com/omniauth/omniauth_openid_connect/)                               | `sub` | Specify `uid_field` to use another field. |
-
-To migrate to the Generic OpenID Connect configuration, you must change the configuration to the following:
-
-::Tabs
-
-:::TabTitle Azure OAuth 2.0
-
-```ruby
-gitlab_rails['omniauth_providers'] = [
-  {
-    name: "azure_oauth2",
-    label: "Azure OIDC", # optional label for login button, defaults to "Openid Connect"
-    args: {
-      name: "azure_oauth2", # this matches the existing azure_oauth2 provider name, and only the strategy_class immediately below configures OpenID Connect
-      strategy_class: "OmniAuth::Strategies::OpenIDConnect",
-      scope: ["openid", "profile", "email"],
-      response_type: "code",
-      issuer:  "https://login.microsoftonline.com/<YOUR-TENANT-ID>/v2.0",
-      client_auth_method: "query",
-      discovery: true,
-      uid_field: "sub",
-      send_scope_to_token_endpoint: "false",
-      client_options: {
-        identifier: "<YOUR APP CLIENT ID>",
-        secret: "<YOUR APP CLIENT SECRET>",
-        redirect_uri: "https://gitlab.example.com/users/auth/azure_oauth2/callback"
-      }
-    }
-  }
-]
-```
-
-:::TabTitle Azure Active Directory v2
-
-```ruby
-gitlab_rails['omniauth_providers'] = [
-  {
-    name: "azure_activedirectory_v2",
-    label: "Azure OIDC", # optional label for login button, defaults to "Openid Connect"
-    args: {
-      name: "azure_activedirectory_v2",
-      strategy_class: "OmniAuth::Strategies::OpenIDConnect",
-      scope: ["openid", "profile", "email"],
-      response_type: "code",
-      issuer:  "https://login.microsoftonline.com/<YOUR-TENANT-ID>/v2.0",
-      client_auth_method: "query",
-      discovery: true,
-      uid_field: "oid",
-      send_scope_to_token_endpoint: "false",
-      client_options: {
-        identifier: "<YOUR APP CLIENT ID>",
-        secret: "<YOUR APP CLIENT SECRET>",
-        redirect_uri: "https://gitlab.example.com/users/auth/azure_activedirectory_v2/callback"
-      }
-    }
-  }
-]
-```
-
-::EndTabs
-
-As you migrate from `azure_oauth2` to `omniauth_openid_connect` as part of upgrading to GitLab 17.0 or above, the `sub` claim value set for your organization can vary. `azure_oauth2` uses Microsoft V1 endpoint while `azure_activedirectory_v2` and `omniauth_openid_connect` both use Microsoft V2 endpoint with a common `sub` value.
-
-- For users with an email address in Entra ID, configure [`omniauth_auto_link_user`](../../integration/omniauth.md#link-existing-users-to-omniauth-users) to allow falling back to email address and updating the user's identity.
-
-- For users with no email address, administrators must take one of the following actions:
-
-  - Set up another authentication method or enable sign-in using GitLab username and password. The user can then sign in and link their Azure identity manually using their profile.
-  - Implement OpenID Connect as a new provider alongside the existing `azure_oauth2` so the user can sign in through OAuth2, and link their OpenID Connect identity (similar to the previous method). This method would also work for users with email addresses, as long as `auto_link_user` is enabled.
-  - Update `extern_uid` manually. To do this, use the [API or Rails console](../../integration/omniauth.md#change-apps-or-configuration) to update the `extern_uid` for each user.
-    This method may be required if the instance has already been upgraded to 17.0 or later, and users have attempted to sign in.
-
-NOTE:
-`azure_oauth2` might have used Entra ID's `upn` claim as the email address, if the `email` claim was missing or blank when provisioning GitLab accounts.
-
 ### Configure Microsoft Azure Active Directory B2C
 
 GitLab requires special
@@ -549,6 +463,8 @@ gitlab_rails['omniauth_providers'] = [
 
 #### Configure Keycloak with a symmetric key algorithm
 
+> - Introduced in GitLab 14.2.
+
 WARNING:
 The following instructions are included for completeness, but only use symmetric key
 encryption if absolutely necessary.
@@ -696,7 +612,7 @@ You can configure your application to use multiple OpenID Connect (OIDC) provide
 
 You should do this in either of the following scenarios:
 
-- [Migrating to the OpenID Connect protocol](#migrate-to-generic-openid-connect-configuration).
+- [Migrating to the OpenID Connect protocol](../../integration/azure.md#migrate-to-the-openid-connect-protocol).
 - Offering different levels of authentication.
 
 NOTE:
@@ -1112,7 +1028,7 @@ response to assign users as administrator based on group membership, configure G
 
 - Where to look for the groups in the OIDC response, using the `groups_attribute` setting.
 - Which group memberships grant the user administrator access, using the
-  `admin_groups` setting.
+ `admin_groups` setting.
 
 ::Tabs
 

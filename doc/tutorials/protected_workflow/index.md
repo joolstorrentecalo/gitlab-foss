@@ -2,10 +2,9 @@
 stage: Create
 group: Code Review
 info: "To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments"
-description: "Use this tutorial to build a protected workflow for your GitLab project."
 ---
 
-<!-- vale gitlab_base.FutureTense = NO -->
+<!-- vale gitlab.FutureTense = NO -->
 
 # Tutorial: Build a protected workflow for your project
 
@@ -296,6 +295,6 @@ The branch protections are now visible in the UI:
 
   ![List of protected branches and their protections](img/protections_in_place_v16_2.png)
 
-Congratulations! Your engineers can work independently in their branches,
+Congratulations! Your engineers can work independently in their feature branches,
 and all code submitted for consideration for the 1.0.0 release branch will
 be reviewed by subject matter experts.

@@ -28,20 +28,21 @@ is still used.
 
 ## No Code Quality report is displayed in a merge request
 
-Code Quality reports from the source or target branch may be missing for comparison on the merge request, so no information can be displayed.
+This can be due to multiple reasons:
 
-Missing report on the source branch can be due to:
-
-1. Use of the [`REPORT_STDOUT` environment variable](https://gitlab.com/gitlab-org/ci-cd/codequality#environment-variables), no report file is generated and nothing displays in the merge request.
-
-Missing report on the target branch can be due to:
-
-- Newly added Code Quality job in your `.gitlab-ci.yml`.
-- Your pipeline is not set to run the Code Quality job on your target branch.
-- Commits are made to the default branch that do not run the Code Quality job.
-- The [`artifacts:expire_in`](../yaml/index.md#artifactsexpire_in) CI/CD setting can cause the Code Quality artifacts to expire faster than desired.
-
-Verify the presence of report on the base commit by obtaining the `base_sha` using the [merge request API](../../api/merge_requests.md#get-single-mr) and use the [pipelines API with the `sha` attribute](../../api/pipelines.md#list-project-pipelines) to check if pipelines ran.
+- You just added the Code Quality job in your `.gitlab-ci.yml`. The report does not have anything to
+  compare to yet, so no information can be displayed. It only displays after future merge requests
+  have something to compare to.
+- Your pipeline is not set to run the code quality job on your target branch. If there is no report
+  generated from the target branch, your merge request branch reports have nothing to compare to. In this
+  situation you get an error stating `Base pipeline codequality artifact not found`.
+- The [`artifacts:expire_in`](../yaml/index.md#artifactsexpire_in) CI/CD setting can cause the Code
+  Quality artifacts to expire faster than desired.
+- The widgets use the pipeline of the latest commit to the target branch. If commits are made to the
+  default branch that do not run the code quality job, this may cause the merge request widget to
+  have no base report for comparison.
+- If you use the [`REPORT_STDOUT` environment variable](https://gitlab.com/gitlab-org/ci-cd/codequality#environment-variables),
+  no report file is generated and nothing displays in the merge request.
 
 ## Only a single Code Quality report is displayed, but more are defined
 
@@ -82,7 +83,7 @@ plugins:
 ## No Code Quality appears on merge requests when using custom tool
 
 If your merge requests do not show any Code Quality changes when using a custom tool, ensure that
-*all* line properties in the JSON are `integer`.
+the line property is an `integer`.
 
 ## Error: `Could not analyze code quality`
 
@@ -96,7 +97,7 @@ Could not analyze code quality for the repository at /code
 If you enabled any of the Code Climate plugins, and the Code Quality CI/CD job fails with this
 error message, it's likely the job takes longer than the default timeout of 900 seconds:
 
-To work around this problem, set `TIMEOUT_SECONDS` to a higher value in your `.gitlab-ci.yml` file.
+To work around this problem, set `TIMEOUT_SECONDS` to a higher value in your `.gitlab.-ci.yml` file.
 
 For example:
 
@@ -108,13 +109,13 @@ code_quality:
 
 ## Using Code Quality with Kubernetes CI executor
 
-Code Quality requires a Docker in Docker setup to work. The Kubernetes executor already [has support for this](https://docs.gitlab.com/runner/executors/kubernetes/index.html#using-dockerdind).
+Code Quality requires a Docker in Docker setup to work. The Kubernetes executor already [has support for this](https://docs.gitlab.com/runner/executors/kubernetes.html#using-dockerdind).
 
 To ensure Code Quality jobs can run on a Kubernetes executor:
 
-- If you're using TLS to communicate with the Docker daemon, the executor [must be running in privileged mode](https://docs.gitlab.com/runner/executors/kubernetes/index.html#other-configtoml-settings). Additionally, the certificate directory must be [specified as a volume mount](../docker/using_docker_build.md#docker-in-docker-with-tls-enabled-in-kubernetes).
+- If you're using TLS to communicate with the Docker daemon, the executor [must be running in privileged mode](https://docs.gitlab.com/runner/executors/kubernetes.html#other-configtoml-settings). Additionally, the certificate directory must be [specified as a volume mount](../docker/using_docker_build.md#docker-in-docker-with-tls-enabled-in-kubernetes).
 - It is possible that the DinD service doesn't start up fully before the Code Quality job starts. This is a limitation documented in
-[Troubleshooting the Kubernetes executor](https://docs.gitlab.com/runner/executors/kubernetes/troubleshooting.html#docker-cannot-connect-to-the-docker-daemon-at-tcpdocker2375-is-the-docker-daemon-running).
+the [Kubernetes executor for GitLab Runner](https://docs.gitlab.com/runner/executors/kubernetes.html#docker-cannot-connect-to-the-docker-daemon-at-tcpdocker2375-is-the-docker-daemon-running) troubleshooting section.
 
 ## Error: `x509: certificate signed by unknown authority`
 
@@ -157,7 +158,7 @@ Example:
 ### Kubernetes
 
 If you have access to GitLab Runner configuration and the Kubernetes cluster,
-you can [mount a ConfigMap](https://docs.gitlab.com/runner/executors/kubernetes/index.html#configmap-volume).
+you can [mount a ConfigMap](https://docs.gitlab.com/runner/executors/kubernetes.html#configmap-volumes).
 
 Replace `gitlab.example.com` with the actual domain of the registry.
 
@@ -217,13 +218,3 @@ To gain insight into the errors, you can execute a GraphQL query using the follo
      }
    }
    ```
-
-## No report artifact is created
-
-With certain Runner configurations, the Code Quality scanning job may not have access to your source code.
-If this happens, the `gl-code-quality-report.json` artifact won't be created.
-
-To resolve this issue, either:
-
-- Use the [documented Runner configuration for Docker-in-Docker](../docker/using_docker_build.md#use-docker-in-docker), which uses privileged mode instead of Docker socket binding.
-- Apply the [community workaround in issue 32027](https://gitlab.com/gitlab-org/gitlab/-/issues/32027#note_1318822628) if you wish to continue using Docker socket binding.

@@ -24,7 +24,13 @@ fragment PackageData on Package {
       }
     }
   }
-  protectionRuleExists
+  project {
+    id
+    name
+    fullPath
+    webUrl
+  }
+  packageProtectionRuleExists
   _links {
     webPath
   }

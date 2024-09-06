@@ -7,12 +7,6 @@ class IssuePolicy < IssuablePolicy
 
   include CrudPolicyHelpers
 
-  # In FOSS there is no license.
-  # This method is overridden in EE
-  def epics_license_available?
-    false
-  end
-
   desc "User can read confidential issues"
   condition(:can_read_confidential) do
     @user && (@user.admin? || can?(:reporter_access) || assignee_or_author?) # rubocop:disable Cop/UserAdmin
@@ -45,17 +39,6 @@ class IssuePolicy < IssuablePolicy
     end
   end
 
-  # rubocop:disable Gitlab/FeatureFlagWithoutActor -- this is a on/off toggle
-  # group level issues license for now is equivalent to epics license. We'll have to migrate epics license to
-  # work items context once epics are fully migrated to work items.
-  condition(:group_level_issues_license_available) do
-    # group level issues license is available if
-    # - checking the license is not enforced, i.e. `!enforce_check_group_level_work_items_license` -> true
-    # - or if license is available, e.g. EE, i.e. `epics_license_available?` -> true
-    Feature.disabled?(:enforce_check_group_level_work_items_license) || epics_license_available?
-  end
-  # rubocop:enable Gitlab/FeatureFlagWithoutActor
-
   rule { group_issue & can?(:read_group) }.policy do
     enable :create_note
   end
@@ -80,10 +63,6 @@ class IssuePolicy < IssuablePolicy
 
   rule { hidden & ~admin }.policy do
     prevent :read_issue
-  end
-
-  rule { can?(:read_issue) & notes_widget_enabled }.policy do
-    enable :read_note
   end
 
   rule { ~can?(:read_issue) }.policy do
@@ -111,7 +90,6 @@ class IssuePolicy < IssuablePolicy
 
   rule { can?(:admin_issue) }.policy do
     enable :set_issue_metadata
-    enable :admin_issue_link
   end
 
   # guest members need to be able to set issue metadata per https://gitlab.com/gitlab-org/gitlab/-/issues/300100
@@ -131,10 +109,6 @@ class IssuePolicy < IssuablePolicy
     enable :admin_issue_relation
   end
 
-  rule { can?(:guest_access) & can?(:read_issue) & is_project_member }.policy do
-    enable :admin_issue_link
-  end
-
   rule { support_bot & service_desk_enabled }.enable :admin_issue_relation
 
   rule { can_read_crm_contacts }.policy do
@@ -147,12 +121,6 @@ class IssuePolicy < IssuablePolicy
 
   rule { can?(:reporter_access) }.policy do
     enable :mark_note_as_internal
-  end
-
-  # IMPORTANT: keep the prevent rules as last rules defined in the policy, as these are based on
-  # all abilities defined up to this point.
-  rule { group_issue & ~group_level_issues_license_available }.policy do
-    prevent(*::IssuePolicy.ability_map.map.keys)
   end
 end
 

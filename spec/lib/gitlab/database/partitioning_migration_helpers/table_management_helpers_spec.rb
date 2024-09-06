@@ -1008,7 +1008,6 @@ RSpec.describe Gitlab::Database::PartitioningMigrationHelpers::TableManagementHe
       migration.create_table target_table do |t|
         t.string :name, null: false
         t.integer :age, null: false
-        t.boolean "binary"
         t.datetime partition_column
         t.datetime :updated_at
       end

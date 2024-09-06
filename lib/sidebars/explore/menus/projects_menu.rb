@@ -6,7 +6,7 @@ module Sidebars
       class ProjectsMenu < ::Sidebars::Menu
         override :link
         def link
-          starred_explore_projects_path
+          explore_projects_path
         end
 
         override :title
@@ -26,15 +26,7 @@ module Sidebars
 
         override :active_routes
         def active_routes
-          {
-            page: [
-              link,
-              explore_root_path,
-              starred_explore_projects_path,
-              trending_explore_projects_path,
-              explore_projects_path
-            ]
-          }
+          { page: [link, explore_root_path, starred_explore_projects_path, trending_explore_projects_path] }
         end
       end
     end

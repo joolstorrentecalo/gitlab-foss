@@ -29,6 +29,14 @@ class Projects::TreeController < Projects::ApplicationController
     return render_404 unless @commit
 
     @ref_type = ref_type
+    if !Feature.enabled?(:ambiguous_ref_modal,
+      @project) && (@ref_type == BRANCH_REF_TYPE && ambiguous_ref?(@project, @ref))
+      branch = @project.repository.find_branch(@ref)
+      if branch
+        redirect_to project_tree_path(@project, branch.target)
+        return
+      end
+    end
 
     if tree.entries.empty?
       if @repository.blob_at(@commit.id, @path)
@@ -52,32 +60,18 @@ class Projects::TreeController < Projects::ApplicationController
 
   private
 
-  def tree
-    @tree ||= @repo.tree(@commit.id, @path)
-  end
-
   def redirect_renamed_default_branch?
     action_name == 'show'
   end
 
   def assign_dir_vars
-    params.require(create_dir_params_attributes)
+    @branch_name = params[:branch_name]
 
-    @branch_name = permitted_params[:branch_name]
-
-    @dir_name = File.join(@path, permitted_params[:dir_name])
+    @dir_name = File.join(@path, params[:dir_name])
     @commit_params = {
       file_path: @dir_name,
-      commit_message: permitted_params[:commit_message]
+      commit_message: params[:commit_message]
     }
-  end
-
-  def permitted_params
-    params.permit(*create_dir_params_attributes)
-  end
-
-  def create_dir_params_attributes
-    [:branch_name, :dir_name, :commit_message]
   end
 end
 

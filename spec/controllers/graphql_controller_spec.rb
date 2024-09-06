@@ -675,40 +675,11 @@ RSpec.describe GraphqlController, feature_category: :integrations do
         end
       end
 
-      it 'fails if the GraphiQL gem version is not 1.10.0' do
+      it 'fails if the GraphiQL gem version is not 1.8.0' do
         # We cache the IntrospectionQuery based on the default IntrospectionQuery by GraphiQL. If this spec fails,
         # GraphiQL has been updated, so we should check whether the IntropsectionQuery we cache is still valid.
         # It is stored in `app/graphql/cached_introspection_query.rb#query_string`
-        expect(GraphiQL::Rails::VERSION).to eq("1.10.0")
-      end
-    end
-
-    context 'when X_GITLAB_DISABLE_SQL_QUERY_LIMIT is set' do
-      let(:issue_url) { "http://some/issue/url" }
-      let(:limit) { 205 }
-
-      context 'and it specifies a new query limit' do
-        let(:header_value) { "#{limit},#{issue_url}" }
-
-        it 'respects the new query limit' do
-          expect(Gitlab::QueryLimiting).to receive(:disable!).with(issue_url, new_threshold: limit)
-
-          request.env['HTTP_X_GITLAB_DISABLE_SQL_QUERY_LIMIT'] = header_value
-
-          post :execute
-        end
-      end
-
-      context 'and it does not specify a new limit' do
-        let(:header_value) { issue_url }
-
-        it 'disables limit' do
-          expect(Gitlab::QueryLimiting).to receive(:disable!).with(issue_url)
-
-          request.env['HTTP_X_GITLAB_DISABLE_SQL_QUERY_LIMIT'] = header_value
-
-          post :execute
-        end
+        expect(GraphiQL::Rails::VERSION).to eq("1.8.0")
       end
     end
   end

@@ -6,16 +6,26 @@ RSpec.describe 'Merge request > User sets to auto-merge', :js, feature_category:
   let(:project) { create(:project, :public, :repository) }
   let(:user) { project.creator }
   let(:merge_request) do
-    create(:merge_request, :with_merge_request_pipeline,
-      source_project: project, source_branch: 'feature',
-      target_project: project, target_branch: 'master',
-      author: user, title: 'Bug NS-04', merge_sha: '12345678')
+    create(
+      :merge_request_with_diffs,
+      source_project: project,
+      author: user,
+      title: 'Bug NS-04',
+      merge_params: { force_remove_source_branch: '1' }
+    )
   end
 
-  let!(:pipeline) { merge_request.all_pipelines.first }
+  let(:pipeline) do
+    create(
+      :ci_pipeline,
+      project: project,
+      sha: merge_request.diff_head_sha,
+      ref: merge_request.source_branch,
+      head_pipeline_of: merge_request
+    )
+  end
 
   before do
-    merge_request.update_head_pipeline
     project.add_maintainer(user)
   end
 
@@ -24,33 +34,20 @@ RSpec.describe 'Merge request > User sets to auto-merge', :js, feature_category:
       create(:ci_build, pipeline: pipeline)
 
       sign_in(user)
-
       visit project_merge_request_path(project, merge_request)
     end
 
-    it 'allows to cancel the auto-merge' do
-      click_button "Set to auto-merge"
-
-      wait_for_requests
-
-      click_button "Cancel auto-merge"
-
-      wait_for_requests
-
-      expect(page).to have_content "canceled the automatic merge"
-    end
-
-    describe 'setting to auto-merge true' do
+    describe 'setting to auto-merge when pipeline succeeds' do
       shared_examples 'Set to auto-merge activator' do
-        it 'activates auto-merge feature' do
+        it 'activates auto-merge feature', quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/410055' do
           expect(page).to have_content 'Set to auto-merge'
           click_button "Set to auto-merge"
           wait_for_requests
 
-          expect(page).to have_content "Set by #{user.name} to be merged automatically when all merge checks pass"
+          expect(page).to have_content "Set by #{user.name} to be merged automatically when the pipeline succeeds"
           expect(page).to have_content "Source branch will not be deleted"
           expect(page).to have_selector ".js-cancel-auto-merge"
-          expect(page).to have_content(/enabled an automatic merge when all merge checks for \h{8} pass/i)
+          expect(page).to have_content(/enabled an automatic merge when the pipeline for \h{8} succeeds/i)
         end
       end
 
@@ -71,6 +68,60 @@ RSpec.describe 'Merge request > User sets to auto-merge', :js, feature_category:
 
         it_behaves_like 'Set to auto-merge activator'
       end
+
+      context 'when it is enabled and then canceled' do
+        let(:merge_request) do
+          create(
+            :merge_request_with_diffs,
+            :merge_when_pipeline_succeeds,
+            source_project: project,
+            title: 'Bug NS-04',
+            author: user,
+            merge_user: user
+          )
+        end
+
+        before do
+          merge_request.merge_params['force_remove_source_branch'] = '0'
+          merge_request.save!
+          click_button "Cancel auto-merge"
+        end
+
+        it_behaves_like 'Set to auto-merge activator'
+      end
+    end
+  end
+
+  context 'when there is an active pipeline' do
+    let(:merge_request) do
+      create(
+        :merge_request_with_diffs,
+        :simple,
+        :merge_when_pipeline_succeeds,
+        source_project: project,
+        author: user,
+        merge_user: user,
+        title: 'MepMep'
+      )
+    end
+
+    let!(:build) do
+      create(:ci_build, pipeline: pipeline)
+    end
+
+    before do
+      sign_in user
+      visit project_merge_request_path(project, merge_request)
+    end
+
+    it 'allows to cancel the auto-merge', quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/410055' do
+      click_button "Cancel auto-merge"
+
+      expect(page).to have_button "Set to auto-merge"
+
+      refresh
+
+      expect(page).to have_content "canceled the automatic merge"
     end
   end
 

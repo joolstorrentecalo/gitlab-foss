@@ -55,14 +55,14 @@ export default {
 </script>
 
 <template>
-  <gl-button-group class="gl-z-1">
+  <gl-button-group class="gl-z-index-1">
     <gl-button
       icon="dash"
       :disabled="disableDecrease"
       :aria-label="__('Decrease')"
       @click="decrementScale"
     />
-    <span data-testid="scale-value" class="gl-border-t gl-border-b gl-bg-white gl-p-3 gl-text-sm">{{
+    <span data-testid="scale-value" class="gl-p-3 gl-bg-white gl-font-sm gl-border-t gl-border-b">{{
       scaleLabel
     }}</span>
     <gl-button

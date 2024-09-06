@@ -10,50 +10,55 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com
 
-Hosted runners on Linux for GitLab.com run on Google Cloud Compute Engine. Each job gets a fully isolated, ephemeral virtual machine (VM). The default region is `us-east1`.
+When you run jobs on hosted runners on Linux, the runners are on auto-scaled ephemeral virtual machine (VM) instances.
+The default region for the VMs is `us-east1`.
 
 Each VM uses the Google Container-Optimized OS (COS) and the latest version of Docker Engine running the `docker+machine`
 [executor](https://docs.gitlab.com/runner/executors/#docker-machine-executor).
-The machine type and underlying processor type might change. Jobs optimized for a specific processor design might behave inconsistently.
 
-[Untagged](../../yaml/index.md#tags) jobs will run on the `small` Linux x86-64 runner.
+## Machine types available for Linux (x86-64)
 
-## Machine types available for Linux - x86-64
+For the hosted runners on Linux, GitLab offers a range of machine types for use.
+For Free, Premium, and Ultimate plan customers, jobs on these instances consume the compute quota allocated to your namespace.
 
-GitLab offers the following machine types for hosted runners on Linux x86-64.
-
-| Runner Tag                                             | vCPUs | Memory | Storage |
-|--------------------------------------------------------|-------|--------|---------|
-| `saas-linux-small-amd64` (default)                     | 2     | 8 GB   | 30 GB   |
-| `saas-linux-medium-amd64`                              | 4     | 16 GB  | 50 GB   |
-| `saas-linux-large-amd64` (Premium and Ultimate only)   | 8     | 32 GB  | 100 GB  |
-| `saas-linux-xlarge-amd64` (Premium and Ultimate only)  | 16    | 64 GB  | 200 GB  |
+| Runner Tag                                    | vCPUs | Memory | Storage |
+|-----------------------------------------------|-------|--------|---------|
+| `saas-linux-small-amd64`                      | 2     | 8 GB   | 25 GB   |
+| `saas-linux-medium-amd64`                     | 4     | 16 GB  | 50 GB   |
+| `saas-linux-large-amd64` (Premium and Ultimate only)  | 8     | 32 GB  | 100 GB  |
+| `saas-linux-xlarge-amd64` (Premium and Ultimate only) | 16    | 64 GB  | 200 GB  |
 | `saas-linux-2xlarge-amd64` (Premium and Ultimate only) | 32    | 128 GB | 200 GB  |
 
-## Machine types available for Linux - Arm64
+The `small` machine type is set as default. If no [tag](../../yaml/index.md#tags) keyword in your `.gitlab-ci.yml` file is specified,
+the jobs will run on this default runner.
 
-GitLab offers the following machine type for hosted runners on Linux Arm64.
+There are [different rates of compute minutes consumption](../../pipelines/cicd_minutes.md#gitlab-hosted-runner-costs), based on the type of machine that is used.
 
-| Runner Tag                                            | vCPUs | Memory | Storage |
-|-------------------------------------------------------|-------|--------|---------|
-| `saas-linux-medium-arm64` (Premium and Ultimate only) | 4     | 16 GB  | 50 GB   |
-| `saas-linux-large-arm64` (Premium and Ultimate only)  | 8     | 32 GB  | 100 GB  |
+All hosted runners on Linux currently run on
+[`n2d-standard`](https://cloud.google.com/compute/docs/general-purpose-machines#n2d_machines) general-purpose compute from GCP.
+The machine type and underlying processor type can change. Jobs optimized for a specific processor design could behave inconsistently.
 
 ## Container images
 
 As runners on Linux are using the `docker+machine` [executor](https://docs.gitlab.com/runner/executors/#docker-machine-executor),
 you can choose any container image by defining the [`image`](../../../ci/yaml/index.md#image) in your `.gitlab-ci.yml` file.
-Please be mindful that the selected Docker image is compatible with the underlying processor architecture.
 
 If no image is set, the default is `ruby:3.1`.
 
-## Docker-in-Docker support
+## Docker in Docker support
 
-Runners with any of the `saas-linux-<size>-<architecture>` tags are configured to run in `privileged` mode
-to support [Docker-in-Docker](../../../ci/docker/using_docker_build.md#use-docker-in-docker).
-With these runners, you can build Docker images natively or run multiple containers in your isolated job.
+The runners are configured to run in `privileged` mode to support
+[Docker in Docker](../../../ci/docker/using_docker_build.md#use-docker-in-docker)
+to build Docker images natively or run multiple containers within your isolated job.
 
-Runners with the `gitlab-org` tag do not run in `privileged` mode and cannot be used for Docker-in-Docker builds.
+## Caching on hosted runners
+
+The hosted runners share a [distributed cache](https://docs.gitlab.com/runner/configuration/autoscale.html#distributed-runners-caching)
+stored in a Google Cloud Storage (GCS) bucket. Cache contents not updated in the last 14 days are automatically
+removed, based on the [object lifecycle management policy](https://cloud.google.com/storage/docs/lifecycle).
+The maximum size of an uploaded cache artifact can be 5 GB after the cache becomes a compressed archive.
+
+For more information about how caching works, see [Caching in GitLab CI/CD](../../caching/index.md).
 
 ## Example `.gitlab-ci.yml` file
 
@@ -63,17 +68,33 @@ For example:
 ```yaml
 job_small:
   script:
-    - echo "This job is untagged and runs on the default small Linux x86-64 instance"
+    - echo "this job runs on the default (small) Linux instance"
 
 job_medium:
   tags:
     - saas-linux-medium-amd64
   script:
-    - echo "This job runs on the medium Linux x86-64 instance"
+    - echo "this job runs on the medium Linux instance"
 
 job_large:
   tags:
-    - saas-linux-large-arm64
+    - saas-linux-large-amd64
   script:
-    - echo "This job runs on the large Linux Arm64 instance"
+    - echo "this job runs on the large Linux instance"
 ```
+
+## Hosted runners for GitLab community contributions
+
+If you want to [contribute to GitLab](https://about.gitlab.com/community/contribute/), jobs will be picked up by the
+`gitlab-shared-runners-manager-X.gitlab.com` fleet of runners, dedicated for GitLab projects and related community forks.
+
+These runners are backed by the same machine type as our `small` runners.
+Unlike the most commonly used hosted runners on Linux, each virtual machine is re-used up to 40 times.
+
+As we want to encourage people to contribute, these runners are free of charge.
+
+## Pre-clone script (deprecated)
+
+This feature was [deprecated](https://gitlab.com/gitlab-org/gitlab/-/issues/391896) in GitLab 15.9
+and [will be removed](https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29405) in 17.0.
+Use [`pre_get_sources_script`](../../../ci/yaml/index.md#hookspre_get_sources_script) instead.

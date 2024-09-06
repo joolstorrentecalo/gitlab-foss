@@ -3,7 +3,7 @@
 class SetTrustedExternUidToFalseForExistingBitbucketIdentities < Gitlab::Database::Migration[2.2]
   restrict_gitlab_migration gitlab_schema: :gitlab_main_clusterwide
 
-  milestone '17.0'
+  milestone '16.11'
 
   disable_ddl_transaction!
 

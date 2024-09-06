@@ -24,13 +24,14 @@ class CustomEmoji < ApplicationRecord
 
     format: { with: /\A#{NAME_REGEXP}\z/o }
 
-  scope :by_name, ->(names) { where(name: names) }
-  scope :for_namespaces, ->(namespace_ids) do
+  scope :by_name, -> (names) { where(name: names) }
+  scope :for_namespaces, -> (namespace_ids) do
     order = Gitlab::Pagination::Keyset::Order.build([
       Gitlab::Pagination::Keyset::ColumnOrderDefinition.new(
         attribute_name: 'name',
         order_expression: CustomEmoji.arel_table[:name].asc,
-        nullable: :not_nullable
+        nullable: :not_nullable,
+        distinct: true
       ),
       Gitlab::Pagination::Keyset::ColumnOrderDefinition.new(
         attribute_name: 'current_namespace',
@@ -44,7 +45,7 @@ class CustomEmoji < ApplicationRecord
       .order(order)
   end
 
-  scope :for_resource, ->(resource) do
+  scope :for_resource, -> (resource) do
     return none if resource.nil?
     return none unless resource.is_a?(Group)
 

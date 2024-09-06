@@ -17,8 +17,8 @@ module MergeRequests
     end
 
     def hook_data(merge_request, action, old_rev: nil, old_associations: {})
-      hook_data = merge_request.to_hook_data(current_user, old_associations: old_associations, action: action)
-
+      hook_data = merge_request.to_hook_data(current_user, old_associations: old_associations)
+      hook_data[:object_attributes][:action] = action
       if old_rev && !Gitlab::Git.blank_ref?(old_rev)
         hook_data[:object_attributes][:oldrev] = old_rev
       end
@@ -81,7 +81,6 @@ module MergeRequests
       notification_service.async.changed_reviewer_of_merge_request(merge_request, current_user, old_reviewers)
       todo_service.reassigned_reviewable(merge_request, current_user, old_reviewers)
       invalidate_cache_counts(merge_request, users: affected_reviewers.compact)
-      invalidate_cache_counts(merge_request, users: merge_request.assignees)
 
       new_reviewers = merge_request.reviewers - old_reviewers
       merge_request_activity_counter.track_users_review_requested(users: new_reviewers)
@@ -89,7 +88,6 @@ module MergeRequests
       trigger_merge_request_reviewers_updated(merge_request)
 
       capture_suggested_reviewers_accepted(merge_request)
-      set_first_reviewer_assigned_at_metrics(merge_request) if new_reviewers.any?
     end
 
     def cleanup_environments(merge_request)
@@ -122,7 +120,7 @@ module MergeRequests
     end
 
     def deactivate_pages_deployments(merge_request)
-      Pages::DeactivateMrDeploymentsWorker.perform_async(merge_request.id)
+      Pages::DeactivateMrDeploymentsWorker.perform_async(merge_request)
     end
 
     private
@@ -280,17 +278,6 @@ module MergeRequests
       # Implemented in EE
     end
 
-    def set_first_reviewer_assigned_at_metrics(merge_request)
-      metrics = merge_request.metrics
-      return unless metrics
-
-      current_time = Time.current
-
-      return if metrics.reviewer_first_assigned_at && metrics.reviewer_first_assigned_at <= current_time
-
-      metrics.update(reviewer_first_assigned_at: current_time)
-    end
-
     def remove_approval(merge_request, user)
       MergeRequests::RemoveApprovalService.new(project: project, current_user: user)
         .execute(merge_request, skip_system_note: true, skip_notification: true, skip_updating_state: true)
@@ -300,14 +287,6 @@ module MergeRequests
       ::MergeRequests::UpdateReviewerStateService
             .new(project: merge_request.project, current_user: user)
             .execute(merge_request, state)
-    end
-
-    def abort_auto_merge_with_todo(merge_request, reason)
-      response = abort_auto_merge(merge_request, reason)
-      response = ServiceResponse.new(**response)
-      return unless response.success?
-
-      todo_service.merge_request_became_unmergeable(merge_request)
     end
   end
 end

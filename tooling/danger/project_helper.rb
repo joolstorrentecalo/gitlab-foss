@@ -3,9 +3,10 @@
 module Tooling
   module Danger
     module ProjectHelper
-      CI_ONLY_RULES = %w[
+      CI_ONLY_RULES ||= %w[
         ce_ee_vue_templates
         datateam
+        feature_flag
         master_pipeline_status
         roulette
         sidekiq_queues
@@ -65,7 +66,6 @@ module Tooling
           spec/frontend/tracking_spec\.js
         )\z}x => [:frontend, :analytics_instrumentation],
         [%r{\.(vue|js)\z}, %r{trackRedis}] => [:frontend, :analytics_instrumentation],
-        [%r{\.(vue|js)\z}, %r{InternalEvents\.trackEvent}] => [:frontend, :analytics_instrumentation],
         %r{\A((ee|jh)/)?app/assets/} => :frontend,
         %r{\A((ee|jh)/)?app/views/.*\.svg} => :frontend,
         %r{\A((ee|jh)/)?app/views/} => [:frontend, :backend],
@@ -129,15 +129,10 @@ module Tooling
           (spec/)?lib/generators/gitlab/usage_metric_definition/redis_hll_generator(_spec)?\.rb |
           lib/generators/rails/usage_metric_definition_generator\.rb |
           spec/lib/generators/usage_metric_definition_generator_spec\.rb |
-          spec/support/matchers/internal_events_matchers\.rb |
-          spec/support_specs/matchers/internal_events_matchers_spec\.rb |
           generator_templates/usage_metric_definition/metric_definition\.yml)\z}x => [:backend, :analytics_instrumentation],
         %r{gitlab/usage_data(_spec)?\.rb} => [:analytics_instrumentation],
         [%r{\.haml\z}, %r{data: \{ track}] => [:analytics_instrumentation],
         [%r{\.(rb|haml)\z}, %r{Gitlab::Tracking\.(event|enabled\?|options)}] => [:analytics_instrumentation],
-        [%r{\.(rb|haml)\z}, %r{Gitlab::InternalEvents\.track_event}] => [:analytics_instrumentation],
-        [%r{\.(rb|haml)\z}, %r{Gitlab::InternalEventsTracking}] => [:analytics_instrumentation],
-        [%r{\.(rb|haml)\z}, %r{track_internal_event}] => [:analytics_instrumentation],
         [%r{\.(vue|js)\z}, %r{(Tracking.event|/\btrack\(/|data-track-action)}] => [:analytics_instrumentation],
 
         %r{\A((ee|jh)/)?app/(?!assets|views)[^/]+} => :backend,

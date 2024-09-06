@@ -28,8 +28,6 @@ function initNewGroupCreation(el) {
     parentGroupName,
     importExistingGroupPath,
     isSaas,
-    identityVerificationRequired,
-    identityVerificationPath,
   } = el.dataset;
 
   const props = {
@@ -42,11 +40,6 @@ function initNewGroupCreation(el) {
     isSaas: parseBoolean(isSaas),
   };
 
-  const provide = {
-    identityVerificationRequired: parseBoolean(identityVerificationRequired),
-    identityVerificationPath,
-  };
-
   const apolloProvider = new VueApollo({
     defaultClient: createDefaultClient(),
   });
@@ -54,7 +47,6 @@ function initNewGroupCreation(el) {
   return new Vue({
     el,
     apolloProvider,
-    provide,
     render(h) {
       return h(NewGroupCreationApp, { props });
     },

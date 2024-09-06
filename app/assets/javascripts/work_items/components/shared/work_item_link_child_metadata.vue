@@ -36,13 +36,13 @@ export default {
 </script>
 
 <template>
-  <div class="gl-flex gl-justify-between">
-    <div class="gl-flex gl-flex-wrap gl-items-center gl-gap-3 gl-text-sm gl-text-secondary">
-      <span>{{ reference }}</span>
+  <div class="gl-display-flex gl-justify-content-space-between">
+    <div class="gl-display-flex gl-flex-wrap gl-gap-2 gl-align-items-center">
+      <span class="gl-text-secondary gl-font-sm">{{ reference }}</span>
       <item-milestone
         v-if="milestone"
         :milestone="milestone"
-        class="gl-flex gl-max-w-15 !gl-cursor-help gl-items-center gl-gap-2 gl-leading-normal !gl-no-underline"
+        class="gl-display-flex gl-align-items-center gl-max-w-15 gl-font-sm gl-line-height-normal gl-text-gray-900! gl-cursor-help! gl-text-decoration-none!"
       />
       <slot name="left-metadata"></slot>
     </div>

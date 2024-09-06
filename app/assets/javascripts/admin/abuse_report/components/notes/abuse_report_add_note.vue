@@ -10,9 +10,9 @@ export default {
   i18n: {
     reply: __('Reply…'),
     replyToComment: __('Reply to comment'),
-    commentError: __('Comment could not be submitted: %{reason}.'),
+    commentError: __('Your comment could not be submitted because %{reason}.'),
     genericError: __(
-      'Comment could not be submitted. Please check your network connection and try again.',
+      'Your comment could not be submitted! Please check your network connection and try again.',
     ),
   },
   components: {
@@ -54,13 +54,15 @@ export default {
       return this.isNewDiscussion
         ? 'timeline-entry note-form'
         : // eslint-disable-next-line @gitlab/require-i18n-strings
-          'note note-wrapper note-comment discussion-reply-holder !gl-border-t-0 clearfix';
+          'note note-wrapper note-comment discussion-reply-holder gl-border-t-0! clearfix';
     },
     timelineEntryInnerClasses() {
       return this.isNewDiscussion ? 'timeline-entry-inner' : '';
     },
     commentFormWrapperClasses() {
-      return !this.isEditing ? 'gl-relative gl-flex gl-items-start gl-flex-nowrap' : '';
+      return !this.isEditing
+        ? 'gl-relative gl-display-flex gl-align-items-flex-start gl-flex-nowrap'
+        : '';
     },
     commentButtonText() {
       return this.isNewDiscussion ? __('Comment') : __('Reply');

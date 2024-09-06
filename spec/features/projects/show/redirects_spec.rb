@@ -11,11 +11,11 @@ RSpec.describe 'Projects > Show > Redirects', feature_category: :groups_and_proj
     allow(Gitlab.config.gitlab).to receive(:host).and_return('www.example.com')
   end
 
-  it 'shows public project page', :js do
+  it 'shows public project page' do
     visit project_path(public_project)
 
-    within_testid 'breadcrumb-links' do
-      expect(find('li:last-of-type')).to have_content(public_project.name)
+    page.within '.breadcrumbs .js-breadcrumb-item-text' do
+      expect(page).to have_content(public_project.name)
     end
   end
 

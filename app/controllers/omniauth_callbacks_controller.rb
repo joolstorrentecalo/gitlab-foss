@@ -49,12 +49,11 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
     update_login_counter_metric(failed_strategy.name, 'failed')
     log_saml_response if params['SAMLResponse']
 
-    username = params[:username].to_s
-    if username.present? && AuthHelper.form_based_provider?(failed_strategy.name)
-      user = User.find_by_login(username)
+    if params[:username].present? && AuthHelper.form_based_provider?(failed_strategy.name)
+      user = User.find_by_login(params[:username])
 
       user&.increment_failed_attempts!
-      log_failed_login(username, failed_strategy.name)
+      log_failed_login(params[:username], failed_strategy.name)
     end
 
     super
@@ -198,7 +197,7 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
 
   def build_auth_user(auth_user_class)
     strong_memoize_with(:build_auth_user, auth_user_class) do
-      auth_user_class.new(oauth, { organization_id: Current.organization_id })
+      auth_user_class.new(oauth)
     end
   end
 
@@ -255,7 +254,7 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
     message = [_("Signing in using your %{label} account without a pre-existing GitLab account is not allowed.") % { label: label }]
 
     if Gitlab::CurrentSettings.allow_signup?
-      message << (_("Create a GitLab account first, and then connect it to your %{label} account.") % { label: label })
+      message << _("Create a GitLab account first, and then connect it to your %{label} account.") % { label: label }
     end
 
     flash[:alert] = message.join(' ')
@@ -391,6 +390,8 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
   end
 
   def log_saml_response
+    return unless Feature.enabled?(:filter_saml_response)
+
     ParameterFilters::SamlResponse.log(params['SAMLResponse'].dup)
   end
 end

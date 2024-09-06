@@ -9,12 +9,16 @@ RSpec.describe GpgKeys::ValidateIntegrationsService, feature_category: :source_c
 
   subject(:service) { described_class.new(gpg_key) }
 
-  before do
-    gpg_key.valid?
-  end
-
   it 'returns true' do
     expect(service.execute).to eq(true)
+  end
+
+  context 'when key is invalid' do
+    it 'returns false' do
+      gpg_key.key = ''
+
+      expect(service.execute).to eq(false)
+    end
   end
 
   context 'when BeyondIdentity integration is not activated' do
@@ -39,40 +43,19 @@ RSpec.describe GpgKeys::ValidateIntegrationsService, feature_category: :source_c
 
       expect(service.execute).to eq(true)
       expect(gpg_key.externally_verified).to be_truthy
-      expect(gpg_key.externally_verified_at).to be_present
     end
 
-    context 'when the check is unsuccessful' do
-      before do
-        allow_next_instance_of(::Gitlab::BeyondIdentity::Client) do |instance|
-          allow(instance).to receive(:execute).with(
-            { key_id: 'CCFBE19F00AC8B1D', committer_email: user.email }
-          ).and_raise(::Gitlab::BeyondIdentity::Client::ApiError.new(error_message, error_code))
-        end
+    it 'returns false and sets an error on unsuccessful check' do
+      error = 'service error'
+
+      expect_next_instance_of(::Gitlab::BeyondIdentity::Client) do |instance|
+        expect(instance).to receive(:execute).with(
+          { key_id: 'CCFBE19F00AC8B1D', committer_email: user.email }
+        ).and_raise(::Gitlab::BeyondIdentity::Client::Error.new(error))
       end
 
-      context 'when authorization fails' do
-        let(:error_message) { 'unauthorized: key is invalid' }
-        let(:error_code) { 403 }
-
-        it 'returns false and sets an error' do
-          expect(service.execute).to eq(false)
-          expect(gpg_key.errors.full_messages).to eq(["BeyondIdentity: #{error_message}"])
-          expect(gpg_key.externally_verified).to be_falsey
-          expect(gpg_key.externally_verified_at).not_to be_present
-        end
-      end
-
-      context 'when the key is not found' do
-        let(:error_message) { 'gpg key is not found' }
-        let(:error_code) { 404 }
-
-        it 'returns true and does not set an error' do
-          expect(service.execute).to eq(true)
-          expect(gpg_key.errors.full_messages).to eq([])
-          expect(gpg_key.externally_verified).to be_falsey
-        end
-      end
+      expect(service.execute).to eq(false)
+      expect(gpg_key.errors.full_messages).to eq(['BeyondIdentity: service error'])
     end
   end
 end

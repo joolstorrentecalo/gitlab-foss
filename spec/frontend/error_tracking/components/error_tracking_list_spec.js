@@ -1,7 +1,6 @@
 import {
   GlEmptyState,
   GlLoadingIcon,
-  GlForm,
   GlFormInput,
   GlPagination,
   GlDropdown,
@@ -207,7 +206,6 @@ describe('ErrorTrackingList', () => {
 
     describe('filtering', () => {
       const findSearchBox = () => wrapper.findComponent(GlFormInput);
-      const findGlForm = () => wrapper.findComponent(GlForm);
 
       it('shows search box & sort dropdown', () => {
         expect(findSearchBox().exists()).toBe(true);
@@ -216,7 +214,7 @@ describe('ErrorTrackingList', () => {
 
       it('searches by query', () => {
         findSearchBox().vm.$emit('input', 'search');
-        findGlForm().vm.$emit('submit', { preventDefault: () => {} });
+        findSearchBox().trigger('keyup.enter');
         expect(actions.searchByQuery.mock.calls[0][1]).toBe('search');
       });
 
@@ -420,7 +418,7 @@ describe('ErrorTrackingList', () => {
       expect(emptyStateComponent.isVisible()).toBe(true);
       expect(emptyStatePrimaryDescription.exists()).toBe(true);
       expect(emptyStateLinks.at(0).attributes('href')).toBe(
-        '/help/operations/integrated_error_tracking',
+        '/help/operations/error_tracking.html#integrated-error-tracking',
       );
     });
   });

@@ -76,12 +76,10 @@ class NotificationService
   end
 
   def bot_resource_access_token_about_to_expire(bot_user, token_name)
-    recipients = bot_user.resource_bot_owners_and_maintainers.select { |user| user.can?(:receive_notifications) }
+    recipients = bot_user.resource_bot_owners.select { |owner| owner.can?(:receive_notifications) }
     resource = bot_user.resource_bot_resource
 
     recipients.each do |recipient|
-      log_info("Notifying resource access token owner about expiring tokens", recipient)
-
       mailer.bot_resource_access_token_about_to_expire_email(
         recipient,
         resource,
@@ -101,8 +99,6 @@ class NotificationService
   # And mark the token with about_to_expire_delivered
   def access_token_about_to_expire(user, token_names)
     return unless user.can?(:receive_notifications)
-
-    log_info("Notifying User about expiring tokens", user)
 
     mailer.access_token_about_to_expire_email(user, token_names).deliver_later
   end
@@ -447,7 +443,7 @@ class NotificationService
   def send_service_desk_notification(note)
     return unless note.noteable_type == 'Issue'
     return if note.confidential
-    return unless note.project&.service_desk_enabled?
+    return unless note.project.service_desk_enabled?
 
     issue = note.noteable
     recipients = issue.issue_email_participants
@@ -530,6 +526,10 @@ class NotificationService
     ).deliver_later
   end
 
+  def invite_member(member, token)
+    mailer.member_invited_email(member.real_source_type, member.id, token).deliver_later
+  end
+
   def new_member(member)
     notifiable_options = case member.source
                          when Group
@@ -566,6 +566,10 @@ class NotificationService
     return true unless member.notifiable?(:mention)
 
     mailer.member_about_to_expire_email(member.real_source_type, member.id).deliver_later
+  end
+
+  def invite_member_reminder(group_member, token, reminder_index)
+    mailer.member_invited_reminder_email(group_member.real_source_type, group_member.id, token, reminder_index).deliver_later
   end
 
   def project_was_moved(project, old_path_with_namespace)
@@ -889,14 +893,6 @@ class NotificationService
   end
 
   private
-
-  def log_info(message_text, user)
-    Gitlab::AppLogger.info(
-      message: message_text,
-      class: self.class,
-      user_id: user.id
-    )
-  end
 
   def approve_mr_email(merge_request, project, current_user)
     recipients = ::NotificationRecipients::BuildService.build_recipients(merge_request, current_user, action: 'approve')

@@ -21,7 +21,15 @@ import {
 import { STATUS_ALL, STATUS_CLOSED, STATUS_OPEN } from '~/issues/constants';
 import IssuesDashboardApp from '~/issues/dashboard/components/issues_dashboard_app.vue';
 import getIssuesCountsQuery from '~/issues/dashboard/queries/get_issues_counts.query.graphql';
-import { CREATED_DESC, UPDATED_DESC, urlSortParams } from '~/issues/list/constants';
+import {
+  CREATED_DESC,
+  defaultTypeTokenOptions,
+  i18n,
+  TYPE_TOKEN_KEY_RESULT_OPTION,
+  TYPE_TOKEN_OBJECTIVE_OPTION,
+  UPDATED_DESC,
+  urlSortParams,
+} from '~/issues/list/constants';
 import setSortPreferenceMutation from '~/issues/list/queries/set_sort_preference.mutation.graphql';
 import { getSortKey, getSortOptions } from '~/issues/list/utils';
 import axios from '~/lib/utils/axios_utils';
@@ -66,8 +74,6 @@ describe('IssuesDashboardApp component', () => {
     hasIssueDateFilterFeature: true,
     hasIssuableHealthStatusFeature: true,
     hasIssueWeightsFeature: true,
-    hasOkrsFeature: true,
-    hasQualityManagementFeature: true,
     hasScopedLabelsFeature: true,
     initialSort: CREATED_DESC,
     isPublicVisibilityRestricted: false,
@@ -83,16 +89,17 @@ describe('IssuesDashboardApp component', () => {
     defaultQueryResponse.data.issues.nodes[0].weight = 5;
   }
 
-  const findCalendarButton = () => wrapper.findByRole('link', { name: 'Subscribe to calendar' });
+  const findCalendarButton = () => wrapper.findByRole('link', { name: i18n.calendarLabel });
   const findDisclosureDropdown = () => wrapper.findComponent(GlDisclosureDropdown);
   const findEmptyState = () => wrapper.findComponent(GlEmptyState);
   const findIssuableList = () => wrapper.findComponent(IssuableList);
   const findIssueCardStatistics = () => wrapper.findComponent(IssueCardStatistics);
   const findIssueCardTimeInfo = () => wrapper.findComponent(IssueCardTimeInfo);
-  const findRssButton = () => wrapper.findByRole('link', { name: 'Subscribe to RSS feed' });
+  const findRssButton = () => wrapper.findByRole('link', { name: i18n.rssLabel });
 
   const mountComponent = ({
     provide = {},
+    eeTypeTokenOptions = [],
     issuesQueryHandler = jest.fn().mockResolvedValue(defaultQueryResponse),
     issuesCountsQueryHandler = jest.fn().mockResolvedValue(issuesCountsQueryResponse),
     sortPreferenceMutationHandler = jest.fn().mockResolvedValue(setSortPreferenceMutationResponse),
@@ -106,6 +113,9 @@ describe('IssuesDashboardApp component', () => {
       provide: {
         ...defaultProvide,
         ...provide,
+      },
+      propsData: {
+        eeTypeTokenOptions,
       },
       stubs: {
         GlIntersperse: true,
@@ -226,9 +236,9 @@ describe('IssuesDashboardApp component', () => {
 
         it('renders empty state', () => {
           expect(findEmptyState().props()).toMatchObject({
-            description: 'To widen your search, change or remove filters above',
+            description: i18n.noSearchResultsDescription,
             svgPath: defaultProvide.emptyStateWithFilterSvgPath,
-            title: 'Sorry, your filter produced no results',
+            title: i18n.noSearchResultsTitle,
           });
         });
       });
@@ -251,7 +261,7 @@ describe('IssuesDashboardApp component', () => {
         expect(findEmptyState().props()).toMatchObject({
           description: null,
           svgPath: defaultProvide.emptyStateWithoutFilterSvgPath,
-          title: 'Please select at least one filter to see results',
+          title: i18n.noSearchNoFilterTitle,
         });
       });
     });
@@ -323,8 +333,8 @@ describe('IssuesDashboardApp component', () => {
   describe('errors', () => {
     describe.each`
       error                      | mountOption                   | message
-      ${'fetching issues'}       | ${'issuesQueryHandler'}       | ${'An error occurred while loading issues'}
-      ${'fetching issue counts'} | ${'issuesCountsQueryHandler'} | ${'An error occurred while getting issue counts'}
+      ${'fetching issues'}       | ${'issuesQueryHandler'}       | ${i18n.errorFetchingIssues}
+      ${'fetching issue counts'} | ${'issuesCountsQueryHandler'} | ${i18n.errorFetchingCounts}
     `('when there is an error $error', ({ mountOption, message }) => {
       beforeEach(async () => {
         setWindowLocation(locationSearch);
@@ -381,6 +391,32 @@ describe('IssuesDashboardApp component', () => {
         { type: TOKEN_TYPE_SEARCH_WITHIN },
         { type: TOKEN_TYPE_TYPE },
       ]);
+    });
+
+    describe('additional type token options', () => {
+      it('renders default type tokens when there are no additional options provided', () => {
+        mountComponent();
+
+        expect(findIssuableList().props('searchTokens')).toMatchObject(
+          expect.arrayContaining([
+            expect.objectContaining({ type: TOKEN_TYPE_TYPE, options: defaultTypeTokenOptions }),
+          ]),
+        );
+      });
+
+      it('renders additional type tokens when there are additional options provided', () => {
+        const additionalOptions = [TYPE_TOKEN_OBJECTIVE_OPTION, TYPE_TOKEN_KEY_RESULT_OPTION];
+        mountComponent({ eeTypeTokenOptions: additionalOptions });
+
+        expect(findIssuableList().props('searchTokens')).toMatchObject(
+          expect.arrayContaining([
+            expect.objectContaining({
+              type: TOKEN_TYPE_TYPE,
+              options: [...defaultTypeTokenOptions, ...additionalOptions],
+            }),
+          ]),
+        );
+      });
     });
   });
 

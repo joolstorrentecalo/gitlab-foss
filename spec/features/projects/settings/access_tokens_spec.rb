@@ -2,14 +2,18 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Project > Settings > access tokens', :js, feature_category: :user_management do
+RSpec.describe 'Project > Settings > Access Tokens', :js, feature_category: :user_management do
   include Spec::Support::Helpers::ModalHelpers
 
   let_it_be(:user) { create(:user) }
   let_it_be(:bot_user) { create(:user, :project_bot) }
   let_it_be(:group) { create(:group) }
-  let_it_be(:project) { create(:project, group: group, maintainers: user) }
+  let_it_be(:project) { create(:project, group: group) }
   let_it_be(:resource_settings_access_tokens_path) { project_settings_access_tokens_path(project) }
+
+  before_all do
+    project.add_maintainer(user)
+  end
 
   before do
     sign_in(user)

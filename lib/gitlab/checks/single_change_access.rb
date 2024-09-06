@@ -58,7 +58,6 @@ module Gitlab
       end
 
       def commits_check
-        Gitlab::Checks::CommitsCheck.new(self).validate!
         Gitlab::Checks::DiffCheck.new(self).validate!
       end
     end

@@ -41,13 +41,7 @@ You can use advanced search in:
 
 ## Syntax
 
-> - Refining user search [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/388409) in GitLab 15.10.
-
-Advanced search uses [`simple_query_string`](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html),
-which supports both exact and fuzzy queries.
-
-When you search for a user, the [`fuzzy`](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html) query is used by default.
-You can refine user search with `simple_query_string`.
+Advanced search uses [Elasticsearch syntax](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html#simple-query-string-syntax). The syntax supports both exact and fuzzy search queries.
 
 | Syntax              | Description      | Example |
 |---------------------|------------------|---------|
@@ -60,6 +54,13 @@ You can refine user search with `simple_query_string`.
 | `\`                 | Escape           | [`\*md`](https://gitlab.com/search?snippets=&scope=blobs&repository_ref=&search=%5C*md&group_id=9970&project_id=278964) |
 | `#`                 | Issue ID         | [`#23456`](https://gitlab.com/search?snippets=&scope=issues&repository_ref=&search=%2323456&group_id=9970&project_id=278964) |
 | `!`                 | Merge request ID | [`!23456`](https://gitlab.com/search?snippets=&scope=merge_requests&repository_ref=&search=%2123456&group_id=9970&project_id=278964) |
+
+### User search
+
+> - Ability to refine user search [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/388409) in GitLab 15.10.
+
+When you search for a user, a [fuzzy query](https://www.elastic.co/guide/en/elasticsearch/reference/7.2/query-dsl-fuzzy-query.html) is used by default.
+You can refine user search with [Elasticsearch syntax](#syntax).
 
 ### Code search
 
@@ -89,7 +90,7 @@ You can refine user search with `simple_query_string`.
 - You can only search files smaller than 1 MB.
   For more information, see [issue 195764](https://gitlab.com/gitlab-org/gitlab/-/issues/195764).
   For self-managed GitLab instances, an administrator can
-  [configure the **Maximum file size indexed** setting](../../integration/advanced_search/elasticsearch.md#advanced-search-configuration).
+  [configure this setting](../../integration/advanced_search/elasticsearch.md#advanced-search-configuration).
 - You can use advanced search on the default branch of a project only.
   For more information, see [issue 229966](https://gitlab.com/gitlab-org/gitlab/-/issues/229966).
 - The search query must not contain any of the following characters:

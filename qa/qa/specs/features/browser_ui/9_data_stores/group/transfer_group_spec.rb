@@ -16,11 +16,7 @@ module QA
         sub_group_for_transfer.visit!
       end
 
-      it 'transfers a subgroup to another group', :blocking,
-        quarantine: {
-          issue: 'https://gitlab.com/gitlab-org/gitlab/-/issues/471699',
-          type: :investigating
-        },
+      it 'transfers a subgroup to another group', :reliable,
         testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/347692' do
         Page::Group::Menu.perform(&:go_to_general_settings)
         Page::Group::Settings::General.perform do |general|

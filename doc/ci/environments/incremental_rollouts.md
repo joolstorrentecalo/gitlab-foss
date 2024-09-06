@@ -66,9 +66,12 @@ rollout 10%:
     ROLLOUT_PERCENTAGE: 10
 ```
 
-After the jobs are built, select **Run** (**{play}**) next to the job's name
+When the jobs are built, a **play** button appears next to the job's name. Select **play**
 to release each stage of pods. You can also rollback by running a lower percentage job. Once 100%
-is reached, you cannot roll back using this method. To roll back a deployment, see [retry or roll back a deployment](../../ci/environments/index.md#retry-or-roll-back-a-deployment).
+is reached, you cannot roll back using this method. It is still possible to roll back by redeploying
+the old version using the **Rollback** button on the environment page.
+
+![Play button](img/incremental_rollouts_play_v12_7.png)
 
 A [deployable application](https://gitlab.com/gl-release/incremental-rollout-example) is
 available, demonstrating manually triggered incremental rollouts.
@@ -78,7 +81,7 @@ available, demonstrating manually triggered incremental rollouts.
 Timed rollouts behave in the same way as manual rollouts, except that each job is defined with a
 delay in minutes before it deploys. Selecting the job reveals the countdown.
 
-![A timed rollout in progress.](img/timed_rollout_v12_7.png)
+![Timed rollout](img/timed_rollout_v12_7.png)
 
 It is possible to combine this functionality with manual incremental rollouts so that the job
 counts down and then deploys.
@@ -114,7 +117,7 @@ available, [demonstrating configuration of timed rollouts](https://gitlab.com/gl
 ## Blue-Green Deployment
 
 NOTE:
-Teams can leverage an Ingress annotation and [set traffic weight](../../user/project/canary_deployments.md#how-to-change-the-traffic-weight-on-a-canary-ingress-deprecated)
+As of GitLab 13.7, teams can leverage an Ingress annotation and [set traffic weight](../../user/project/canary_deployments.md#how-to-change-the-traffic-weight-on-a-canary-ingress-deprecated)
 as an alternative approach to the blue-green deployment strategy documented here.
 
 Also sometimes known as A/B deployment or red-black deployment, this technique is used to reduce

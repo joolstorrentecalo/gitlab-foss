@@ -174,31 +174,6 @@ RSpec.describe API::Helpers, feature_category: :shared do
       context 'private project' do
         it_behaves_like 'private project without access'
       end
-
-      context 'user authenticated with job token' do
-        let_it_be(:job) { create(:ci_build, project: project) }
-        let_it_be(:outside_project) { create(:project) }
-
-        before do
-          allow(helper).to receive(:route_authentication_setting).and_return(job_token_scope: :project)
-          allow(helper).to receive(:initial_current_user).and_return(user)
-          helper.instance_variable_set(:@current_authenticated_job, job)
-        end
-
-        context "and requested project is not equal pipeline's project" do
-          it 'returns forbidden' do
-            expect(helper).to receive(:forbidden!).with("This project's CI/CD job token cannot be used to authenticate with the container registry of a different project.")
-
-            helper.find_project!(outside_project.id)
-          end
-        end
-
-        context "and requested project is equal pipeline's project" do
-          it 'finds a project' do
-            expect(helper.find_project!(project.id)).to eq(project)
-          end
-        end
-      end
     end
 
     context 'when user is not authenticated' do
@@ -852,14 +827,6 @@ RSpec.describe API::Helpers, feature_category: :shared do
         it 'returns disposition with the blob name' do
           expect(send_git_blob['Content-Disposition']).to eq %q(inline; filename="foobar"; filename*=UTF-8''foobar)
         end
-
-        context 'when blob name ends with an xhtml extension' do
-          let(:blob) { instance_double(Gitlab::Git::Blob, name: 'foo.bar.xhtml') }
-
-          it 'returns the name without extension' do
-            expect(send_git_blob['Content-Disposition']).to eq %q(inline; filename="foo"; filename*=UTF-8''foo)
-          end
-        end
       end
     end
   end
@@ -1207,9 +1174,7 @@ RSpec.describe API::Helpers, feature_category: :shared do
 
       it 'redirects to a CDN-fronted URL' do
         expect(helper).to receive(:redirect)
-        expect_next_instance_of(ObjectStorage::CDN::FileUrl) do |instance|
-          expect(instance).to receive(:url).and_call_original
-        end
+        expect(helper).to receive(:cdn_fronted_url).and_call_original
         expect(Gitlab::ApplicationContext).to receive(:push).with(artifact: artifact.file.model).and_call_original
         expect(Gitlab::ApplicationContext).to receive(:push).with(artifact_used_cdn: false).and_call_original
 
@@ -1227,27 +1192,34 @@ RSpec.describe API::Helpers, feature_category: :shared do
           subject
         end
       end
+    end
+  end
 
-      context 'with content_disposition' do
-        let(:filename) { artifact.file.filename }
-        let(:redirect_params) do
-          {
-            query: {
-              'response-content-disposition' => "attachment; filename=\"#{filename}\"; filename*=UTF-8''#{filename}",
-              'response-content-type' => 'application/zip'
-            }
-          }
-        end
+  describe '#cdn_frontend_url' do
+    before do
+      allow(helper).to receive(:env).and_return({})
 
-        subject { helper.present_artifacts_file!(artifact.file, content_disposition: :attachment) }
+      stub_artifacts_object_storage(enabled: true)
+    end
 
-        it 'redirects as an attachment' do
-          expect(helper).to receive(:redirect)
-          expect(ObjectStorage::CDN::FileUrl).to receive(:new)
-            .with(file: anything, ip_address: anything, redirect_params: redirect_params).and_call_original
+    context 'with a CI artifact' do
+      let(:artifact) { create(:ci_job_artifact, :zip, :remote_store) }
 
-          subject
-        end
+      it 'retrieves a CDN-fronted URL' do
+        expect(artifact.file).to receive(:cdn_enabled_url).and_call_original
+        expect(Gitlab::ApplicationContext).to receive(:push).with(artifact_used_cdn: false).and_call_original
+        expect(helper.cdn_fronted_url(artifact.file)).to be_a(String)
+      end
+    end
+
+    context 'with a file upload' do
+      let(:url) { 'https://example.com/path/to/upload' }
+
+      it 'retrieves the file URL' do
+        file = double(url: url)
+
+        expect(Gitlab::ApplicationContext).not_to receive(:push)
+        expect(helper.cdn_fronted_url(file)).to eq(url)
       end
     end
   end

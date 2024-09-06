@@ -28,6 +28,10 @@
   .build-state {
     padding: 20px 2px;
 
+    .build-name {
+      font-weight: $gl-font-weight-normal;
+    }
+
     .stage {
       color: var(--gray-500, $gray-500);
       font-weight: $gl-font-weight-normal;
@@ -51,6 +55,21 @@
     width: 100%;
     text-align: left;
     margin-top: $gl-padding;
+  }
+
+  .build-name {
+    width: 196px;
+
+    a {
+      font-weight: $gl-font-weight-bold;
+      color: var(--gl-text-color, $gl-text-color);
+      text-decoration: none;
+
+      &:focus,
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 
   .build-actions {
@@ -105,12 +124,10 @@
 // These are single-value classes to use with utility-class style CSS.
 // They are here to still access a variable or because they use magic values.
 // scoped to the graph. Do not add other styles.
-// stylelint-disable-next-line gitlab/no-gl-class
 .gl-pipeline-min-h {
   min-height: calc(#{$dropdown-max-height-lg} + #{$gl-spacing-scale-6});
 }
 
-// stylelint-disable-next-line gitlab/no-gl-class
 .gl-pipeline-job-width {
   width: 100%;
   max-width: 400px;
@@ -120,7 +137,6 @@
   }
 }
 
-// stylelint-disable-next-line gitlab/no-gl-class
 .gl-downstream-pipeline-job-width {
   width: 8rem;
 
@@ -133,12 +149,10 @@
   }
 }
 
-// stylelint-disable-next-line gitlab/no-gl-class
 .gl-linked-pipeline-padding {
   padding-right: 120px;
 }
 
-// stylelint-disable-next-line gitlab/no-gl-class
 .gl-ci-action-icon-container {
   position: absolute;
   right: 5px;
@@ -156,7 +170,6 @@
   }
 }
 
-// stylelint-disable-next-line gitlab/no-gl-class
 .stage-column-title .gl-ci-action-icon-container {
   right: 11px;
 }
@@ -227,12 +240,17 @@
   background-color: var(--blue-500, $blue-500) !important;
 }
 
-.ci-job-item-failed {
-  background-color: var(--red-50, $red-50);
+.ci-job-component {
+  .job-failed {
+    background-color: var(--red-50, $red-50);
+  }
+}
 
-  // stylelint-disable-next-line gitlab/no-gl-class
-  .gl-dark & {
-    background-color: var(--gray-200, $gray-200);
+.gl-dark {
+  .ci-job-component {
+    .job-failed {
+      background-color: var(--gray-200, $gray-200);
+    }
   }
 }
 
@@ -298,28 +316,18 @@
   }
 
   .pipeline-graph .pipeline-graph {
-    background-color: var(--gray-100, $gray-100);
+    background-color: $gray-100;
   }
 }
 
 .stage-column .ci-job-group-dropdown {
-  // stylelint-disable-next-line gitlab/no-gl-class
   &,
   .gl-new-dropdown-custom-toggle {
     width: 100%;
-
-    // stylelint-disable-next-line gitlab/no-gl-class
-    .gl-badge.badge-muted {
-      // stylelint-disable-next-line gitlab/no-gl-class
-      .gl-dark & {
-        @apply gl-bg-gray-100;
-      }
-    }
   }
 
   // Reset padding, as inner element will
   // define padding
-  // stylelint-disable-next-line gitlab/no-gl-class
   .gl-new-dropdown-item-content,
   .gl-new-dropdown-item-text-wrapper {
     padding: 0;
@@ -327,20 +335,12 @@
 
   // Set artificial focus on the menu-item to keep
   // it consistent with the original dropdown items
-  // stylelint-disable-next-line gitlab/no-gl-class
-  .gl-new-dropdown-item:focus,
-  .gl-new-dropdown-item-content:focus {
-    outline: none;
-
-    .menu-item {
-      background-color: var(--gray-50, $gray-50);
-      border-radius: $gl-border-radius-base;
-      box-shadow: inset 0 0 0 2px $blue-400,
-        inset 0 0 0 3px var(--white, $white);
-      outline: none;
-    }
+  .gl-new-dropdown-item:focus .menu-item,
+  .gl-new-dropdown-item-content:focus .menu-item {
+    background-color: $gray-50;
+    border-radius: $border-radius-default;
+    @include gl-focus($inset: true);
   }
-
 }
 
 .scan-reports-summary-grid {
@@ -351,11 +351,4 @@
   .scan-reports-summary-grid :nth-child(3n+1) {
     grid-column: 1 / -1;
   }
-}
-
-// Temporary fix to make tooltip appear correctly
-// until we refactor the tooltip handling in
-// https://gitlab.com/gitlab-org/gitlab/-/issues/463629
-.ci-job-component-tooltip::first-letter {
-  text-transform: uppercase;
 }

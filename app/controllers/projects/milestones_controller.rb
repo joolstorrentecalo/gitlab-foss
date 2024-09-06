@@ -171,11 +171,11 @@ class Projects::MilestonesController < Projects::ApplicationController
   # rubocop: enable CodeReuse/ActiveRecord
 
   def authorize_admin_milestone!
-    render_404 unless can?(current_user, :admin_milestone, @project)
+    return render_404 unless can?(current_user, :admin_milestone, @project)
   end
 
   def authorize_promote_milestone!
-    render_404 unless can?(current_user, :admin_milestone, project_group)
+    return render_404 unless can?(current_user, :admin_milestone, project_group)
   end
 
   def milestone_params

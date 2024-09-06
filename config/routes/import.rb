@@ -88,12 +88,4 @@ namespace :import do
     get :realtime_changes
     post :upload
   end
-
-  resources :source_users, only: [] do
-    member do
-      get :show
-      post :accept
-      post :decline
-    end
-  end
 end

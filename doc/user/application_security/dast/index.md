@@ -11,11 +11,9 @@ DETAILS:
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
 WARNING:
-The DAST proxy-based analyzer was [deprecated](https://gitlab.com/gitlab-org/gitlab/-/issues/430966) in GitLab 16.9 and
-is replaced by DAST version 5 in GitLab 17.0. This change is a breaking change. For instructions on how to migrate from
-the DAST proxy-based analyzer to DAST version 5, see the [proxy-based migration guide](proxy_based_to_browser_based_migration_guide.md).
-For instructions on how to migrate from the DAST version 4 browser-based analyzer to DAST version 5,
-see the [browser-based migration guide](browser_based_4_to_5_migration_guide.md).
+Proxy-based DAST was [deprecated](https://gitlab.com/gitlab-org/gitlab/-/issues/430966) in GitLab
+16.9 and is planned for removal in 17.0. Use [browser-based DAST](browser_based.md) instead. This
+change is a breaking change.
 
 Dynamic Application Security Testing (DAST) runs automated penetration tests to find vulnerabilities
 in your web applications and APIs as they are running. DAST automates a hacker’s approach and
@@ -44,11 +42,11 @@ GitLab provides the following DAST analyzers, one or more of which may be useful
 For scanning websites, use one of:
 
 - The [DAST proxy-based analyzer](proxy-based.md) for scanning traditional applications serving simple HTML. The proxy-based analyzer can be run automatically or on-demand.
-- The [DAST browser-based analyzer](browser/index.md) for scanning applications that make heavy use of JavaScript. This includes single page web applications.
+- The [DAST browser-based analyzer](browser_based.md) for scanning applications that make heavy use of JavaScript. This includes single page web applications.
 
 For scanning APIs, use:
 
-- The [API security testing analyzer](../api_security_testing/index.md) for scanning web APIs. Web API technologies such as GraphQL, REST, and SOAP are supported.
+- The [DAST API analyzer](../dast_api/index.md) for scanning web APIs. Web API technologies such as GraphQL, REST, and SOAP are supported.
 
 Analyzers follow the architectural patterns described in [Secure your application](../index.md).
 Each analyzer can be configured in the pipeline using a CI template and runs the scan in a Docker container. Scans output a [DAST report artifact](../../../ci/yaml/artifacts_reports.md#artifactsreportsdast)
@@ -58,10 +56,8 @@ which GitLab uses to determine discovered vulnerabilities based on differences b
 
 #### Prerequisites
 
-> - Support for the arm64 architecture was [introduced](https://gitlab.com/groups/gitlab-org/-/epics/13757) in GitLab 17.0.
-
 - [GitLab Runner](../../../ci/runners/index.md) available, with the
-  [`docker` executor](https://docs.gitlab.com/runner/executors/docker.html) on Linux/amd64 or Linux/arm64.
+  [`docker` executor](https://docs.gitlab.com/runner/executors/docker.html) on Linux/amd64.
 - Target application deployed. For more details, read [Deployment options](#application-deployment-options).
 - `dast` stage added to the CI/CD pipeline definition. This should be added after the deploy step, for example:
 
@@ -89,18 +85,20 @@ which GitLab uses to determine discovered vulnerabilities based on differences b
 
 #### Analyzer configuration
 
-See [DAST proxy-based analyzer](proxy-based.md), [DAST browser-based analyzer](browser/index.md) or [API security testing analyzer](../api_security_testing/index.md) for
+See [DAST proxy-based analyzer](proxy-based.md), [DAST browser-based analyzer](browser_based.md) or [DAST API analyzer](../dast_api/index.md) for
 analyzer-specific configuration instructions.
 
 ### View scan results
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/36332) in GitLab 13.1.
 
 Detected vulnerabilities appear in [merge requests](../index.md#merge-request), the [pipeline security tab](../index.md#pipeline-security-tab),
 and the [vulnerability report](../index.md#vulnerability-report).
 
 1. To see all vulnerabilities detected, either:
-   - From your project, select **Security & Compliance**, then **Vulnerability report**.
-   - From your pipeline, select the **Security** tab.
-   - From the merge request, go to the **Security scanning** widget and select **Full report** tab.
+    - From your project, select **Security & Compliance**, then **Vulnerability report**.
+    - From your pipeline, select the **Security** tab.
+    - From the merge request, go to the **Security scanning** widget and select **Full report** tab.
 
 1. Select a DAST vulnerability's description. The following fields are examples of what a DAST analyzer may produce to aid investigation and rectification of the underlying cause. Each analyzer may output different fields.
 
@@ -142,13 +140,13 @@ Depending on the complexity of the target application, there are a few options a
 the DAST template. A set of example applications have been provided with their configurations in the
 [DAST demonstrations](https://gitlab.com/gitlab-org/security-products/demos/dast/) project.
 
-#### Review apps
+#### Review Apps
 
-Review apps are the most involved method of deploying your DAST target application. To assist in the process,
+Review Apps are the most involved method of deploying your DAST target application. To assist in the process,
 we created a Review App deployment using Google Kubernetes Engine (GKE). This example can be found in our
-[Review apps - GKE](https://gitlab.com/gitlab-org/security-products/demos/dast/review-app-gke) project, along with detailed
+[Review Apps - GKE](https://gitlab.com/gitlab-org/security-products/demos/dast/review-app-gke) project, along with detailed
 instructions in the [README.md](https://gitlab.com/gitlab-org/security-products/demos/dast/review-app-gke/-/blob/master/README.md)
-on how to configure review apps for DAST.
+on how to configure Review Apps for DAST.
 
 #### Docker Services
 

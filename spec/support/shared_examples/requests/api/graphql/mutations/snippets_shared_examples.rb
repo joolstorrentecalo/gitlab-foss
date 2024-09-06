@@ -12,35 +12,35 @@ end
 RSpec.shared_examples 'snippet edit usage data counters' do
   include SessionHelpers
 
-  let(:event) { 'g_edit_by_snippet_ide' }
-
   context 'when user is sessionless' do
-    subject(:request) { post_graphql_mutation(mutation, current_user: current_user) }
+    it 'does not track usage data actions' do
+      expect(::Gitlab::InternalEvents).not_to receive(:track_event)
 
-    it_behaves_like 'internal event not tracked'
+      post_graphql_mutation(mutation, current_user: current_user)
+    end
   end
 
   context 'when user is not sessionless', :clean_gitlab_redis_sessions do
     before do
-      stub_session(
-        session_data: {
-          'warden.user.user.key' => [[current_user.id], current_user.authenticatable_salt]
-        }
-      )
+      stub_session('warden.user.user.key' => [[current_user.id], current_user.authenticatable_salt])
     end
 
     subject do
       post_graphql_mutation(mutation)
     end
 
-    it_behaves_like 'internal event tracking'
+    it_behaves_like 'internal event tracking' do
+      let(:event) { 'g_edit_by_snippet_ide' }
+    end
 
     context 'when mutation result raises an error' do
-      before do
+      it 'does not track usage data actions' do
         mutation_vars[:title] = nil
-      end
 
-      it_behaves_like 'internal event not tracked'
+        expect(::Gitlab::InternalEvents).not_to receive(:track_event)
+
+        post_graphql_mutation(mutation)
+      end
     end
   end
 end

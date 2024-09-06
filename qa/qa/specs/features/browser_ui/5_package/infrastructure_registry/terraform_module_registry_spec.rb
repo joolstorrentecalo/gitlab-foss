@@ -43,7 +43,7 @@ module QA
         runner.remove_via_api!
       end
 
-      it 'publishes a module', :blocking,
+      it 'publishes a module', :reliable,
         testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/371583' do
         Support::Retrier.retry_on_exception(max_attempts: 3, sleep_interval: 2) do
           terraform_module_yaml = ERB.new(

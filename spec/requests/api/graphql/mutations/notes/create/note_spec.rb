@@ -95,12 +95,24 @@ RSpec.describe 'Adding a Note', feature_category: :team_planning do
         it_behaves_like 'a Note mutation with confidential notes'
       end
 
+      context 'when using deprecated confidential param' do
+        let(:variables_extra) { { confidential: true } }
+
+        it_behaves_like 'a Note mutation with confidential notes'
+      end
+
       context 'as work item' do
         let_it_be_with_reload(:work_item) { create(:work_item, :task, project: project) }
         let(:noteable) { work_item }
 
         context 'when using internal param' do
           let(:variables_extra) { { internal: true } }
+
+          it_behaves_like 'a Note mutation with confidential notes'
+        end
+
+        context 'when using deprecated confidential param' do
+          let(:variables_extra) { { confidential: true } }
 
           it_behaves_like 'a Note mutation with confidential notes'
         end
@@ -124,6 +136,13 @@ RSpec.describe 'Adding a Note', feature_category: :team_planning do
           it_behaves_like 'work item supports start and due date widget updates via quick actions'
           it_behaves_like 'work item does not support start and due date widget updates via quick actions'
           it_behaves_like 'work item supports type change via quick actions'
+        end
+
+        context 'when work item is directly associated with a group' do
+          let_it_be_with_reload(:group_work_item) { create(:work_item, :group_level, :task, namespace: group) }
+          let(:noteable) { group_work_item }
+
+          it_behaves_like 'a Note mutation that creates a Note'
         end
       end
     end

@@ -49,10 +49,6 @@ RSpec.shared_examples 'Debian Component File' do |container_type, can_freeze|
     end
   end
 
-  describe 'delegations' do
-    it { is_expected.to delegate_method(container_type).to(:component) }
-  end
-
   describe 'validations' do
     describe "#component" do
       before do

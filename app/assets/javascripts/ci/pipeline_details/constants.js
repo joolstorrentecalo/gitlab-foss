@@ -29,7 +29,6 @@ export const needsTabName = 'dag';
 export const jobsTabName = 'builds';
 export const failedJobsTabName = 'failures';
 export const testReportTabName = 'test_report';
-export const manualVariablesTabName = 'manual_variables';
 export const securityTabName = 'security';
 export const licensesTabName = 'licenses';
 export const codeQualityTabName = 'codequality_report';
@@ -42,7 +41,6 @@ export const validPipelineTabNames = [
   securityTabName,
   licensesTabName,
   codeQualityTabName,
-  manualVariablesTabName,
 ];
 
 export const TOAST_MESSAGE = s__('Pipeline|Creating pipeline.');
@@ -51,23 +49,23 @@ export const DEFAULT_FIELDS = [
   {
     key: 'name',
     label: __('Name'),
-    columnClass: 'gl-w-1/5',
+    columnClass: 'gl-w-20p',
   },
   {
     key: 'stage',
     label: __('Stage'),
-    columnClass: 'gl-w-1/5',
+    columnClass: 'gl-w-20p',
   },
   {
     key: 'failureMessage',
     label: __('Failure'),
-    columnClass: 'gl-w-2/5',
+    columnClass: 'gl-w-40p',
   },
   {
     key: 'actions',
     label: '',
     tdClass: 'gl-text-right',
-    columnClass: 'gl-w-1/5',
+    columnClass: 'gl-w-20p',
   },
 ];
 

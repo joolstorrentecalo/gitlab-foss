@@ -19,7 +19,6 @@ module Mutations
           field :container_registry_protection_rule,
             Types::ContainerRegistry::Protection::RuleType,
             null: true,
-            alpha: { milestone: '16.7' },
             description: 'Container registry protection rule that was deleted successfully.'
 
           def resolve(id:, **_kwargs)

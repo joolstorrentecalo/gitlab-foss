@@ -16,7 +16,6 @@
     - export GOPATH=$CI_PROJECT_DIR/.go
     - mkdir -p $GOPATH
     - source scripts/utils.sh
-    - log_disk_usage before_script # https://gitlab.com/gitlab-org/gitlab/-/issues/478880
 
 .default-before_script:
   before_script:
@@ -29,8 +28,7 @@
   needs:
     # If the job extending this also defines `needs`, make sure to update
     # its `needs` to include `clone-gitlab-repo` because it'll be overridden.
-    - job: clone-gitlab-repo
-      optional: true # Optional so easier to switch in between
+    - clone-gitlab-repo
 
 .production:
   variables:
@@ -39,7 +37,7 @@
     GITLAB_ALLOW_SEPARATE_CI_DATABASE: "true"
 
 .ruby-gems-cache: &ruby-gems-cache
-  key: "ruby-gems-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}-gemfile-${BUNDLE_GEMFILE}"
+  key: "ruby-gems-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}"
   paths:
     - vendor/ruby/
   policy: pull
@@ -49,7 +47,7 @@
   policy: push  # We want to rebuild the cache from scratch to ensure stale dependencies are cleaned up.
 
 .ruby-coverage-gems-cache: &ruby-coverage-gems-cache
-  key: "ruby-coverage-gems-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}-gemfile-${BUNDLE_GEMFILE}"
+  key: "ruby-coverage-gems-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}"
   paths:
     - vendor/ruby/
   policy: pull
@@ -68,9 +66,7 @@
     - ${TMP_TEST_FOLDER}/gitaly/_build/bin/
     - ${TMP_TEST_FOLDER}/gitaly/_build/deps/git/install/
     - ${TMP_TEST_FOLDER}/gitaly/config.toml
-    - ${TMP_TEST_FOLDER}/gitaly/config.toml.transactions
     - ${TMP_TEST_FOLDER}/gitaly/gitaly2.config.toml
-    - ${TMP_TEST_FOLDER}/gitaly/gitaly2.config.toml.transactions
     - ${TMP_TEST_FOLDER}/gitaly/internal/
     - ${TMP_TEST_FOLDER}/gitaly/run/
     - ${TMP_TEST_FOLDER}/gitaly/run2/
@@ -101,7 +97,7 @@
   policy: push  # We want to rebuild the cache from scratch to ensure stale dependencies are cleaned up.
 
 .assets-tmp-cache: &assets-tmp-cache
-  key: "assets-tmp-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}-gemfile-${BUNDLE_GEMFILE}-node-${NODE_ENV}-v1"
+  key: "assets-tmp-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}-node-${NODE_ENV}-v1"
   paths:
     - tmp/cache/assets/sprockets/
     - tmp/cache/babel-loader/
@@ -123,7 +119,7 @@
   policy: push  # We want to rebuild the cache from scratch to ensure stale dependencies are cleaned up.
 
 .rubocop-cache: &rubocop-cache
-  key: "rubocop-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}-gemfile-${BUNDLE_GEMFILE}"
+  key: "rubocop-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}"
   paths:
     - tmp/rubocop_cache/
   policy: pull
@@ -136,7 +132,7 @@
 
 .qa-ruby-gems-cache: &qa-ruby-gems-cache
   key:
-    prefix: "qa-ruby-gems-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}-gemfile-${BUNDLE_GEMFILE}"
+    prefix: "qa-ruby-gems-${BUILD_OS}-${OS_VERSION}-ruby-${RUBY_VERSION}"
     files:
       - qa/Gemfile.lock
   paths:
@@ -201,7 +197,6 @@
     BUNDLE_SUPPRESS_INSTALL_USING_MESSAGES: "true"
     BUNDLE_SILENCE_ROOT_WARNING: "true"
     BUNDLE_PATH: vendor
-    BUNDLE_WITHOUT: development
 
 .qa-cache:
   <<: *qa-bundler-variables
@@ -310,22 +305,6 @@
     - name: ${REGISTRY_HOST}/${REGISTRY_GROUP}/gitlab-build-images:zoekt-ci-image-1.8
       alias: zoekt-ci-image
 
-.ai-gateway-variables:
-  variables:
-    AIGW_AUTH__BYPASS_EXTERNAL: true
-    AIGW_GOOGLE_CLOUD_PLATFORM__PROJECT: $VERTEX_AI_PROJECT
-    AIGW_GOOGLE_CLOUD_PLATFORM__SERVICE_ACCOUNT_JSON_KEY: $VERTEX_AI_CREDENTIALS
-    AIGW_FASTAPI__DOCS_URL: "/docs"
-    AIGW_FASTAPI__OPENAPI_URL: "/openapi.json"
-    AIGW_FASTAPI__API_PORT: 5052
-    ANTHROPIC_API_KEY: $ANTHROPIC_API_KEY_FOR_SERVICE
-    # CI_DEBUG_SERVICES: "true" # Enable this variable when you debug ai-gateway boot failure.
-
-.ai-gateway-services:
-  services:
-    - name: registry.gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/model-gateway:v1.15.0
-      alias: ai-gateway
-
 .use-pg13:
   extends:
     - .pg-base-variables
@@ -368,15 +347,21 @@
     - name: elasticsearch:7.17.6
       command: ["elasticsearch", "-E", "discovery.type=single-node", "-E", "xpack.security.enabled=false", "-E", "cluster.routing.allocation.disk.threshold_enabled=false"]
 
+.use-pg13-es7-ee:
+  extends:
+    - .use-pg13
+    - .zoekt-variables
+  services:
+    - !reference [.db-services, services]
+    - !reference [.es7-services, services]
+
 .use-pg14-es7-ee:
   extends:
     - .use-pg14
     - .zoekt-variables
-    - .ai-gateway-variables
   services:
     - !reference [.db-services-with-auto-explain, services]
     - !reference [.es7-services, services]
-    - !reference [.ai-gateway-services, services]
 
 .use-pg15-es7-ee:
   extends:
@@ -405,6 +390,14 @@
     ES_SETTING_XPACK_SECURITY_ENABLED: "false"
     ES_SETTING_CLUSTER_ROUTING_ALLOCATION_DISK_THRESHOLD__ENABLED: "false"
 
+.use-pg13-es8-ee:
+  extends:
+    - .use-pg13
+    - .zoekt-variables
+    - .es8-variables
+  services:
+    - !reference [.db-services, services]
+    - !reference [.es8-services, services]
 
 .use-pg14-es8-ee:
   extends:
@@ -436,9 +429,17 @@
 .os1-services:
   services:
     - !reference [.zoekt-services, services]
-    - name: opensearchproject/opensearch:1.3.18
+    - name: opensearchproject/opensearch:1.3.5
       alias: elasticsearch
       command: ["bin/opensearch", "-E", "discovery.type=single-node", "-E", "plugins.security.disabled=true", "-E", "cluster.routing.allocation.disk.threshold_enabled=false"]
+
+.use-pg13-opensearch1-ee:
+  extends:
+    - .use-pg13
+    - .zoekt-variables
+  services:
+    - !reference [.db-services, services]
+    - !reference [.os1-services, services]
 
 .use-pg14-opensearch1-ee:
   extends:
@@ -467,9 +468,17 @@
 .os2-services:
   services:
     - !reference [.zoekt-services, services]
-    - name: opensearchproject/opensearch:2.15.0
+    - name: opensearchproject/opensearch:2.2.1
       alias: elasticsearch
       command: ["bin/opensearch", "-E", "discovery.type=single-node", "-E", "plugins.security.disabled=true", "-E", "cluster.routing.allocation.disk.threshold_enabled=false"]
+
+.use-pg13-opensearch2-ee:
+  extends:
+    - .use-pg13
+    - .zoekt-variables
+  services:
+    - !reference [.db-services, services]
+    - !reference [.os2-services, services]
 
 .use-pg14-opensearch2-ee:
   extends:

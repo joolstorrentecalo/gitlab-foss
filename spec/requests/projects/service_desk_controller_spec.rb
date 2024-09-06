@@ -3,13 +3,17 @@
 require 'spec_helper'
 
 RSpec.describe Projects::ServiceDeskController, feature_category: :service_desk do
-  let_it_be_with_reload(:project) do
+  let_it_be(:project) do
     create(:project, :private, :custom_repo,
       service_desk_enabled: true,
       files: { '.gitlab/issue_templates/service_desk.md' => 'template' })
   end
 
-  let_it_be(:user) { create(:user, maintainer_of: project) }
+  let_it_be(:user) { create(:user) }
+
+  before_all do
+    project.add_maintainer(user)
+  end
 
   before do
     allow(Gitlab::Email::IncomingEmail).to receive(:enabled?).and_return(true)
@@ -78,8 +82,7 @@ RSpec.describe Projects::ServiceDeskController, feature_category: :service_desk 
       put project_service_desk_path(project, format: :json), params: {
         issue_template_key: 'service_desk',
         reopen_issue_on_external_participant_note: true,
-        add_external_participants_from_cc: true,
-        tickets_confidential_by_default: false
+        add_external_participants_from_cc: true
       }
 
       settings = project.service_desk_setting
@@ -87,14 +90,12 @@ RSpec.describe Projects::ServiceDeskController, feature_category: :service_desk 
       expect(settings).to have_attributes(
         issue_template_key: 'service_desk',
         reopen_issue_on_external_participant_note: true,
-        add_external_participants_from_cc: true,
-        tickets_confidential_by_default: false
+        add_external_participants_from_cc: true
       )
       expect(json_response).to include(
         'issue_template_key' => 'service_desk',
         'reopen_issue_on_external_participant_note' => true,
-        'add_external_participants_from_cc' => true,
-        'tickets_confidential_by_default' => false
+        'add_external_participants_from_cc' => true
       )
     end
 

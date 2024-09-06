@@ -51,10 +51,6 @@ class HelpController < ApplicationController
     end
   end
 
-  def redirect_to_docs
-    redirect_to documentation_base_url || Gitlab::Saas.doc_url
-  end
-
   def shortcuts
   end
 

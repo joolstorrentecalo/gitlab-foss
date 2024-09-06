@@ -101,7 +101,7 @@ RSpec.describe IssuablesHelper, feature_category: :team_planning do
   describe '#assigned_issuables_count', feature_category: :team_planning do
     context 'when issuable is issues' do
       let_it_be(:user) { create(:user) }
-      let_it_be(:project) { create(:project, developers: user) }
+      let_it_be(:project) { create(:project).tap { |p| p.add_developer(user) } }
 
       subject { helper.assigned_issuables_count(:issues) }
 
@@ -132,13 +132,13 @@ RSpec.describe IssuablesHelper, feature_category: :team_planning do
 
         it 'returns navigation with badges' do
           expect(helper.issuables_state_counter_text(:issues, :opened, true))
-            .to eq('<span>Open</span> <span class="gl-badge badge badge-pill badge-muted gl-tab-counter-badge gl-hidden sm:gl-inline-flex"><span class="gl-badge-content">42</span></span>')
+            .to eq('<span>Open</span> <span class="gl-badge badge badge-pill badge-muted sm gl-tab-counter-badge gl-display-none gl-sm-display-inline-flex">42</span>')
           expect(helper.issuables_state_counter_text(:issues, :closed, true))
-            .to eq('<span>Closed</span> <span class="gl-badge badge badge-pill badge-muted gl-tab-counter-badge gl-hidden sm:gl-inline-flex"><span class="gl-badge-content">42</span></span>')
+            .to eq('<span>Closed</span> <span class="gl-badge badge badge-pill badge-muted sm gl-tab-counter-badge gl-display-none gl-sm-display-inline-flex">42</span>')
           expect(helper.issuables_state_counter_text(:merge_requests, :merged, true))
-            .to eq('<span>Merged</span> <span class="gl-badge badge badge-pill badge-muted gl-tab-counter-badge gl-hidden sm:gl-inline-flex"><span class="gl-badge-content">42</span></span>')
+            .to eq('<span>Merged</span> <span class="gl-badge badge badge-pill badge-muted sm gl-tab-counter-badge gl-display-none gl-sm-display-inline-flex">42</span>')
           expect(helper.issuables_state_counter_text(:merge_requests, :all, true))
-            .to eq('<span>All</span> <span class="gl-badge badge badge-pill badge-muted gl-tab-counter-badge gl-hidden sm:gl-inline-flex"><span class="gl-badge-content">42</span></span>')
+            .to eq('<span>All</span> <span class="gl-badge badge badge-pill badge-muted sm gl-tab-counter-badge gl-display-none gl-sm-display-inline-flex">42</span>')
         end
       end
 
@@ -170,7 +170,7 @@ RSpec.describe IssuablesHelper, feature_category: :team_planning do
 
         it 'returns truncated count' do
           expect(helper.issuables_state_counter_text(:issues, :opened, true))
-            .to eq('<span>Open</span> <span class="gl-badge badge badge-pill badge-muted gl-tab-counter-badge gl-hidden sm:gl-inline-flex"><span class="gl-badge-content">1.1k</span></span>')
+            .to eq('<span>Open</span> <span class="gl-badge badge badge-pill badge-muted sm gl-tab-counter-badge gl-display-none gl-sm-display-inline-flex">1.1k</span>')
         end
       end
     end
@@ -252,8 +252,7 @@ RSpec.describe IssuablesHelper, feature_category: :team_planning do
           canUpdate: true,
           canDestroy: true,
           issuableRef: "##{issue.iid}",
-          imported: issue.imported?,
-          markdownPreviewPath: "/#{@project.full_path}/-/preview_markdown?target_id=#{issue.iid}&target_type=Issue",
+          markdownPreviewPath: "/#{@project.full_path}/preview_markdown?target_id=#{issue.iid}&target_type=Issue",
           markdownDocsPath: '/help/user/markdown',
           lockVersion: issue.lock_version,
           issuableTemplateNamesPath: template_names_path(@project, issue),
@@ -477,6 +476,35 @@ RSpec.describe IssuablesHelper, feature_category: :team_planning do
         it 'returns nil' do
           expect(helper.issuable_initial_data(issue)[:movedToIssueUrl]).to be_nil
         end
+      end
+    end
+  end
+
+  describe '#assignee_sidebar_data' do
+    let(:user) { create(:user) }
+    let(:merge_request) { nil }
+
+    subject { helper.assignee_sidebar_data(user, merge_request: merge_request) }
+
+    it 'returns hash of assignee data' do
+      is_expected.to eql({
+        avatar_url: user.avatar_url,
+        name: user.name,
+        username: user.username
+      })
+    end
+
+    context 'with merge_request' do
+      let(:merge_request) { build_stubbed(:merge_request) }
+
+      where(can_merge: [true, false])
+
+      with_them do
+        before do
+          allow(merge_request).to receive(:can_be_merged_by?).and_return(can_merge)
+        end
+
+        it { is_expected.to include({ can_merge: can_merge }) }
       end
     end
   end

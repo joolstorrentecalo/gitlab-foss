@@ -5,8 +5,8 @@ module ContainerRegistry
     class CreateRuleService < BaseService
       ALLOWED_ATTRIBUTES = %i[
         repository_path_pattern
-        minimum_access_level_for_push
-        minimum_access_level_for_delete
+        push_protected_up_to_access_level
+        delete_protected_up_to_access_level
       ].freeze
 
       def execute
@@ -19,7 +19,7 @@ module ContainerRegistry
           project.container_registry_protection_rules.create(params.slice(*ALLOWED_ATTRIBUTES))
 
         unless container_registry_protection_rule.persisted?
-          return service_response_error(message: container_registry_protection_rule.errors.full_messages)
+          return service_response_error(message: container_registry_protection_rule.errors.full_messages.to_sentence)
         end
 
         ServiceResponse.success(payload: { container_registry_protection_rule: container_registry_protection_rule })

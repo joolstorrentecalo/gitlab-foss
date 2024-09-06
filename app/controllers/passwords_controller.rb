@@ -55,7 +55,8 @@ class PasswordsController < Devise::PasswordsController
   def log_audit_reset_failure(_user); end
 
   def resource_from_email
-    self.resource = resource_class.find_by_email(resource_params[:email].to_s)
+    email = resource_params[:email]
+    self.resource = resource_class.find_by_email(email)
   end
 
   def check_password_authentication_available

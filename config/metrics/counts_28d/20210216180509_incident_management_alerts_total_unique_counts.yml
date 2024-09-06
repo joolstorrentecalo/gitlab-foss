@@ -2,21 +2,22 @@
 data_category: optional
 key_path: counts_monthly.aggregated_metrics.incident_management_alerts_total_unique_counts
 description: Count of unique users per month to take an action on an alert
+product_section: ops
+product_stage: monitor
 product_group: respond
 value_type: number
 status: active
 time_frame: 28d
-instrumentation_class: RedisHLLMetric
+instrumentation_class: AggregatedMetric
 data_source: redis_hll
-events:
-- name: incident_management_alert_status_changed
-  unique: user.id
-- name: incident_management_alert_assigned
-  unique: user.id
-- name: incident_management_alert_todo
-  unique: user.id
-- name: incident_management_alert_create_incident
-  unique: user.id
+options:
+  aggregate:
+    attribute: user.id
+  events:
+    - 'incident_management_alert_status_changed'
+    - 'incident_management_alert_assigned'
+    - 'incident_management_alert_todo'
+    - 'incident_management_alert_create_incident'
 distribution:
 - ce
 - ee
@@ -26,4 +27,3 @@ tier:
 - ultimate
 performance_indicator_type: []
 milestone: "<13.9"
-introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/54332

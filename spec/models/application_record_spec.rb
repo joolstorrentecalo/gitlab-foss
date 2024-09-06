@@ -310,7 +310,6 @@ RSpec.describe ApplicationRecord do
         )
       SQL
     end
-
     context 'without an ignored column' do
       let(:test_model) do
         Class.new(ApplicationRecord) do

@@ -2,7 +2,6 @@
 stage: Create
 group: Source Code
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
-description: "Configure `gitlab-sshd`, a lightweight alternative to OpenSSH, for your GitLab instance."
 ---
 
 # `gitlab-sshd`
@@ -11,6 +10,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/299109) in GitLab 14.5 as an Experiment for self-managed customers.
 > - Ready for production use with [Cloud Native GitLab in GitLab 15.1](https://gitlab.com/gitlab-org/charts/gitlab/-/issues/2540) and [Linux packages in GitLab 15.9](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/5937).
 
 `gitlab-sshd` is [a standalone SSH server](https://gitlab.com/gitlab-org/gitlab-shell/-/tree/main/internal/sshd)
@@ -119,9 +119,6 @@ To enable the PROXY protocol:
    # Proxy protocol policy ("use", "require", "reject", "ignore"), "use" is the default value
    gitlab_sshd['proxy_policy'] = "use"
    ```
-
-   For more information about the `gitlab_sshd['proxy_policy']` options, see the
-   [`go-proxyproto` library](https://github.com/pires/go-proxyproto/blob/4ba2eb817d7a57a4aafdbd3b82ef0410806b533d/policy.go#L20-L35).
 
 1. Save the file and reconfigure GitLab:
 

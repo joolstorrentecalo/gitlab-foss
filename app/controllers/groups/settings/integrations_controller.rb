@@ -5,7 +5,10 @@ module Groups
     class IntegrationsController < Groups::ApplicationController
       include ::Integrations::Actions
 
-      before_action :authorize_admin_integrations!
+      before_action :authorize_admin_group!
+      before_action only: [:edit, :update] do
+        push_frontend_feature_flag(:jira_multiple_project_keys, group)
+      end
 
       feature_category :integrations
 

@@ -100,6 +100,8 @@ This setting limits the request rate on the Packages API per user or IP. For mor
 
 ### Git LFS
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/68642) in GitLab 14.3.
+
 This setting limits the request rate on the [Git LFS](../topics/git/lfs/index.md)
 requests per user. For more information, read
 [GitLab Git Large File Storage (LFS) Administration](../administration/lfs/index.md).
@@ -108,12 +110,17 @@ requests per user. For more information, read
 
 ### Files API
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/68561) in GitLab 14.3 [with a flag](../administration/feature_flags.md) named `files_api_throttling`. Disabled by default.
+> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/75918) in GitLab 14.6. [Feature flag `files_api_throttling`](https://gitlab.com/gitlab-org/gitlab/-/issues/338903) removed.
+
 This setting limits the request rate on the Packages API per user or IP address. For more information, read
 [Files API rate limits](settings/files_api_rate_limits.md).
 
 - **Default rate limit**: Disabled by default.
 
 ### Deprecated API endpoints
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/68645) in GitLab 14.4.
 
 This setting limits the request rate on deprecated API endpoints per user or IP address. For more information, read
 [Deprecated API rate limits](settings/deprecated_api_rate_limits.md).
@@ -144,6 +151,8 @@ Limit the maximum daily member invitations allowed per group hierarchy.
 
 ### Webhook rate limit
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/61151) in GitLab 13.12.
+> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/330133) in GitLab 14.1.
 > - [Limit changed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/89591) from per-hook to per-top-level namespace in GitLab 15.1.
 
 Limit the number of times a webhook can be called per minute, per top-level namespace.
@@ -167,6 +176,7 @@ Set the limit to `0` to disable it.
 
 ### Search rate limit
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/80631) in GitLab 14.9.
 > - [Changed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/104208) in GitLab 15.9 to include issue, merge request, and epic searches in the rate limit.
 > - [Changed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/118525) in GitLab 16.0 to apply rate limits to [search scopes](../user/search/index.md#global-search-scopes) for authenticated requests.
 
@@ -321,6 +331,8 @@ See also [webhook limits for GitLab.com](../user/gitlab_com/index.md#other-limit
 
 ### Recursive webhooks
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/329743) in GitLab 14.8.
+
 GitLab detects and blocks webhooks that are recursive or that exceed the limit
 of webhooks that can be triggered from other webhooks. This enables GitLab to
 continue to support workflows that use webhooks to call the API non-recursively, or that
@@ -335,25 +347,6 @@ trigger other webhooks is 100. When the limit is reached, GitLab blocks any furt
 webhooks that would be triggered by the series.
 
 Blocked recursive webhook calls are logged in `auth.log` with the message `"Recursive webhook blocked from executing"`.
-
-## Import placeholder user limits
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/455903) in GitLab 17.4.
-
-The number of [placeholder users](../user/project/import/index.md#placeholder-users) created during an import can be limited per top-level namespace.
-
-The default limit for [GitLab self-managed](../subscriptions/self_managed/index.md) is `0` (unlimited).
-
-To change this limit for a self-managed installation, run the following in the [GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session):
-
-```ruby
-# If limits don't exist for the default plan, you can create one with:
-# Plan.default.create_limits!
-
-Plan.default.actual_limits.update!(import_placeholder_user_limit_tier_1: 200)
-```
-
-Set the limit to `0` to disable it.
 
 ## Pull Mirroring Interval
 
@@ -495,13 +488,15 @@ Set the limit to `0` to disable it.
 
 ### Limit the number of pipeline triggers
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/33696) in GitLab 14.6.
+
 You can set a limit on the maximum number of pipeline triggers per project. This
 limit is checked every time a new trigger is created.
 
 If a new trigger would cause the total number of pipeline triggers to exceed the
 limit, the trigger is considered invalid.
 
-Set the limit to `0` to disable it. Defaults to `25000` on self-managed instances.
+Set the limit to `0` to disable it. Defaults to `150` on self-managed instances.
 
 To set this limit to `100` on a self-managed installation, run the following in the
 [GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session):
@@ -534,6 +529,8 @@ Plan.default.actual_limits.update!(ci_pipeline_schedules: 100)
 ```
 
 ### Limit the number of pipelines created by a pipeline schedule per day
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/323066) in GitLab 14.0.
 
 You can limit the number of pipelines that pipeline schedules can trigger per day.
 
@@ -577,35 +574,57 @@ Plan.default.actual_limits.update!(security_policy_scan_execution_schedules: 100
 
 This limit is [enabled on GitLab.com](../user/gitlab_com/index.md#gitlab-cicd).
 
-### CI/CD variable limits
+### Number of instance level variables
 
-> - Group and project variable limits [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/362227) in GitLab 15.7.
+The total number of instance level CI/CD variables is limited at the instance level.
+This limit is checked each time a new instance level variable is created. If a new variable
+would cause the total number of variables to exceed the limit, the new variable is not created.
 
-The number of [CI/CD variables](../ci/variables/index.md) that can be defined in project,
-group, and instance settings are all limited for the entire instance. These limits are checked
-each time a new variable is created. If a new variable would cause the total number of variables
-to exceed the respective limit, the new variable is not created.
+On self-managed instances this limit is defined for the `default` plan. By default,
+this limit is set to `25`.
 
-To update the `default` plan of one of these limits on a self-managed installation, in the
-[GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session) run the following command:
+To update this limit to a new value on a self-managed installation, run the following in the
+[GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session):
 
-- [Instance-level CI/CD variable](../ci/variables/index.md#for-an-instance) limit (default: `25`):
+```ruby
+Plan.default.actual_limits.update!(ci_instance_level_variables: 30)
+```
 
-  ```ruby
-  Plan.default.actual_limits.update!(ci_instance_level_variables: 30)
-  ```
+### Number of group level variables
 
-- [Group-level CI/CD variable](../ci/variables/index.md#for-a-group) limit per group (default: `30000`):
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/362227) in GitLab 15.7.
 
-  ```ruby
-  Plan.default.actual_limits.update!(group_ci_variables: 40000)
-  ```
+The total number of group level CI/CD variables is limited at the instance level.
+This limit is checked each time a new group level variable is created. If a new variable
+would cause the total number of variables to exceed the limit, the new variable is not created.
 
-- [Project-level CI/CD variable](../ci/variables/index.md#for-a-project) limit per project (default: `8000`):
+On self-managed instances this limit is defined for the `default` plan. By default,
+this limit is set to `30000`.
 
-  ```ruby
-  Plan.default.actual_limits.update!(project_ci_variables: 10000)
-  ```
+To update this limit to a new value on a self-managed installation, run the following in the
+[GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session):
+
+```ruby
+Plan.default.actual_limits.update!(group_ci_variables: 40000)
+```
+
+### Number of project level variables
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/362227) in GitLab 15.7.
+
+The total number of project level CI/CD variables is limited at the instance level.
+This limit is checked each time a new project level variable is created. If a new variable
+would cause the total number of variables to exceed the limit, the new variable is not created.
+
+On self-managed instances this limit is defined for the `default` plan. By default,
+this limit is set to `8000`.
+
+To update this limit to a new value on a self-managed installation, run the following in the
+[GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session):
+
+```ruby
+Plan.default.actual_limits.update!(project_ci_variables: 10000)
+```
 
 ### Maximum file size per type of artifact
 
@@ -654,7 +673,7 @@ setting is used:
 | `ci_max_artifact_size_secret_detection`     | 0             |
 | `ci_max_artifact_size_terraform`            | 5 MB          |
 | `ci_max_artifact_size_trace`                | 0             |
-| `ci_max_artifact_size_cyclonedx`            | 5 MB          |
+| `ci_max_artifact_size_cyclonedx`            | 1 MB          |
 
 For example, to set the `ci_max_artifact_size_junit` limit to 10 MB on a self-managed
 installation, run the following in the [GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session):
@@ -684,19 +703,18 @@ The total number of custom domains per GitLab Pages website is limited to `150` 
 
 The default limit for [GitLab self-managed](../subscriptions/self_managed/index.md) is `0` (unlimited).
 To set a limit on your self-managed instance, use the
-[**Admin** area](pages/index.md#set-maximum-number-of-gitlab-pages-custom-domains-for-a-project).
-
-### Number of extra Pages deployments when using multiple deployments
-
-When using [multiple Pages deployments](../user/project/pages/index.md#create-multiple-deployments), the total number
-of extra Pages deployments permitted for a top-level namespace is 1000.
+[Admin Area](pages/index.md#set-maximum-number-of-gitlab-pages-custom-domains-for-a-project).
 
 ### Number of registered runners per scope
 
-> - Runner stale timeout [changed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/155795) from 3 months to 7 days in GitLab 17.1.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/321368) in GitLab 13.12. Disabled by default.
+> - Enabled on GitLab.com in GitLab 14.3.
+> - Enabled on self-managed in GitLab 14.4.
+> - Feature flag `ci_runner_limits` removed in GitLab 14.4.
+> - Feature flag `ci_runner_limits_override` removed in GitLab 14.6.
 
-The total number of registered runners is limited for groups and projects. Each time a new runner is registered,
-GitLab checks these limits against runners that have been active in the last 7 days.
+The total number of registered runners is limited at the group and project levels. Each time a new runner is registered,
+GitLab checks these limits against runners that have been active in the last 3 months.
 A runner's registration fails if it exceeds the limit for the scope determined by the runner registration token.
 If the limit value is set to zero, the limit is disabled.
 
@@ -720,6 +738,9 @@ Plan.default.actual_limits.update!(ci_registered_project_runners: 100)
 
 ### Maximum file size for job logs
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/276192) in GitLab 14.1, disabled by default.
+> - Enabled by default and [feature flag `ci_jobs_trace_size_limit` removed](https://gitlab.com/gitlab-org/gitlab/-/issues/335259) in GitLab 14.2.
+
 The job log file size limit in GitLab is 100 megabytes by default. Any job that exceeds the
 limit is marked as failed, and dropped by the runner.
 
@@ -737,6 +758,8 @@ continue to run, but the log is truncated when it hits the limit.
 
 ### Maximum number of active DAST profile schedules per project
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/68551) in GitLab 14.3.
+
 Limit the number of active DAST profile schedules per project. A DAST profile schedule can be active or inactive.
 
 You can change the limit in the [GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session).
@@ -744,18 +767,6 @@ Update `dast_profile_schedules` with the new value:
 
 ```ruby
 Plan.default.actual_limits.update!(dast_profile_schedules: 50)
-```
-
-### Maximum size of the CI artifacts archive
-
-The default maximum size of the CI artifacts archive is 5 megabytes.
-
-You can change this limit via the [GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session).
-To update the maximum size of the CI artifacts archive,
-update `max_artifacts_content_include_size` with the new value. For example, to set it to 20 MB:
-
-```ruby
-ApplicationSetting.update(max_artifacts_content_include_size: 20.megabytes)
 ```
 
 ### Maximum size and depth of CI/CD configuration YAML files
@@ -802,6 +813,8 @@ ApplicationSetting.update(ci_max_total_yaml_size_bytes: 20.megabytes)
 
 ### Limit dotenv variables
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/321552) in GitLab 14.5.
+
 You can set a limit on the maximum number of variables inside of a dotenv artifact.
 This limit is checked every time a dotenv file is exported as an artifact.
 
@@ -817,6 +830,8 @@ Plan.default.actual_limits.update!(dotenv_variables: 100)
 This limit is [enabled on GitLab.com](../user/gitlab_com/index.md#gitlab-cicd).
 
 ### Limit dotenv file size
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/321552) in GitLab 14.5.
 
 You can set a limit on the maximum size of a dotenv artifact. This limit is checked
 every time a dotenv file is exported as an artifact.
@@ -1068,7 +1083,7 @@ The default maximum file size for a package that's uploaded to the [GitLab packa
 The [maximum file sizes on GitLab.com](../user/gitlab_com/index.md#package-registry-limits)
 might be different.
 
-To set these limits for a self-managed installation, you can do it [through the **Admin** area](settings/continuous_integration.md#package-file-size-limits)
+To set these limits for a self-managed installation, you can do it [through the Admin Area](settings/continuous_integration.md#package-file-size-limits)
 or run the following in the
 [GitLab Rails console](operations/rails_console.md#starting-a-rails-console-session):
 
@@ -1108,6 +1123,8 @@ When asking for versions of a given NuGet package name, the GitLab package regis
 
 ## Dependency Proxy Limits
 
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/6396) in GitLab 14.5.
+
 The maximum file size for an image cached in the
 [Dependency Proxy](../user/packages/dependency_proxy/index.md)
 varies by file type:
@@ -1135,6 +1152,8 @@ Container repository tags are in the container registry and, as such, each tag d
 
 ## Project-level Secure Files API limits
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/78227) in GitLab 14.8.
+
 The [secure files API](../api/secure_files.md) enforces the following limits:
 
 - Files must be smaller than 5 MB.
@@ -1144,7 +1163,6 @@ The [secure files API](../api/secure_files.md) enforces the following limits:
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/89032) in GitLab 15.1 [with a flag](../administration/feature_flags.md) named `changelog_commits_limitation`. Disabled by default.
 > - [Enabled on GitLab.com and by default on self-managed](https://gitlab.com/gitlab-org/gitlab/-/issues/33893) in GitLab 15.3.
-> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/364101) in GitLab 17.3. Feature flag `changelog_commits_limitation` removed.
 
 The [changelog API](../api/repositories.md#add-changelog-data-to-a-changelog-file) enforces the following limits:
 

@@ -30,7 +30,7 @@ and support:
 
 ### Versions
 
-The two version files relevant to GitLab Shell:
+There are two version files relevant to GitLab Shell:
 
 - [Stable version](https://gitlab.com/gitlab-org/gitlab-shell/-/blob/main/VERSION)
 - [Version deployed in GitLab SaaS](https://gitlab.com/gitlab-org/gitlab/-/blob/master/GITLAB_SHELL_VERSION)
@@ -50,7 +50,6 @@ If you access a GitLab server over HTTP(S) you end up in [`gitlab-workhorse`](..
 ### `git pull` over SSH
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph LR
     A[Git pull] --> |via SSH| B[gitlab-shell]
     B -->|API call| C[gitlab-rails<br>authorization]
@@ -62,7 +61,6 @@ graph LR
 The `git push` command is not performed until after `gitlab-rails` accepts the push:
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph LR
 subgraph User initiates
     A[Git push] -->|via SSH| B[gitlab-shell]
@@ -84,7 +82,7 @@ GitLab Shell modifies the `authorized_keys` file on the client machine.
 
 To contribute to GitLab Shell:
 
-1. Check if GitLab API access, and Redis with the internal API, can be reached: `make check`
+1. Check if GitLab API access, and Redis via the internal API, can be reached: `make check`
 1. Compile the `gitlab-shell` binaries, placing them into `bin/`: `make compile`
 1. Run `make install` to build the `gitlab-shell` binaries and install. them onto the file system.
    The default location is `/usr/local`. To change it, set the `PREFIX` and `DESTDIR` environment variables.
@@ -161,7 +159,6 @@ or `gitlab-sshd` session by inspecting the logs. Some guidelines:
 A diagram of the flow of `gitlab-shell` on GitLab.com:
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 graph LR
     a2 --> b2
     a2  --> b3
@@ -198,7 +195,6 @@ graph LR
 ## GitLab Shell architecture
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 sequenceDiagram
     participant Git on client
     participant SSH server

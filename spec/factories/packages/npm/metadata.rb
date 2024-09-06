@@ -11,9 +11,6 @@ FactoryBot.define do
         dist: {
           tarball: 'http://localhost/tarball.tgz',
           shasum: '1234567890'
-        },
-        scripts: {
-          test: 'echo "Test"'
         }
       }
     end

@@ -14,10 +14,12 @@ class DashboardController < Dashboard::ApplicationController
 
   before_action only: :issues do
     push_frontend_feature_flag(:frontend_caching)
+    push_frontend_feature_flag(:group_multi_select_tokens)
   end
 
   before_action only: :merge_requests do
     push_frontend_feature_flag(:mr_approved_filter, type: :ops)
+    push_frontend_feature_flag(:mr_merge_user_filter, type: :development)
   end
 
   respond_to :html
@@ -100,3 +102,5 @@ class DashboardController < Dashboard::ApplicationController
     end
   end
 end
+
+DashboardController.prepend_mod

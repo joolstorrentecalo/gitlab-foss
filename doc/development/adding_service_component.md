@@ -10,7 +10,7 @@ The GitLab product is made up of several service components that run as independ
 
 ## Integration phases
 
-The following outline re-uses the [maturity metric](https://handbook.gitlab.com/handbook/product/ux/category-maturity/category-maturity-scorecards/) naming as an example of the various phases of integrating a component. These phases are only loosely coupled to a components actual maturity, and are intended as a guide for implementation order. For example, a component does not need to be enabled by default to be Lovable. Being enabled by default does not on its own cause a component to be Lovable.
+The following outline re-uses the [maturity metric](https://about.gitlab.com/direction/maturity/) naming as an example of the various phases of integrating a component. These phases are only loosely coupled to a components actual maturity, and are intended as a guide for implementation order. For example, a component does not need to be enabled by default to be Lovable. Being enabled by default does not on its own cause a component to be Lovable.
 
 - Proposed
   - [Proposing a new component](#proposing-a-new-component)
@@ -48,7 +48,7 @@ In addition, it needs to cover the following:
 
 The first iteration should be to add the ability to connect and use the service as an externally installed component. Often this involves providing settings in GitLab to connect to the service, or allow connections from it. And then shipping documentation on how to install and configure the service with GitLab.
 
-[Elasticsearch](../integration/advanced_search/elasticsearch.md#install-elasticsearch-or-aws-opensearch-cluster) is an example of a service that has been integrated this way. Many of the other services, including internal projects like Gitaly, started off as separately installed alternatives.
+[Elasticsearch](../integration/advanced_search/elasticsearch.md#install-elasticsearch) is an example of a service that has been integrated this way. Many of the other services, including internal projects like Gitaly, started off as separately installed alternatives.
 
 **For services that depend on the existing GitLab codebase:**
 

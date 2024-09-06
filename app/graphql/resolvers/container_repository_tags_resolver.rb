@@ -5,29 +5,29 @@ module Resolvers
     type Types::ContainerRepositoryTagType.connection_type, null: true
 
     argument :sort, Types::ContainerRepositoryTagsSortEnum,
-      description: 'Sort tags by these criteria.',
-      required: false,
-      default_value: nil
+        description: 'Sort tags by these criteria.',
+        required: false,
+        default_value: nil
 
     argument :name, GraphQL::Types::String,
-      description: 'Search by tag name.',
-      required: false,
-      default_value: nil
+        description: 'Search by tag name.',
+        required: false,
+        default_value: nil
 
     argument :referrers, GraphQL::Types::Boolean,
-      description: 'Include tag referrers.',
-      required: false,
-      default_value: nil
+        description: 'Include tag referrers.',
+        required: false,
+        default_value: nil
 
     argument :referrer_type, GraphQL::Types::String,
-      description: 'Comma-separated list of artifact types used to filter referrers. Applies only when `referrers` is set to `true`.',
-      required: false,
-      default_value: nil
+        description: 'Comma-separated list of artifact types used to filter referrers. Applies only when `referrers` is set to `true`.',
+        required: false,
+        default_value: nil
 
     alias_method :container_repository, :object
 
     def resolve(sort:, **filters)
-      if container_repository.gitlab_api_client.supports_gitlab_api?
+      if container_repository.migrated?
         page_size = [filters[:first], filters[:last]].map(&:to_i).max
 
         result = container_repository.tags_page(
@@ -72,13 +72,13 @@ module Resolvers
       query_params[key]&.first
     end
 
-    def map_sort_field(sort_value)
-      return if sort_value.blank?
+    def map_sort_field(sort)
+      return unless sort
 
-      sort = sort_value.to_s.gsub(/_(desc|asc)$/, '')
-      sort = "-#{sort}" if sort_value.end_with?('_desc')
+      sort_field, direction = sort.to_s.split('_')
+      return sort_field if direction == 'asc'
 
-      sort
+      "-#{sort_field}"
     end
 
     def sort_tags(to_be_sorted, sort)

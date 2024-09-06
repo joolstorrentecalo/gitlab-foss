@@ -50,7 +50,7 @@ postgresql['trust_auth_cidr_addresses'] = %w(123.123.123.123/32 <other_cidrs>)
 
 [Reconfigure GitLab](../restart_gitlab.md#reconfigure-a-linux-package-installation) for the changes to take effect.
 
-## PgBouncer nodes don't fail over after Patroni switchover
+## PgBouncer errors `Error running command: GitlabCtl::Errors::ExecutionError` and `ERROR: database gitlabhq_production is not paused`
 
 Due to a [known issue](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8166) that
 affects versions of GitLab prior to 16.5.0, the automatic failover of PgBouncer nodes does not
@@ -193,13 +193,12 @@ To fix the problem, ensure the loopback interface is included in the CIDR addres
 1. [Reconfigure GitLab](../restart_gitlab.md#reconfigure-a-linux-package-installation) for the changes to take effect.
 1. Check that [all the replicas are synchronized](../../administration/postgresql/replication_and_failover.md#check-replication-status)
 
-## Error: requested start point is ahead of the Write Ahead Log (WAL) flush position
+## Errors in Patroni logs: the requested start point is ahead of the Write Ahead Log (WAL) flush position
 
-This error in Patroni logs indicates that the database is not replicating:
+This error indicates that the database is not replicating:
 
 ```plaintext
-FATAL:  could not receive data from WAL stream:
-ERROR:  requested starting point 0/5000000 is ahead of the WAL flush position of this server 0/4000388
+FATAL:  could not receive data from WAL stream: ERROR:  requested starting point 0/5000000 is ahead of the WAL flush position of this server 0/4000388
 ```
 
 This example error is from a replica that was initially misconfigured, and had never replicated.
@@ -224,6 +223,17 @@ If the stack trace ends with `CFUNCTYPE(c_int)(lambda: None)`, this code trigger
 if the Linux server has been hardened for security.
 
 The code causes Python to write temporary executable files, and if it cannot find a file system in which to do this. For example, if `noexec` is set on the `/tmp` file system, it fails with `MemoryError` ([read more in the issue](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6184)).
+
+Workarounds:
+
+- Remove `noexec` from the mount options for filesystems like `/tmp` and `/var/tmp`.
+- If set to enforcing, SELinux may also prevent these operations. Verify the issue is fixed by setting
+  SELinux to permissive.
+
+Patroni first shipped in the Linux package for GitLab 13.1, along with a build of Python 3.7.
+The code which causes this was removed in Python 3.8: this fix shipped in
+[the Linux package for GitLab 14.3](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/5547)
+and later, removing the need for a workaround.
 
 ## Errors running `gitlab-ctl`
 

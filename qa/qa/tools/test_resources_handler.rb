@@ -143,7 +143,7 @@ module QA
         resource_info = resource_info(resource, key)
         delete_response = delete_resource(resource['api_path'])
 
-        if success?(delete_response&.code) || delete_response.include?('has been already marked for deletion')
+        if success?(delete_response.code) || delete_response.include?('has been already marked for deletion')
           if !resource_not_found?(resource['api_path'])
             logger.info("Successfully marked #{resource_info} for deletion...")
 
@@ -158,9 +158,7 @@ module QA
       end
 
       def delete_personal_resource(resource)
-        response = get_resource(resource['api_path'])
-        return response unless success?(response&.code)
-
+        response = get(Runtime::API::Request.new(api_client, resource['api_path']).url)
         parsed_body = parse_body(response)
         username = parsed_body[:author][:username]
         user_api_client = set_api_client_by_username(username)
@@ -177,11 +175,9 @@ module QA
         type = key.split('::').last.downcase
         full_path = get_full_path(resource, type)
 
-        return unless full_path
-
         response = delete_resource("#{resource['api_path']}?permanently_remove=true&full_path=#{full_path}")
 
-        if success?(response&.code)
+        if success?(response.code)
           wait_for_resource_deletion(resource['api_path'])
 
           unless resource_not_found?(resource['api_path'])
@@ -215,7 +211,7 @@ module QA
               delete_response = delete_resource(resource['api_path'])
             end
 
-            if success?(delete_response&.code)
+            if success?(delete_response.code)
               logger.info("Deleting #{resource_info}... \e[32mSUCCESS\e[0m")
             else
               logger.info("Deleting #{resource_info}... \e[31mFAILED - #{delete_response}\e[0m")
@@ -250,7 +246,7 @@ module QA
         transformed_values = resources.transform_values! do |v|
           v.reject do |attributes|
             attributes['info']&.match(/with full_path 'gitlab-qa-sandbox-group(-\d)?'/) ||
-              (attributes['http_method'] == 'get' && !attributes['info']&.include?("with username 'qa-")) ||
+              attributes['http_method'] == 'get' && !attributes['info']&.include?("with username 'qa-") ||
               attributes['api_path'] == 'Cannot find resource API path'
           end
         end
@@ -262,26 +258,15 @@ module QA
         # We need to get the full path of the project again since marking it for deletion changes the name
         if type == 'project'
           response = get_resource(resource['api_path'])
-          if success?(response&.code)
-            project = parse_body(response)
-            project[:path_with_namespace]
-          end
+          project = parse_body(response)
+          project[:path_with_namespace]
         else
           resource['info'].split("'").last
         end
       end
 
       def get_resource(api_path)
-        response = nil
-        repeat_until(max_attempts: 3, sleep_interval: 1, raise_on_failure: false) do
-          response = get(Runtime::API::Request.new(api_client, api_path).url)
-
-          success?(response&.code)
-        end
-
-        logger.warn("Getting resource #{api_path}... \e[31mFAILED - #{response}\e[0m") unless success?(response&.code)
-
-        response
+        get(Runtime::API::Request.new(api_client, api_path).url)
       end
 
       def gcs_storage
@@ -352,7 +337,7 @@ module QA
 
       def resource_not_found?(api_path)
         # if api path contains param "?hard_delete=<boolean>", remove it
-        get(Runtime::API::Request.new(api_client, api_path.split('?').first).url).code.eql? 404
+        get_resource(api_path.split('?').first).code.eql? 404
       end
 
       def set_api_client_by_username(username)

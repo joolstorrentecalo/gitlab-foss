@@ -132,6 +132,9 @@ Supported attributes:
 
 ## Get file archive
 
+> - Support for [including Git LFS blobs](../topics/git/lfs/index.md#lfs-objects-in-project-archives) was [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/15079) in GitLab 13.5.
+> - Support for downloading a subfolder was [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/28827) in GitLab 14.4.
+
 Get an archive of the repository. This endpoint can be accessed without
 authentication if the repository is publicly accessible.
 
@@ -166,7 +169,7 @@ Example request:
 
 ```shell
 curl --header "PRIVATE-TOKEN: <your_access_token>" \
-  --url "https://gitlab.com/api/v4/projects/<project_id>/repository/archive?sha=<commit_sha>&path=<path>"
+  "https://gitlab.com/api/v4/projects/<project_id>/repository/archive?sha=<commit_sha>&path=<path>"
 ```
 
 ## Compare branches, tags or commits
@@ -232,12 +235,11 @@ Example response:
 
 ## Contributors
 
-> - `ref` [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/156852) in GitLab 17.4.
+> - Attributes `additions` and `deletions` [deprecated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/39653) in GitLab 13.4, because they [always returned `0`](https://gitlab.com/gitlab-org/gitlab/-/issues/233119).
+> - Attributes `additions` and `deletions` [removed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/38920) in GitLab 14.0.
 
 Get repository contributors list. This endpoint can be accessed without
 authentication if the repository is publicly accessible.
-
-The commit count returned does not include merge commits.
 
 ```plaintext
 GET /projects/:id/repository/contributors
@@ -248,16 +250,8 @@ Supported attributes:
 | Attribute  | Type           | Required | Description |
 | :--------- | :------------- | :------- | :---------- |
 | `id`       | integer or string | yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding) owned by the authenticated user. |
-| `ref`      | string         | no       | The name of a repository branch or tag. If not given, the default branch. |
 | `order_by` | string         | no       | Return contributors ordered by `name`, `email`, or `commits` (orders by commit date) fields. Default is `commits`. |
 | `sort`     | string         | no       | Return contributors sorted in `asc` or `desc` order. Default is `asc`. |
-
-Example request:
-
-```shell
-curl --header "PRIVATE-TOKEN: <your_access_token>" \
-  --url "https://gitlab.example.com/api/v4/projects/7/repository/contributors"
-```
 
 Example response:
 
@@ -294,7 +288,7 @@ Example request, with the refs truncated for readability:
 
 ```shell
 curl --header "PRIVATE-TOKEN: <your_access_token>" \
-  --url "https://gitlab.example.com/api/v4/projects/5/repository/merge_base?refs[]=304d257d&refs[]=0031876f"
+  "https://gitlab.example.com/api/v4/projects/5/repository/merge_base?refs[]=304d257d&refs[]=0031876f"
 ```
 
 Example response:
@@ -318,9 +312,8 @@ Example response:
 
 ## Add changelog data to a changelog file
 
-> - Commit range limits [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/89032) in GitLab 15.1 [with a flag](../administration/feature_flags.md) named `changelog_commits_limitation`. Disabled by default.
-> - [Enabled on GitLab.com and by default on self-managed](https://gitlab.com/gitlab-org/gitlab/-/issues/33893) in GitLab 15.3.
-> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/364101) in GitLab 17.3. Feature flag `changelog_commits_limitation` removed.
+> - [Introduced](https://gitlab.com/groups/gitlab-com/gl-infra/-/epics/351) in GitLab 13.9.
+> - Commit range limits [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/89032) in GitLab 15.1 [with a flag](../administration/feature_flags.md) named `changelog_commits_limitation`. Enabled by default.
 
 Generate changelog data based on commits in a repository.
 
@@ -349,7 +342,7 @@ Changelogs support these attributes:
 | `file`    | string   | no | The file to commit the changes to. Defaults to `CHANGELOG.md`. |
 | `from`    | string   | no | The SHA of the commit that marks the beginning of the range of commits to include in the changelog. This commit isn't included in the changelog. |
 | `message` | string   | no | The commit message to use when committing the changes. Defaults to `Add changelog for version X`, where `X` is the value of the `version` argument. |
-| `to`      | string   | no | The SHA of the commit that marks the end of the range of commits to include in the changelog. This commit _is_ included in the changelog. Defaults to the branch specified in the `branch` attribute. Limited to 15000 commits. |
+| `to`      | string   | no | The SHA of the commit that marks the end of the range of commits to include in the changelog. This commit _is_ included in the changelog. Defaults to the branch specified in the `branch` attribute. Limited to 15000 commits unless the feature flag `changelog_commits_limitation` is disabled. |
 | `trailer` | string   | no | The Git trailer to use for including commits. Defaults to `Changelog`. Case-sensitive: `Example` does not match `example` or `eXaMpLE`. |
 
 ### Requirements for `from` attribute
@@ -375,7 +368,7 @@ version is `1.1.1`, or `1.2.0`, GitLab uses tag `v1.1.0`. The tag `v1.0.0-pre1` 
 never used, because pre-release tags are ignored.
 
 The `version` attribute can start with `v`. For example: `v1.0.0`.
-The response is the same as for `version` value `1.0.0`. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/437616) in GitLab 17.0.
+The response is the same as for `version` value `1.0.0`. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/437616) in GitLab 16.10.
 
 If `from` is unspecified and no tag to use is found, the API produces an error.
 To solve such an error, you must explicitly specify a value for the `from`
@@ -415,8 +408,7 @@ included in this example is `v0.9.0..main`:
 
 ```shell
 curl --request POST --header "PRIVATE-TOKEN: token" \
-  --data "version=1.0.0" \
-  --url "https://gitlab.com/api/v4/projects/42/repository/changelog"
+  --data "version=1.0.0" "https://gitlab.com/api/v4/projects/42/repository/changelog"
 ```
 
 To generate the data on a different branch, specify the `branch` parameter. This
@@ -424,27 +416,26 @@ command generates data from the `foo` branch:
 
 ```shell
 curl --request POST --header "PRIVATE-TOKEN: token" \
-  --data "version=1.0.0&branch=foo" \
-  --url "https://gitlab.com/api/v4/projects/42/repository/changelog"
+  --data "version=1.0.0&branch=foo" "https://gitlab.com/api/v4/projects/42/repository/changelog"
 ```
 
 To use a different trailer, use the `trailer` parameter:
 
 ```shell
 curl --request POST --header "PRIVATE-TOKEN: token" \
-  --data "version=1.0.0&trailer=Type" \
-  --url "https://gitlab.com/api/v4/projects/42/repository/changelog"
+  --data "version=1.0.0&trailer=Type" "https://gitlab.com/api/v4/projects/42/repository/changelog"
 ```
 
 To store the results in a different file, use the `file` parameter:
 
 ```shell
 curl --request POST --header "PRIVATE-TOKEN: token" \
-  --data "version=1.0.0&file=NEWS" \
-  --url "https://gitlab.com/api/v4/projects/42/repository/changelog"
+  --data "version=1.0.0&file=NEWS" "https://gitlab.com/api/v4/projects/42/repository/changelog"
 ```
 
 ## Generate changelog data
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/345934) in GitLab 14.6.
 
 Generate changelog data based on commits in a repository, without committing
 them to a changelog file.
@@ -469,7 +460,7 @@ Supported attributes:
 
 ```shell
 curl --header "PRIVATE-TOKEN: token" \
-  --url "https://gitlab.com/api/v4/projects/42/repository/changelog?version=1.0.0"
+  "https://gitlab.com/api/v4/projects/42/repository/changelog?version=1.0.0"
 ```
 
 Example response, with line breaks added for readability:

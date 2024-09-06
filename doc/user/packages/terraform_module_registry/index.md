@@ -10,6 +10,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/3221) in GitLab 14.0.
 > - Infrastructure registry and Terraform Module Registry [merged](https://gitlab.com/gitlab-org/gitlab/-/issues/404075) into a single Terraform Module Registry feature in GitLab 15.11.
 > - Support for groups [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/140215) in GitLab 16.9.
 
@@ -20,16 +21,12 @@ projects.
 
 ## View Terraform modules
 
-> - Support for Readme files [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/438060) in GitLab 17.2.
-
 To view Terraform modules in your project or group:
 
 1. On the left sidebar, select **Search or go to** and find your project or group.
 1. Select **Operate > Terraform modules**.
 
 You can search, sort, and filter modules on this page.
-
-You can also view the module's Readme file by selecting a module, and then selecting **Readme**.
 
 ## Authenticate to the Terraform Module Registry
 
@@ -163,7 +160,6 @@ For other ways to control jobs in your CI/CD pipeline, refer to the [CI/CD YAML 
 ### Allow duplicate Terraform modules
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/368040) in GitLab 16.8.
-> - Required role [changed](https://gitlab.com/gitlab-org/gitlab/-/issues/370471) from Maintainer to Owner in GitLab 17.0.
 
 By default, the Terraform Module Registry enforces uniqueness for module names in the same namespace.
 

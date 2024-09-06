@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import { parseBoolean } from '~/lib/utils/common_utils';
 import { InternalEvents } from '~/tracking';
 import { __ } from './locale';
 
@@ -62,24 +61,6 @@ export function initTrackProductAnalyticsExpanded() {
   });
 }
 
-function initGlobalProtectionOptions() {
-  const globalProtectionProtectedOption = document.querySelectorAll('.js-global-protection-levels');
-  const protectionSettingsSection = document.querySelector(
-    '.js-global-protection-levels-protected',
-  );
-
-  globalProtectionProtectedOption.forEach((option) => {
-    const isProtected = parseBoolean(option.value);
-    option.addEventListener('change', () => {
-      protectionSettingsSection.classList.toggle('gl-hidden', !isProtected);
-    });
-
-    if (option.checked) {
-      protectionSettingsSection.classList.toggle('gl-hidden', !isProtected);
-    }
-  });
-}
-
 export default function initSettingsPanels() {
   $('.settings').each((i, elm) => {
     const $section = $(elm);
@@ -99,5 +80,4 @@ export default function initSettingsPanels() {
   });
 
   initTrackProductAnalyticsExpanded();
-  initGlobalProtectionOptions();
 }

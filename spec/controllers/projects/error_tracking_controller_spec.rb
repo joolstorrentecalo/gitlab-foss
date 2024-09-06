@@ -4,7 +4,11 @@ require 'spec_helper'
 
 RSpec.describe Projects::ErrorTrackingController do
   let_it_be(:project) { create(:project) }
-  let_it_be(:user) { create(:user, maintainer_of: project) }
+  let_it_be(:user) { create(:user) }
+
+  before_all do
+    project.add_maintainer(user)
+  end
 
   before do
     sign_in(user)

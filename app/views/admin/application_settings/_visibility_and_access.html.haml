@@ -17,7 +17,7 @@
     %fieldset.form-group.gl-form-group{ data: { testid: 'restricted-visibility-levels' } }
       %legend.col-form-label
         = s_('AdminSettings|Restricted visibility levels')
-        %small.form-text.gl-text-secondary
+        %small.form-text.text-gl-muted
           = s_('AdminSettings|Prevent non-administrators from using the selected visibility levels for groups, projects and snippets.')
           = s_('AdminSettings|The selected level must be different from the selected default group and project visibility.')
           = link_to _('Learn more.'), help_page_path('administration/settings/visibility_and_access_controls', anchor: 'restrict-visibility-levels'), target: '_blank', rel: 'noopener noreferrer'
@@ -47,8 +47,6 @@
       .form-group
         = f.label field_name, "#{type.upcase} SSH keys", class: 'label-bold'
         = f.select field_name, key_restriction_options_for_select(type), {}, class: 'form-control'
-
-    = render_if_exists 'admin/application_settings/disable_personal_access_tokens', form: f
 
     .form-group
       %label.label-bold= s_('AdminSettings|Feed token')

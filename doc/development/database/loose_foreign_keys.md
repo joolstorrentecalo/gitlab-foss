@@ -16,7 +16,8 @@ Most of our database tables have foreign keys.
 With the ongoing database [decomposition work](https://gitlab.com/groups/gitlab-org/-/epics/6168),
 linked records might be present on two different database servers. Ensuring data consistency
 between two databases is not possible with standard PostgreSQL foreign keys. PostgreSQL
-does not support foreign keys operating across multiple database servers.
+does not support foreign keys operating within a single database server, defining
+a link between two database tables in two different database servers over the network.
 
 Example:
 
@@ -215,7 +216,8 @@ end
 
 ### Remove the foreign key
 
-If there is an existing foreign key, then it can be removed from the database. This foreign key describes the link between the `projects` and `ci_pipelines` tables:
+If there is an existing foreign key, then it can be removed from the database. As of GitLab 14.5,
+the following foreign key describes the link between the `projects` and `ci_pipelines` tables:
 
 ```sql
 ALTER TABLE ONLY ci_pipelines
@@ -759,7 +761,7 @@ We have Prometheus metrics in place to monitor the deleted record cleanup:
 - `loose_foreign_key_rescheduled_deleted_records`: Number of deleted records that had to be
   rescheduled at a later time after 3 cleanup attempts.
 
-Example PromQL query:
+Example Thanos query:
 
 ```plaintext
 loose_foreign_key_rescheduled_deleted_records{env="gprd", table="ci_runners"}
@@ -799,7 +801,7 @@ Steps to diagnose the problem:
 
 - Check which records are accumulating.
 - Try to get an estimate of the number of remaining records.
-- Looking into the worker performance stats (Kibana or Grafana).
+- Looking into the worker performance stats (Kibana or Thanos).
 
 Possible solutions:
 

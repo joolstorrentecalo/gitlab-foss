@@ -1,13 +1,9 @@
-import { GlToggle } from '@gitlab/ui';
-import { createWrapper } from '@vue/test-utils';
-import waitForPromises from 'helpers/wait_for_promises';
-import { setHTMLFixture, resetHTMLFixture } from 'helpers/fixtures';
-
 import { initAllowRunnerRegistrationTokenToggle } from '~/group_settings/allow_runner_registration_token_toggle';
+
+import { setHTMLFixture, resetHTMLFixture } from 'helpers/fixtures';
 
 describe('initAllowRunnerRegistrationTokenToggle', () => {
   let form;
-  let wrapper;
   let requestSubmitMock;
 
   const setFormFixture = ({
@@ -24,16 +20,14 @@ describe('initAllowRunnerRegistrationTokenToggle', () => {
       </form>
     `);
 
-    const toggle = initAllowRunnerRegistrationTokenToggle();
+    initAllowRunnerRegistrationTokenToggle();
 
     form = document.querySelector('form');
-    wrapper = createWrapper(toggle);
-
     requestSubmitMock = jest.spyOn(form, 'requestSubmit').mockImplementation(() => {});
   };
 
   const findInput = () => form.querySelector('[name="group[allow_runner_registration_token]"]');
-  const findToggle = () => wrapper.findComponent(GlToggle);
+  const findToggle = () => form.querySelector('[data-testid="toggle-wrapper"] button');
 
   afterEach(() => {
     resetHTMLFixture();
@@ -44,7 +38,7 @@ describe('initAllowRunnerRegistrationTokenToggle', () => {
 
     expect(form.textContent).toContain('Toggle Label');
 
-    expect(findToggle().exists()).toBeDefined();
+    expect(findToggle()).toBeDefined();
     expect(findInput()).toBeDefined();
   });
 
@@ -54,38 +48,30 @@ describe('initAllowRunnerRegistrationTokenToggle', () => {
     });
 
     it('shows an "on" toggle', () => {
-      expect(findToggle().props('value')).toBe(true);
       expect(findInput().value).toBe('true');
+      expect(findToggle().getAttribute('aria-checked')).toBe('true');
     });
 
-    it('when clicked, toggles the setting', async () => {
-      findToggle().vm.$emit('change', false);
+    it('when clicked, toggles the setting', () => {
+      findToggle().click();
 
-      await waitForPromises();
-
-      expect(findToggle().props('isLoading')).toBe(true);
       expect(findInput().value).toBe('false');
-
       expect(requestSubmitMock).toHaveBeenCalledTimes(1);
     });
   });
-
   describe('when setting is disabled', () => {
     beforeEach(() => {
       setFormFixture({ hiddenInputValue: 'false', toggleIsChecked: 'false' });
     });
 
     it('shows an "off toggle"', () => {
-      expect(findToggle().props('value')).toBe(false);
       expect(findInput().value).toBe('false');
+      expect(findToggle().getAttribute('aria-checked')).toBe('false');
     });
 
-    it('when clicked, toggles the setting', async () => {
-      findToggle().vm.$emit('change', true);
+    it('when clicked, toggles the setting', () => {
+      findToggle().click();
 
-      await waitForPromises();
-
-      expect(findToggle().props('isLoading')).toBe(true);
       expect(findInput().value).toBe('true');
       expect(requestSubmitMock).toHaveBeenCalledTimes(1);
     });

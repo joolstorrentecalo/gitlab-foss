@@ -67,10 +67,6 @@ To purge files from a GitLab repository:
    This project export contains a backup copy of your repository *and* refs
    we can use to purge files from your repository.
 
-   If the full project export fails to complete reliably due to the project size, you can use the
-   [Project relations export API](../../../api/project_relations_export.md) to obtain a copy of
-   the repository independently of the other export components.
-
 1. Decompress the backup using `tar`:
 
    ```shell
@@ -187,7 +183,8 @@ references to these objects. You can use
 [`git filter-repo`](https://github.com/newren/git-filter-repo) to produce a list of objects (in a
 `commit-map` file) that can be used with repository cleanup.
 
-Safely cleaning the repository requires it to be made read-only for the duration
+[Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/45058) in GitLab 13.6,
+safely cleaning the repository requires it to be made read-only for the duration
 of the operation. This happens automatically, but submitting the cleanup request
 fails if any writes are ongoing, so cancel any outstanding `git push`
 operations before continuing.
@@ -200,16 +197,13 @@ To clean up a repository:
 
 1. On the left sidebar, select **Search or go to** and find your project.
 1. Go to **Settings > Repository**.
-1. Expand **Repository maintenance**.
 1. Upload a list of objects. For example, a `commit-map` file created by `git filter-repo` which is located in the
    `filter-repo` directory.
 
-   If your `commit-map` file is too large, the background cleanup process might time out and fail.
-   As a result, the repository size isn't reduced as expected. To address this, split the file and
-   upload it in parts. Start with `20000` and reduce as needed. For example:
+   If your `commit-map` file is larger than about 250 KB or 3000 lines, the file can be split and uploaded piece by piece:
 
    ```shell
-   split -l 20000 filter-repo/commit-map filter-repo/commit-map-
+   split -l 3000 filter-repo/commit-map filter-repo/commit-map-
    ```
 
 1. Select **Start cleanup**.
@@ -241,67 +235,6 @@ When using repository cleanup, note:
   but there are still numerous gaps in coverage and some of the copies may persist indefinitely.
   [Clearing the instance cache](../../../administration/raketasks/maintenance.md#clear-redis-cache)
   may help to remove some of them, but it should not be depended on for security purposes!
-
-## Remove blobs
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/450701) in GitLab 17.1 [with a flag](../../../administration/feature_flags.md) named `rewrite_history_ui`. Disabled by default.
-> - [Enabled on GitLab.com](https://gitlab.com/gitlab-org/gitlab/-/issues/462999) in GitLab 17.2.
-> - [Enabled on self-managed and GitLab Dedicated](https://gitlab.com/gitlab-org/gitlab/-/issues/462999) in GitLab 17.3.
-
-Permanently delete sensitive or confidential information that was accidentally committed, ensuring
-it's no longer accessible in your repository's history.
-
-Alternatively, to replace strings with `***REMOVED***`, see
-[Redact text](../../../topics/git/undo.md#redact-text).
-
-Prerequisites:
-
-- You must have the Owner role for the instance.
-- You must have [a list of object IDs](#get-a-list-of-object-ids) to remove.
-
-To remove blobs from your repository:
-
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Settings > Repository**.
-1. Expand **Repository maintenance**.
-1. Select **Remove blobs**.
-1. On the drawer, enter a list of blob IDs to remove, each ID on its own line.
-1. Select **Remove blobs**.
-1. On the confirmation dialog, enter your project path.
-1. Select **Yes, remove blobs**.
-1. On the left sidebar, select **Settings > General**.
-1. Expand the section labeled **Advanced**.
-1. Select **Run housekeeping**.
-
-### Get a list of object IDs
-
-To remove blobs, you need a list of objects to remove.
-To get these IDs, use the Git `ls-tree command`.
-
-Prerequisites:
-
-- You must have the repository cloned to your local machine.
-
-For example, to get a list of files at a given commit or branch sorted by size:
-
-1. Open a terminal and go to your repository directory.
-1. Run the following command:
-
-   ```shell
-   git ls-tree -r -t --long --full-name <COMMIT/BRANCH> | sort -nk 4
-   ```
-
-   Example output:
-
-   ```plaintext
-   100644 blob 8150ee86f923548d376459b29afecbe8495514e9  133508 doc/howto/img/remote-development-new-workspace-button.png
-   100644 blob cde4360b3d3ee4f4c04c998d43cfaaf586f09740  214231 doc/howto/img/dependency_proxy_macos_config_new.png
-   100644 blob 2ad0e839a709e73a6174e78321e87021b20be445  216452 doc/howto/img/gdk-in-gitpod.jpg
-   100644 blob 115dd03fc0828a9011f012abbc58746f7c587a05  242304 doc/howto/img/gitpod-button-repository.jpg
-   100644 blob c41ebb321a6a99f68ee6c353dd0ed29f52c1dc80  491158 doc/howto/img/dependency_proxy_macos_config.png
-   ```
-
-   The third column in the output is the object ID of the blob.
 
 ## Storage limits
 
@@ -336,7 +269,7 @@ If these actions are insufficient, you can also:
 
 Unfortunately, this workflow doesn't work. Deleting files in a commit doesn't actually reduce the
 size of the repository, because the earlier commits and blobs still exist. Instead, you must rewrite
-history. You should use the open-source community-maintained tool
+history. We recommend the open-source community-maintained tool
 [`git filter-repo`](https://github.com/newren/git-filter-repo).
 
 NOTE:

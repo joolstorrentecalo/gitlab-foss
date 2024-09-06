@@ -257,15 +257,11 @@ RSpec.describe 'GitLab Markdown', :aggregate_failures, feature_category: :team_p
         expect(doc).to parse_emoji
       end
 
-      aggregate_failures 'TableOfContentsLegacyFilter' do
+      aggregate_failures 'TableOfContentsFilter' do
         expect(doc).to create_header_links
       end
 
-      aggregate_failures 'TableOfContentsTagFilter' do
-        expect(doc).to create_toc
-      end
-
-      aggregate_failures 'Autolinking in MarkdownFilter' do
+      aggregate_failures 'AutolinkFilter' do
         expect(doc).to create_autolinks
       end
 
@@ -337,7 +333,7 @@ RSpec.describe 'GitLab Markdown', :aggregate_failures, feature_category: :team_p
 
       name = 'example.jpg'
       path = "images/#{name}"
-      blob = instance_double('Gitlab::Git::Blob', name: name, path: path, mime_type: 'image/jpeg', data: nil)
+      blob = double(name: name, path: path, mime_type: 'image/jpeg', data: nil)
       expect(@wiki).to receive(:find_file).with(path, load_content: false).and_return(Gitlab::Git::WikiFile.new(blob))
       allow(@wiki).to receive(:wiki_base_path) { '/namespace1/gitlabhq/wikis' }
 
@@ -353,7 +349,7 @@ RSpec.describe 'GitLab Markdown', :aggregate_failures, feature_category: :team_p
 
         name = 'example.jpg'
         path = "images/#{name}"
-        blob = instance_double('Gitlab::Git::Blob', name: name, path: path, mime_type: 'image/jpeg', data: nil)
+        blob = double(name: name, path: path, mime_type: 'image/jpeg', data: nil)
         expect(@wiki).to receive(:find_file).with(path, load_content: false).and_return(Gitlab::Git::WikiFile.new(blob))
         allow(@wiki).to receive(:wiki_base_path) { '/namespace1/gitlabhq/wikis' }
 
@@ -380,12 +376,8 @@ RSpec.describe 'GitLab Markdown', :aggregate_failures, feature_category: :team_p
         expect(doc).to parse_emoji
       end
 
-      aggregate_failures 'TableOfContentsLegacyFilter' do
+      aggregate_failures 'TableOfContentsFilter' do
         expect(doc).to create_header_links
-      end
-
-      aggregate_failures 'TableOfContentsTagFilter' do
-        expect(doc).to create_toc
       end
 
       aggregate_failures 'AutolinkFilter' do
@@ -408,8 +400,8 @@ RSpec.describe 'GitLab Markdown', :aggregate_failures, feature_category: :team_p
         expect(doc).to parse_task_lists
       end
 
-      aggregate_failures 'WikiLinkGollumFilter' do
-        expect(doc).to parse_wiki_link_gollum_tags
+      aggregate_failures 'GollumTagsFilter' do
+        expect(doc).to parse_gollum_tags
       end
 
       aggregate_failures 'InlineDiffFilter' do

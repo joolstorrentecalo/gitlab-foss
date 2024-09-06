@@ -17,6 +17,10 @@ RSpec.describe Gitlab::ImportExport::FastHashSerializer, :with_license, feature_
   let(:reader) { Gitlab::ImportExport::Reader.new(shared: shared) }
   let(:tree) { reader.project_tree }
 
+  before_all do
+    project.add_maintainer(user)
+  end
+
   before do
     allow_any_instance_of(MergeRequest).to receive(:source_branch_sha).and_return('ABCD')
     allow_any_instance_of(MergeRequest).to receive(:target_branch_sha).and_return('DCBA')
@@ -225,8 +229,6 @@ RSpec.describe Gitlab::ImportExport::FastHashSerializer, :with_license, feature_
       group: group,
       approvals_before_merge: 1
     )
-
-    project.add_maintainer(user)
 
     issue = create(:issue, assignees: [user], project: project)
     snippet = create(:project_snippet, project: project)

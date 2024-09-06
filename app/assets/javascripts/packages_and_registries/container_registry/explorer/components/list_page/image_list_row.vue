@@ -1,13 +1,11 @@
 <script>
-import { GlButton, GlTooltipDirective, GlSprintf, GlSkeletonLoader, GlBadge } from '@gitlab/ui';
+import { GlTooltipDirective, GlSprintf, GlSkeletonLoader, GlButton } from '@gitlab/ui';
 import { getIdFromGraphQLId } from '~/graphql_shared/utils';
-import { n__, s__ } from '~/locale';
+import { n__ } from '~/locale';
 import Tracking from '~/tracking';
 import ClipboardButton from '~/vue_shared/components/clipboard_button.vue';
 import ListItem from '~/vue_shared/components/registry/list_item.vue';
 import { joinPaths } from '~/lib/utils/url_utility';
-import PublishMessage from '~/packages_and_registries/shared/components/publish_message.vue';
-import glFeatureFlagsMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import {
   LIST_DELETE_BUTTON_DISABLED,
   LIST_DELETE_BUTTON_DISABLED_FOR_MIGRATION,
@@ -33,13 +31,11 @@ export default {
     ListItem,
     GlSkeletonLoader,
     CleanupStatus,
-    PublishMessage,
-    GlBadge,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
   },
-  mixins: [Tracking.mixin(), glFeatureFlagsMixin()],
+  mixins: [Tracking.mixin()],
   inject: ['config'],
   props: {
     item: {
@@ -62,9 +58,6 @@ export default {
     ROW_SCHEDULED_FOR_DELETION,
     COPY_IMAGE_PATH_TITLE,
     IMAGE_FULL_PATH_LABEL,
-    badgeProtectedTooltipText: s__(
-      'ContainerRegistry|A protection rule exists for this container repository.',
-    ),
   },
   data() {
     return {
@@ -108,18 +101,6 @@ export default {
         ? LIST_DELETE_BUTTON_DISABLED_FOR_MIGRATION
         : LIST_DELETE_BUTTON_DISABLED;
     },
-    projectName() {
-      return this.config.isGroupPage ? this.item.project?.name : '';
-    },
-    projectUrl() {
-      return this.config.isGroupPage ? this.item.project?.webUrl : '';
-    },
-    showBadgeProtected() {
-      return (
-        Boolean(this.glFeatures.containerRegistryProtectedContainers) &&
-        Boolean(this.item.protectionRuleExists)
-      );
-    },
   },
   methods: {
     hideButton() {
@@ -152,7 +133,7 @@ export default {
       <router-link
         v-else
         ref="imageName"
-        class="gl-font-bold gl-text-primary"
+        class="gl-text-body gl-font-weight-bold"
         data-testid="details-link"
         :to="{ name: 'details', params: { id } }"
       >
@@ -164,15 +145,13 @@ export default {
         :text="item.location"
         :title="$options.i18n.COPY_IMAGE_PATH_TITLE"
         category="tertiary"
-        class="gl-ml-2"
-        size="small"
       />
     </template>
     <template #left-secondary>
       <template v-if="!metadataLoading">
         <span v-if="deleting">{{ $options.i18n.ROW_SCHEDULED_FOR_DELETION }}</span>
         <template v-else>
-          <span class="gl-flex gl-items-center" data-testid="tags-count">
+          <span class="gl-display-flex gl-align-items-center" data-testid="tags-count">
             <gl-sprintf :message="tagsCountText">
               <template #count>
                 {{ item.tagsCount }}
@@ -182,19 +161,10 @@ export default {
 
           <cleanup-status
             v-if="item.expirationPolicyCleanupStatus"
+            class="gl-ml-2"
             :status="item.expirationPolicyCleanupStatus"
             :expiration-policy="expirationPolicy"
           />
-
-          <gl-badge
-            v-if="showBadgeProtected"
-            v-gl-tooltip
-            :title="$options.i18n.badgeProtectedTooltipText"
-            size="sm"
-            variant="neutral"
-          >
-            {{ __('protected') }}
-          </gl-badge>
         </template>
       </template>
 
@@ -205,15 +175,6 @@ export default {
         </gl-skeleton-loader>
       </div>
     </template>
-    <template #right-primary> &nbsp; </template>
-    <template #right-secondary>
-      <publish-message
-        :project-name="projectName"
-        :project-url="projectUrl"
-        :publish-date="item.createdAt"
-      />
-    </template>
-
     <template #right-action>
       <delete-button
         :title="$options.i18n.REMOVE_REPOSITORY_LABEL"

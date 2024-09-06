@@ -9,10 +9,7 @@ module ServiceDeskSettings
 
       params[:project_key] = nil if params[:project_key].blank?
 
-      apply_feature_flag_restrictions!(
-        feature_flag: :issue_email_participants,
-        field: :add_external_participants_from_cc
-      )
+      apply_feature_flag_restrictions!
 
       # We want to know when custom email got enabled
       write_log_message = params[:custom_email_enabled].present? && !settings.custom_email_enabled?
@@ -28,11 +25,11 @@ module ServiceDeskSettings
 
     private
 
-    def apply_feature_flag_restrictions!(feature_flag:, field:)
-      return if Feature.enabled?(feature_flag, project)
-      return unless params.include?(field)
+    def apply_feature_flag_restrictions!
+      return if Feature.enabled?(:issue_email_participants, project)
+      return unless params.include?(:add_external_participants_from_cc)
 
-      params.delete(field)
+      params.delete(:add_external_participants_from_cc)
     end
   end
 end

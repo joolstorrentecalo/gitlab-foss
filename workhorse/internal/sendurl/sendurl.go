@@ -1,4 +1,3 @@
-// Package sendurl provides functionality for sending URLs.
 package sendurl
 
 import (
@@ -33,7 +32,6 @@ type entryParams struct {
 	TimeoutResponseStatus int
 	Body                  string
 	Header                http.Header
-	ResponseHeaders       http.Header
 	Method                string
 }
 
@@ -45,7 +43,6 @@ type cacheKey struct {
 
 var httpClients sync.Map
 
-// SendURL represents the entry for sending a URL.
 var SendURL = &entry{"send-url:"}
 
 var rangeHeaderKeys = []string{
@@ -67,7 +64,7 @@ var preserveHeaderKeys = map[string]bool{
 	"Pragma":        true, // Support for HTTP 1.0 proxies
 }
 
-var httpClientNoRedirect = func(_ *http.Request, _ []*http.Request) error {
+var httpClientNoRedirect = func(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
@@ -166,22 +163,9 @@ func (e *entry) Inject(w http.ResponseWriter, r *http.Request, sendData string) 
 			w.Header()[key] = value
 		}
 	}
-
-	// set response headers sent by rails
-	for key, values := range params.ResponseHeaders {
-		w.Header().Del(key)
-		for _, value := range values {
-			w.Header().Add(key, value)
-		}
-	}
-
 	w.WriteHeader(resp.StatusCode)
 
-	defer func() {
-		if err = resp.Body.Close(); err != nil {
-			fmt.Printf("Error closing response body: %v\n", err)
-		}
-	}()
+	defer resp.Body.Close()
 
 	// Flushes the response right after it received.
 	// Important for streaming responses, where content delivered in chunks.

@@ -57,8 +57,6 @@ export default {
     RunnerTypeTabs,
     RunnerActionsCell,
     RunnerJobStatusBadge,
-    RunnerDashboardLink: () =>
-      import('ee_component/ci/runner/components/runner_dashboard_link.vue'),
   },
   mixins: [glFeatureFlagMixin()],
   props: {
@@ -221,7 +219,6 @@ export default {
     <runner-list-header>
       <template #title>{{ s__('Runners|Runners') }}</template>
       <template #actions>
-        <runner-dashboard-link />
         <gl-button
           v-if="newRunnerPath"
           :href="newRunnerPath"
@@ -234,25 +231,39 @@ export default {
           :allow-registration-token="allowRegistrationToken"
           :registration-token="registrationToken"
           :type="$options.GROUP_TYPE"
+          placement="right"
         />
       </template>
     </runner-list-header>
 
-    <runner-type-tabs
-      v-model="search"
-      :count-scope="$options.GROUP_TYPE"
-      :count-variables="countVariables"
-      :runner-types="$options.TABS_RUNNER_TYPES"
-    />
-
-    <div class="gl-flex gl-flex-col gl-gap-3 md:gl-flex-row" :class="$options.FILTER_CSS_CLASSES">
+    <div
+      class="gl-display-flex gl-align-items-center gl-flex-direction-column-reverse gl-md-flex-direction-row gl-mt-3 gl-md-mt-0"
+    >
+      <runner-type-tabs
+        ref="runner-type-tabs"
+        v-model="search"
+        :count-scope="$options.GROUP_TYPE"
+        :count-variables="countVariables"
+        :runner-types="$options.TABS_RUNNER_TYPES"
+        class="gl-w-full"
+        content-class="gl-display-none"
+        nav-class="gl-border-none!"
+      />
+    </div>
+    <div
+      class="gl-display-flex gl-flex-direction-column gl-md-flex-direction-row gl-gap-3"
+      :class="$options.FILTER_CSS_CLASSES"
+    >
       <runner-filtered-search-bar
         v-model="search"
         :tokens="searchTokens"
         :namespace="filteredSearchNamespace"
-        class="gl-flex-grow gl-self-stretch"
+        class="gl-flex-grow-1 gl-align-self-stretch"
       />
-      <runner-membership-toggle v-model="search.membership" class="gl-self-end md:gl-self-center" />
+      <runner-membership-toggle
+        v-model="search.membership"
+        class="gl-align-self-end gl-md-align-self-center"
+      />
     </div>
 
     <runner-stats :scope="$options.GROUP_TYPE" :variables="countVariables" />

@@ -69,7 +69,7 @@ module UserSettings
 
     def determine_layout
       if [:new, :create].include?(action_name.to_sym)
-        'minimal'
+        'application'
       else
         'profile'
       end

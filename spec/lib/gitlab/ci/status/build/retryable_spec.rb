@@ -90,25 +90,11 @@ RSpec.describe Gitlab::Ci::Status::Build::Retryable do
     end
 
     describe '#action_title' do
-      it { expect(subject.action_title).to eq 'Run again' }
+      it { expect(subject.action_title).to eq 'Retry' }
     end
 
     describe '#action_button_title' do
-      it { expect(subject.action_button_title).to eq 'Run this job again' }
-    end
-
-    describe '#confirmation_message' do
-      context 'when build does not have manual_confirmation' do
-        it { expect(subject.confirmation_message).to be_nil }
-      end
-
-      context 'when build is manual and has manual_confirmation' do
-        let(:build) do
-          create(:ci_build, :success, :playable, :with_manual_confirmation)
-        end
-
-        it { expect(subject.confirmation_message).to eq 'Please confirm. Do you want to proceed?' }
-      end
+      it { expect(subject.action_button_title).to eq 'Retry this job' }
     end
   end
 

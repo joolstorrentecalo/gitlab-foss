@@ -2,7 +2,7 @@
 
 module QA
   RSpec.describe 'Create' do
-    describe 'Git clone over HTTP', :smoke, product_group: :source_code do
+    describe 'Git clone over HTTP', :reliable, product_group: :source_code do
       let(:project) { create(:project, name: 'project-with-code', description: 'project for git clone tests') }
 
       before do
@@ -30,7 +30,7 @@ module QA
 
           repository.clone
 
-          expect(repository.commits.size).to eq(2), "Expected 2 commits, got: #{repository.commits.size}"
+          expect(repository.commits.size).to eq 2
         end
       end
 
@@ -41,7 +41,7 @@ module QA
 
           repository.shallow_clone
 
-          expect(repository.commits.size).to eq(1), "Expected 1 commit, got: #{repository.commits.size}"
+          expect(repository.commits.size).to eq 1
           expect(repository.commits.first).to include 'Add Readme'
         end
       end

@@ -22,6 +22,7 @@ module GroupsHelper
   end
 
   def can_set_group_diff_preview_in_email?(group)
+    return false unless Feature.enabled?(:diff_preview_in_email, group)
     return false if group.parent&.show_diff_preview_in_email?.equal?(false)
 
     can?(current_user, :set_show_diff_preview_in_email, group)
@@ -53,21 +54,18 @@ module GroupsHelper
 
     sorted_ancestors(group).with_route.reverse_each.with_index do |parent, index|
       if index > 0
-        add_to_breadcrumb_collapsed_links(
-          { text: simple_sanitize(parent.name), href: group_path(parent), avatar_url: parent.try(:avatar_url) },
-          location: :before
-        )
+        add_to_breadcrumb_collapsed_links(group_title_link(parent), location: :before)
       else
         full_title << breadcrumb_list_item(group_title_link(parent, hidable: false))
       end
 
-      push_to_schema_breadcrumb(simple_sanitize(parent.name), group_path(parent), parent.try(:avatar_url))
+      push_to_schema_breadcrumb(simple_sanitize(parent.name), group_path(parent))
     end
 
     full_title << render("layouts/nav/breadcrumbs/collapsed_inline_list", location: :before, title: _("Show all breadcrumbs"))
 
     full_title << breadcrumb_list_item(group_title_link(group))
-    push_to_schema_breadcrumb(simple_sanitize(group.name), group_path(group), group.try(:avatar_url))
+    push_to_schema_breadcrumb(simple_sanitize(group.name), group_path(group))
 
     full_title.join.html_safe
   end
@@ -97,23 +95,11 @@ module GroupsHelper
     end
   end
 
-  def group_confirm_modal_data(group:, remove_form_id: nil, permanently_remove: false, button_text: nil)
-    {
-      remove_form_id: remove_form_id,
-      button_text: button_text.nil? ? _('Delete group') : button_text,
-      button_testid: 'remove-group-button',
-      disabled: group.linked_to_subscription?.to_s,
-      confirm_danger_message: remove_group_message(group, permanently_remove),
-      phrase: group.full_path,
-      html_confirmation_message: 'true'
-    }
-  end
-
   # Overridden in EE
-  def remove_group_message(group, permanently_remove)
+  def remove_group_message(group)
     content_tag :div do
       content = ''.html_safe
-      content << content_tag(:span, _("You are about to delete the group %{group_name}.") % { group_name: group.name })
+      content << content_tag(:span, _("You are about to remove the group %{group_name}.") % { group_name: group.name })
 
       additional_content = additional_removed_items(group)
       content << additional_content if additional_content.present?
@@ -135,7 +121,7 @@ module GroupsHelper
     end.join.html_safe
 
     if counts.present?
-      content_tag(:span, _(" This action will also delete:")) +
+      content_tag(:span, _(" This action will also remove:")) +
         content_tag(:ul, counts)
     else
       ''.html_safe
@@ -143,7 +129,7 @@ module GroupsHelper
   end
 
   def remove_group_warning
-    message = _('After you delete a group, you %{strongOpen}cannot%{strongClose} restore it or its components.')
+    message = _('After you remove a group, you %{strongOpen}cannot%{strongClose} restore it or its components.')
     content_tag(:p, class: 'gl-mb-0') do
       ERB::Util.html_escape(message) % {
         strongOpen: '<strong>'.html_safe,
@@ -264,9 +250,9 @@ module GroupsHelper
     new_group_custom_emoji_path(group)
   end
 
-  def access_level_roles_user_can_assign(group, roles)
+  def access_level_roles_user_can_assign(group)
     max_access_level = group.max_member_access_for_user(current_user)
-    roles.select do |_name, access_level|
+    group.access_level_roles.select do |_name, access_level|
       access_level <= max_access_level
     end
   end
@@ -302,13 +288,6 @@ module GroupsHelper
     end
 
     dropdown_data
-  end
-
-  def groups_list_with_filtered_search_app_data(endpoint)
-    {
-      endpoint: endpoint,
-      initial_sort: project_list_sort_by
-    }.to_json
   end
 
   private

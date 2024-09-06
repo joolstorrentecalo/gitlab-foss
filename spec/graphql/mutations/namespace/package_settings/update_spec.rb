@@ -4,17 +4,16 @@ require 'spec_helper'
 
 RSpec.describe Mutations::Namespace::PackageSettings::Update, feature_category: :package_registry do
   using RSpec::Parameterized::TableSyntax
-  include GraphqlHelpers
 
   let_it_be_with_reload(:namespace) { create(:group) }
-  let_it_be(:current_user) { create(:user) }
+  let_it_be(:user) { create(:user) }
 
   let(:params) { { namespace_path: namespace.full_path } }
 
   specify { expect(described_class).to require_graphql_authorizations(:admin_package) }
 
   describe '#resolve' do
-    subject { described_class.new(object: namespace, context: query_context, field: nil).resolve(**params) }
+    subject { described_class.new(object: namespace, context: { current_user: user }, field: nil).resolve(**params) }
 
     RSpec.shared_examples 'returning a success' do
       it 'returns the namespace package setting with no errors' do
@@ -88,6 +87,15 @@ RSpec.describe Mutations::Namespace::PackageSettings::Update, feature_category: 
       end
     end
 
+    # To be removed when raise_group_admin_package_permission_to_owner FF is removed
+    RSpec.shared_examples 'disabling admin_package feature flag' do |action:|
+      before do
+        stub_feature_flags(raise_group_admin_package_permission_to_owner: false)
+      end
+
+      it_behaves_like "#{action} the namespace package setting"
+    end
+
     context 'with existing namespace package setting' do
       let_it_be(:package_settings) { create(:namespace_package_setting, namespace: namespace) }
       let_it_be(:params) do
@@ -122,10 +130,11 @@ RSpec.describe Mutations::Namespace::PackageSettings::Update, feature_category: 
 
       with_them do
         before do
-          namespace.send("add_#{user_role}", current_user) unless user_role == :anonymous
+          namespace.send("add_#{user_role}", user) unless user_role == :anonymous
         end
 
         it_behaves_like params[:shared_examples_name]
+        it_behaves_like 'disabling admin_package feature flag', action: :updating if params[:user_role] == :maintainer
       end
     end
 
@@ -143,10 +152,11 @@ RSpec.describe Mutations::Namespace::PackageSettings::Update, feature_category: 
 
       with_them do
         before do
-          namespace.send("add_#{user_role}", current_user) unless user_role == :anonymous
+          namespace.send("add_#{user_role}", user) unless user_role == :anonymous
         end
 
         it_behaves_like params[:shared_examples_name]
+        it_behaves_like 'disabling admin_package feature flag', action: :creating if params[:user_role] == :maintainer
       end
     end
   end

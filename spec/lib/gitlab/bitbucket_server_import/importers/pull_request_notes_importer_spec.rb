@@ -100,7 +100,7 @@ RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestNotesImporte
       end
     end
 
-    context 'when a matching merge request is found', :clean_gitlab_redis_shared_state do
+    context 'when a matching merge request is found', :clean_gitlab_redis_cache do
       let_it_be(:merge_request) { create(:merge_request, iid: pull_request.iid, source_project: project) }
 
       it 'logs its progress' do
@@ -127,8 +127,7 @@ RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestNotesImporte
             note: end_with(pr_note.note),
             author: note_author,
             created_at: pr_note.created_at,
-            updated_at: pr_note.created_at,
-            imported_from: 'bitbucket_server'
+            updated_at: pr_note.created_at
           )
         end
 
@@ -264,7 +263,6 @@ RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestNotesImporte
           expect(start_note.position.old_line).to be_nil
           expect(start_note.position.new_line).to eq(pr_inline_note.new_pos)
           expect(start_note.author).to eq(inline_note_author)
-          expect(start_note.imported_from).to eq('bitbucket_server')
 
           reply_note = notes.last
           expect(reply_note.note).to eq(reply.note)
@@ -273,7 +271,6 @@ RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestNotesImporte
           expect(reply_note.updated_at).to eq(reply.created_at)
           expect(reply_note.position.old_line).to be_nil
           expect(reply_note.position.new_line).to eq(pr_inline_note.new_pos)
-          expect(reply_note.imported_from).to eq('bitbucket_server')
         end
 
         context 'when the `bitbucket_server_convert_mentions_to_users` flag is disabled' do
@@ -345,27 +342,12 @@ RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestNotesImporte
             pull_request_author.update!(username: 'another_username')
           end
 
-          it 'does not set an approver' do
-            expect { importer.execute }
-              .to not_change { merge_request.approvals.count }
-              .and not_change { merge_request.notes.count }
-              .and not_change { merge_request.reviewers.count }
+          it 'finds the user based on email' do
+            importer.execute
 
-            expect(merge_request.approvals).to be_empty
-          end
+            approval = merge_request.approvals.first
 
-          context 'when bitbucket_server_user_mapping_by_username flag is disabled' do
-            before do
-              stub_feature_flags(bitbucket_server_user_mapping_by_username: false)
-            end
-
-            it 'finds the user based on email' do
-              importer.execute
-
-              approval = merge_request.approvals.first
-
-              expect(approval.user).to eq(pull_request_author)
-            end
+            expect(approval.user).to eq(pull_request_author)
           end
 
           context 'when no users match email or username' do

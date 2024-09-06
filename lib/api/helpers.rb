@@ -2,7 +2,6 @@
 
 module API
   module Helpers
-    include Gitlab::Allowable
     include Gitlab::Utils
     include Helpers::Caching
     include Helpers::Pagination
@@ -13,6 +12,8 @@ module API
 
     SUDO_HEADER = "HTTP_SUDO"
     GITLAB_SHARED_SECRET_HEADER = "Gitlab-Shared-Secret"
+    GITLAB_SHELL_API_HEADER = "Gitlab-Shell-Api-Request"
+    GITLAB_SHELL_JWT_ISSUER = "gitlab-shell"
     SUDO_PARAM = :sudo
     API_USER_ENV = 'gitlab.api.user'
     API_EXCEPTION_ENV = 'gitlab.api.exception'
@@ -148,7 +149,7 @@ module API
     def find_project!(id)
       project = find_project(id)
 
-      return forbidden!("This project's CI/CD job token cannot be used to authenticate with the container registry of a different project.") unless authorized_project_scope?(project)
+      return forbidden! unless authorized_project_scope?(project)
 
       unless can?(current_user, read_project_ability, project)
         return unauthorized! if authenticate_non_public?
@@ -219,10 +220,6 @@ module API
 
     def find_group!(id, organization: nil)
       group = find_group(id, organization: organization)
-      # We need to ensure the namespace is in the context since
-      # it's possible a method such as bypass_session! might log
-      # a message before @group is set.
-      ::Gitlab::ApplicationContext.push(namespace: group) if group
       check_group_access(group)
     end
 
@@ -334,11 +331,15 @@ module API
     end
 
     def authenticate_by_gitlab_shell_token!
-      unauthorized! unless Gitlab::Shell.verify_api_request(headers)
+      payload, _ = JSONWebToken::HMACToken.decode(headers[GITLAB_SHELL_API_HEADER], secret_token)
+      unauthorized! unless payload['iss'] == GITLAB_SHELL_JWT_ISSUER
+    rescue JWT::DecodeError, JWT::ExpiredSignature, JWT::ImmatureSignature => ex
+      Gitlab::ErrorTracking.track_exception(ex)
+      unauthorized!
     end
 
     def authenticate_by_gitlab_shell_or_workhorse_token!
-      return require_gitlab_workhorse! unless Gitlab::Shell.header_set?(headers)
+      return require_gitlab_workhorse! unless headers[GITLAB_SHELL_API_HEADER].present?
 
       authenticate_by_gitlab_shell_token!
     end
@@ -357,10 +358,6 @@ module API
       forbidden!(reason) unless can?(current_user, action, subject)
     end
 
-    def authorize_any!(abilities, subject = :global, reason = nil)
-      forbidden!(reason) unless can_any?(current_user, abilities, subject)
-    end
-
     def authorize_push_project
       authorize! :push_code, user_project
     end
@@ -373,20 +370,12 @@ module API
       authorize! :admin_project, user_project
     end
 
-    def authorize_admin_integrations
-      authorize! :admin_integrations, user_project
-    end
-
     def authorize_admin_group
       authorize! :admin_group, user_group
     end
 
-    def authorize_admin_member_role_on_group!
+    def authorize_admin_member_role!
       authorize! :admin_member_role, user_group
-    end
-
-    def authorize_admin_member_role_on_instance!
-      authorize! :admin_member_role
     end
 
     def authorize_read_builds!
@@ -443,6 +432,10 @@ module API
 
     def require_pages_config_enabled!
       not_found! unless Gitlab.config.pages.enabled
+    end
+
+    def can?(object, action, subject = :global)
+      Ability.allowed?(object, action, subject)
     end
 
     # Checks the occurrences of required attributes, each attribute must be present in the params hash
@@ -680,7 +673,7 @@ module API
       present_carrierwave_file!(file, **args)
     end
 
-    def present_carrierwave_file!(file, supports_direct_download: true, content_disposition: nil)
+    def present_carrierwave_file!(file, supports_direct_download: true)
       return not_found! unless file&.exists?
 
       if file.file_storage?
@@ -688,18 +681,21 @@ module API
       elsif supports_direct_download && file.class.direct_download_enabled?
         return redirect(ObjectStorage::S3.signed_head_url(file)) if request.head? && file.fog_credentials[:provider] == 'AWS'
 
-        redirect_params = {}
-        if content_disposition
-          response_disposition = ActionDispatch::Http::ContentDisposition.format(disposition: content_disposition, filename: file.filename)
-          redirect_params[:query] = { 'response-content-disposition' => response_disposition, 'response-content-type' => file.content_type }
-        end
-
-        file_url = ObjectStorage::CDN::FileUrl.new(file: file, ip_address: ip_address, redirect_params: redirect_params)
-        redirect(file_url.url)
+        redirect(cdn_fronted_url(file))
       else
         header(*Gitlab::Workhorse.send_url(file.url))
         status :ok
         body '' # to avoid an error from API::APIGuard::ResponseCoercerMiddleware
+      end
+    end
+
+    def cdn_fronted_url(file)
+      if file.respond_to?(:cdn_enabled_url)
+        result = file.cdn_enabled_url(ip_address)
+        Gitlab::ApplicationContext.push(artifact_used_cdn: result.used_cdn)
+        result.url
+      else
+        file.url
       end
     end
 
@@ -719,7 +715,7 @@ module API
       Gitlab::AppLogger.warn("Redis tracking event failed for event: #{event_name}, message: #{error.message}")
     end
 
-    def track_event(event_name, user:, send_snowplow_event: true, namespace_id: nil, project_id: nil, additional_properties: {})
+    def track_event(event_name, user:, send_snowplow_event: true, namespace_id: nil, project_id: nil, additional_properties: Gitlab::InternalEvents::DEFAULT_ADDITIONAL_PROPERTIES)
       return unless user.present?
 
       namespace = Namespace.find(namespace_id) if namespace_id
@@ -766,12 +762,12 @@ module API
       finder_params.merge!(
         params
           .slice(:search,
-            :custom_attributes,
-            :last_activity_after,
-            :last_activity_before,
-            :topic,
-            :topic_id,
-            :repository_storage)
+                 :custom_attributes,
+                 :last_activity_after,
+                 :last_activity_before,
+                 :topic,
+                 :topic_id,
+                 :repository_storage)
           .symbolize_keys
           .compact
       )
@@ -828,7 +824,7 @@ module API
       end
 
       unless access_token
-        forbidden!('Must be authenticated using an OAuth or personal access token to use sudo')
+        forbidden!('Must be authenticated using an OAuth or Personal Access Token to use sudo')
       end
 
       validate_and_save_access_token!(scopes: [:sudo])
@@ -861,11 +857,7 @@ module API
       env['api.format'] = :txt
       content_type 'text/plain'
 
-      # Some browsers ignore content type when filename has an xhtml extension
-      # We remove the extensions to prevent the contents from being displayed inline
-      # See https://gitlab.com/gitlab-org/gitlab/-/issues/458236
-      filename = blob.name&.ends_with?('.xhtml') ? blob.name.split('.')[0] : blob.name
-      header['Content-Disposition'] = ActionDispatch::Http::ContentDisposition.format(disposition: 'inline', filename: filename)
+      header['Content-Disposition'] = ActionDispatch::Http::ContentDisposition.format(disposition: 'inline', filename: blob.name)
 
       # Let Workhorse examine the content and determine the better content disposition
       header[Gitlab::Workhorse::DETECT_HEADER] = "true"

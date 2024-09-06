@@ -122,7 +122,7 @@ RSpec.describe Git::BranchHooksService, :clean_gitlab_redis_shared_state, featur
         let!(:commit_author) { create(:user, email: sample_commit.author_email) }
 
         let(:tracking_params) do
-          ['o_pipeline_authoring_unique_users_committing_ciconfigfile', { values: commit_author.id }]
+          ['o_pipeline_authoring_unique_users_committing_ciconfigfile', values: commit_author.id]
         end
 
         it 'tracks the event' do
@@ -174,12 +174,6 @@ RSpec.describe Git::BranchHooksService, :clean_gitlab_redis_shared_state, featur
         expect(event.push_event_payload.commit_title).to eq('Change some files')
         expect(event.push_event_payload.ref).to eq('master')
         expect(event.push_event_payload.commit_count).to be > 1
-      end
-
-      it 'correctly marks branch as protected' do
-        execute_service
-
-        expect(ProtectedBranch.protected?(project, branch)).to eq(true)
       end
     end
 
@@ -475,7 +469,6 @@ RSpec.describe Git::BranchHooksService, :clean_gitlab_redis_shared_state, featur
         expect(project.repository).not_to receive(:commits)
         expect(project.repository).not_to receive(:commits_between)
         expect(ProcessCommitWorker).not_to receive(:perform_async)
-        expect(service).to receive(:branch_remove_hooks)
 
         service.execute
 
@@ -560,49 +553,6 @@ RSpec.describe Git::BranchHooksService, :clean_gitlab_redis_shared_state, featur
       context 'Gitaly knows about the branch' do
         it 'is not treated as a new branch' do
           expect(service).not_to receive(:branch_create_hooks)
-
-          service.execute
-        end
-      end
-    end
-  end
-
-  describe '#enqueue_jira_connect_remove_branches' do
-    let(:newrev) { Gitlab::Git::SHA1_BLANK_SHA }
-    let(:extracted_keys) { ['JIRA-1'] }
-
-    before do
-      allow(Atlassian::JiraIssueKeyExtractors::Branch)
-        .to receive(:has_keys?)
-        .with(project, branch)
-        .and_return(extracted_keys)
-    end
-
-    context 'when there is no jira subscription' do
-      it 'does not call JiraConnect' do
-        expect(Integrations::JiraConnect::RemoveBranchWorker).not_to receive(:perform_async)
-
-        service.execute
-      end
-    end
-
-    context 'when there is a jira subscription' do
-      before do
-        allow(project).to receive(:jira_subscription_exists?).and_return(true)
-      end
-
-      it 'calls JiraConnect' do
-        expect(Integrations::JiraConnect::RemoveBranchWorker)
-          .to receive(:perform_async)
-
-        service.execute
-      end
-
-      context 'when the branch has no Jira keys in its name' do
-        let(:extracted_keys) { nil }
-
-        it 'does not call JiraConnect' do
-          expect(Integrations::JiraConnect::RemoveBranchWorker).not_to receive(:perform_async)
 
           service.execute
         end

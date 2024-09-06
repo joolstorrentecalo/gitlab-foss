@@ -1,5 +1,5 @@
 ---
-stage: Monitor
+stage: Service Management
 group: Respond
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -9,6 +9,8 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 DETAILS:
 **Tier:** Ultimate
 **Offering:** Self-managed
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/17859) in GitLab 12.5.
 
 You can limit the number of inbound alerts for [incidents](../../operations/incident_management/incidents.md)
 that can be created in a period of time. The inbound [incident management](../../operations/incident_management/index.md)
@@ -31,7 +33,7 @@ Requests that exceed the limit are logged into `auth.log`.
 
 To set inbound incident management alert limits:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > Network**.
 1. Expand **Incident Management Limits**.
 1. Select the **Enable Incident Management inbound alert limit** checkbox.

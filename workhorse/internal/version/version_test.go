@@ -7,13 +7,13 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	require.Equal(t, "gitlab-workhorse (unknown)-(unknown)", GetApplicationVersion())
+	require.Equal(t, GetApplicationVersion(), "gitlab-workhorse (unknown)-(unknown)")
 
 	SetVersion("15.3", "123.123")
 
-	require.Equal(t, "gitlab-workhorse (15.3)-(123.123)", GetApplicationVersion())
+	require.Equal(t, GetApplicationVersion(), "gitlab-workhorse (15.3)-(123.123)")
 
 	SetVersion("", "123.123")
 
-	require.Equal(t, "gitlab-workhorse ()-(123.123)", GetApplicationVersion())
+	require.Equal(t, GetApplicationVersion(), "gitlab-workhorse ()-(123.123)")
 }

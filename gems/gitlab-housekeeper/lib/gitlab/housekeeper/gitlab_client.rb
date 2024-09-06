@@ -43,18 +43,12 @@ module Gitlab
           next false unless note["system"]
           next false if note["author"]["id"] == current_user_id
 
-          case note['body']
-          when /^changed title from/
-            changes << :title
-          when /^changed the description$/
-            changes << :description
-          when /added \d+ commit/
-            changes << :code
-          when /assigned to|unassigned/
-            changes << :assignees
-          when /requested review from|removed review request for/
-            changes << :reviewers
-          end
+          changes << :title if note['body'].start_with?("changed title from")
+          changes << :description if note['body'] == "changed the description"
+          changes << :code if note['body'].match?(/added \d+ commit/)
+
+          changes << :reviewers if note['body'].include?('requested review from')
+          changes << :reviewers if note['body'].include?('removed review request for')
         end
 
         resource_label_events = get_merge_request_resource_label_events(
@@ -63,7 +57,7 @@ module Gitlab
         )
 
         resource_label_events.each do |event|
-          next if event.dig("user", "id") == current_user_id
+          next if event["user"]["id"] == current_user_id
 
           # Labels are routinely added by both humans and bots, so addition events aren't cause for concern.
           # However, if labels have been removed it may mean housekeeper added an incorrect label, and we shouldn't
@@ -76,12 +70,17 @@ module Gitlab
         changes.to_a
       end
 
+      # rubocop:disable Metrics/ParameterLists
       def create_or_update_merge_request(
         change:,
         source_project_id:,
         source_branch:,
         target_branch:,
-        target_project_id:
+        target_project_id:,
+        update_title:,
+        update_description:,
+        update_labels:,
+        update_reviewers:
       )
         existing_merge_request = get_existing_merge_request(
           source_project_id: source_project_id,
@@ -94,7 +93,11 @@ module Gitlab
           update_existing_merge_request(
             change: change,
             existing_iid: existing_merge_request['iid'],
-            target_project_id: target_project_id
+            target_project_id: target_project_id,
+            update_title: update_title,
+            update_description: update_description,
+            update_labels: update_labels,
+            update_reviewers: update_reviewers
           )
         else
           create_merge_request(
@@ -106,6 +109,7 @@ module Gitlab
           )
         end
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def get_existing_merge_request(source_project_id:, source_branch:, target_branch:, target_project_id:)
         data = request(:get, "/projects/#{target_project_id}/merge_requests", query: {
@@ -152,20 +156,25 @@ module Gitlab
           target_branch: target_branch,
           target_project_id: target_project_id,
           remove_source_branch: true,
-          assignee_ids: usernames_to_ids(change.assignees),
-          reviewer_ids: usernames_to_ids(change.reviewers),
-          squash: true
+          reviewer_ids: usernames_to_ids(change.reviewers)
         })
       end
 
-      def update_existing_merge_request(change:, existing_iid:, target_project_id:)
+      def update_existing_merge_request(
+        change:,
+        existing_iid:,
+        target_project_id:,
+        update_title:,
+        update_description:,
+        update_labels:,
+        update_reviewers:
+      )
         body = {}
 
-        body[:title] = change.title if change.update_required?(:title)
-        body[:description] = change.mr_description if change.update_required?(:description)
-        body[:add_labels] = Array(change.labels).join(',') if change.update_required?(:labels)
-        body[:assignee_ids] = usernames_to_ids(change.assignees) if change.update_required?(:assignees)
-        body[:reviewer_ids] = usernames_to_ids(change.reviewers) if change.update_required?(:reviewers)
+        body[:title] = change.title if update_title
+        body[:description] = change.mr_description if update_description
+        body[:add_labels] = Array(change.labels).join(',') if update_labels
+        body[:reviewer_ids] = usernames_to_ids(change.reviewers) if update_reviewers
 
         return if body.empty?
 

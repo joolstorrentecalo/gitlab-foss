@@ -49,7 +49,6 @@ RSpec.describe ResourceAccessTokens::CreateService, feature_category: :system_ac
         expect(access_token.user.reload.user_type).to eq("project_bot")
         expect(access_token.user.created_by_id).to eq(user.id)
         expect(access_token.user.namespace.organization.id).to eq(resource.organization.id)
-        expect(access_token.organization.id).to eq(resource.organization.id)
       end
 
       context 'email confirmation status' do
@@ -63,7 +62,7 @@ RSpec.describe ResourceAccessTokens::CreateService, feature_category: :system_ac
         end
 
         context 'when created by an admin' do
-          let(:user) { create(:admin) }
+          let(:user) { create(:admin, :without_default_org) }
 
           context 'when admin mode is enabled', :enable_admin_mode do
             it_behaves_like 'creates a user that has their email confirmed'
@@ -202,28 +201,14 @@ RSpec.describe ResourceAccessTokens::CreateService, feature_category: :system_ac
               end
             end
 
-            it 'project bot membership does not expire when PAT expires' do
+            it 'project bot membership expires when PAT expires' do
               response = subject
               access_token = response.payload[:access_token]
               project_bot = access_token.user
 
-              expect(resource.members.find_by(user_id: project_bot.id).expires_at).to be_nil
-            end
-
-            context 'when retain_resource_access_token_user_after_revoke is disabled' do
-              before do
-                stub_feature_flags(retain_resource_access_token_user_after_revoke: false)
-              end
-
-              it 'project bot membership expires when PAT expires' do
-                response = subject
-                access_token = response.payload[:access_token]
-                project_bot = access_token.user
-
-                expect(resource.members.find_by(user_id: project_bot.id).expires_at).to eq(
-                  max_pat_access_token_lifetime.to_date
-                )
-              end
+              expect(resource.members.find_by(user_id: project_bot.id).expires_at).to eq(
+                max_pat_access_token_lifetime.to_date
+              )
             end
 
             context 'when require_personal_access_token_expiry is set to false' do
@@ -250,19 +235,7 @@ RSpec.describe ResourceAccessTokens::CreateService, feature_category: :system_ac
               expect(access_token.expires_at).to eq(params[:expires_at])
             end
 
-            it 'sets the project bot to not expire' do
-              response = subject
-              access_token = response.payload[:access_token]
-              project_bot = access_token.user
-
-              expect(resource.members.find_by(user_id: project_bot.id).expires_at).to be_nil
-            end
-
-            context 'when retain_resource_access_token_user_after_revoke is disabled' do
-              before do
-                stub_feature_flags(retain_resource_access_token_user_after_revoke: false)
-              end
-
+            context 'expiry of the project bot member' do
               it 'sets the project bot to expire on the same day as the token' do
                 response = subject
                 access_token = response.payload[:access_token]
@@ -406,25 +379,18 @@ RSpec.describe ResourceAccessTokens::CreateService, feature_category: :system_ac
       end
     end
 
-    context 'when require_organization feature is disabled' do
-      before_all do
-        stub_feature_flags(require_organization: false)
-      end
+    context 'when resource organization is not set', :enable_admin_mode do
+      let_it_be(:resource) { create(:project, :private, organization: nil) }
+      let_it_be(:default_organization) { Organizations::Organization.default_organization }
+      let(:user) { create(:admin) }
 
-      context 'when resource organization is not set', :enable_admin_mode do
-        let_it_be(:resource) { create(:project, :private, organization_id: nil) }
-        let_it_be(:default_organization) { Organizations::Organization.default_organization }
-        let(:organization) { create(:organization) }
-        let(:user) { create(:admin) }
-        let(:params) { { organization_id: organization.id } }
+      it 'uses database default' do
+        response = subject
 
-        it 'uses database default' do
-          response = subject
-
-          access_token = response.payload[:access_token]
-          expect(access_token.user.namespace.organization).to eq(default_organization)
-          expect(access_token.organization).to eq(organization)
-        end
+        access_token = response.payload[:access_token]
+        expect(access_token.user.namespace.organization).to eq(
+          default_organization
+        )
       end
     end
   end

@@ -1,3 +1,5 @@
+import '../webpack';
+
 import { isEmpty } from 'lodash';
 import Vue from 'vue';
 import axios from '~/lib/utils/axios_utils';
@@ -60,7 +62,6 @@ const initPerformanceBar = (el) => {
           this.addRequest(urlOrRequestId, urlOrRequestId);
         }
       },
-      // eslint-disable-next-line max-params
       addRequest(requestId, requestUrl, operationName, requestParams, methodVerb) {
         if (!this.store.canTrackRequest(requestUrl)) {
           return;

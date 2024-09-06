@@ -20,12 +20,10 @@ In order to instrument your code with Internal Events Tracking you need to do th
 To create event and/or metric definitions, use the `internal_events` generator from the `gitlab` directory:
 
 ```shell
-scripts/internal_events/cli.rb
+ruby scripts/internal_events/cli.rb
 ```
 
 This CLI will help you create the correct defintion files based on your specific use-case, then provide code examples for instrumentation and testing.
-
-Events should be named in the format of `<action>_<target_of_action>_<where/when>`, valid examples are `create_ci_build` or `click_previous_blame_on_blob_page`.
 
 ## Trigger events
 
@@ -46,14 +44,14 @@ To trigger an event, call the `track_internal_event` method from the `Gitlab::In
 include Gitlab::InternalEventsTracking
 
 track_internal_event(
-  "create_ci_build",
+  "i_code_review_user_apply_suggestion",
   user: user,
   namespace: namespace,
   project: project
 )
 ```
 
-This method automatically increments all RedisHLL metrics relating to the event `create_ci_build`, and sends a corresponding Snowplow event with all named arguments and standard context (SaaS only).
+This method automatically increments all RedisHLL metrics relating to the event `i_code_review_user_apply_suggestion`, and sends a corresponding Snowplow event with all named arguments and standard context (SaaS only).
 In addition, the name of the class triggering the event is saved in the `category` property of the Snowplow event.
 
 If you have defined a metric with a `unique` property such as `unique: project.id` it is required that you provide the `project` argument.
@@ -68,7 +66,7 @@ In case when a feature is enabled through multiple namespaces and its required t
 possible to pass an optional `feature_enabled_by_namespace_ids` parameter with an array of namespace ids.
 
 ```ruby
-track_internal_event(
+Gitlab::InternalEvents.track_event(
   ...
   feature_enabled_by_namespace_ids: [namespace_one.id, namespace_two.id]
 )
@@ -76,43 +74,20 @@ track_internal_event(
 
 #### Additional properties
 
-Additional properties can be passed when tracking events. They can be used to save additional data related to given event.
-
-Tracking classes have built-in properties with keys `label` (string), `property` (string) and `value`(numeric). It's recommended
-to use these properties first.
+Additional properties can be passed when tracking events. They can be used to save additional data related to given event. It is possible to send a maximum of three additional properties with keys `label` (string), `property` (string) and `value`(numeric).
 
 Additional properties are passed by including the `additional_properties` hash in the `#track_event` call:
 
 ```ruby
-track_internal_event(
-  "create_ci_build",
+Gitlab::InternalEvents.track_event(
+  "i_code_review_user_apply_suggestion",
   user: user,
   additional_properties: {
-    label: 'scheduled',
+    label: 'admin',
     value: 20
   }
 )
 ```
-
-If you need to pass more than three additional properties, you can use the `additional_properties` hash with your custom keys:
-
-```ruby
-track_internal_event(
-  "code_suggestion_accepted",
-  user: user,
-  additional_properties: {
-    label: 'vsc',
-    property: 'automatic',
-    value: 200,
-    lang: 'ruby',
-    custom_key: 'custom_value'
-  }
-)
-```
-
-Please add custom properties only in addition to the built-in properties.
-
-Custom rules can not be used as [metric filters](metric_definition_guide.md#filters).
 
 #### Controller and API helpers
 
@@ -122,7 +97,7 @@ There is a helper module `ProductAnalyticsTracking` for controllers you can use 
 class Projects::PipelinesController < Projects::ApplicationController
   include ProductAnalyticsTracking
 
-  track_internal_event :charts, name: 'visit_charts_on_ci_cd_pipelines', conditions: -> { should_track_ci_cd_pipelines? }
+  track_internal_event :charts, name: 'p_analytics_ci_cd_pipelines', conditions: -> { should_track_ci_cd_pipelines? }
 
   def charts
     ...
@@ -161,115 +136,11 @@ track_event(
 )
 ```
 
-### Backend testing
-
-When testing code that simply triggers an internal event and make sure it increments all the related metrics,
-you can use the `internal_event_tracking` shared example.
-
-```ruby
-it_behaves_like 'internal event tracking' do
-  let(:event) { 'update_issue_severity' }
-  let(:project) { issue.project }
-  let(:user) { issue.author }
-  let(:additional_properties) { { label: issue.issueable_severity } }
-  subject(:service_action) { described_class.new(issue).execute }
-end
-```
-
-It requires a context containing:
-
-- `subject` - the action that triggers the event
-- `event` - the name of the event
-
-Optionally, the context can contain:
-
-- `user`
-- `project`
-- `namespace`. If not provided, `project.namespace` will be used (if `project` is available).
-- `category`
-- `additional_properties`
-- `event_attribute_overrides` - is used when its necessary to override the attributes available in parent context. For example:
-
-```ruby
-let(:event) { 'create_new_issue' }
-
-it_behaves_like 'internal event tracking' do
-  let(:event_attribute_overrides) { { event: 'create_new_milestone'} }
-
-  subject(:service_action) { described_class.new(issue).save }
-end
-```
-
-These legacy options are now deprecated:
-
-- `label`
-- `property`
-- `value`
-
-Prefer using `additional_properties` instead.
-
-#### Composable matchers
-
-When a singe action triggers an event multiple times, triggers multiple different events, or increments some metrics but not others for the event,
-you can use the `trigger_internal_events` and `increment_usage_metrics` matchers.
-
-```ruby
- expect { subject }
-  .to trigger_internal_events('web_ide_viewed')
-  .with(user: user, project: project, namespace: namespace)
-  .and increment_usage_metrics('counts.web_views')
-```
-
-The `trigger_internal_events` matcher accepts the same chain methods as the [`receive`](https://rubydoc.info/github/rspec/rspec-mocks/RSpec/Mocks/ExampleMethods#receive-instance_method) matcher (`#once`, `#at_most`, etc). By default, it expects the provided events to be triggered only once.
-
-The chain method `#with` accepts following parameters:
-
-- `user` - User object
-- `project` - Project object
-- `namespace` - Namespace object. If not provided, it will be set to `project.namespace`
-- `additional_properties` - Hash. Additional properties to be sent with the event. For example: `{ label: 'scheduled', value: 20 }`
-- `category` - String. If not provided, it will be set to the class name of the object that triggers the event
-
-The `increment_usage_metrics` matcher accepts the same chain methods as the [`change`](https://rubydoc.info/gems/rspec-expectations/RSpec%2FMatchers:change) matcher (`#by`, `#from`, `#to`, etc). By default, it expects the provided metrics to be incremented by one.
-
-```ruby
-expect { subject }
-  .to trigger_internal_events('web_ide_viewed')
-  .with(user: user, project: project, namespace: namespace)
-  .exactly(3).times
-```
-
-Both matchers are composable with other matchers that act on a block (like `change` matcher).
-
-```ruby
-expect { subject }
-  .to trigger_internal_events('mr_created')
-    .with(user: user, project: project, category: category, additional_properties: { label: label } )
-  .and increment_usage_metrics('counts.deployments')
-    .at_least(:once)
-  .and change { mr.notes.count }.by(1)
-```
-
-To test that an event was not triggered, you can use the `not_trigger_internal_events` matcher. It does not accept message chains.
-
-```ruby
-expect { subject }.to trigger_internal_events('mr_created')
-    .with(user: user, project: project, namespace: namespace)
-  .and increment_usage_metrics('counts.deployments')
-  .and not_trigger_internal_events('pipeline_started')
-```
-
-Or you can use the `not_to` syntax:
-
-```ruby
-expect { subject }.not_to trigger_internal_events('mr_created', 'member_role_created')
-```
-
 ### Frontend tracking
 
 Any frontend tracking call automatically passes the values `user.id`, `namespace.id`, and `project.id` from the current context of the page.
 
-If you need to pass any further properties, such as `extra`, `context`, `label`, `property`, and `value`, you can use the [deprecated snowplow implementation](https://archives.docs.gitlab.com/16.4/ee/development/internal_analytics/snowplow/implementation.html). In this case, let us know about your specific use-case in our [feedback issue for Internal Events](https://gitlab.com/gitlab-org/analytics-section/analytics-instrumentation/internal/-/issues/690).
+If you need to pass any further properties, such as `extra`, `context`, `label`, `property`, and `value`, you can use the [deprecated snowplow implementation](https://docs.gitlab.com/16.4/ee/development/internal_analytics/snowplow/implementation.html). In this case, let us know about your specific use-case in our [feedback issue for Internal Events](https://gitlab.com/gitlab-org/analytics-section/analytics-instrumentation/internal/-/issues/690).
 
 #### Vue components
 
@@ -301,7 +172,7 @@ To implement Vue component tracking:
 1. Call the `trackEvent` method. Tracking options can be passed as the second parameter:
 
    ```javascript
-   this.trackEvent('click_previous_blame_on_blob_page');
+   this.trackEvent('i_code_review_user_apply_suggestion');
    ```
 
    Or use the `trackEvent` method in the template:
@@ -313,7 +184,7 @@ To implement Vue component tracking:
 
        <div v-if="expanded">
          <p>Hello world!</p>
-         <button @click="trackEvent('click_previous_blame_on_blob_page')">Track another event</button>
+         <button @click="trackEvent('i_code_review_user_apply_suggestion')">Track another event</button>
        </div>
      </div>
    </template>
@@ -325,7 +196,7 @@ For tracking events directly from arbitrary frontend JavaScript code, a module f
 
 ```javascript
 import { InternalEvents } from '~/tracking';
-InternalEvents.trackEvent('click_previous_blame_on_blob_page');
+InternalEvents.trackEvent('i_code_review_user_apply_suggestion');
 ```
 
 #### Data-event attribute
@@ -334,7 +205,7 @@ This attribute ensures that if we want to track GitLab internal events for a but
 
 ```html
   <gl-button
-    data-event-tracking="click_previous_blame_on_blob_page"
+    data-event-tracking="i_analytics_dev_ops_adoption"
   >
    Click Me
   </gl-button>
@@ -343,7 +214,7 @@ This attribute ensures that if we want to track GitLab internal events for a but
 #### Haml
 
 ```haml
-= render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle',  data: { event_tracking: 'click_previous_blame_on_blob_page' }}) do
+= render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle',  data: { event_tracking: 'action' }}) do
 ```
 
 #### Internal events on render
@@ -351,7 +222,7 @@ This attribute ensures that if we want to track GitLab internal events for a but
 Sometimes we want to send internal events when the component is rendered or loaded. In these cases, we can add the `data-event-tracking-load="true"` attribute:
 
 ```haml
-= render Pajamas::ButtonComponent.new(button_options: { data: { event_tracking_load: 'true', event_tracking: 'click_previous_blame_on_blob_page' } }) do
+= render Pajamas::ButtonComponent.new(button_options: { data: { event_tracking_load: 'true', event_tracking: 'i_devops' } }) do
         = _("New project")
 ```
 
@@ -359,16 +230,12 @@ Sometimes we want to send internal events when the component is rendered or load
 
 Additional properties can be passed when tracking events. They can be used to save additional data related to given event. It is possible to send a maximum of three additional properties with keys `label` (string), `property` (string) and `value`(numeric).
 
-NOTE:
-Do not pass the page URL or page path as an additional property because we already track the pseudonymized page URL for each event.
-Getting the URL from `window.location` does not pseudonymize project and namespace information [as documented](https://metrics.gitlab.com/identifiers).
-
 For Vue Mixin:
 
 ```javascript
-   this.trackEvent('click_view_runners_button', {
-    label: 'group_runner_form',
-    property: dynamicPropertyVar,
+   this.trackEvent('i_code_review_user_apply_suggestion', {
+    label: 'push_event',
+    property: 'golang',
     value: 20
    });
 ```
@@ -376,9 +243,9 @@ For Vue Mixin:
 For raw JavaScript:
 
 ```javascript
-   InternalEvents.trackEvent('click_view_runners_button', {
-    label: 'group_runner_form',
-    property: dynamicPropertyVar,
+   InternalEvents.trackEvent('i_code_review_user_apply_suggestion', {
+    label: 'admin',
+    property: 'system',
     value: 20
    });
 ```
@@ -386,11 +253,10 @@ For raw JavaScript:
 For data-event attributes:
 
 ```javascript
-  <gl-button
-    data-event-tracking="click_view_runners_button"
-    data-event-label="group_runner_form"
-    :data-event-property=dynamicPropertyVar
-    data-event-additional='{"key1": "value1", "key2": "value2"}'
+ <gl-button
+    data-event-tracking="i_analytics_dev_ops_adoption"
+    data-event-label="gitlab_devops_button_label"
+    data-event-property="nav_core_menu"
   >
    Click Me
   </gl-button>
@@ -399,156 +265,5 @@ For data-event attributes:
 For Haml:
 
 ```haml
-= render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle',  data: { event_tracking: 'action', event_label: 'group_runner_form', event_property: dynamic_property_var, event_value: 2, event_additional: '{"key1": "value1", "key2": "value2"}' }}) do
+= render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle',  data: { event_tracking: 'action', event_label: 'gitlab_settings_button_label', event_property: 'settings_menu', event_value: 2 }}) do
 ```
-
-#### Frontend testing
-
-If you are using the `trackEvent` method in any of your code, whether it is in raw JavaScript or a Vue component, you can use the `useMockInternalEventsTracking` helper method to assert if `trackEvent` is called.
-
-For example, if we need to test the below Vue component,
-
-```vue
-<script>
-import { GlButton } from '@gitlab/ui';
-import { InternalEvents } from '~/tracking';
-import { __ } from '~/locale';
-
-export default {
-  components: {
-    GlButton,
-  },
-  mixins: [InternalEvents.mixin()],
-  methods: {
-    handleButtonClick() {
-      // some application logic
-      // when some event happens fire tracking call
-      this.trackEvent('click_view_runners_button', {
-        label: 'group_runner_form',
-        property: 'property_value',
-        value: 3,
-      });
-    },
-  },
-  i18n: {
-    button1: __('Sample Button'),
-  },
-};
-</script>
-<template>
-  <div style="display: flex; height: 90vh; align-items: center; justify-content: center">
-    <gl-button class="sample-button" @click="handleButtonClick">
-      {{ $options.i18n.button1 }}
-    </gl-button>
-  </div>
-</template>
-```
-
-Below would be the test case for above component.
-
-```javascript
-import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
-import DeleteApplication from '~/admin/applications/components/delete_application.vue';
-import { useMockInternalEventsTracking } from 'helpers/tracking_internal_events_helper';
-
-describe('DeleteApplication', () => {
-  /** @type {import('helpers/vue_test_utils_helper').ExtendedWrapper} */
-  let wrapper;
-
-  const createComponent = () => {
-    wrapper = shallowMountExtended(DeleteApplication);
-  };
-
-  beforeEach(() => {
-    createComponent();
-  });
-
-  describe('sample button 1', () => {
-    const { bindInternalEventDocument } = useMockInternalEventsTracking();
-    it('should call trackEvent method when clicked on sample button', async () => {
-      const { trackEventSpy } = bindInternalEventDocument(wrapper.element);
-
-      await wrapper.find('.sample-button').vm.$emit('click');
-
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'click_view_runners_button',
-        {
-          label: 'group_runner_form',
-          property: 'property_value',
-          value: 3,
-        },
-        undefined,
-      );
-    });
-  });
-});
-```
-
-If you are using tracking attributes for in Vue/View templates like below,
-
-```vue
-<script>
-import { GlButton } from '@gitlab/ui';
-import { InternalEvents } from '~/tracking';
-import { __ } from '~/locale';
-
-export default {
-  components: {
-    GlButton,
-  },
-  mixins: [InternalEvents.mixin()],
-  i18n: {
-    button1: __('Sample Button'),
-  },
-};
-</script>
-<template>
-  <div style="display: flex; height: 90vh; align-items: center; justify-content: center">
-    <gl-button
-      class="sample-button"
-      data-event-tracking="click_view_runners_button"
-      data-event-label="group_runner_form"
-    >
-      {{ $options.i18n.button1 }}
-    </gl-button>
-  </div>
-</template>
-```
-
-Below would be the test case for above component.
-
-```javascript
-import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
-import DeleteApplication from '~/admin/applications/components/delete_application.vue';
-import { useMockInternalEventsTracking } from 'helpers/tracking_internal_events_helper';
-
-describe('DeleteApplication', () => {
-  /** @type {import('helpers/vue_test_utils_helper').ExtendedWrapper} */
-  let wrapper;
-
-  const createComponent = () => {
-    wrapper = shallowMountExtended(DeleteApplication);
-  };
-
-  beforeEach(() => {
-    createComponent();
-  });
-
-  describe('sample button', () => {
-    const { bindInternalEventDocument } = useMockInternalEventsTracking();
-    it('should call trackEvent method when clicked on sample button', () => {
-      const { triggerEvent, trackEventSpy } = bindInternalEventDocument(wrapper.element);
-      triggerEvent('.sample-button');
-      expect(trackEventSpy).toHaveBeenCalledWith('click_view_runners_button', {
-        label: 'group_runner_form',
-      });
-    });
-  });
-});
-```
-
-### Internal Events on other systems
-
-Apart from the GitLab codebase, we are using Internal Events for the systems listed below.
-
-1. [AI Gateway](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/docs/internal_events.md?ref_type=heads)

@@ -91,10 +91,10 @@ module Gitlab
 
               unless File.exist?(db_file_name)
                 if main_database?(database_name)
-                  raise(::Backup::Error, "Source database file does not exist #{db_file_name}")
+                  raise(Backup::Error, "Source database file does not exist #{db_file_name}")
                 end
 
-                Gitlab::Backup::Cli::Output.warning(
+                Gitlab::Backup::Cli::Output.warn(
                   "Source backup for the database #{database_name} doesn't exist. Skipping the task"
                 )
 
@@ -141,7 +141,7 @@ module Gitlab
               end
 
               report_success(success)
-              raise ::Backup::Error, 'Restore failed' unless success
+              raise Backup::Error, 'Restore failed' unless success
             end
           end
 

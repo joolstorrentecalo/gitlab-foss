@@ -16,30 +16,19 @@ module Types
       implements Types::TodoableInterface
 
       field :description,
-        GraphQL::Types::String,
-        null: true,
-        description: 'Description of the design.'
+            GraphQL::Types::String,
+            null: true,
+            description: 'Description of the design.'
 
       field :web_url,
-        GraphQL::Types::String,
-        null: false,
-        description: 'URL of the design.'
+            GraphQL::Types::String,
+            null: false,
+            description: 'URL of the design.'
 
       field :versions,
-        Types::DesignManagement::VersionType.connection_type,
-        resolver: Resolvers::DesignManagement::VersionsResolver,
-        description: "All versions related to this design ordered newest first."
-
-      field :imported,
-        GraphQL::Types::Boolean,
-        null: false,
-        method: :imported?,
-        description: 'Indicates whether the design was imported.'
-
-      field :imported_from,
-        Types::Import::ImportSourceEnum,
-        null: false,
-        description: 'Import source of the design.'
+            Types::DesignManagement::VersionType.connection_type,
+            resolver: Resolvers::DesignManagement::VersionsResolver,
+            description: "All versions related to this design ordered newest first."
 
       markdown_field :description_html, null: true
 
@@ -66,10 +55,6 @@ module Types
 
       def web_url
         Gitlab::UrlBuilder.build(object)
-      end
-
-      def name
-        object.filename
       end
     end
   end

@@ -15,9 +15,6 @@ def load_cron_jobs!
   end
 end
 
-# initialise migrated_shards on start-up to catch any malformed SIDEKIQ_MIGRATED_SHARD lists.
-Gitlab::SidekiqSharding::Router.migrated_shards
-
 # Custom Queues configuration
 #
 # We omit :command_builder since Sidekiq::RedisConnection performs a deep clone using
@@ -33,12 +30,10 @@ enable_json_logs = Gitlab.config.sidekiq.log_format != 'text'
 
 # Sidekiq's `strict_args!` raises an exception by default in 7.0
 # https://github.com/sidekiq/sidekiq/blob/31bceff64e10d501323bc06ac0552652a47c082e/docs/7.0-Upgrade.md?plain=1#L59
-# We set :warn in development/test to pick out workers that try to serialise complex args
-strict_args_mode = Gitlab.dev_or_test_env? ? :warn : false
-Sidekiq.strict_args!(strict_args_mode)
+Sidekiq.strict_args!(false)
 
 # Perform version check before configuring server with the custome scheduled job enqueue class
-unless Gem::Version.new(Sidekiq::VERSION) == Gem::Version.new('7.2.4')
+unless Gem::Version.new(Sidekiq::VERSION) == Gem::Version.new('7.1.6')
   raise 'New version of Sidekiq detected, please either update the version for this check ' \
         'and update Gitlab::SidekiqSharding::ScheduledEnq is compatible.'
 end
@@ -56,8 +51,6 @@ Sidekiq.configure_server do |config|
     # Gitlab::SidekiqLogging::StructuredLogger
     config.error_handlers.delete(Sidekiq::Config::ERROR_HANDLER)
   end
-
-  config.logger.level = ENV.fetch("GITLAB_LOG_LEVEL", ::Logger::INFO)
 
   Sidekiq.logger.info "Listening on queues #{config[:queues].uniq.sort}"
 
@@ -138,14 +131,6 @@ Sidekiq.configure_client do |config|
   config.client_middleware(&Gitlab::SidekiqMiddleware.client_configurator)
 end
 
-Gitlab::Application.configure do |config|
-  config.middleware.use(Gitlab::Middleware::SidekiqShardAwarenessValidation)
-end
-
 Sidekiq::Scheduled::Poller.prepend Gitlab::Patch::SidekiqPoller
 Sidekiq::Cron::Poller.prepend Gitlab::Patch::SidekiqPoller
 Sidekiq::Cron::Poller.prepend Gitlab::Patch::SidekiqCronPoller
-
-Sidekiq::Client.prepend Gitlab::SidekiqSharding::Validator::Client
-Sidekiq::RedisClientAdapter::CompatMethods.prepend Gitlab::SidekiqSharding::Validator
-Sidekiq::Job::Setter.prepend Gitlab::Patch::SidekiqJobSetter

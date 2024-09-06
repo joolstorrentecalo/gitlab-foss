@@ -64,7 +64,7 @@ module Ci
 
     scope :with_job, -> { joins(:job).includes(:job) }
 
-    scope :with_file_types, ->(file_types) do
+    scope :with_file_types, -> (file_types) do
       types = self.file_types.select { |file_type| file_types.include?(file_type) }.values
 
       where(file_type: types)
@@ -156,6 +156,10 @@ module Ci
       service.update_statistics
     end
 
+    def self.use_partition_id_filter?
+      Ci::Pipeline.use_partition_id_filter?
+    end
+
     def local_store?
       [nil, ::JobArtifactUploader::Store::LOCAL].include?(self.file_store)
     end
@@ -215,8 +219,7 @@ module Ci
         file_store: file_store,
         store_dir: final_path_store_dir || file.store_dir.to_s,
         file: final_path_filename || file_identifier,
-        pick_up_at: pick_up_at || expire_at || Time.current,
-        project_id: project_id
+        pick_up_at: pick_up_at || expire_at || Time.current
       }
     end
 

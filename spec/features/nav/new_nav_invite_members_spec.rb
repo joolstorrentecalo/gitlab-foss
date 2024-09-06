@@ -28,7 +28,7 @@ RSpec.describe 'new navigation toggle', :js, feature_category: :navigation do
   end
 
   context 'when inside a project' do
-    let_it_be(:project) { create(:project, :repository, owners: user) }
+    let_it_be(:project) { create(:project, :repository).tap { |record| record.add_owner(user) } }
 
     before do
       visit project_path(project)

@@ -35,7 +35,9 @@ RSpec.describe GpgKeys::CreateService, feature_category: :source_code_management
     let(:params) { {} }
 
     it 'returns an invalid key' do
-      expect(GpgKeys::ValidateIntegrationsService).not_to receive(:new)
+      expect_next_instance_of(GpgKeys::ValidateIntegrationsService) do |instance|
+        expect(instance).to receive(:execute)
+      end
 
       gpg_key = subject.execute
 

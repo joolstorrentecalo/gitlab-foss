@@ -11,6 +11,8 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/36705) in GitLab 13.9: you can search using the full name in user autocomplete.
+
 The autocomplete characters provide a quick way of entering field values into
 Markdown fields. When you start typing a word in a Markdown field with one of
 the following characters, GitLab progressively autocompletes against a set of
@@ -37,7 +39,7 @@ Autocomplete characters are useful when combined with [Quick Actions](quick_acti
 
 Assume your GitLab instance includes the following users:
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 | Username        | Name |
 | :-------------- | :--- |
@@ -47,7 +49,7 @@ Assume your GitLab instance includes the following users:
 | logan_gutkowski | Lee Wuckert |
 | shelba          | Josefine Haley |
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 User autocompletion sorts by the users whose username or name start with your query first.
 For example, typing `@lea` shows `leanna` first and typing `@ros` shows `Rosemarie Rogahn` and `Rosy Grant` first.

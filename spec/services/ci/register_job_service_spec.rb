@@ -546,6 +546,18 @@ module Ci
 
             expect(pending_job.reload.cancel_gracefully?).to be true
           end
+
+          context 'when ci_canceling_status is disabled' do
+            before do
+              stub_feature_flags(ci_canceling_status: false)
+            end
+
+            it 'does not persist the feature to build metadata' do
+              subject
+
+              expect(pending_job.reload.cancel_gracefully?).to be false
+            end
+          end
         end
 
         context 'runner feature set is verified' do
@@ -610,7 +622,7 @@ module Ci
                 job.job_artifacts_archive.size
               end
 
-              expect(artifacts_size).to eq ci_artifact_fixture_size * 2
+              expect(artifacts_size).to eq 107464 * 2
               expect(Gitlab::ApplicationContext.current).to include({
                 'meta.artifacts_dependencies_size' => artifacts_size,
                 'meta.artifacts_dependencies_count' => 2

@@ -7,6 +7,8 @@ description: 'Learn how to operate on large time-decay data'
 
 # Time-decay data
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/326035) in GitLab 14.0.
+
 This document describes the *time-decay pattern* introduced in the
 [Database Scalability Working Group](https://handbook.gitlab.com/handbook/company/working-groups/database-scalability/#time-decay-data).
 We discuss the characteristics of time-decay data, and propose best practices for GitLab development
@@ -317,9 +319,9 @@ The process required follows:
    months of partitions while the current month is still active, as going 90 days back takes you to
    the fourth oldest partition.
 
-### Audit events
+### Audit Events
 
-Related epic: [Partitioning: Design and implement partitioning strategy for audit events](https://gitlab.com/groups/gitlab-org/-/epics/3206)
+Related epic: [Partitioning: Design and implement partitioning strategy for Audit Events](https://gitlab.com/groups/gitlab-org/-/epics/3206)
 
 The `audit_events` table shares a lot of characteristics with the `web_hook_logs` table discussed
 in the previous sub-section, so we focus on the points they differ.

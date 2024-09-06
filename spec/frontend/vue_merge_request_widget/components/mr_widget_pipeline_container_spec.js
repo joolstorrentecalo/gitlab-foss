@@ -49,6 +49,7 @@ describe('MrWidgetPipelineContainer', () => {
         retargeted: false,
         targetProjectId: 1,
         iid: 1,
+        detatchedPipeline: 'DETATCHED',
       });
     });
 

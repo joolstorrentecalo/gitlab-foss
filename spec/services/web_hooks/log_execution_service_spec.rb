@@ -13,9 +13,8 @@ RSpec.describe WebHooks::LogExecutionService, feature_category: :webhooks do
 
     let_it_be_with_reload(:project_hook) { create(:project_hook, :token) }
 
-    let(:idempotency_key) { SecureRandom.uuid }
     let(:response_category) { :ok }
-    let(:request_headers) { { 'Header' => 'header value', 'Idempotency-Key' => idempotency_key } }
+    let(:request_headers) { { 'Header' => 'header value' } }
     let(:data) do
       {
         trigger: 'trigger_name',
@@ -38,9 +37,7 @@ RSpec.describe WebHooks::LogExecutionService, feature_category: :webhooks do
     end
 
     it 'updates the last failure' do
-      # Avoid pruning AR caches in `update_hook_failure_state` so the following expectation works.
-      allow(project_hook).to receive(:reset)
-      expect(project_hook.parent).to receive(:update_last_webhook_failure).with(project_hook)
+      expect(project_hook).to receive(:update_last_failure)
 
       service.execute
     end

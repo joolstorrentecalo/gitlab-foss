@@ -38,7 +38,6 @@ describe('url sync component', () => {
     times,
     mergeUrlParamsReturnValue,
     historyMethod = historyPushState,
-    // eslint-disable-next-line max-params
   ) => {
     expect(mergeUrlParams).toHaveBeenCalledTimes(times);
     expect(mergeUrlParams).toHaveBeenCalledWith(query, window.location.href, {
@@ -138,13 +137,5 @@ describe('url sync component', () => {
 
       expect(findButton().exists()).toBe(true);
     });
-  });
-
-  it('emits the popstate event when window dispatches popstate', () => {
-    createComponent();
-
-    window.dispatchEvent(new Event('popstate'));
-
-    expect(wrapper.emitted('popstate')[0]).toHaveLength(1);
   });
 });

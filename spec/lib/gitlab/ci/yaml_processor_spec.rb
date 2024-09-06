@@ -52,74 +52,6 @@ module Gitlab
           end
         end
 
-        context 'with execution config' do
-          let(:config) do
-            YAML.dump(
-              hello_steps: {
-                artifacts: { access: 'developer' },
-                run: [
-                  name: 'hello_steps',
-                  step: 'some_step_reference',
-                  inputs: {
-                    echo: 'hello steps!!'
-                  }
-                ]
-              }
-            )
-          end
-
-          it 'returns valid build attributes with execution config' do
-            expect(builds).to eq([{
-              stage: 'test',
-              stage_idx: 2,
-              name: 'hello_steps',
-              options: { artifacts: { access: 'developer' } },
-              allow_failure: false,
-              execution_config: {
-                run_steps: [{
-                  inputs: { echo: 'hello steps!!' },
-                  name: 'hello_steps',
-                  step: 'some_step_reference'
-                }]
-              },
-              when: 'on_success',
-              job_variables: [],
-              only: { refs: %w[branches tags] },
-              root_variables_inheritance: true,
-              scheduling_type: :stage
-            }])
-          end
-
-          context 'when run steps is empty' do
-            let(:config) do
-              YAML.dump(
-                hello_steps: {
-                  artifacts: { access: 'developer' },
-                  run: []
-                }
-              )
-            end
-
-            it 'returns valid build attributes with empty run config' do
-              expect(builds).to eq([{
-                stage: 'test',
-                stage_idx: 2,
-                name: 'hello_steps',
-                options: { artifacts: { access: 'developer' } },
-                allow_failure: false,
-                execution_config: {
-                  run_steps: []
-                },
-                when: 'on_success',
-                job_variables: [],
-                only: { refs: %w[branches tags] },
-                root_variables_inheritance: true,
-                scheduling_type: :stage
-              }])
-            end
-          end
-        end
-
         context 'with job rules' do
           let(:config) do
             YAML.dump(
@@ -2883,12 +2815,12 @@ module Gitlab
               build1: {
                 stage: 'build',
                 script: 'build',
-                parallel: { matrix: [{ PROVIDER: ['aws'], STACK: %w[monitoring app1 app2] }] }
+                parallel: { matrix: [{ 'PROVIDER': ['aws'], 'STACK': %w[monitoring app1 app2] }] }
               },
               test1: {
                 stage: 'test',
                 script: 'test',
-                needs: [{ job: 'build1', parallel: { matrix: [{ PROVIDER: ['aws'], STACK: ['app1'] }] } }]
+                needs: [{ job: 'build1', parallel: { matrix: [{ 'PROVIDER': ['aws'], 'STACK': ['app1'] }] } }]
               }
             }
           end
@@ -3301,7 +3233,7 @@ module Gitlab
         context 'returns error if job configuration is invalid' do
           let(:config) { YAML.dump({ extra: "bundle update" }) }
 
-          it_behaves_like 'returns errors', 'jobs extra config should implement the script:, run:, or trigger: keyword'
+          it_behaves_like 'returns errors', 'jobs extra config should implement a script: or a trigger: keyword'
         end
 
         context 'returns errors if services configuration is not correct' do
@@ -3319,11 +3251,11 @@ module Gitlab
         context 'returns errors if the job script is not defined' do
           let(:config) { YAML.dump({ rspec: { before_script: "test" } }) }
 
-          it_behaves_like 'returns errors', 'jobs rspec config should implement the script:, run:, or trigger: keyword'
+          it_behaves_like 'returns errors', 'jobs rspec config should implement a script: or a trigger: keyword'
         end
 
         context 'returns errors if there are no visible jobs defined' do
-          let(:config) { YAML.dump({ before_script: ["bundle update"], ".hidden": { script: 'ls' } }) }
+          let(:config) { YAML.dump({ before_script: ["bundle update"], '.hidden'.to_sym => { script: 'ls' } }) }
 
           it_behaves_like 'returns errors', 'jobs config should contain at least one visible job'
         end

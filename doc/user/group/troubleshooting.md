@@ -8,7 +8,8 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 ## Validation errors on namespaces and groups
 
-Performs the following checks when creating or updating namespaces or groups:
+[GitLab 14.4 and later](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/70365) performs
+the following checks when creating or updating namespaces or groups:
 
 - Namespaces must not have parents.
 - Group parents must be groups and not namespaces.
@@ -93,17 +94,9 @@ Administrators can find a user's maximum permissions for a group or project.
 Members who were invited via a group invitation cannot be removed. You can either remove the entire group, or ask an Owner of the invited group to remove the member.
 ```
 
-This error typically occurs when the user you're trying to remove is part of an external group that has been [shared with one or more of your projects](../project/members/sharing_projects_groups.md) or [groups](../project/members/sharing_projects_groups.md#invite-a-group-to-a-group). To remove the user as a billable member, follow one of the options:
+This error typically occurs when the user you're trying to remove is part of an external group that has been [shared with one or more of your projects](../project/members/share_project_with_groups.md) or [groups](manage.md#share-a-group-with-another-group). To remove the user as a billable member, follow one of the options:
 
 - Remove the invited group membership from your project or group members page.
 - Recommended. Remove the user directly from the invited group, if you have access to the group.
 
 The feature request to **Update `billable_members` endpoint to include invited group** is currently being worked on. For more information, see [issue 386583](https://gitlab.com/gitlab-org/gitlab/-/issues/386583)
-
-## Missing or insufficient permission, delete button disabled
-
-This error typically occurs when a user attempts to remove the `container_registry` images from the archived projects during group transfer. To solve this error:
-
-1. Unarchive the project.
-1. Delete the `container_registry` images.
-1. Archive the project.

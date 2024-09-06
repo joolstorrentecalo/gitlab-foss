@@ -12,7 +12,6 @@ module BulkImports
 
     belongs_to :project, optional: true
     belongs_to :group, optional: true
-    belongs_to :user, optional: true
 
     has_one :upload, class_name: 'BulkImports::ExportUpload'
     has_many :batches, class_name: 'BulkImports::ExportBatch'
@@ -22,10 +21,6 @@ module BulkImports
     validates :relation, :status, presence: true
 
     validate :portable_relation?
-
-    scope :for_status, ->(status) { where(status: status) }
-    scope :for_user, ->(user) { where(user: user) }
-    scope :for_user_and_relation, ->(user, relation) { where(user: user, relation: relation) }
 
     state_machine :status, initial: :started do
       state :started, value: STARTED
@@ -42,12 +37,6 @@ module BulkImports
 
       event :fail_op do
         transition any => :failed
-      end
-
-      after_transition any => :finished do |export|
-        if export.config.user_contributions_relation?(export.relation)
-          UserContributionsExportMapper.new(export.portable).clear_cache
-        end
       end
     end
 
@@ -78,10 +67,6 @@ module BulkImports
 
       upload.remove_export_file!
       upload.save!
-    end
-
-    def relation_has_user_contributions?
-      config.relation_has_user_contributions?(relation)
     end
   end
 end

@@ -4,18 +4,11 @@
 # Inputs
 # - `gem_name`: The name of the gem, i.e. if the gem is located at `gems/gitlab-rspec`, `gem_name` should be set to `gitlab-rspec`.
 # - `gem_path_prefix`: The prefix of the gem path, i.e. if the gem is located at `vendor/gems/gitlab-rspec`, `gem_path_prefix` should be set to `vendor/gems/`. Defaults to `gems/`.
-# - `skip_gem_validation`: Whether a validation should be performed.. Defaults to `false`.
 spec:
   inputs:
     gem_name:
-    bundle_gemfiles:
-      type: array
-      default: ['Gemfile']
     gem_path_prefix:
       default: "gems/"
-    skip_gem_validation:
-      type: boolean
-      default: false
 ---
 workflow:
   name: '[$[[inputs.gem_name]] gem] Ruby $RUBY_VERSION pipeline'
@@ -37,8 +30,6 @@ include:
   - local: .gitlab/ci/version.yml
 
 default:
-  tags:
-    - gitlab-org
   image: "ruby:${RUBY_VERSION}"
   cache:
     key: "$[[inputs.gem_name]]-${RUBY_VERSION}"
@@ -47,7 +38,6 @@ default:
   before_script:
     - cd $[[inputs.gem_path_prefix]]$[[inputs.gem_name]]
     - ruby -v                                   # Print out ruby version for debugging
-    - gem update --system
     - bundle_version=$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 | sed -e 's/[[:space:]]//')
     - gem install bundler --version "$bundle_version" --no-document # Bundler is not installed with the image
     - bundle config                             # Show bundler configuration
@@ -58,30 +48,16 @@ default:
     matrix:
       - RUBY_VERSION: ["${RUBY_VERSION_DEFAULT}", "${RUBY_VERSION_NEXT}"]
 
-.ruby_on_rails_matrix:
-  parallel:
-    matrix:
-      - RUBY_VERSION: ["${RUBY_VERSION_DEFAULT}", "${RUBY_VERSION_NEXT}"]
-      - BUNDLE_GEMFILE: $[[inputs.bundle_gemfiles]]
-
-validate-gem:
-  rules:
-    - if: "'$[[inputs.skip_gem_validation]]' == 'true'"
-      when: never
-    # Validate all gems stored in `gems/`.
-    - if: "'$[[inputs.gem_path_prefix]]' == 'gems/'"
-  script:
-    - $CI_PROJECT_DIR/scripts/validate-monorepo-gem "$[[inputs.gem_name]]"
-
 rubocop:
   extends: .ruby_matrix
   rules:
     - exists: ["$[[inputs.gem_path_prefix]]$[[inputs.gem_name]]/.rubocop.yml"]
   script:
+    - $CI_PROJECT_DIR/scripts/validate-monorepo-gem "$[[inputs.gem_name]]"
     - bundle exec rubocop
 
 rspec:
-  extends: .ruby_on_rails_matrix
+  extends: .ruby_matrix
   script:
     - RAILS_ENV=test bundle exec rspec
   coverage: '/LOC \((\d+\.\d+%)\) covered.$/'

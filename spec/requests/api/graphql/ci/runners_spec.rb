@@ -6,33 +6,10 @@ RSpec.describe 'Query.runners', feature_category: :fleet_visibility do
 
   let_it_be(:current_user) { create_default(:user, :admin) }
 
-  def create_ci_runner(version:, revision: nil, ip_address: nil, **args)
-    runner_manager_args = { version: version, revision: revision, ip_address: ip_address }.compact
-
-    create(:ci_runner, :project, **args).tap do |runner|
-      create(:ci_runner_machine, runner: runner, **runner_manager_args)
-    end
-  end
-
-  describe 'Query.runners', :freeze_time do
-    before_all do
-      freeze_time # Freeze time before `let_it_be` runs, so that runner statuses are frozen during execution
-    end
-
-    after :all do
-      unfreeze_time
-    end
-
+  describe 'Query.runners' do
     let_it_be(:project) { create(:project, :repository, :public) }
-    let_it_be(:instance_runner) { create(:ci_runner, :instance, :almost_offline, description: 'Instance runner') }
-    let_it_be(:instance_runner_manager) do
-      create(:ci_runner_machine, runner: instance_runner, version: 'abc', revision: '123', ip_address: '127.0.0.1')
-    end
-
-    let_it_be(:project_runner) { create(:ci_runner, :project, :paused, description: 'Project runner', projects: [project]) }
-    let_it_be(:project_runner_manager) do
-      create(:ci_runner_machine, runner: project_runner, version: 'def', revision: '456', ip_address: '127.0.0.1')
-    end
+    let_it_be(:instance_runner) { create(:ci_runner, :instance, version: 'abc', revision: '123', description: 'Instance runner', ip_address: '127.0.0.1') }
+    let_it_be(:project_runner) { create(:ci_runner, :project, active: false, version: 'def', revision: '456', description: 'Project runner', projects: [project], ip_address: '127.0.0.1') }
 
     let(:runners_graphql_data) { graphql_data_at(:runners) }
 
@@ -59,14 +36,13 @@ RSpec.describe 'Query.runners', feature_category: :fleet_visibility do
     # Exclude fields from deeper objects which are problematic:
     # - ownerProject.pipeline: Needs arguments (iid or sha)
     # - project.productAnalyticsState: Can be requested only for 1 Project(s) at a time.
-    # - mergeTrains Licensed feature
-    let(:excluded_fields) { %w[pipeline productAnalyticsState mergeTrains] }
+    let(:excluded_fields) { %w[pipeline productAnalyticsState] }
 
     it 'returns expected runners' do
       post_graphql(query, current_user: current_user)
 
-      expect(runners_graphql_data['nodes']).to match_array(
-        Ci::Runner.all.map { |expected_runner| a_graphql_entity_for(expected_runner) }
+      expect(runners_graphql_data['nodes']).to contain_exactly(
+        *Ci::Runner.all.map { |expected_runner| a_graphql_entity_for(expected_runner) }
       )
     end
 
@@ -81,8 +57,8 @@ RSpec.describe 'Query.runners', feature_category: :fleet_visibility do
         it 'returns expected runners' do
           post_graphql(query, current_user: current_user)
 
-          expect(runners_graphql_data['nodes']).to match_array(
-            Array(expected_runners).map { |expected_runner| a_graphql_entity_for(expected_runner) }
+          expect(runners_graphql_data['nodes']).to contain_exactly(
+            *Array(expected_runners).map { |expected_runner| a_graphql_entity_for(expected_runner) }
           )
         end
       end
@@ -104,9 +80,9 @@ RSpec.describe 'Query.runners', feature_category: :fleet_visibility do
           end
         end
 
-        context 'runner_type is INSTANCE_TYPE and status is ONLINE' do
+        context 'runner_type is INSTANCE_TYPE and status is ACTIVE' do
           let(:runner_type) { 'INSTANCE_TYPE' }
-          let(:status) { 'ONLINE' }
+          let(:status) { 'ACTIVE' }
 
           let(:expected_runners) { instance_runner }
 
@@ -180,6 +156,12 @@ RSpec.describe 'Query.runners', feature_category: :fleet_visibility do
             let(:expected_runners) do
               [instance_runner, project_runner, runner_15_10_1, runner_15_11_0, runner_15_11_1, runner_16_1_0]
             end
+          end
+        end
+
+        def create_ci_runner(args = {}, version:)
+          create(:ci_runner, :project, **args).tap do |runner|
+            create(:ci_runner_machine, runner: runner, version: version)
           end
         end
       end
@@ -325,11 +307,11 @@ RSpec.describe 'Query.runners', feature_category: :fleet_visibility do
       }
 
       [
-        create_ci_runner(created_at: 4.days.ago, contacted_at: 3.days.ago, **common_args),
-        create_ci_runner(created_at: 30.hours.ago, contacted_at: 1.day.ago, **common_args),
-        create_ci_runner(created_at: 1.day.ago, contacted_at: 1.hour.ago, **common_args),
-        create_ci_runner(created_at: 2.days.ago, contacted_at: 2.days.ago, **common_args),
-        create_ci_runner(created_at: 3.days.ago, contacted_at: 1.second.ago, **common_args)
+        create(:ci_runner, :instance, created_at: 4.days.ago, contacted_at: 3.days.ago, **common_args),
+        create(:ci_runner, :instance, created_at: 30.hours.ago, contacted_at: 1.day.ago, **common_args),
+        create(:ci_runner, :instance, created_at: 1.day.ago, contacted_at: 1.hour.ago, **common_args),
+        create(:ci_runner, :instance, created_at: 2.days.ago, contacted_at: 2.days.ago, **common_args),
+        create(:ci_runner, :instance, created_at: 3.days.ago, contacted_at: 1.second.ago, **common_args)
       ]
     end
 
@@ -355,14 +337,26 @@ RSpec.describe 'Query.runners', feature_category: :fleet_visibility do
   end
 end
 
-RSpec.describe 'Group.runners', feature_category: :fleet_visibility do
+RSpec.describe 'Group.runners' do
   include GraphqlHelpers
 
   let_it_be(:group) { create(:group) }
-  let_it_be(:group_owner) { create_default(:user, owner_of: group) }
+  let_it_be(:group_owner) { create_default(:user) }
+
+  before do
+    group.add_owner(group_owner)
+  end
 
   describe 'edges' do
-    let_it_be(:runner) { create(:ci_runner, :group, :paused, description: 'Project runner', groups: [group]) }
+    let_it_be(:runner) do
+      create(:ci_runner, :group,
+        active: false,
+        version: 'def',
+        revision: '456',
+        description: 'Project runner',
+        groups: [group],
+        ip_address: '127.0.0.1')
+    end
 
     let(:query) do
       %(

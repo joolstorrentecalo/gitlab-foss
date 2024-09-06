@@ -3,12 +3,10 @@
 require 'spec_helper'
 
 RSpec.describe 'shared/projects/_list' do
-  let_it_be(:user) { build(:user) }
-  let_it_be(:group) { create(:group) }
+  let(:group) { create(:group) }
 
   before do
     allow(view).to receive(:projects).and_return(projects)
-    allow(view).to receive(:current_user) { user }
   end
 
   context 'with projects' do
@@ -35,7 +33,7 @@ RSpec.describe 'shared/projects/_list' do
     end
 
     it 'renders list in list view' do
-      expect(rendered).not_to have_css('.gl-card')
+      expect(rendered).not_to have_css('.gl-new-card')
     end
   end
 
@@ -45,7 +43,7 @@ RSpec.describe 'shared/projects/_list' do
     it 'renders card mode when set to true' do
       render template: 'shared/projects/_list', locals: { card_mode: true }
 
-      expect(rendered).to have_css('.gl-card')
+      expect(rendered).to have_css('.gl-new-card')
     end
   end
 
@@ -99,40 +97,6 @@ RSpec.describe 'shared/projects/_list' do
 
           expect(rendered).to have_content(s_('UserProfile|There are no projects available to be displayed here'))
         end
-      end
-    end
-
-    context 'when projects_limit > 0' do
-      before do
-        allow(user).to receive(:projects_limit).and_return(1)
-        controller.params[:controller] = 'users'
-        controller.params[:username] = user.username
-      end
-
-      it 'renders `New project` button' do
-        render
-
-        expect(rendered).to have_link('New project')
-        expect(rendered).to have_content(
-          s_('UserProfile|Your projects can be available publicly, internally, or privately, at your choice.')
-        )
-      end
-    end
-
-    context 'when projects_limit is 0' do
-      before do
-        allow(user).to receive(:projects_limit).and_return(0)
-        controller.params[:controller] = 'users'
-        controller.params[:username] = user.username
-      end
-
-      it 'does not render `New project` button' do
-        render
-
-        expect(rendered).not_to have_link('New project')
-        expect(rendered).to have_content(
-          s_("UserProfile|You cannot create projects in your personal namespace. Contact your GitLab administrator.")
-        )
       end
     end
   end

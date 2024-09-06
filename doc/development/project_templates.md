@@ -29,7 +29,7 @@ with GitLab, there are a few steps to follow.
 ### Create the project
 
 1. Create a new public project with the project content you'd like to contribute in a namespace of your choosing. You can view a [working example](https://gitlab.com/gitlab-org/project-templates/dotnetcore).
-   - Projects should be free of any unnecessary assets or dependencies.
+   - Projects should be as simple as possible and free of any unnecessary assets or dependencies.
 1. When the project is ready for review, [create a new issue](https://gitlab.com/gitlab-org/gitlab/issues/new) with a link to your project.
    - In your issue, `@` mention the relevant Backend Engineering Manager and Product Manager for the [Create:Source Code group](https://handbook.gitlab.com/handbook/product/categories/#source-code-group).
 
@@ -42,13 +42,13 @@ icon of the template you add is not present, you have to submit one.
 See how to add a [third-party logo](https://gitlab.com/gitlab-org/gitlab-svgs/-/tree/main#adding-third-party-logos-or-trademarks).
 
 After the logo is added to the `main` branch,
-[the bot](https://gitlab.com/gitlab-org/frontend/renovate-gitlab-bot/) picks the
+[the bot](https://gitlab.com/gitlab-org/frontend/renovate-gitlab-bot/) will pick the
 new release up and create an MR in `gitlab-org/gitlab`. You can now proceed to
 the next step.
 
 ### Add the template details
 
-Two types of built-in templates are available in GitLab:
+Two types of built-in templates are available within GitLab:
 
 - **Standard templates**: Available in all GitLab tiers.
 - **Enterprise templates**: Available only in GitLab Premium and Ultimate.
@@ -70,7 +70,6 @@ To contribute a standard template:
    ```
 
 1. Add the details of the template in [`app/assets/javascripts/projects/default_project_templates.js`](https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/assets/javascripts/projects/default_project_templates.js).
-1. Add the template name to [`spec/support/helpers/project_template_test_helper.rb`](https://gitlab.com/gitlab-org/gitlab/-/blob/master/spec/support/helpers/project_template_test_helper.rb).
 
 #### Enterprise template
 

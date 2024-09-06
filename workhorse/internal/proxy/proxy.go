@@ -1,4 +1,3 @@
-// Package proxy provides functionality for configuring and using a proxy server.
 package proxy
 
 import (
@@ -25,7 +24,6 @@ var (
 	pool = newBufferPool()
 )
 
-// Proxy represents a proxy configuration with various settings.
 type Proxy struct {
 	Version                string
 	reverseProxy           *httputil.ReverseProxy
@@ -34,21 +32,18 @@ type Proxy struct {
 	forceTargetHostHeader  bool
 }
 
-// WithCustomHeaders is a function that returns a configuration function to set custom headers for a proxy.
 func WithCustomHeaders(customHeaders map[string]string) func(*Proxy) {
 	return func(proxy *Proxy) {
 		proxy.customHeaders = customHeaders
 	}
 }
 
-// WithForcedTargetHostHeader is a function that returns a configuration function to force the target host header for a proxy.
 func WithForcedTargetHostHeader() func(*Proxy) {
 	return func(proxy *Proxy) {
 		proxy.forceTargetHostHeader = true
 	}
 }
 
-// NewProxy creates a new Proxy instance with the provided options.
 func NewProxy(myURL *url.URL, version string, roundTripper http.RoundTripper, options ...func(*Proxy)) *Proxy {
 	p := Proxy{Version: version, AllowResponseBuffering: true, customHeaders: make(map[string]string)}
 

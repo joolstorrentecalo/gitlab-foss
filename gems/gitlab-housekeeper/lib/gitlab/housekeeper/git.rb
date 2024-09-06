@@ -15,17 +15,21 @@ module Gitlab
         @branch_from = branch_from
       end
 
-      def with_clean_state(&block)
+      def with_clean_state
         result = Shell.execute('git', 'stash')
         stashed = !result.include?('No local changes to save')
 
-        with_return_to_current_branch(stashed: stashed, &block)
+        with_return_to_current_branch(stashed: stashed) do
+          checkout_branch(@branch_from)
+
+          yield
+        end
       end
 
       def create_branch(change)
         branch_name = branch_name(change.identifiers)
 
-        Shell.execute("git", "branch", "-f", branch_name, @branch_from)
+        Shell.execute("git", "branch", "-f", branch_name)
 
         branch_name
       end
@@ -44,7 +48,7 @@ module Gitlab
       end
 
       def push(branch_name, push_options = PushOptions.new)
-        push_command = ['git', 'push', '-u', '-f', housekeeper_remote, "#{branch_name}:#{branch_name}"]
+        push_command = ['git', 'push', '-f', housekeeper_remote, "#{branch_name}:#{branch_name}"]
         push_command << '-o ci.skip' if push_options.ci_skip
 
         Shell.execute(*push_command)

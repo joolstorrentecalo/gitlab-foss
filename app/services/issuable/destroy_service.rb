@@ -8,10 +8,6 @@ module Issuable
     end
 
     def execute(issuable)
-      # load sync object before destroy otherwise we cannot access it for
-      # deletion of label links in delete_label_links
-      @synced_object_to_delete = issuable.try(:sync_object)
-
       before_destroy(issuable)
       after_destroy(issuable) if issuable.destroy
     end
@@ -27,38 +23,30 @@ module Issuable
       issuable.assignees.each(&:invalidate_cache_counts)
     end
 
-    def delete_associated_records(issuable)
-      delete_todos(issuable)
-      delete_label_links(issuable)
-    end
-
-    def delete_todos(issuable)
-      synced_object_to_delete = @synced_object_to_delete
-
-      issuable.run_after_commit_or_now do
-        TodosDestroyer::DestroyedIssuableWorker.perform_async(issuable.id, issuable.class.base_class.name)
-
-        # if there is a sync object, we need to cleanup its todos as well
-        next unless synced_object_to_delete
-
-        TodosDestroyer::DestroyedIssuableWorker.perform_async(
-          synced_object_to_delete.id, synced_object_to_delete.class.base_class.name
-        )
+    def group_for(issuable)
+      if issuable.project.present?
+        issuable.project.group
+      else
+        issuable.namespace
       end
     end
 
-    def delete_label_links(issuable)
-      synced_object_to_delete = @synced_object_to_delete
+    def delete_associated_records(issuable)
+      actor = group_for(issuable)
 
+      delete_todos(actor, issuable)
+      delete_label_links(actor, issuable)
+    end
+
+    def delete_todos(actor, issuable)
       issuable.run_after_commit_or_now do
-        Issuable::LabelLinksDestroyWorker.perform_async(issuable.id, issuable.class.base_class.name)
+        TodosDestroyer::DestroyedIssuableWorker.perform_async(issuable.id, issuable.class.name)
+      end
+    end
 
-        # if there is a sync object, we need to cleanup its label links as well
-        next unless synced_object_to_delete
-
-        Issuable::LabelLinksDestroyWorker.perform_async(
-          synced_object_to_delete.id, synced_object_to_delete.class.base_class.name
-        )
+    def delete_label_links(actor, issuable)
+      issuable.run_after_commit_or_now do
+        Issuable::LabelLinksDestroyWorker.perform_async(issuable.id, issuable.class.name)
       end
     end
   end

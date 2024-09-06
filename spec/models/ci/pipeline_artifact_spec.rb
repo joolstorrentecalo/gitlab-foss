@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Ci::PipelineArtifact, type: :model, feature_category: :job_artifacts do
+RSpec.describe Ci::PipelineArtifact, type: :model, feature_category: :build_artifacts do
   let(:coverage_report) { create(:ci_pipeline_artifact, :with_coverage_report) }
 
   describe 'associations' do
@@ -317,11 +317,11 @@ RSpec.describe Ci::PipelineArtifact, type: :model, feature_category: :job_artifa
     let(:pipeline_artifact) { create(:ci_pipeline_artifact, pipeline: pipeline) }
 
     before do
-      stub_current_partition_id(ci_testing_partition_id_for_check_constraints)
+      stub_current_partition_id
     end
 
     it 'assigns the same partition id as the one that pipeline has' do
-      expect(pipeline_artifact.partition_id).to eq(ci_testing_partition_id_for_check_constraints)
+      expect(pipeline_artifact.partition_id).to eq(ci_testing_partition_id)
     end
   end
 end

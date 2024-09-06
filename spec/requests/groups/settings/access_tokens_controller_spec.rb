@@ -4,8 +4,13 @@ require 'spec_helper'
 
 RSpec.describe Groups::Settings::AccessTokensController, feature_category: :system_access do
   let_it_be(:user) { create(:user) }
-  let_it_be(:resource) { create(:group, owners: user) }
-  let_it_be(:access_token_user) { create(:user, :project_bot, maintainer_of: resource) }
+  let_it_be(:resource) { create(:group) }
+  let_it_be(:access_token_user) { create(:user, :project_bot) }
+
+  before_all do
+    resource.add_owner(user)
+    resource.add_maintainer(access_token_user)
+  end
 
   before do
     sign_in(user)
@@ -40,7 +45,6 @@ RSpec.describe Groups::Settings::AccessTokensController, feature_category: :syst
     it_behaves_like 'feature unavailable'
     it_behaves_like 'GET resource access tokens available'
     it_behaves_like 'GET access tokens are paginated and ordered'
-    it_behaves_like 'GET access tokens includes inactive tokens'
   end
 
   describe 'POST /:namespace/-/settings/access_tokens' do

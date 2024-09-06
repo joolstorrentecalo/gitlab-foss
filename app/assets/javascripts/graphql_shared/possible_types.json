@@ -7,10 +7,6 @@
     "AmazonS3ConfigurationType",
     "InstanceAmazonS3ConfigurationType"
   ],
-  "AuditEventStreamingDestinationInterface": [
-    "GroupAuditEventStreamingDestination",
-    "InstanceAuditEventStreamingDestination"
-  ],
   "BaseHeaderInterface": [
     "AuditEventStreamingHeader",
     "AuditEventsStreamingInstanceHeader"
@@ -59,6 +55,10 @@
     "ExternalAuditEventDestination",
     "InstanceExternalAuditEventDestination"
   ],
+  "AuditEventStreamingDestinationInterface": [
+    "GroupAuditEventStreamingDestination",
+    "InstanceAuditEventStreamingDestination"
+  ],
   "GoogleCloudArtifactRegistryArtifact": [
     "GoogleCloudArtifactRegistryDockerImage"
   ],
@@ -103,7 +103,6 @@
   ],
   "OrchestrationPolicy": [
     "ApprovalPolicy",
-    "PipelineExecutionPolicy",
     "ScanExecutionPolicy",
     "ScanResultPolicy"
   ],
@@ -116,8 +115,7 @@
     "ConanMetadata",
     "MavenMetadata",
     "NugetMetadata",
-    "PypiMetadata",
-    "TerraformModuleMetadata"
+    "PypiMetadata"
   ],
   "Registrable": [
     "CiSecureFileRegistry",
@@ -149,11 +147,6 @@
     "BaseService",
     "JiraService"
   ],
-  "TerraformModuleMetadataSharedFields": [
-    "TerraformModuleMetadataExample",
-    "TerraformModuleMetadataRoot",
-    "TerraformModuleMetadataSubmodule"
-  ],
   "TimeboxReportInterface": [
     "Iteration",
     "Milestone"
@@ -165,11 +158,8 @@
     "Design",
     "Epic",
     "EpicIssue",
-    "Group",
     "Issue",
     "MergeRequest",
-    "Namespace",
-    "Project",
     "WorkItem"
   ],
   "User": [
@@ -186,7 +176,6 @@
     "VulnerabilityDetailBase",
     "VulnerabilityDetailBoolean",
     "VulnerabilityDetailCode",
-    "VulnerabilityDetailCodeFlows",
     "VulnerabilityDetailCommit",
     "VulnerabilityDetailDiff",
     "VulnerabilityDetailFileLocation",
@@ -213,12 +202,10 @@
     "WorkItemWidgetAssignees",
     "WorkItemWidgetAwardEmoji",
     "WorkItemWidgetColor",
-    "WorkItemWidgetCrmContacts",
     "WorkItemWidgetCurrentUserTodos",
     "WorkItemWidgetDescription",
     "WorkItemWidgetDesigns",
     "WorkItemWidgetDevelopment",
-    "WorkItemWidgetEmailParticipants",
     "WorkItemWidgetHealthStatus",
     "WorkItemWidgetHierarchy",
     "WorkItemWidgetIteration",
@@ -241,7 +228,6 @@
     "WorkItemWidgetDefinitionAssignees",
     "WorkItemWidgetDefinitionGeneric",
     "WorkItemWidgetDefinitionHierarchy",
-    "WorkItemWidgetDefinitionLabels",
-    "WorkItemWidgetDefinitionWeight"
+    "WorkItemWidgetDefinitionLabels"
   ]
 }

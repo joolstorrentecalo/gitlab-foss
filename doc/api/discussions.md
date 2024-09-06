@@ -10,7 +10,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-Discussions are attached to:
+Discussions are a set of related notes on:
 
 - Snippets
 - Issues
@@ -18,23 +18,10 @@ Discussions are attached to:
 - Merge requests
 - Commits
 
-This includes [comments, threads](../user/discussions/index.md), and system notes.
+This includes [comments and threads](../user/discussions/index.md) and system notes.
 System notes are notes about changes to the object (for example, when a milestone changes).
-
 Label notes are not part of this API, but recorded as separate events in
 [resource label events](resource_label_events.md).
-
-## Understand note types in the API
-
-Not all discussion types are equally available in the API:
-
-- **Note**: A comment left on the _root_ of an issue, merge request, commit,
-  or snippet.
-- **Discussion**: A collection, often called a _thread_, of `DiscussionNotes` in
-  an issue, merge request, commit, or snippet.
-- **DiscussionNote**: An individual item in a discussion on an issue, merge request,
-  commit, or snippet. These are not returned as part of the Note API.
-  Not available in the [Events API](events.md).
 
 ## Discussions pagination
 
@@ -907,7 +894,7 @@ Parameters for all comments:
 | `position[start_sha]`                    | string         | yes (if `position*` is supplied)     | SHA referencing commit in target branch. |
 | `position[new_path]`                     | string         | yes (if the position type is `text`) | File path after change. |
 | `position[old_path]`                     | string         | yes (if the position type is `text`) | File path before change. |
-| `position[position_type]`                | string         | yes (if position* is supplied)       | Type of the position reference. Allowed values: `text`, `image`, or `file`. `file` [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/423046) in GitLab 16.4. |
+| `position[position_type]`                | string         | yes (if position* is supplied)       | Type of the position reference. Allowed values: `text` or `image`. |
 | `commit_id`                              | string         | no                                   | SHA referencing commit to start this thread on. |
 | `created_at`                             | string         | no                                   | Date time string, ISO 8601 formatted, such as `2016-03-11T03:45:40Z`. Requires administrator or project/group owner rights. |
 | `position`                               | hash           | no                                   | Position when creating a diff note. |
@@ -1316,7 +1303,7 @@ Parameters:
 | `position[base_sha]`      | string         | yes (if `position*` is supplied) | SHA of the parent commit. |
 | `position[head_sha]`      | string         | yes (if `position*` is supplied) | The SHA of this commit. Same as `commit_id`. |
 | `position[start_sha]`     | string         | yes (if `position*` is supplied) | SHA of the parent commit. |
-| `position[position_type]` | string         | yes (if `position*` is supplied) | Type of the position reference. Allowed values: `text`, `image`, or `file`. `file` [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/423046) in GitLab 16.4. |
+| `position[position_type]` | string         | yes (if `position*` is supplied) | Type of the position reference. Allowed values: `text` or `image`. |
 | `created_at`              | string         | no                               | Date time string, ISO 8601 formatted, such as `2016-03-11T03:45:40Z`. Requires administrator or project/group owner rights. |
 | `position`                | hash           | no                               | Position when creating a diff note. |
 

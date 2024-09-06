@@ -1,5 +1,5 @@
 ---
-stage: Foundations
+stage: Manage
 group: Import and Integrate
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -12,16 +12,9 @@ DETAILS:
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/381902) in GitLab 15.8, GitLab no longer automatically creates namespaces or groups that don't exist. GitLab also no longer falls back to using the user's personal namespace if the namespace or group name is taken.
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/388716) in GitLab 15.10, you no longer need to add any users to the parent group in GitLab to successfully import the **Require a pull request before merging - Allow specified actors to bypass required pull requests** branch protection rule.
-> - An **Imported** badge on some imported items [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/461208) in GitLab 17.2.
 
 You can import your GitHub projects from either GitHub.com or GitHub Enterprise. Importing projects does not
 migrate or import any types of groups or organizations from GitHub to GitLab.
-
-WARNING:
-Importing from GitHub to GitLab.com is [currently unavailable](https://status.gitlab.com). We don't have an
-estimated time for resolution. For more information, please [contact support](https://about.gitlab.com/support/).
-
-Imported issues, merge requests, comments, and events have an **Imported** badge in GitLab.
 
 The namespace is a user or group in GitLab, such as `gitlab.com/sidney-jones` or
 `gitlab.com/customer-success`.
@@ -34,15 +27,6 @@ You can change the target namespace and target repository name before you import
 
 <i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
 For an overview of the import process, see [How to migrate from GitHub to GitLab including Actions](https://www.youtube.com/watch?v=0Id5oMl1Kqs).
-
-## Estimating import duration
-
-Every import from GitHub is different, which affects the duration of imports you perform. However, in our testing we
-imported `https://github.com/kubernetes/kubernetes` in 76 hours. When we tested, that project comprised:
-
-- 80,000 pull requests.
-- 45,000 issues.
-- Approximately 1.5 million comments.
 
 ## Prerequisites
 
@@ -95,13 +79,6 @@ If the above requirements are not met, the importer can't map the particular use
 - GitLab [can't import](https://gitlab.com/gitlab-org/gitlab/-/issues/424046) GitHub Markdown image attachments that
   were uploaded to private repositories before 2023-05-09. If you encounter this problem, would like to help us resolve the problem, and are willing to provide a sample repository
   for us, please add a comment to [issue 424046](https://gitlab.com/gitlab-org/gitlab/-/issues/424046) and we'll contact you.
-- For [GitLab-specific references](../../markdown.md#gitlab-specific-references), GitLab uses a `#` character for issues and a `!` character for merge requests.
-  However, GitHub uses only a `#` character for both issues and pull requests.
-
-  When importing:
-
-  - Comment notes, GitLab only matches references to issues because GitLab doesn't know whether a references points to an issue or a merge request.
-  - Issues or merge request descriptions, GitLab ignores all references because their imported counterparts might not have been created on the destination yet.
 
 ## Import your GitHub repository into GitLab
 
@@ -117,7 +94,7 @@ performing the import.
 You can import your GitHub repository by either:
 
 - [Using GitHub OAuth](#use-github-oauth)
-- [Using a GitHub personal access token](#use-a-github-personal-access-token)
+- [Using a GitHub Personal Access Token](#use-a-github-personal-access-token)
 - [Using the API](#use-the-api)
 
 If importing from `github.com` you can use any method to import. Self-hosted GitHub Enterprise Server customers must use the API.
@@ -126,7 +103,7 @@ If importing from `github.com` you can use any method to import. Self-hosted Git
 
 If you are importing to GitLab.com or to a self-managed GitLab that has GitHub OAuth [configured](../../../integration/github.md), you can use GitHub OAuth to import your repository.
 
-This method has an advantage over using a [personal access token (PAT)](#use-a-github-personal-access-token)
+This method has an advantage over using a [Personal Access Token (PAT)](#use-a-github-personal-access-token)
 because the backend exchanges the access token with the appropriate permissions.
 
 1. On the left sidebar, at the top, select **Create new** (**{plus}**) and **New project/repository**.
@@ -137,20 +114,20 @@ because the backend exchanges the access token with the appropriate permissions.
 To use a different method to perform an import after previously performing
 these steps, sign out of your GitLab account and sign in again.
 
-### Use a GitHub personal access token
+### Use a GitHub Personal Access Token
 
-To import your GitHub repository using a GitHub personal access token:
+To import your GitHub repository using a GitHub Personal Access Token:
 
 1. Generate a GitHub personal access token. Only **classic** personal access tokens are supported.
    1. Go to <https://github.com/settings/tokens/new>.
    1. In the **Note** field, enter a token description.
    1. Select the `repo` scope.
-   1. Optional. To [import collaborators](#select-additional-items-to-import), or if your project has [Git LFS files](../../../topics/git/lfs/index.md), select the `read:org` scope.
+   1. Optional. To [import collaborators](#select-additional-items-to-import), select the `read:org` scope.
    1. Select **Generate token**.
 1. On the GitLab left sidebar, at the top, select **Create new** (**{plus}**) and **New project/repository**.
 1. Select **Import project** and then **GitHub**.
 1. Select **Authorize with GitHub**.
-1. In the **Personal access token** field, paste the GitHub personal access token.
+1. In the **Personal Access Token** field, paste the GitHub Personal Access Token.
 1. Select **Authenticate**.
 1. Proceed to [selecting which repositories to import](#select-which-repositories-to-import).
 
@@ -166,7 +143,7 @@ The [GitLab REST API](../../../api/import.md#import-repository-from-github) can 
 - It can be used to import from a GitHub Enterprise Server that is self-hosted.
 - Can be used to set the `timeout_strategy` option that is not available to the UI.
 
-The REST API is limited to authenticating with GitLab personal access tokens.
+The REST API is limited to authenticating with GitLab Personal Access Tokens.
 
 To import your GitHub repository using the GitLab REST API:
 
@@ -174,7 +151,7 @@ To import your GitHub repository using the GitLab REST API:
    1. Go to <https://github.com/settings/tokens/new>.
    1. In the **Note** field, enter a token description.
    1. Select the `repo` scope.
-   1. Optional. To [import collaborators](#select-additional-items-to-import), or if your project has [Git LFS files](../../../topics/git/lfs/index.md), select the `read:org` scope.
+   1. Optional. To [import collaborators](#select-additional-items-to-import), select the `read:org` scope.
    1. Select **Generate token**.
 1. Use the [GitLab REST API](../../../api/import.md#import-repository-from-github) to import your GitHub repository.
 
@@ -203,14 +180,14 @@ When the **Organization** tab is selected, you can further narrow down your sear
 
 To make imports as fast as possible, the following items aren't imported from GitHub by default:
 
-- More than approximately 30,000 comments because of a [limitation of the GitHub API](troubleshooting_github_import.md#missing-comments).
+- More than approximately 30,000 comments because of a [limitation of the GitHub API](#missing-comments).
 - Markdown attachments from repository comments, release posts, issue descriptions, and pull request descriptions. These can include
   images, text, or binary attachments. If not imported, links in Markdown to attachments break after you remove the attachments from GitHub.
 
 You can choose to import these items, but this could significantly increase import time. To import these items, select the appropriate fields in the UI:
 
 - **Use alternative comments import method**. If importing GitHub projects with more than approximately 30,000 comments across all issues and pull requests, you should enable this method because of a
-  [limitation of the GitHub API](troubleshooting_github_import.md#missing-comments).
+  [limitation of the GitHub API](#missing-comments).
 - **Import Markdown attachments**.
 - **Import collaborators** (selected by default). Leaving it selected might result in new users using a seat in the group or namespace,
   and being granted permissions [as high as project owner](#collaborators-members). Only direct collaborators are imported.
@@ -505,3 +482,101 @@ LoadModule ssl_module lib/httpd/modules/mod_ssl.so
   Header edit* Link "https://GITHUB_ENTERPRISE_HOSTNAME" "https://PROXY_HOSTNAME"
 </VirtualHost>
 ```
+
+## Troubleshooting
+
+### Manually continue a previously failed import process
+
+In some cases, the GitHub import process can fail to import the repository. This causes GitLab to abort the project import process and requires the
+repository to be imported manually. Administrators can manually import the repository for a failed import process:
+
+1. Open a Rails console.
+1. Run the following series of commands in the console:
+
+   ```ruby
+   project_id = <PROJECT_ID>
+   github_access_token =  <GITHUB_ACCESS_TOKEN>
+   github_repository_path = '<GROUP>/<REPOSITORY>'
+
+   github_repository_url = "https://#{github_access_token}@github.com/#{github_repository_path}.git"
+
+   # Find project by ID
+   project = Project.find(project_id)
+   # Set import URL and credentials
+   project.import_url = github_repository_url
+   project.import_type = 'github'
+   project.import_source = github_repository_path
+   project.save!
+   # Create an import state if the project was created manually and not from a failed import
+   project.create_import_state if project.import_state.blank?
+   # Set state to start
+   project.import_state.force_start
+
+   # Optional: If your import had certain optional stages selected or a timeout strategy
+   # set, you can reset them here. Below is an example.
+   # The params follow the format documented in the API:
+   # https://docs.gitlab.com/ee/api/import.html#import-repository-from-github
+   Gitlab::GithubImport::Settings
+   .new(project)
+   .write(
+     timeout_strategy: "optimistic",
+     optional_stages: {
+       single_endpoint_issue_events_import: true,
+       single_endpoint_notes_import: true,
+       attachments_import: true,
+       collaborators_import: true
+     }
+   )
+
+   # Trigger import from second step
+   Gitlab::GithubImport::Stage::ImportRepositoryWorker.perform_async(project.id)
+   ```
+
+### Errors when importing large projects
+
+The GitHub importer might encounter some errors when importing large projects.
+
+#### Missing comments
+
+The GitHub API has a limit that prevents more than approximately 30,000 notes or diff notes from being imported.
+When this limit is reached, the GitHub API instead returns the following error:
+
+```plaintext
+In order to keep the API fast for everyone, pagination is limited for this resource. Check the rel=last link relation in the Link response header to see how far back you can traverse.
+```
+
+If you are importing GitHub projects with a large number of comments, you should select the **Use alternative comments import method**
+[additional item to import](#select-additional-items-to-import) checkbox. This setting makes the import process take longer because it increases the number of network requests
+required to perform the import.
+
+#### Reduce GitHub API request objects per page
+
+Some GitHub API endpoints might return a `500` or `502` error for project imports from large repositories.
+To reduce the chance of these errors, in the group project importing the data, enable the
+`github_importer_lower_per_page_limit` feature flag. When enabled, the flag reduces the
+page size from `100` to `50`.
+
+To enable this feature flag:
+
+1. Start a [Rails console](../../../administration/operations/rails_console.md#starting-a-rails-console-session).
+1. Run the following `enable` command:
+
+   ```ruby
+   group = Group.find_by_full_path('my/group/fullpath')
+
+   # Enable
+   Feature.enable(:github_importer_lower_per_page_limit, group)
+   ```
+
+To disable the feature flag, run this command:
+
+```ruby
+# Disable
+Feature.disable(:github_importer_lower_per_page_limit, group)
+```
+
+### GitLab instance cannot connect to GitHub
+
+Self-managed instances that run GitLab 15.10 or earlier, and are behind proxies, cannot resolve DNS for `github.com` or `api.github.com`.
+In this situation, the GitLab instance fails to connect to GitHub during the import and you must add `github.com` and `api.github.com`
+entries in the [allowlist for local requests](../../../security/webhooks.md#allow-outbound-requests-to-certain-ip-addresses-and-domains).

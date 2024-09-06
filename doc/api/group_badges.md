@@ -10,25 +10,22 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/17082) in GitLab 10.6.
+
 ## Placeholder tokens
 
 [Badges](../user/project/badges.md) support placeholders that are replaced in real time in both the link and image URL. The allowed placeholders are:
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 - **%{project_path}**: replaced by the project path.
 - **%{project_title}**: replaced by the project title.
 - **%{project_name}**: replaced by the project name.
 - **%{project_id}**: replaced by the project ID.
-- **%{project_namespace}**: replaced by the project's namespace full path.
-- **%{group_name}**: replaced by the project's group name.
-- **%{gitlab_server}**: replaced by the project's server name.
-- **%{gitlab_pages_domain}**: replaced by the project's domain name.
 - **%{default_branch}**: replaced by the project default branch.
-- **%{commit_sha}**: replaced by the project's last commit SHA.
-- **%{latest_tag}**: replaced by the project's last tag.
+- **%{commit_sha}**: replaced by the last project's commit SHA.
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 Because these endpoints aren't inside a project's context, the information used to replace the placeholders comes
 from the first group's project by creation date. If the group hasn't got any project the original URL with the placeholders is returned.

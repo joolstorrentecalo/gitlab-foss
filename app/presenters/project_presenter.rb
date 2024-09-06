@@ -187,11 +187,11 @@ class ProjectPresenter < Gitlab::View::Presenter::Delegated
     AnchorData.new(
       true,
       statistic_icon('rocket-launch') +
-      (n_('%{strong_start}%{release_count}%{strong_end} Release', '%{strong_start}%{release_count}%{strong_end} Releases', releases_count).html_safe % {
+      n_('%{strong_start}%{release_count}%{strong_end} Release', '%{strong_start}%{release_count}%{strong_end} Releases', releases_count).html_safe % {
         release_count: number_with_delimiter(releases_count),
         strong_start: '<strong class="project-stat-value">'.html_safe,
         strong_end: '</strong>'.html_safe
-      }),
+      },
       project_releases_path(project)
     )
   end
@@ -205,11 +205,11 @@ class ProjectPresenter < Gitlab::View::Presenter::Delegated
     AnchorData.new(
       true,
       statistic_icon('environment') +
-      (n_('%{strong_start}%{count}%{strong_end} Environment', '%{strong_start}%{count}%{strong_end} Environments', environments_count).html_safe % {
+      n_('%{strong_start}%{count}%{strong_end} Environment', '%{strong_start}%{count}%{strong_end} Environments', environments_count).html_safe % {
         count: number_with_delimiter(environments_count),
         strong_start: '<strong class="project-stat-value">'.html_safe,
         strong_end: '</strong>'.html_safe
-      }),
+      },
       project_environments_path(project)
     )
   end
@@ -218,11 +218,11 @@ class ProjectPresenter < Gitlab::View::Presenter::Delegated
     AnchorData.new(
       true,
       statistic_icon('commit') +
-      (n_('%{strong_start}%{commit_count}%{strong_end} Commit', '%{strong_start}%{commit_count}%{strong_end} Commits', statistics.commit_count).html_safe % {
+      n_('%{strong_start}%{commit_count}%{strong_end} Commit', '%{strong_start}%{commit_count}%{strong_end} Commits', statistics.commit_count).html_safe % {
         commit_count: number_with_delimiter(statistics.commit_count),
         strong_start: '<strong class="project-stat-value">'.html_safe,
         strong_end: '</strong>'.html_safe
-      }),
+      },
       empty_repo? ? nil : project_commits_path(project, default_branch_or_main)
     )
   end
@@ -231,32 +231,25 @@ class ProjectPresenter < Gitlab::View::Presenter::Delegated
     AnchorData.new(
       true,
       statistic_icon('branch') +
-      (n_('%{strong_start}%{branch_count}%{strong_end} Branch', '%{strong_start}%{branch_count}%{strong_end} Branches', repository.branch_count).html_safe % {
+      n_('%{strong_start}%{branch_count}%{strong_end} Branch', '%{strong_start}%{branch_count}%{strong_end} Branches', repository.branch_count).html_safe % {
         branch_count: number_with_delimiter(repository.branch_count),
         strong_start: '<strong class="project-stat-value">'.html_safe,
         strong_end: '</strong>'.html_safe
-      }),
+      },
       empty_repo? ? nil : project_branches_path(project)
     )
   end
 
   def terraform_states_anchor_data
     if project.terraform_states.exists? && can_read_terraform_state?
-      terraform_warn_icon = content_tag(
-        :span,
-        title: s_('Terraform|Support for periods (`.`) in Terraform state names might break existing states.'),
-        class: 'gl-ml-2',
-        data: { toggle: 'tooltip' }
-      ) { sprite_icon('error', css_class: 'gl-text-gray-600') }
-
       AnchorData.new(
         true,
         statistic_icon('terraform') +
-        (n_('%{strong_start}%{terraform_states_count}%{strong_end} Terraform State', '%{strong_start}%{terraform_states_count}%{strong_end} Terraform States', project.terraform_states.count).html_safe % {
+        n_('%{strong_start}%{terraform_states_count}%{strong_end} Terraform State', '%{strong_start}%{terraform_states_count}%{strong_end} Terraform States', project.terraform_states.count).html_safe % {
           terraform_states_count: number_with_delimiter(project.terraform_states.count),
           strong_start: '<strong class="project-stat-value">'.html_safe,
           strong_end: '</strong>'.html_safe
-        }) + terraform_warn_icon,
+        },
         project_terraform_index_path(project)
       )
     end
@@ -266,11 +259,11 @@ class ProjectPresenter < Gitlab::View::Presenter::Delegated
     AnchorData.new(
       true,
       statistic_icon('label') +
-      (n_('%{strong_start}%{tag_count}%{strong_end} Tag', '%{strong_start}%{tag_count}%{strong_end} Tags', repository.tag_count).html_safe % {
+      n_('%{strong_start}%{tag_count}%{strong_end} Tag', '%{strong_start}%{tag_count}%{strong_end} Tags', repository.tag_count).html_safe % {
         tag_count: number_with_delimiter(repository.tag_count),
         strong_start: '<strong class="project-stat-value">'.html_safe,
         strong_end: '</strong>'.html_safe
-      }),
+      },
       empty_repo? ? nil : project_tags_path(project)
     )
   end
@@ -301,13 +294,13 @@ class ProjectPresenter < Gitlab::View::Presenter::Delegated
     if can_current_user_push_to_default_branch?
       new_file_path = empty_repo? ? ide_edit_path(project, default_branch_or_main) : project_new_blob_path(project, default_branch_or_main)
 
-      AnchorData.new(false, statistic_icon('plus', '!gl-text-blue-500 gl-mr-3') + _('New file'), new_file_path)
+      AnchorData.new(false, statistic_icon('plus', 'gl-text-blue-500! gl-mr-3') + _('New file'), new_file_path)
     end
   end
 
   def readme_anchor_data
     if can_current_user_push_to_default_branch? && readme_path.nil?
-      icon = statistic_icon('plus', '!gl-text-blue-500 gl-mr-3')
+      icon = statistic_icon('plus', 'gl-text-blue-500! gl-mr-3')
       label = icon + _('Add README')
       AnchorData.new(false, label, empty_repo? ? add_readme_ide_path : add_readme_path)
     elsif readme_path
@@ -353,11 +346,11 @@ class ProjectPresenter < Gitlab::View::Presenter::Delegated
         'license'
       )
     elsif can_current_user_push_to_default_branch?
-      icon = statistic_icon('plus', '!gl-text-blue-500 gl-mr-3')
+      icon = statistic_icon('plus', 'gl-text-blue-500! gl-mr-3')
       label = icon + _('Add LICENSE')
       AnchorData.new(
         false,
-        content_tag(:span, label, class: 'add-license-link gl-flex'),
+        content_tag(:span, label, class: 'add-license-link d-flex'),
         empty_repo? ? add_license_ide_path : add_license_path
       )
     end
@@ -365,7 +358,7 @@ class ProjectPresenter < Gitlab::View::Presenter::Delegated
 
   def contribution_guide_anchor_data
     if can_current_user_push_to_default_branch? && repository.contribution_guide.blank?
-      icon = statistic_icon('plus', '!gl-text-blue-500 gl-mr-3')
+      icon = statistic_icon('plus', 'gl-text-blue-500! gl-mr-3')
       label = icon + _('Add CONTRIBUTING')
       AnchorData.new(
         false,

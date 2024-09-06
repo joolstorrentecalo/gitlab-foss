@@ -6,7 +6,6 @@ const PERSISTENT_USER_CALLOUTS = [
   '.js-admin-licensed-user-count-threshold',
   '.js-token-expiry-callout',
   '.js-registration-enabled-callout',
-  '.js-openssl-callout',
   '.js-new-user-signups-cap-reached',
   '.js-security-newsletter-callout',
   '.js-approaching-seat-count-threshold',
@@ -18,17 +17,14 @@ const PERSISTENT_USER_CALLOUTS = [
   '.js-namespace-storage-alert',
   '.js-web-hook-disabled-callout',
   '.js-merge-request-settings-callout',
-  '.js-compliance-framework-settings-callout',
   '.js-geo-enable-hashed-storage-callout',
   '.js-geo-migrate-hashed-storage-callout',
   '.js-unlimited-members-during-trial-alert',
   '.js-branch-rules-info-callout',
-  '.js-branch-rules-tip-callout',
+  '.js-new-nav-for-everyone-callout',
   '.js-namespace-over-storage-users-combined-alert',
   '.js-joining-a-project-alert',
-  '.js-all-seats-used',
-  '.js-period-in-terraform-state-name-alert',
-  '.js-expired-duo-pro-trial-widget',
+  '.js-duo-pro-trial-alert',
 ];
 
 const initCallouts = () => {

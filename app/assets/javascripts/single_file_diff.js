@@ -1,8 +1,6 @@
 import $ from 'jquery';
-import { GlButton } from '@gitlab/ui';
 import { createAlert } from '~/alert';
 import { loadingIconForLegacyJS } from '~/loading_icon_for_legacy_js';
-import { renderVueComponentForLegacyJS } from '~/render_vue_component_for_legacy_js';
 import { spriteIcon } from '~/lib/utils/common_utils';
 import FilesCommentButton from './files_comment_button';
 import initImageDiffHelper from './image_diff/helpers/init_image_diff';
@@ -16,15 +14,8 @@ const ERROR_HTML = `<div class="nothing-here-block">${spriteIcon(
   'warning-solid',
   's16',
 )} Could not load diff</div>`;
-const CLICK_TO_EXPAND_BUTTON_HTML = renderVueComponentForLegacyJS(
-  GlButton,
-  {
-    class: 'click-to-expand',
-    props: { variant: 'link' },
-  },
-  __('Click to expand it.'),
-).outerHTML;
-const COLLAPSED_HTML = `<div class="nothing-here-block diff-collapsed">This diff is collapsed. ${CLICK_TO_EXPAND_BUTTON_HTML}</div>`;
+const COLLAPSED_HTML =
+  '<div class="nothing-here-block diff-collapsed">This diff is collapsed. <button class="click-to-expand btn btn-link gl-button">Click to expand it.</button></div>';
 
 export default class SingleFileDiff {
   constructor(file) {
@@ -42,11 +33,11 @@ export default class SingleFileDiff {
       this.loadingContent = $(WRAPPER).addClass('loading').html(LOADING_HTML).hide();
       this.content = null;
       this.collapsedContent.after(this.loadingContent);
-      this.$chevronRightIcon.removeClass('gl-hidden');
+      this.$chevronRightIcon.removeClass('gl-display-none');
     } else {
       this.collapsedContent = $(WRAPPER).html(COLLAPSED_HTML).hide();
       this.content.after(this.collapsedContent);
-      this.$chevronDownIcon.removeClass('gl-hidden');
+      this.$chevronDownIcon.removeClass('gl-display-none');
     }
 
     $('.js-file-title', this.file).on('click', (e) => {
@@ -67,17 +58,17 @@ export default class SingleFileDiff {
     this.isOpen = !this.isOpen;
     if (!this.isOpen && !this.hasError) {
       this.content.hide();
-      this.$chevronRightIcon.removeClass('gl-hidden');
-      this.$chevronDownIcon.addClass('gl-hidden');
+      this.$chevronRightIcon.removeClass('gl-display-none');
+      this.$chevronDownIcon.addClass('gl-display-none');
       this.collapsedContent.show();
     } else if (this.content) {
       this.collapsedContent.hide();
       this.content.show();
-      this.$chevronDownIcon.removeClass('gl-hidden');
-      this.$chevronRightIcon.addClass('gl-hidden');
+      this.$chevronDownIcon.removeClass('gl-display-none');
+      this.$chevronRightIcon.addClass('gl-display-none');
     } else {
-      this.$chevronDownIcon.removeClass('gl-hidden');
-      this.$chevronRightIcon.addClass('gl-hidden');
+      this.$chevronDownIcon.removeClass('gl-display-none');
+      this.$chevronRightIcon.addClass('gl-display-none');
       return this.getContentHTML(cb); // eslint-disable-line consistent-return
     }
   }

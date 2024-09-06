@@ -14,7 +14,7 @@ Use the following tasks when you work with the agent for Kubernetes.
 
 ## View your agents
 
-The installed `agentk` version is displayed on the **Agent** tab.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/340882) in GitLab 14.8, the installed `agentk` version is displayed on the **Agent** tab.
 
 Prerequisites:
 
@@ -34,24 +34,6 @@ On this page, you can view:
 - The version of `agentk` installed on your cluster.
 - The path to each agent configuration file.
 
-### Configure your agent
-
-To configure your agent:
-
-- Add content to the `config.yaml` file optionally created [during installation](install/index.md#create-an-agent-configuration-file).
-
-You can quickly locate an agent configuration file from the list of agents.
-The **Configuration** column indicates the location of the `config.yaml` file,
-or shows how to create one.
-
-The agent configuration file manages the various agent features:
-
-- For a GitLab CI/CD workflow. You must [authorize the agent to access your projects](ci_cd_workflow.md#authorize-the-agent), and then
-  [add `kubectl` commands to your `.gitlab-ci.yml` file](ci_cd_workflow.md#update-your-gitlab-ciyml-file-to-run-kubectl-commands).
-- For [user access](user_access.md) to the cluster from the GitLab UI or from the local terminal.
-- For configuring [operational container scanning](vulnerabilities.md).
-- For configuring [remote workspaces](../../workspace/gitlab_agent_configuration.md).
-
 ## View shared agents
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/395498) in GitLab 16.1.
@@ -69,6 +51,8 @@ To view the list of shared agents:
 The list of shared agents and their clusters are displayed.
 
 ## View an agent's activity information
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/277323) in GitLab 14.6.
 
 The activity logs help you to identify problems and get the information
 you need for troubleshooting. You can see events from a week before the
@@ -104,7 +88,7 @@ The agent has two loggers:
 - A general purpose logger, which defaults to `info`.
 - A gRPC logger, which defaults to `error`.
 
-You can change your log levels by using a top-level `observability` section in the [agent configuration file](#configure-your-agent), for example setting the levels to `debug` and `warn`:
+You can change your log levels by using a top-level `observability` section in the [agent configuration file](install/index.md#configure-your-agent), for example setting the levels to `debug` and `warn`:
 
 ```yaml
 observability:
@@ -125,6 +109,8 @@ For more information about debugging, see [troubleshooting documentation](troubl
 
 ## Reset the agent token
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/327152) in GitLab 14.9.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/336641) in GitLab 14.10, the agent token can be revoked from the UI.
 > - Two-token limit [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/361030/) in GitLab 16.1 with a [flag](../../../administration/feature_flags.md) named `cluster_agents_limit_tokens_created`.
 > - Two-token limit [generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/412399) in GitLab 16.2. Feature flag `cluster_agents_limit_tokens_created` removed.
 
@@ -150,6 +136,8 @@ are removed from GitLab, but no changes are made in your Kubernetes cluster. You
 clean up those resources manually.
 
 ### Remove an agent through the GitLab UI
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/323055) in GitLab 14.7.
 
 To remove an agent from the UI:
 

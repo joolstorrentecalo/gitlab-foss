@@ -150,7 +150,10 @@ RSpec.describe Gitlab::DataBuilder::Note, feature_category: :webhooks do
 
     it 'returns the note and project snippet data' do
       expect(data).to have_key(:snippet)
-      expect(data[:snippet]).to eq(snippet.hook_attrs)
+      expect(data[:snippet].except('updated_at'))
+        .to eq(snippet.hook_attrs.except('updated_at'))
+      expect(data[:snippet]['updated_at'])
+        .to be >= snippet.hook_attrs['updated_at']
     end
 
     include_examples 'project hook data'

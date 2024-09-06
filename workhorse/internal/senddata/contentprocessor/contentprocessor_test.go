@@ -9,32 +9,27 @@ import (
 	"gitlab.com/gitlab-org/gitlab/workhorse/internal/headers"
 	"gitlab.com/gitlab-org/gitlab/workhorse/internal/testhelper"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-const testData = "Hello world!"
-
 func TestFailSetContentTypeAndDisposition(t *testing.T) {
-	testCaseBody := testData
+	testCaseBody := "Hello world!"
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, err := io.WriteString(w, testCaseBody)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	resp := makeRequest(t, h, testCaseBody, "")
-	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, "", resp.Header.Get(headers.ContentDispositionHeader))
 	require.Equal(t, "", resp.Header.Get(headers.ContentTypeHeader))
 }
 
 func TestSuccessSetContentTypeAndDispositionFeatureEnabled(t *testing.T) {
-	testCaseBody := testData
+	testCaseBody := "Hello world!"
 
 	resp := makeRequest(t, nil, testCaseBody, "")
-	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, "inline", resp.Header.Get(headers.ContentDispositionHeader))
 	require.Equal(t, "text/plain; charset=utf-8", resp.Header.Get(headers.ContentTypeHeader))
@@ -51,7 +46,7 @@ func TestSetProperContentTypeAndDisposition(t *testing.T) {
 			desc:               "text type",
 			contentType:        "text/plain; charset=utf-8",
 			contentDisposition: "inline",
-			body:               testData,
+			body:               "Hello world!",
 		},
 		{
 			desc:               "HTML type",
@@ -184,7 +179,6 @@ func TestSetProperContentTypeAndDisposition(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			resp := makeRequest(t, nil, tc.body, tc.contentDisposition)
-			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, tc.contentType, resp.Header.Get(headers.ContentTypeHeader))
 			require.Equal(t, tc.contentDisposition, resp.Header.Get(headers.ContentDispositionHeader))
@@ -220,11 +214,10 @@ func TestFailOverrideContentType(t *testing.T) {
 				w.Header().Set(headers.GitlabWorkhorseDetectContentTypeHeader, "true")
 				w.Header().Set(headers.ContentTypeHeader, tc.overrideFromUpstream)
 				_, err := io.WriteString(w, tc.body)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			})
 
 			resp := makeRequest(t, h, tc.body, "")
-			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, tc.responseContentType, resp.Header.Get(headers.ContentTypeHeader))
 		})
@@ -232,18 +225,17 @@ func TestFailOverrideContentType(t *testing.T) {
 }
 
 func TestSuccessOverrideContentDispositionFromInlineToAttachment(t *testing.T) {
-	testCaseBody := testData
+	testCaseBody := "Hello world!"
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// We are pretending to be upstream or an inner layer of the ResponseWriter chain
 		w.Header().Set(headers.ContentDispositionHeader, "attachment")
 		w.Header().Set(headers.GitlabWorkhorseDetectContentTypeHeader, "true")
 		_, err := io.WriteString(w, testCaseBody)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	resp := makeRequest(t, h, testCaseBody, "")
-	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, "attachment", resp.Header.Get(headers.ContentDispositionHeader))
 }
@@ -256,11 +248,10 @@ func TestInlineContentDispositionForPdfFiles(t *testing.T) {
 		w.Header().Set(headers.ContentDispositionHeader, "inline")
 		w.Header().Set(headers.GitlabWorkhorseDetectContentTypeHeader, "true")
 		_, err := io.WriteString(w, testCaseBody)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	resp := makeRequest(t, h, testCaseBody, "")
-	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, "inline", resp.Header.Get(headers.ContentDispositionHeader))
 }
@@ -273,11 +264,10 @@ func TestFailOverrideContentDispositionFromAttachmentToInline(t *testing.T) {
 		w.Header().Set(headers.ContentDispositionHeader, "inline")
 		w.Header().Set(headers.GitlabWorkhorseDetectContentTypeHeader, "true")
 		_, err := io.WriteString(w, testCaseBody)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	resp := makeRequest(t, h, testCaseBody, "")
-	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, "attachment", resp.Header.Get(headers.ContentDispositionHeader))
 }
@@ -305,7 +295,7 @@ func TestWriteHeadersCalledOnce(t *testing.T) {
 	rw := &contentDisposition{rw: recorder}
 	rw.WriteHeader(400)
 	require.Equal(t, 400, rw.status)
-	require.True(t, rw.sentStatus)
+	require.Equal(t, true, rw.sentStatus)
 
 	rw.WriteHeader(200)
 	require.Equal(t, 400, rw.status)
@@ -318,7 +308,7 @@ func makeRequest(t *testing.T, handler http.HandlerFunc, body string, dispositio
 			w.Header().Set(headers.GitlabWorkhorseDetectContentTypeHeader, "true")
 			w.Header().Set(headers.ContentDispositionHeader, disposition)
 			_, err := io.WriteString(w, body)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		})
 	}
 	req, _ := http.NewRequest("GET", "/", nil)

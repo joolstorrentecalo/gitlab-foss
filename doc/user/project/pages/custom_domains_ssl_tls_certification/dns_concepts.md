@@ -30,7 +30,7 @@ to do it for you.
 To help you out, we've gathered some instructions on how to do that
 for the most popular hosting services:
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 - [123-reg](https://www.123-reg.co.uk/support/domains/domain-name-server-dns-management-guide/)
 - [Amazon](https://docs.aws.amazon.com/AmazonS3/latest/userguide/website-hosting-custom-domain-walkthrough.html)
@@ -43,10 +43,11 @@ for the most popular hosting services:
 - [Go Daddy](https://www.godaddy.com/help/add-an-a-record-19238)
 - [Hostgator](https://www.hostgator.com/help/article/changing-dns-records)
 - [Inmotion hosting](https://www.inmotionhosting.com/support/edu/cpanel/how-do-i-make-custom-dns-records/)
+- [Media Temple](https://mediatemple.zendesk.com/hc/en-us/articles/204403794-How-can-I-change-the-DNS-records-for-my-domain)
 - [Microsoft](https://learn.microsoft.com/en-us/windows-server/networking/dns/manage-resource-records?tabs=powershell)
 - [Namecheap](https://www.namecheap.com/support/knowledgebase/subcategory/2237/host-records-setup/)
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 If your hosting service is not listed above, you can just try to
 search the web for `how to add dns record on <my hosting service>`.

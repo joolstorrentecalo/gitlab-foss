@@ -26,25 +26,33 @@ export default {
   i18n: {
     heading: s__('Runners|Register runner'),
     headingDescription: s__(
-      'Runners|To set up an autoscaling fleet of runners on Google Cloud, you can use the following recommended setup or %{linkStart}customize the Terraform configuration%{linkEnd}.',
+      'Runners|After you complete the steps below, an autoscaling fleet of runners is available to execute your CI/CD jobs in Google Cloud. Based on demand, a runner manager automatically creates temporary runners.',
     ),
     beforeHeading: s__('Runners|Before you begin'),
     permissionsText: s__(
       'Runners|Ensure you have the %{linkStart}Owner%{linkEnd} IAM role on your Google Cloud project.',
     ),
     billingLinkText: s__(
-      'Runners|Ensure that %{linkStart}billing is enabled%{linkEnd} for your Google Cloud project.',
+      'Runners|Ensure that %{linkStart}billing is enabled for your Google Cloud project%{linkEnd}.',
     ),
     preInstallText: s__(
-      'Runners|Install the %{gcloudLinkStart}Google Cloud CLI%{gcloudLinkEnd} and %{terraformLinkStart}Terraform%{terraformLinkEnd}.',
+      'Runners|To follow the setup instructions, %{gcloudLinkStart}install the Google Cloud CLI%{gcloudLinkEnd} and %{terraformLinkStart}install Terraform%{terraformLinkEnd}.',
     ),
-    stepOneHeading: s__('Runners|1. Environment'),
+    stepOneHeading: s__('Runners|Step 1: Specify environment'),
     stepOneDescription: s__(
-      'Runners|Environment in Google Cloud where runners execute CI/CD jobs. Runners are created in temporary virtual machines based on demand. To improve security, use a Google Cloud project for CI/CD only.',
+      'Runners|Environment in Google Cloud where runners execute CI/CD jobs. Runners are created in temporary virtual machines based on demand.',
     ),
-    stepTwoHeading: s__('Runners|2. Set up GitLab Runner'),
+    stepTwoHeading: s__('Runners|Step 2: Set up GitLab Runner'),
     stepTwoDescription: s__(
       'Runners|To view the setup instructions, complete the previous form. The instructions help you set up an autoscaling fleet of runners to execute your CI/CD jobs in Google Cloud.',
+    ),
+    projectIdLabel: s__('Runners|Google Cloud project ID'),
+    projectIdDescription: s__(
+      'Runners|To improve security, use a dedicated project for CI/CD, separate from resources and identity management projects. %{linkStart}Where’s my project ID in Google Cloud?%{linkEnd}',
+    ),
+    zonesLinkText: s__('Runners|View available zones'),
+    machineTypeDescription: s__(
+      'Runners|For most CI/CD jobs, use a %{linkStart}N2D standard machine type%{linkEnd}.',
     ),
     runnerSetupBtnText: s__('Runners|Setup instructions'),
     copyCommands: __('Copy commands'),
@@ -58,8 +66,6 @@ export default {
     externalLink: __('(external link)'),
   },
   links: {
-    terraformConfigLink:
-      'https://gitlab.com/gitlab-org/ci-cd/runner-tools/grit/-/blob/main/docs/scenarios/google/linux/docker-autoscaler-default/index.md',
     permissionsLink: 'https://cloud.google.com/iam/docs/understanding-roles#owner',
     billingLink:
       'https://cloud.google.com/billing/docs/how-to/verify-billing-enabled#confirm_billing_is_enabled_on_a_project',
@@ -250,26 +256,23 @@ export default {
         <gl-sprintf :message="tokenMessage">
           <template #token>
             <code data-testid="runner-token">{{ token }}</code>
-            <clipboard-button :text="token" :title="__('Copy')" size="small" category="tertiary" />
+            <clipboard-button
+              :text="token"
+              :title="__('Copy')"
+              size="small"
+              category="tertiary"
+              class="gl-border-none!"
+            />
           </template>
           <template #bold="{ content }">
-            <span class="gl-font-bold">{{ content }}</span>
+            <span class="gl-font-weight-bold">{{ content }}</span>
           </template>
           <template #code="{ content }">
             <code>{{ content }}</code>
           </template>
         </gl-sprintf>
       </p>
-      <p>
-        <gl-sprintf :message="$options.i18n.headingDescription">
-          <template #link="{ content }">
-            <gl-link :href="$options.links.terraformConfigLink" target="_blank">
-              {{ content }}
-              <gl-icon name="external-link" :aria-label="$options.i18n.externalLink" />
-            </gl-link>
-          </template>
-        </gl-sprintf>
-      </p>
+      <p>{{ $options.i18n.headingDescription }}</p>
     </div>
     <hr />
 
@@ -326,20 +329,18 @@ export default {
       ref="cloudProjectId"
       v-model="cloudProjectId"
       name="cloudProjectId"
-      :label="s__('Runners|Google Cloud project ID')"
+      :label="$options.i18n.projectIdLabel"
       :invalid-feedback-if-empty="s__('Runners|Project ID is required.')"
-      :invalid-feedback-if-malformed="s__('Runners|Project ID must have the right format.')"
+      :invalid-feedback-if-malformed="
+        s__(
+          'Runners|Project ID must be 6 to 30 lowercase letters, digits, or hyphens. It needs to start with a lowercase letter and end with a letter or number.',
+        )
+      "
       :regexp="$options.GC_PROJECT_PATTERN"
       data-testid="project-id-input"
     >
       <template #description>
-        <gl-sprintf
-          :message="
-            s__(
-              'Runners|%{linkStart}Where\'s my project ID?%{linkEnd} Can be 6 to 30 lowercase letters, digits, or hyphens. Must start with a letter and end with a letter or number. Example: %{example}.',
-            )
-          "
-        >
+        <gl-sprintf :message="$options.i18n.projectIdDescription">
           <template #link="{ content }">
             <gl-link
               :href="$options.links.projectIdLink"
@@ -350,11 +351,6 @@ export default {
               <gl-icon name="external-link" :aria-label="$options.i18n.externalLink" />
             </gl-link>
           </template>
-          <!-- eslint-disable @gitlab/vue-require-i18n-strings -->
-          <template #example>
-            <code>my-sample-project-191923</code>
-          </template>
-          <!-- eslint-enable @gitlab/vue-require-i18n-strings -->
         </gl-sprintf>
       </template>
     </google-cloud-field-group>
@@ -364,7 +360,9 @@ export default {
       v-model="region"
       name="region"
       :invalid-feedback-if-empty="s__('Runners|Region is required.')"
-      :invalid-feedback-if-malformed="s__('Runners|Region must have the right format.')"
+      :invalid-feedback-if-malformed="
+        s__('Runners|Region must have the correct format. Example: us-central1')
+      "
       :regexp="$options.GC_REGION_PATTERN"
       data-testid="region-input"
     >
@@ -379,18 +377,6 @@ export default {
           </help-popover>
         </div>
       </template>
-      <template #description>
-        <gl-sprintf :message="s__('Runners|Must have the format %{format}. Example: %{example}.')">
-          <!-- eslint-disable @gitlab/vue-require-i18n-strings -->
-          <template #format>
-            <code>&lt;location&gt;-&lt;sublocation&gt;&lt;number&gt;</code>
-          </template>
-          <template #example>
-            <code>us-central1</code>
-          </template>
-          <!-- eslint-enable @gitlab/vue-require-i18n-strings -->
-        </gl-sprintf>
-      </template>
     </google-cloud-field-group>
 
     <google-cloud-field-group
@@ -398,7 +384,9 @@ export default {
       v-model="zone"
       name="zone"
       :invalid-feedback-if-empty="s__('Runners|Zone is required.')"
-      :invalid-feedback-if-malformed="s__('Runners|Zone must have the right format.')"
+      :invalid-feedback-if-malformed="
+        s__('Runners|Zone must have the correct format. Example: us-central1-a')
+      "
       :regexp="$options.GC_ZONE_PATTERN"
       data-testid="zone-input"
     >
@@ -418,28 +406,10 @@ export default {
         </div>
       </template>
       <template #description>
-        <gl-sprintf
-          :message="
-            s__(
-              'Runners|%{linkStart}View available zones%{linkEnd}. Must have the format %{format}. Example: %{example}.',
-            )
-          "
-        >
-          <template #link="{ content }">
-            <gl-link :href="$options.links.zonesLink" target="_blank" data-testid="zone-link">
-              {{ content }}
-              <gl-icon name="external-link" :aria-label="$options.i18n.externalLink" />
-            </gl-link>
-          </template>
-          <!-- eslint-disable @gitlab/vue-require-i18n-strings -->
-          <template #format>
-            <code>&lt;region&gt;-&lt;zone_letter&gt;</code>
-          </template>
-          <template #example>
-            <code>us-central1-a</code>
-          </template>
-          <!-- eslint-enable @gitlab/vue-require-i18n-strings -->
-        </gl-sprintf>
+        <gl-link :href="$options.links.zonesLink" target="_blank" data-testid="zone-link">
+          {{ $options.i18n.zonesLinkText }}
+          <gl-icon name="external-link" :aria-label="$options.i18n.externalLink" />
+        </gl-link>
       </template>
     </google-cloud-field-group>
 
@@ -448,7 +418,11 @@ export default {
       v-model="machineType"
       name="machineType"
       :invalid-feedback-if-empty="s__('Runners|Machine type is required.')"
-      :invalid-feedback-if-malformed="s__('Runners|Machine type must have the right format.')"
+      :invalid-feedback-if-malformed="
+        s__(
+          'Runners|Machine type must have the format `family-series-size`. Example: n2d-standard-2',
+        )
+      "
       :regexp="$options.GC_MACHINE_TYPE_PATTERN"
       data-testid="machine-type-input"
     >
@@ -468,13 +442,7 @@ export default {
         </div>
       </template>
       <template #description>
-        <gl-sprintf
-          :message="
-            s__(
-              'Runners|For most CI/CD jobs, use a %{linkStart}N2D standard machine type%{linkEnd}. Must have the format %{format}. Example: %{example}.',
-            )
-          "
-        >
+        <gl-sprintf :message="$options.i18n.machineTypeDescription">
           <template #link="{ content }">
             <gl-link
               :href="$options.links.n2dMachineTypesLink"
@@ -485,14 +453,6 @@ export default {
               <gl-icon name="external-link" :aria-label="$options.i18n.externalLink" />
             </gl-link>
           </template>
-          <!-- eslint-disable @gitlab/vue-require-i18n-strings -->
-          <template #format>
-            <code>&lt;series&gt;-&lt;type&gt;</code>
-          </template>
-          <template #example>
-            <code>n2d-standard-2</code>
-          </template>
-          <!-- eslint-enable @gitlab/vue-require-i18n-strings -->
         </gl-sprintf>
       </template>
     </google-cloud-field-group>

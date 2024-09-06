@@ -15,10 +15,6 @@ RSpec.describe Gitlab::Checks::FileSizeCheck::HookEnvironmentAwareAnyOversizedBl
 
   let(:changes) { [{ newrev: 'master' }] }
 
-  before do
-    stub_feature_flags(dont_ignore_alternate_directories: false)
-  end
-
   describe '#find' do
     subject { any_quarantined_blobs.find }
 
@@ -33,12 +29,16 @@ RSpec.describe Gitlab::Checks::FileSizeCheck::HookEnvironmentAwareAnyOversizedBl
     end
 
     context 'with hook env' do
-      context 'with hook environment', :request_store do
+      context 'with hook environment' do
+        let(:git_env) do
+          {
+            'GIT_OBJECT_DIRECTORY_RELATIVE' => "objects",
+            'GIT_ALTERNATE_OBJECT_DIRECTORIES_RELATIVE' => ['/dir/one', '/dir/two']
+          }
+        end
+
         before do
-          ::Gitlab::Git::HookEnv.set(project.repository.gl_repository,
-            project.repository.raw_repository.relative_path,
-            'GIT_OBJECT_DIRECTORY_RELATIVE' => 'objects',
-            'GIT_ALTERNATE_OBJECT_DIRECTORIES_RELATIVE' => ['/dir/one', '/dir/two'])
+          allow(Gitlab::Git::HookEnv).to receive(:all).with(repository.gl_repository).and_return(git_env)
         end
 
         it 'returns an emtpy array' do

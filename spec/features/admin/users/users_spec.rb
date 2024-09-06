@@ -8,16 +8,16 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
   include ListboxHelpers
 
   let_it_be(:user, reload: true) { create(:omniauth_user, provider: 'twitter', extern_uid: '123456') }
-  let_it_be(:admin) { create(:admin) }
+  let_it_be(:current_user) { create(:admin) }
 
   before do
-    sign_in(admin)
-    enable_admin_mode!(admin)
+    sign_in(current_user)
+    enable_admin_mode!(current_user)
   end
 
   describe 'GET /admin/users', :js do
     before do
-      visit admin_users_path(filter: 'active')
+      visit admin_users_path
     end
 
     it "is ok" do
@@ -25,12 +25,13 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
     end
 
     it "has users list" do
-      admin.reload
+      current_user.reload
 
-      expect(has_user?(text: admin.name)).to be(true)
-      expect(has_user?(text: admin.created_at.strftime('%b %d, %Y'))).to be(true)
-      expect(has_user?(text: user.email)).to be(true)
-      expect(has_user?(text: user.name)).to be(true)
+      expect(page).to have_content(current_user.email)
+      expect(page).to have_content(current_user.name)
+      expect(page).to have_content(current_user.created_at.strftime('%b %d, %Y'))
+      expect(page).to have_content(user.email)
+      expect(page).to have_content(user.name)
       expect(page).to have_content('Projects')
 
       click_user_dropdown_toggle(user.id)
@@ -53,26 +54,48 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
     it 'shows the user popover on hover', :js do
       expect(has_testid?('user-popover', count: 0)).to eq(true)
 
-      within('body.page-initialised') do
-        find_link(user.email).hover
+      find_link(user.email).hover
 
-        within_testid('user-popover') do
-          expect(page).to have_content user.name
-          expect(page).to have_content user.username
-          expect(page).to have_button 'Follow'
-        end
+      within_testid('user-popover') do
+        expect(page).to have_content user.name
+        expect(page).to have_content user.username
+        expect(page).to have_button 'Follow'
       end
     end
 
     context 'user project count' do
       before do
-        create(:project, maintainers: admin)
+        project = create(:project)
+        project.add_maintainer(current_user)
       end
 
       it 'displays count of users projects' do
         visit admin_users_path
 
-        expect(find_by_testid("user-project-count-#{admin.id}").text).to eq("1")
+        expect(find_by_testid("user-project-count-#{current_user.id}").text).to eq("1")
+      end
+    end
+
+    describe 'tabs' do
+      it 'has multiple tabs to filter users' do
+        expect(page).to have_link('Active', href: admin_users_path)
+        expect(page).to have_link('Admins', href: admin_users_path(filter: 'admins'))
+        expect(page).to have_link('2FA Enabled', href: admin_users_path(filter: 'two_factor_enabled'))
+        expect(page).to have_link('2FA Disabled', href: admin_users_path(filter: 'two_factor_disabled'))
+        expect(page).to have_link('External', href: admin_users_path(filter: 'external'))
+        expect(page).to have_link('Blocked', href: admin_users_path(filter: 'blocked'))
+        expect(page).to have_link('Deactivated', href: admin_users_path(filter: 'deactivated'))
+        expect(page).to have_link('Without projects', href: admin_users_path(filter: 'wop'))
+      end
+
+      context '`Pending approval` tab' do
+        before do
+          visit admin_users_path
+        end
+
+        it 'shows the `Pending approval` tab' do
+          expect(page).to have_link('Pending approval', href: admin_users_path(filter: 'blocked_pending_approval'))
+        end
       end
     end
 
@@ -86,9 +109,9 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
       it 'searches users by name' do
         visit admin_users_path(search_query: 'Foo')
 
-        expect(has_user?(text: 'Foo Bar')).to be(true)
-        expect(has_user?(text: 'Foo Baz')).to be(true)
-        expect(has_user?(text: 'Dmitriy')).to be(false)
+        expect(page).to have_content('Foo Bar')
+        expect(page).to have_content('Foo Baz')
+        expect(page).not_to have_content('Dmitriy')
       end
 
       it 'sorts users by name' do
@@ -104,13 +127,16 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
         visit admin_users_path(search_query: 'Foo')
 
         sort_by('Name')
-        expect(has_user?(text: 'Dmitriy')).to be(false)
+        expect(page).not_to have_content('Dmitriy')
         expect(first_row.text).to include('Foo Bar')
         expect(second_row.text).to include('Foo Baz')
       end
 
       it 'searches with respect of sorting' do
-        visit admin_users_path(sort: 'name_asc', search_query: 'Foo')
+        visit admin_users_path(sort: 'name_asc')
+
+        fill_in :search_query, with: 'Foo'
+        click_button('Search users')
 
         expect(first_row.text).to include('Foo Bar')
         expect(second_row.text).to include('Foo Baz')
@@ -136,21 +162,38 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
     end
 
     describe 'Two-factor Authentication filters' do
-      it 'filters by users who have enabled 2FA' do
-        user_2fa = create(:user, :two_factor)
+      it 'counts users who have enabled 2FA' do
+        create(:user, :two_factor)
 
-        visit admin_users_path(filter: 'two_factor_enabled')
+        visit admin_users_path
 
-        expect(has_user?(text: user_2fa.email)).to be(true)
-        expect(all_users.length).to be(1)
+        page.within('.filter-two-factor-enabled .gl-tab-counter-badge') do
+          expect(page).to have_content('1')
+        end
       end
 
-      it 'filters users who have not enabled 2FA' do
-        visit admin_users_path(filter: 'two_factor_disabled')
+      it 'filters by users who have enabled 2FA' do
+        user = create(:user, :two_factor)
 
-        expect(has_user?(text: user.email)).to be(true)
-        expect(has_user?(text: admin.email)).to be(true)
-        expect(all_users.length).to be(2)
+        visit admin_users_path
+        click_link '2FA Enabled'
+
+        expect(page).to have_content(user.email)
+      end
+
+      it 'counts users who have not enabled 2FA' do
+        visit admin_users_path
+
+        page.within('.filter-two-factor-disabled .gl-tab-counter-badge') do
+          expect(page).to have_content('2') # Including admin
+        end
+      end
+
+      it 'filters by users who have not enabled 2FA' do
+        visit admin_users_path
+        click_link '2FA Disabled'
+
+        expect(page).to have_content(user.email)
       end
     end
 
@@ -158,24 +201,26 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
       it 'counts users who are pending approval' do
         create_list(:user, 2, :blocked_pending_approval)
 
-        visit admin_users_path(filter: 'blocked_pending_approval')
+        visit admin_users_path
 
-        expect(all_users.length).to be(2)
+        page.within('.filter-blocked-pending-approval .gl-tab-counter-badge') do
+          expect(page).to have_content('2')
+        end
       end
 
       it 'filters by users who are pending approval' do
-        blocked_user = create(:user, :blocked_pending_approval)
+        user = create(:user, :blocked_pending_approval)
 
-        visit admin_users_path(filter: 'blocked_pending_approval')
+        visit admin_users_path
+        click_link 'Pending approval'
 
-        expect(has_user?(text: blocked_user.email)).to be(true)
-        expect(all_users.length).to be(1)
+        expect(page).to have_content(user.email)
       end
     end
 
     context 'when blocking/unblocking a user' do
       it 'shows confirmation and allows blocking and unblocking', :js do
-        expect(has_user?(text: user.email)).to be(true)
+        expect(page).to have_content(user.email)
 
         click_action_in_user_dropdown(user.id, 'Block')
 
@@ -191,13 +236,13 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
         wait_for_requests
 
         expect(page).to have_content('Successfully blocked')
-        expect(has_user?(text: user.email)).to be(false)
+        expect(page).not_to have_content(user.email)
 
-        visit admin_users_path(filter: 'blocked')
+        click_link 'Blocked'
 
         wait_for_requests
 
-        expect(has_user?(text: user.email)).to be(true)
+        expect(page).to have_content(user.email)
 
         click_action_in_user_dropdown(user.id, 'Unblock')
 
@@ -209,13 +254,13 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
         wait_for_requests
 
         expect(page).to have_content('Successfully unblocked')
-        expect(has_user?(text: user.email)).to be(false)
+        expect(page).not_to have_content(user.email)
       end
     end
 
     context 'when deactivating/re-activating a user' do
       it 'shows confirmation and allows deactivating and re-activating', :js do
-        expect(has_user?(text: user.email)).to be(true)
+        expect(page).to have_content(user.email)
 
         click_action_in_user_dropdown(user.id, 'Deactivate')
 
@@ -231,11 +276,11 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
         expect(page).to have_content('Successfully deactivated')
         expect(page).not_to have_content(user.email)
 
-        visit admin_users_path(filter: 'deactivated')
+        click_link 'Deactivated'
 
         wait_for_requests
 
-        expect(has_user?(text: user.email)).to be(true)
+        expect(page).to have_content(user.email)
 
         click_action_in_user_dropdown(user.id, 'Activate')
 
@@ -247,7 +292,7 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
         wait_for_requests
 
         expect(page).to have_content('Successfully activated')
-        expect(has_user?(text: user.email)).to be(false)
+        expect(page).not_to have_content(user.email)
       end
     end
 
@@ -263,15 +308,17 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
           click_action_in_user_dropdown(locked_user.id, 'Unlock')
         end
 
-        expect(page).not_to have_content("#{locked_user.name} Locked")
+        expect(page).not_to have_content("#{locked_user.name} (Locked)")
       end
     end
 
     describe 'users pending approval' do
       it 'sends a welcome email and a password reset email to the user upon admin approval', :sidekiq_inline do
-        user = create(:user, :blocked_pending_approval, created_by_id: admin.id)
+        user = create(:user, :blocked_pending_approval, created_by_id: current_user.id)
 
-        visit admin_users_path(filter: 'blocked_pending_approval')
+        visit admin_users_path
+
+        click_link 'Pending approval'
 
         click_user_dropdown_toggle(user.id)
 
@@ -321,8 +368,10 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
 
     context 'user group count', :js do
       before do
-        create(:group, developers: admin)
-        create(:project, group: create(:group), reporters: admin)
+        group = create(:group)
+        group.add_developer(current_user)
+        project = create(:project, group: create(:group))
+        project.add_reporter(current_user)
       end
 
       it 'displays count of the users authorized groups' do
@@ -330,7 +379,7 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
 
         wait_for_requests
 
-        within_testid("user-group-count-#{admin.id}") do
+        within_testid("user-group-count-#{current_user.id}") do
           expect(page).to have_content('2')
         end
       end
@@ -340,7 +389,8 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
       it 'shows user info', :aggregate_failures do
         user = create(:user, :blocked_pending_approval)
 
-        visit admin_users_path(filter: 'blocked_pending_approval')
+        visit admin_users_path
+        click_link 'Pending approval'
         click_link user.name
 
         expect(page).to have_content(user.name)
@@ -481,10 +531,12 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
   end
 
   describe 'GET /admin/users/:id/projects' do
-    let_it_be(:group) { create(:group, developers: user) }
+    let_it_be(:group) { create(:group) }
     let_it_be(:project) { create(:project, group: group) }
 
     before do
+      group.add_developer(user)
+
       visit projects_admin_user_path(user)
     end
 
@@ -499,7 +551,7 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
       within(:css, '.gl-mb-3 + .gl-card') do
         click_link group.name
       end
-      expect(page).to have_content group.name
+      expect(page).to have_content "Group: #{group.name}"
       expect(page).to have_content project.name
     end
 
@@ -522,7 +574,7 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
     end
   end
 
-  describe 'show breadcrumbs', :js do
+  describe 'show breadcrumbs' do
     it do
       visit admin_user_path(user)
 
@@ -556,22 +608,13 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
     end
 
     def check_breadcrumb(content)
-      expect(find_by_testid('breadcrumb-links').find('li:last-of-type')).to have_content(content)
+      expect(find_by_testid('breadcrumb-current-link')).to have_content(content)
     end
   end
 
   describe 'GET /admin/users/:id/edit' do
     before do
       visit edit_admin_user_path(user)
-    end
-
-    it 'shows all breadcrumbs', :js do
-      expect(page_breadcrumbs).to eq([
-        { text: 'Admin area', href: admin_root_path },
-        { text: 'Users', href: admin_users_path },
-        { text: user.name, href: admin_user_path(user) },
-        { text: 'Edit', href: edit_admin_user_path(user) }
-      ])
     end
 
     describe 'Update user' do
@@ -614,19 +657,11 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
   end
 
   def first_row
-    all_users[0]
+    page.all('[role="row"]')[1]
   end
 
   def second_row
-    all_users[1]
-  end
-
-  def all_users
-    page.all('tbody[role="rowgroup"] > tr')
-  end
-
-  def has_user?(**kwargs)
-    page.has_selector?('tbody[role="rowgroup"] > tr', **kwargs)
+    page.all('[role="row"]')[2]
   end
 
   def sort_by(option)

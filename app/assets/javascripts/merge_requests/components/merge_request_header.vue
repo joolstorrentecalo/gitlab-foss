@@ -8,7 +8,6 @@ import StatusBadge from '~/issuable/components/status_badge.vue';
 import { TYPE_ISSUE, TYPE_MERGE_REQUEST, WORKSPACE_PROJECT } from '~/issues/constants';
 import { fetchPolicies } from '~/lib/graphql';
 import ConfidentialityBadge from '~/vue_shared/components/confidentiality_badge.vue';
-import ImportedBadge from '~/vue_shared/components/imported_badge.vue';
 
 export const badgeState = Vue.observable({
   state: '',
@@ -23,7 +22,6 @@ export default {
     ConfidentialityBadge,
     LockedBadge,
     HiddenBadge,
-    ImportedBadge,
     StatusBadge,
   },
   inject: {
@@ -37,11 +35,6 @@ export default {
       type: String,
       required: false,
       default: null,
-    },
-    isImported: {
-      type: Boolean,
-      required: false,
-      default: false,
     },
   },
   data() {
@@ -94,32 +87,27 @@ export default {
 </script>
 
 <template>
-  <span class="gl-contents">
+  <span class="gl-display-contents">
     <status-badge
-      class="gl-mr-2 gl-self-center"
+      class="gl-align-self-center gl-mr-2"
       :issuable-type="$options.TYPE_MERGE_REQUEST"
       :state="state"
     />
     <confidentiality-badge
       v-if="isConfidential"
-      class="gl-mr-2 gl-self-center"
+      class="gl-align-self-center gl-mr-2"
       :issuable-type="$options.TYPE_ISSUE"
       :workspace-type="$options.WORKSPACE_PROJECT"
     />
     <locked-badge
       v-if="isLocked"
-      class="gl-mr-2 gl-self-center"
+      class="gl-align-self-center gl-mr-2"
       :issuable-type="$options.TYPE_MERGE_REQUEST"
     />
     <hidden-badge
       v-if="hidden"
-      class="gl-mr-2 gl-self-center"
+      class="gl-align-self-center gl-mr-2"
       :issuable-type="$options.TYPE_MERGE_REQUEST"
-    />
-    <imported-badge
-      v-if="isImported"
-      class="gl-mr-2 gl-self-center"
-      :importable-type="$options.TYPE_MERGE_REQUEST"
     />
   </span>
 </template>

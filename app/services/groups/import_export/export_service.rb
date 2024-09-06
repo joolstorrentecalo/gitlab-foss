@@ -3,27 +3,22 @@
 module Groups
   module ImportExport
     class ExportService
-      def initialize(group:, user:, exported_by_admin:, params: {})
+      def initialize(group:, user:, params: {})
         @group = group
         @current_user = user
-        @exported_by_admin = exported_by_admin
         @params = params
         @shared = @params[:shared] || Gitlab::ImportExport::Shared.new(@group)
         @logger = Gitlab::Export::Logger.build
       end
 
       def async_execute
-        GroupExportWorker.perform_async(
-          current_user.id,
-          group.id,
-          params.merge(exported_by_admin: @exported_by_admin)
-        )
+        GroupExportWorker.perform_async(current_user.id, group.id, params)
       end
 
       def execute
         validate_user_permissions
 
-        remove_existing_export! if group.export_file_exists?(current_user)
+        remove_existing_export! if group.export_file_exists?
 
         save!
       ensure
@@ -32,7 +27,7 @@ module Groups
 
       private
 
-      attr_reader :group, :current_user, :exported_by_admin, :params
+      attr_reader :group, :current_user, :params
       attr_accessor :shared
 
       def validate_user_permissions
@@ -44,7 +39,7 @@ module Groups
       end
 
       def remove_existing_export!
-        import_export_upload = group.import_export_upload_by_user(current_user)
+        import_export_upload = group.import_export_upload
 
         import_export_upload.remove_export_file!
         import_export_upload.save
@@ -55,7 +50,6 @@ module Groups
         # it removes the tmp dir. This means that if we want to add new savers
         # in EE the data won't be available.
         if save_exporters && file_saver.save
-          audit_export
           notify_success
         else
           notify_error!
@@ -90,7 +84,7 @@ module Groups
       end
 
       def file_saver
-        Gitlab::ImportExport::Saver.new(exportable: group, shared: shared, user: current_user)
+        Gitlab::ImportExport::Saver.new(exportable: group, shared: shared)
       end
 
       def remove_archive_tmp_dir
@@ -109,20 +103,6 @@ module Groups
           group_id: group.id,
           group_name: group.name
         )
-      end
-
-      def audit_export
-        return if exported_by_admin && Gitlab::CurrentSettings.silent_admin_exports_enabled?
-
-        audit_context = {
-          name: 'group_export_created',
-          author: current_user,
-          scope: group,
-          target: group,
-          message: 'Group file export was created'
-        }
-
-        Gitlab::Audit::Auditor.audit(audit_context)
       end
 
       def notify_success

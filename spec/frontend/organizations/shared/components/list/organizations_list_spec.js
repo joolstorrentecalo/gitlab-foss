@@ -1,24 +1,20 @@
 import { GlKeysetPagination } from '@gitlab/ui';
 import { omit } from 'lodash';
 import { shallowMount } from '@vue/test-utils';
-import organizationsGraphQlResponse from 'test_fixtures/graphql/organizations/organizations.query.graphql.json';
 import OrganizationsList from '~/organizations/shared/components/list/organizations_list.vue';
 import OrganizationsListItem from '~/organizations/shared/components/list/organizations_list_item.vue';
-import { pageInfoMultiplePages, pageInfoOnePage } from 'jest/organizations/mock_data';
+import { organizations as nodes, pageInfo, pageInfoOnePage } from '~/organizations/mock_data';
 
 describe('OrganizationsList', () => {
   let wrapper;
 
-  const {
-    data: {
-      currentUser: { organizations },
-    },
-  } = organizationsGraphQlResponse;
-
   const createComponent = ({ propsData = {} } = {}) => {
     wrapper = shallowMount(OrganizationsList, {
       propsData: {
-        organizations,
+        organizations: {
+          nodes,
+          pageInfo,
+        },
         ...propsData,
       },
     });
@@ -31,7 +27,7 @@ describe('OrganizationsList', () => {
     it('renders a list item for each organization', () => {
       createComponent();
 
-      expect(findAllOrganizationsListItem()).toHaveLength(organizations.nodes.length);
+      expect(findAllOrganizationsListItem()).toHaveLength(nodes.length);
     });
 
     describe('when there is one page of organizations', () => {
@@ -39,7 +35,7 @@ describe('OrganizationsList', () => {
         createComponent({
           propsData: {
             organizations: {
-              ...organizations,
+              nodes,
               pageInfo: pageInfoOnePage,
             },
           },
@@ -53,18 +49,11 @@ describe('OrganizationsList', () => {
 
     describe('when there are multiple pages of organizations', () => {
       beforeEach(() => {
-        createComponent({
-          propsData: {
-            organizations: {
-              ...organizations,
-              pageInfo: pageInfoMultiplePages,
-            },
-          },
-        });
+        createComponent();
       });
 
       it('renders pagination', () => {
-        expect(findPagination().props()).toMatchObject(omit(pageInfoMultiplePages, '__typename'));
+        expect(findPagination().props()).toMatchObject(omit(pageInfo, '__typename'));
       });
 
       describe('when `GlKeysetPagination` emits `next` event', () => {

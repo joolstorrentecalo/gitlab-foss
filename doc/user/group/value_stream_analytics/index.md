@@ -32,8 +32,6 @@ Value stream analytics helps businesses:
 
 Value stream analytics is available for projects and groups.
 
-For a click-through demo, see [the Value Stream Management product tour](https://gitlab.navattic.com/vsm).
-
 ## Feature availability
 
 Value stream analytics offers different features at the project and group level for FOSS and licensed versions.
@@ -79,8 +77,6 @@ Value streams are container objects for the stages. You can have multiple value 
 
 ### Value stream stage events
 
-> - Merge request first reviewer assigned event [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/466383) in GitLab 17.2. Reviewer assignment events in merge requests created or updated prior to GitLab 17.2 are not available for reporting.
-
 Events are the smallest building blocks of the value stream analytics feature. A stage consists of a start event and an end event.
 
 The following stage events are available:
@@ -99,7 +95,6 @@ The following stage events are available:
 - MR created
 - MR first commit time
 - MR first assigned
-- MR first reviewer assigned
 - MR first deployed
 - MR label added
 - MR label removed
@@ -115,6 +110,10 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/335391) in GitLab 14.5.
+> - Filter by stop date toggle [added](https://gitlab.com/gitlab-org/gitlab/-/issues/352428) in GitLab 14.9
+> - Data refresh badge [added](https://gitlab.com/gitlab-org/gitlab/-/issues/341739) in GitLab 14.9
+> - Filter by stop date toggle [removed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/84356) in GitLab 14.9
 > - Enable filtering by stop date [added](https://gitlab.com/gitlab-org/gitlab/-/issues/355000) in GitLab 15.0
 
 Value stream analytics uses a backend process to collect and aggregate stage-level data, which
@@ -176,7 +175,7 @@ In this example, milestones have been created and CI/CD for testing and setting 
 - 14:00: Push branch and create a merge request that contains the
   [issue closing pattern](../../project/issues/managing_issues.md#closing-issues-automatically).
   **Code** stage stops and **Test** and **Review** stages start.
-- GitLab CI/CD takes 5 minutes to run scripts defined in the [`.gitlab-ci.yml` file](../../../ci/yaml/index.md).
+- GitLab CI/CD takes 5 minutes to run scripts defined in the [`.gitlab-ci.yml` file](../../../ci/index.md#the-gitlab-ciyml-file).
 - 19:00: Merge the merge request. **Review** stage stops and **Staging** stage starts.
 - 19:30: Deployment to the `production` environment finishes. **Staging** stops.
 
@@ -204,7 +203,11 @@ Keep in mind the following observations related to this example:
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/432576) in GitLab 16.9 [with flags](../../../administration/feature_flags.md) named `enable_vsa_cumulative_label_duration_calculation` and `vsa_duration_from_db`. Disabled by default.
 > - [Enabled on GitLab.com and self-managed](https://gitlab.com/gitlab-com/gl-infra/production/-/issues/17476) in GitLab 16.10. Feature flag `vsa_duration_from_db` removed.
-> - Feature flag `enable_vsa_cumulative_label_duration_calculation` [removed](https://gitlab.com/gitlab-com/gl-infra/production/-/issues/17478) in GitLab 17.0.
+
+FLAG:
+On self-managed GitLab, by default this feature is available.
+To hide the feature, an administrator can [disable the feature flag](../../../administration/feature_flags.md) named `enable_vsa_cumulative_label_duration_calculation`.
+On GitLab.com and GitLab Dedicated, this feature is available.
 
 With this feature, value stream analytics measures the duration of repetitive events for label-based stages. You should configure label removal or addition events for both start and end events.
 
@@ -280,6 +283,8 @@ You can change the name of a project environment in your GitLab CI/CD configurat
 
 ## View value stream analytics
 
+> - Filtering [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/13216) in GitLab 13.3
+> - Horizontal stage path [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/12196) in 13.0 and [feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/323982) in 13.12
 > - Predefined date ranges dropdown list [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/408656/) in GitLab 16.5 [with a flag](../../../administration/feature_flags.md) named `vsa_predefined_date_ranges`. Disabled by default.
 > - Predefined date ranges dropdown list [enabled on self-managed and GitLab.com](https://gitlab.com/gitlab-org/gitlab/-/issues/433149) in GitLab 16.7.
 > - Predefined date ranges dropdown list [generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/438051) in GitLab 16.9. Feature flag `vsa_predefined_date_ranges` removed.
@@ -299,10 +304,8 @@ To view value stream analytics for your group or project:
    1. Select a parameter.
    1. Select a value or enter text to refine the results.
    1. To view metrics in a particular date range, from the dropdown list select a predefined date range or the **Custom** option. With the **Custom** option selected:
-
-      - In the **From** field, select a start date.
-      - In the **To** field, select an end date.
-
+        - In the **From** field, select a start date.
+        - In the **To** field, select an end date.
       The charts and list display workflow items created during the date range.
 1. Optional. Sort results by ascending or descending:
       - To sort by most recent or oldest workflow item, select the **Last event** header.
@@ -315,9 +318,6 @@ The table shows a list of related workflow items for the selected stage. Based o
 
 - Issues
 - Merge requests
-
-NOTE:
-The end date for each predefined date range is the current day, and is included in the number of days selected. For example, the start date for `Last 30 days` is 29 days prior to the current day for a total of 30 days.
 
 ### Data filters
 
@@ -334,6 +334,9 @@ NOTE:
 For the "Tasks by type" chart, only the Date range and Project selector filters are available. Labels and other filters are not applied, and you need to select labels separately from the dropdown list next to the chart.
 
 ## Value stream analytics metrics
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/210315) in GitLab 13.0.
+> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/323982) in GitLab 13.12.
 
 The **Overview** page in value stream analytics displays key metrics of the DevSecOps lifecycle performance for projects and groups.
 
@@ -354,6 +357,8 @@ DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/340150) lead time for changes DORA metric in GitLab 14.5.
+> - DORA API-based deployment metrics for value stream analytics for groups were [moved](https://gitlab.com/gitlab-org/gitlab/-/issues/337256) from GitLab Ultimate to GitLab Premium in GitLab 14.3.
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/355304) time to restore service tile in GitLab 15.0.
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/357071) change failure rate tile in GitLab 15.0.
 
@@ -371,6 +376,10 @@ If you have a GitLab Premium or Ultimate subscription:
 
 - The number of successful deployments is calculated with DORA data.
 - The data is filtered based on environment and environment tier.
+
+NOTE:
+In GitLab 13.9 and later, deployment frequency metrics are calculated based on when the deployment was finished.
+In GitLab 13.8 and earlier, deployment frequency metrics are calculated based on when the deployment was created.
 
 ## View lifecycle and DORA metrics
 
@@ -402,6 +411,9 @@ To view the [Value Streams Dashboard](../../analytics/value_streams_dashboard.md
    (for example, `https://gitlab.com/groups/gitlab-org/-/analytics/dashboards/value_streams_dashboard`).
 
 ## View metrics for each development stage
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/210315) in GitLab 13.0.
+> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/323982) in GitLab 13.12.
 
 Value stream analytics shows the median time spent by issues or merge requests in each development stage.
 
@@ -456,6 +468,8 @@ On self-managed GitLab, by default the **New value stream** feature is not avail
 
 ### Create a value stream with GitLab default stages
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/221202) in GitLab 13.3
+
 When you create a value stream, you can use GitLab default stages and hide or re-order them. You can also
 create custom stages in addition to those provided in the default template.
 
@@ -476,6 +490,10 @@ NOTE:
 If you have recently upgraded to GitLab Premium, it can take up to 30 minutes for data to collect and display.
 
 ### Create a value stream with custom stages
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/50229) in GitLab 13.7.
+> - [Enabled by default](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/55572) in GitLab 13.10.
+> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/294190) in GitLab 13.11.
 
 When you create a value stream, you can create and add custom stages that align with your own development workflows.
 
@@ -499,13 +517,6 @@ time from a staging environment to production, you could use the following label
 
 ![Label-based value stream analytics stage](img/vsa_label_based_stage_v14_0.png "Creating a label-based value stream analytics stage")
 
-##### Automatic data labeling with webhooks
-
-You can automatically add labels by using [GitLab webhook events](../../project/integrations/webhook_events.md),
-so that a label is applied to merge requests or issues when a specific event occurs.
-Then, you can add label-based stages to track your workflow.
-To learn more about the implementation, see the blog post [Applying GitLab Labels Automatically](https://about.gitlab.com/blog/2016/08/19/applying-gitlab-labels-automatically/).
-
 #### Example for custom value stream configuration
 
 ![Example configuration](img/object_hierarchy_example_V14_10.png "Example custom value stream configuration")
@@ -520,6 +531,7 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/267537) in GitLab 13.10.
 > - **Edit value stream** feature [changed](https://gitlab.com/gitlab-org/gitlab/-/issues/381002) from a dialog to a page in GitLab 16.11 [with a flag](../../../administration/feature_flags.md) named `vsa_standalone_settings_page`. Disabled by default.
 
 FLAG:
@@ -546,6 +558,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/221205) in GitLab 13.4.
+
 To delete a custom value stream:
 
 1. On the left sidebar, select **Search or go to** and find your project or group.
@@ -560,6 +574,9 @@ To delete a custom value stream:
 DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
+
+> - Chart median line [removed](https://gitlab.com/gitlab-org/gitlab/-/issues/235455) in GitLab 13.4.
+> - Totals [replaced](https://gitlab.com/gitlab-org/gitlab/-/issues/262070) with averages in GitLab 13.12.
 
 The **Total time chart** shows the average number of days it takes for development cycles to complete.
 The chart shows data for the last 500 workflow items.
@@ -586,157 +603,6 @@ Access permissions for value stream analytics depend on the project type.
 | Public       | Anyone can access.                                |
 | Internal     | Any authenticated user can access.                |
 | Private      | Any user with at least the Guest role can access. |
-
-## Value Stream Analytics GraphQL API
-
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** GitLab.com, Self-managed, GitLab Dedicated
-
-> - Loading stage metrics through GraphQL [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/410327) in GitLab 17.0.
-
-With the VSA GraphQL API, you can request metrics from your configured value streams and value stream stages. This can be useful if you want to export VSA data to an external system or for a report.
-
-The following metrics are available:
-
-- Number of completed items in the stage. The count is limited to a maximum of 10,000 items.
-- Median duration for the completed items in the stage.
-- Average duration for the completed items in the stage.
-
-### Request the metrics
-
-Prerequisites:
-
-- You must have at least the Reporter role.
-
-First, you must determine which value stream you want to use in the reporting.
-
-To request the configured value streams for a group, run:
-
-```graphql
-group(fullPath: "your-group-path") {
-  valueStreams {
-    nodes {
-      id
-      name
-    }
-  }
-}
-```
-
-Similarly, to request metrics for a project, run:
-
-```graphl
-project(fullPath: "your-group-path") {
-  valueStreams {
-    nodes {
-      id
-      name
-    }
-  }
-}
-```
-
-To request metrics for stages of a value stream, run:
-
-```graphql
-group(fullPath: "your-group-path") {
-  valueStreams(id: "your-value-stream-id") {
-    nodes {
-      stages {
-        id
-        name
-      }
-    }
-  }
-}
-```
-
-Depending how you want to consume the data, you can request metrics for one specific stage or all stages in your value stream.
-
-NOTE:
-Requesting metrics for all stages might be too slow for some installations.
-The recommended approach is to request metrics stage by stage.
-
-Requesting metrics for the stage:
-
-```graphql
-group(fullPath: "your-group-path") {
-  valueStreams(id: "your-value-stream-id") {
-    nodes {
-      stages(id: "your-stage-id") {
-        id
-        name
-        metrics(timeframe: { start: "2024-03-01", end: "2024-03-31" }) {
-          average {
-            value
-            unit
-          }
-          median {
-            value
-            unit
-          }
-          count {
-            value
-            unit
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-NOTE:
-You should always request metrics with a given time frame.
-The longest supported time frame is 180 days.
-
-The `metrics` node supports additional filtering options:
-
-- Assignee usernames
-- Author username
-- Label names
-- Milestone title
-
-Example request with filters:
-
-```graphql
-group(fullPath: "your-group-path") {
-  valueStreams(id: "your-value-stream-id") {
-    nodes {
-      stages(id: "your-stage-id") {
-        id
-        name
-        metrics(
-          labelNames: ["backend"],
-          milestoneTitle: "17.0",
-          timeframe: { start: "2024-03-01", end: "2024-03-31" }
-        ) {
-          average {
-            value
-            unit
-          }
-          median {
-            value
-            unit
-          }
-          count {
-            value
-            unit
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### Best practices
-
-- To get an accurate view of the current status, request metrics as close to the end of the time frame as possible.
-- For periodic reporting, you can create a script and use the [scheduled pipelines](../../../ci/pipelines/schedules.md) feature to export the data in a timely manner.
-- When invoking the API, you get the current data from the database. Over time, the same metrics might change due to changes in the underlying data in the database. For example, moving or removing a project from the group might affect group-level metrics.
-- Re-requesting the metrics for previous periods and comparing them to the previously collected metrics can show skews in the data, which can help in discovering and explaining changing trends.
 
 ## Troubleshooting
 

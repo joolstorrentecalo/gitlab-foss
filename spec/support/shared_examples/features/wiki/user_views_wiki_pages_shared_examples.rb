@@ -73,6 +73,4 @@ RSpec.shared_examples 'User views wiki pages' do
       end
     end
   end
-
-  it_behaves_like 'Wiki redirection'
 end

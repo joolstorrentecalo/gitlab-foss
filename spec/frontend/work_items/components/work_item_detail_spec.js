@@ -14,31 +14,29 @@ import WorkItemAncestors from '~/work_items/components/work_item_ancestors/work_
 import WorkItemDescription from '~/work_items/components/work_item_description.vue';
 import WorkItemCreatedUpdated from '~/work_items/components/work_item_created_updated.vue';
 import WorkItemAttributesWrapper from '~/work_items/components/work_item_attributes_wrapper.vue';
+import WorkItemTitle from '~/work_items/components/work_item_title.vue';
 import WorkItemTree from '~/work_items/components/work_item_links/work_item_tree.vue';
 import WorkItemRelationships from '~/work_items/components/work_item_relationships/work_item_relationships.vue';
 import WorkItemNotes from '~/work_items/components/work_item_notes.vue';
 import WorkItemDetailModal from '~/work_items/components/work_item_detail_modal.vue';
 import WorkItemStickyHeader from '~/work_items/components/work_item_sticky_header.vue';
-import WorkItemTitle from '~/work_items/components/work_item_title.vue';
-import WorkItemAbuseModal from '~/work_items/components/work_item_abuse_modal.vue';
+import WorkItemTitleWithEdit from '~/work_items/components/work_item_title_with_edit.vue';
+import AbuseCategorySelector from '~/abuse_reports/components/abuse_category_selector.vue';
 import WorkItemTodos from '~/work_items/components/work_item_todos.vue';
-import DesignWidget from '~/work_items/components/design_management/design_management_widget.vue';
 import { i18n } from '~/work_items/constants';
-import workItemByIdQuery from '~/work_items/graphql/work_item_by_id.query.graphql';
+import groupWorkItemByIidQuery from '~/work_items/graphql/group_work_item_by_iid.query.graphql';
 import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
 import updateWorkItemMutation from '~/work_items/graphql/update_work_item.mutation.graphql';
 import workItemUpdatedSubscription from '~/work_items/graphql/work_item_updated.subscription.graphql';
-import getAllowedWorkItemChildTypes from '~/work_items/graphql/work_item_allowed_children.query.graphql';
 
 import {
+  groupWorkItemByIidResponseFactory,
   mockParent,
   workItemByIidResponseFactory,
-  workItemQueryResponse,
   objectiveType,
   epicType,
   mockWorkItemCommentNote,
   mockBlockingLinkedItem,
-  allowedChildrenTypesResponse,
 } from '../mock_data';
 
 jest.mock('~/lib/utils/common_utils');
@@ -48,31 +46,30 @@ describe('WorkItemDetail component', () => {
 
   Vue.use(VueApollo);
 
-  const workItemByIidQueryResponse = workItemByIidResponseFactory({
-    canUpdate: true,
-    canDelete: true,
-  });
+  const workItemQueryResponse = workItemByIidResponseFactory({ canUpdate: true, canDelete: true });
   const workItemQueryResponseWithNoPermissions = workItemByIidResponseFactory({
     canUpdate: false,
     canDelete: false,
+  });
+  const groupWorkItemQueryResponse = groupWorkItemByIidResponseFactory({
+    canUpdate: true,
+    canDelete: true,
   });
   const workItemQueryResponseWithoutParent = workItemByIidResponseFactory({
     parent: null,
     canUpdate: true,
     canDelete: true,
   });
-  const workItemByIdQueryHandler = jest.fn().mockResolvedValue(workItemQueryResponse);
-  const successHandler = jest.fn().mockResolvedValue(workItemByIidQueryResponse);
+  const successHandler = jest.fn().mockResolvedValue(workItemQueryResponse);
   const successHandlerWithNoPermissions = jest
     .fn()
     .mockResolvedValue(workItemQueryResponseWithNoPermissions);
+  const groupSuccessHandler = jest.fn().mockResolvedValue(groupWorkItemQueryResponse);
   const showModalHandler = jest.fn();
-  const { id } = workItemByIidQueryResponse.data.workspace.workItem;
+  const { id } = workItemQueryResponse.data.workspace.workItems.nodes[0];
   const workItemUpdatedSubscriptionHandler = jest
     .fn()
     .mockResolvedValue({ data: { workItemUpdated: null } });
-
-  const allowedChildrenTypesHandler = jest.fn().mockResolvedValue(allowedChildrenTypesResponse);
 
   const findAlert = () => wrapper.findComponent(GlAlert);
   const findEmptyState = () => wrapper.findComponent(GlEmptyState);
@@ -89,46 +86,37 @@ describe('WorkItemDetail component', () => {
   const findWorkItemRelationships = () => wrapper.findComponent(WorkItemRelationships);
   const findNotesWidget = () => wrapper.findComponent(WorkItemNotes);
   const findModal = () => wrapper.findComponent(WorkItemDetailModal);
-  const findWorkItemAbuseModal = () => wrapper.findComponent(WorkItemAbuseModal);
+  const findAbuseCategorySelector = () => wrapper.findComponent(AbuseCategorySelector);
   const findWorkItemTodos = () => wrapper.findComponent(WorkItemTodos);
   const findStickyHeader = () => wrapper.findComponent(WorkItemStickyHeader);
   const findWorkItemTwoColumnViewContainer = () => wrapper.findByTestId('work-item-overview');
   const findRightSidebar = () => wrapper.findByTestId('work-item-overview-right-sidebar');
   const findEditButton = () => wrapper.findByTestId('work-item-edit-form-button');
-  const findWorkItemDesigns = () => wrapper.findComponent(DesignWidget);
-  const findDetailWrapper = () => wrapper.findByTestId('detail-wrapper');
+  const findWorkItemTitleWithEdit = () => wrapper.findComponent(WorkItemTitleWithEdit);
 
   const createComponent = ({
+    isGroup = false,
     isModal = false,
-    isDrawer = false,
     updateInProgress = false,
-    workItemId = '',
     workItemIid = '1',
     handler = successHandler,
-    workItemByIdHandler = workItemByIdQueryHandler,
     mutationHandler,
     error = undefined,
-    workItemsAlphaEnabled = false,
-    namespaceLevelWorkItems = true,
-    hasSubepicsFeature = true,
-    router = true,
-    modalIsGroup = null,
+    workItemsMvc2Enabled = false,
+    workItemsBeta = false,
+    linkedWorkItemsEnabled = false,
   } = {}) => {
     wrapper = shallowMountExtended(WorkItemDetail, {
       apolloProvider: createMockApollo([
         [workItemByIidQuery, handler],
-        [workItemByIdQuery, workItemByIdHandler],
+        [groupWorkItemByIidQuery, groupSuccessHandler],
         [updateWorkItemMutation, mutationHandler],
         [workItemUpdatedSubscription, workItemUpdatedSubscriptionHandler],
-        [getAllowedWorkItemChildTypes, allowedChildrenTypesHandler],
       ]),
       isLoggedIn: isLoggedIn(),
       propsData: {
-        workItemId,
         isModal,
         workItemIid,
-        isDrawer,
-        modalIsGroup,
       },
       data() {
         return {
@@ -138,12 +126,17 @@ describe('WorkItemDetail component', () => {
       },
       provide: {
         glFeatures: {
-          workItemsAlpha: workItemsAlphaEnabled,
-          namespaceLevelWorkItems,
+          workItemsMvc2: workItemsMvc2Enabled,
+          linkedWorkItems: linkedWorkItemsEnabled,
+          workItemsBeta,
         },
-        hasSubepicsFeature,
+        hasIssueWeightsFeature: true,
+        hasIterationsFeature: true,
+        hasOkrsFeature: true,
+        hasIssuableHealthStatusFeature: true,
+        projectNamespace: 'namespace',
         fullPath: 'group/project',
-        groupPath: 'group',
+        isGroup,
         reportAbusePath: '/report/abuse/path',
       },
       stubs: {
@@ -156,9 +149,6 @@ describe('WorkItemDetail component', () => {
             show: showModalHandler,
           },
         }),
-      },
-      mocks: {
-        $router: router,
       },
     });
   };
@@ -184,10 +174,6 @@ describe('WorkItemDetail component', () => {
     it('skips the work item updated subscription', () => {
       expect(workItemUpdatedSubscriptionHandler).not.toHaveBeenCalled();
     });
-
-    it('does not fetch allowed children types for current work item', () => {
-      expect(allowedChildrenTypesHandler).not.toHaveBeenCalled();
-    });
   });
 
   describe('when loading', () => {
@@ -202,9 +188,9 @@ describe('WorkItemDetail component', () => {
   });
 
   describe('when loaded', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
       createComponent();
-      await waitForPromises();
+      return waitForPromises();
     });
 
     it('does not render skeleton', () => {
@@ -213,7 +199,7 @@ describe('WorkItemDetail component', () => {
     });
 
     it('updates the document title', () => {
-      expect(document.title).toEqual('Updated title (#1) · Task · test-project-path');
+      expect(document.title).toEqual('Updated title · Task · test-project-path');
     });
 
     it('renders todos widget if logged in', () => {
@@ -222,13 +208,6 @@ describe('WorkItemDetail component', () => {
 
     it('calls the work item updated subscription', () => {
       expect(workItemUpdatedSubscriptionHandler).toHaveBeenCalledWith({ id });
-    });
-
-    it('fetches allowed children types for current work item', async () => {
-      createComponent();
-      await waitForPromises();
-
-      expect(allowedChildrenTypesHandler).toHaveBeenCalled();
     });
   });
 
@@ -268,7 +247,7 @@ describe('WorkItemDetail component', () => {
     const mutationHandler = jest.fn().mockResolvedValue({
       data: {
         workItemUpdate: {
-          workItem: confidentialWorkItem.data.workspace.workItem,
+          workItem: confidentialWorkItem.data.workspace.workItems.nodes[0],
           errors: [],
         },
       },
@@ -334,7 +313,7 @@ describe('WorkItemDetail component', () => {
       expect(findAncestors().exists()).toBe(false);
     });
 
-    it('does not show ancestors widget if there is no parent', async () => {
+    it('does not show ancestors widget if there is not a parent', async () => {
       createComponent({ handler: jest.fn().mockResolvedValue(workItemQueryResponseWithoutParent) });
 
       await waitForPromises();
@@ -346,42 +325,15 @@ describe('WorkItemDetail component', () => {
       createComponent({ handler: jest.fn().mockResolvedValue(workItemQueryResponseWithoutParent) });
 
       await waitForPromises();
-      expect(findWorkItemType().classes()).toEqual(['sm:!gl-block', 'gl-w-full']);
-    });
-
-    describe('`namespace_level_work_items` is disabled', () => {
-      it('does not show ancestors widget and shows title in the header', async () => {
-        createComponent({ namespaceLevelWorkItems: false });
-
-        await waitForPromises();
-
-        expect(findAncestors().exists()).toBe(false);
-        expect(findWorkItemType().classes()).toEqual(['sm:!gl-block', 'gl-w-full']);
-      });
-    });
-
-    describe('`subepics` is unavailable', () => {
-      it('does not show ancestors widget and shows title in the header', async () => {
-        const epicWorkItem = workItemByIidResponseFactory({
-          workItemType: epicType,
-        });
-        const epicHandler = jest.fn().mockResolvedValue(epicWorkItem);
-
-        createComponent({ hasSubepicsFeature: false, handler: epicHandler });
-
-        await waitForPromises();
-
-        expect(findAncestors().exists()).toBe(false);
-        expect(findWorkItemType().classes()).toEqual(['sm:!gl-block', 'gl-w-full']);
-      });
+      expect(findWorkItemType().classes()).toEqual(['gl-sm-display-block!', 'gl-w-full']);
     });
 
     describe('with parent', () => {
-      beforeEach(async () => {
+      beforeEach(() => {
         const parentResponse = workItemByIidResponseFactory(mockParent);
         createComponent({ handler: jest.fn().mockResolvedValue(parentResponse) });
 
-        await waitForPromises();
+        return waitForPromises();
       });
 
       it('shows ancestors widget if there is a parent', () => {
@@ -389,69 +341,19 @@ describe('WorkItemDetail component', () => {
       });
 
       it('does not show title in the header when parent exists', () => {
-        expect(findWorkItemType().classes()).toEqual(['sm:!gl-hidden', 'gl-mt-3']);
-      });
-    });
-
-    describe('with inaccessible parent', () => {
-      beforeEach(async () => {
-        const parentResponse = workItemByIidResponseFactory({ parent: null, hasParent: true });
-        createComponent({ handler: jest.fn().mockResolvedValue(parentResponse) });
-
-        await waitForPromises();
-      });
-
-      it('shows ancestors widget if there is a inaccessible parent', () => {
-        expect(findAncestors().exists()).toBe(true);
-      });
-
-      it('does not show title in the header when parent exists', () => {
-        expect(findWorkItemType().classes()).toEqual(['sm:!gl-hidden', 'gl-mt-3']);
+        expect(findWorkItemType().classes()).toEqual(['gl-sm-display-none!', 'gl-mt-3']);
       });
     });
   });
 
-  describe('when the work item query is unsuccessful', () => {
-    describe('full view', () => {
-      beforeEach(async () => {
-        const errorHandler = jest.fn().mockRejectedValue('Oops');
-        createComponent({ handler: errorHandler });
-        await waitForPromises();
-      });
+  it('shows empty state with an error message when the work item query was unsuccessful', async () => {
+    const errorHandler = jest.fn().mockRejectedValue('Oops');
+    createComponent({ handler: errorHandler });
+    await waitForPromises();
 
-      it('does not show the work item detail wrapper', () => {
-        expect(findDetailWrapper().exists()).toBe(false);
-      });
-
-      it('shows empty state with an error message', () => {
-        expect(findEmptyState().exists()).toBe(true);
-        expect(findEmptyState().props('description')).toBe(i18n.fetchError);
-      });
-
-      it('does not render work item UI elements', () => {
-        expect(findWorkItemType().exists()).toBe(false);
-        expect(findWorkItemTitle().exists()).toBe(false);
-        expect(findCreatedUpdated().exists()).toBe(false);
-        expect(findWorkItemActions().exists()).toBe(false);
-        expect(findWorkItemTwoColumnViewContainer().exists()).toBe(false);
-      });
-    });
-
-    describe('modal view', () => {
-      it('shows the modal close button', async () => {
-        createComponent({
-          isModal: true,
-          handler: jest.fn().mockRejectedValue('Oops, problemo'),
-          workItemsAlphaEnabled: true,
-        });
-
-        await waitForPromises();
-
-        expect(findCloseButton().exists()).toBe(true);
-        expect(findEmptyState().exists()).toBe(true);
-        expect(findEmptyState().props('description')).toBe(i18n.fetchError);
-      });
-    });
+    expect(errorHandler).toHaveBeenCalled();
+    expect(findEmptyState().props('description')).toBe(i18n.fetchError);
+    expect(findWorkItemTitle().exists()).toBe(false);
   });
 
   it('shows an error message when WorkItemTitle emits an `error` event', async () => {
@@ -465,55 +367,69 @@ describe('WorkItemDetail component', () => {
     expect(findAlert().text()).toBe(updateError);
   });
 
-  it('calls the work item query', async () => {
-    createComponent();
-    await waitForPromises();
+  describe('when project context', () => {
+    it('calls the project work item query', async () => {
+      createComponent();
+      await waitForPromises();
 
-    expect(successHandler).toHaveBeenCalledWith({ fullPath: 'group/project', iid: '1' });
+      expect(successHandler).toHaveBeenCalledWith({ fullPath: 'group/project', iid: '1' });
+    });
+
+    it('skips calling the group work item query', async () => {
+      createComponent();
+      await waitForPromises();
+
+      expect(groupSuccessHandler).not.toHaveBeenCalled();
+    });
+
+    it('skips calling the project work item query when there is no workItemIid', async () => {
+      createComponent({ workItemIid: null });
+      await waitForPromises();
+
+      expect(successHandler).not.toHaveBeenCalled();
+    });
+
+    it('calls the project work item query when isModal=true', async () => {
+      createComponent({ isModal: true });
+      await waitForPromises();
+
+      expect(successHandler).toHaveBeenCalledWith({ fullPath: 'group/project', iid: '1' });
+    });
   });
 
-  it('calls the work item query by workItemId', async () => {
-    const workItemId = workItemQueryResponse.data.workItem.id;
-    createComponent({ workItemId });
-    await waitForPromises();
+  describe('when group context', () => {
+    it('skips calling the project work item query', async () => {
+      createComponent({ isGroup: true });
+      await waitForPromises();
 
-    expect(workItemByIdQueryHandler).toHaveBeenCalledWith({ id: workItemId });
-    expect(successHandler).not.toHaveBeenCalled();
-  });
+      expect(successHandler).not.toHaveBeenCalled();
+    });
 
-  it('shows work item modal if "show" query param set', async () => {
-    const workItemId = workItemQueryResponse.data.workItem.id;
-    setWindowLocation(`?show=${workItemId}`);
+    it('calls the group work item query', async () => {
+      createComponent({ isGroup: true });
+      await waitForPromises();
 
-    createComponent();
-    await waitForPromises();
+      expect(groupSuccessHandler).toHaveBeenCalledWith({ fullPath: 'group/project', iid: '1' });
+    });
 
-    expect(findModal().exists()).toBe(true);
-    expect(findModal().props('workItemId')).toBe(workItemId);
-  });
+    it('skips calling the group work item query when there is no workItemIid', async () => {
+      createComponent({ isGroup: true, workItemIid: null });
+      await waitForPromises();
 
-  it('skips calling the work item query when there is no workItemIid and no workItemId', async () => {
-    createComponent({ workItemIid: null, workItemId: null });
-    await waitForPromises();
+      expect(groupSuccessHandler).not.toHaveBeenCalled();
+    });
 
-    expect(successHandler).not.toHaveBeenCalled();
-  });
+    it('calls the group work item query when isModal=true', async () => {
+      createComponent({ isGroup: true, isModal: true });
+      await waitForPromises();
 
-  it('calls the work item query when isModal=true', async () => {
-    createComponent({ isModal: true });
-    await waitForPromises();
-
-    expect(successHandler).toHaveBeenCalledWith({ fullPath: 'group/project', iid: '1' });
+      expect(groupSuccessHandler).toHaveBeenCalledWith({ fullPath: 'group/project', iid: '1' });
+    });
   });
 
   describe('hierarchy widget', () => {
-    it('does not render children tree by when widget is not present', async () => {
-      const workItemWithoutHierarchy = workItemByIidResponseFactory({
-        hierarchyWidgetPresent: false,
-      });
-      const handler = jest.fn().mockResolvedValue(workItemWithoutHierarchy);
-      createComponent({ handler });
-
+    it('does not render children tree by default', async () => {
+      createComponent();
       await waitForPromises();
 
       expect(findHierarchyTree().exists()).toBe(false);
@@ -542,18 +458,6 @@ describe('WorkItemDetail component', () => {
         expect(findHierarchyTree().exists()).toBe(true);
       });
 
-      it.each([true, false])(
-        'passes hasChildren %s to WorkItemActions when `WorkItemTree` emits `childrenLoaded` %s',
-        async (hasChildren) => {
-          createComponent({ handler: objectiveHandler });
-          await waitForPromises();
-
-          await findHierarchyTree().vm.$emit('childrenLoaded', hasChildren);
-
-          expect(findWorkItemActions().props('hasChildren')).toBe(hasChildren);
-        },
-      );
-
       it('renders a modal', async () => {
         createComponent({ handler: objectiveHandler });
         await waitForPromises();
@@ -562,7 +466,7 @@ describe('WorkItemDetail component', () => {
       });
 
       it('opens the modal with the child when `show-modal` is emitted', async () => {
-        createComponent({ handler: objectiveHandler, workItemsAlphaEnabled: true });
+        createComponent({ handler: objectiveHandler, workItemsMvc2Enabled: true });
         await waitForPromises();
 
         const event = {
@@ -586,7 +490,7 @@ describe('WorkItemDetail component', () => {
           createComponent({
             isModal: true,
             handler: objectiveHandler,
-            workItemsAlphaEnabled: true,
+            workItemsMvc2Enabled: true,
           });
 
           await waitForPromises();
@@ -614,13 +518,8 @@ describe('WorkItemDetail component', () => {
   });
 
   describe('relationship widget', () => {
-    it('does not render when no linkedItems present', async () => {
-      const mockEmptyLinkedItems = workItemByIidResponseFactory({
-        linkedItems: [],
-      });
-      const handler = jest.fn().mockResolvedValue(mockEmptyLinkedItems);
-
-      createComponent({ handler });
+    it('does not render linked items by default', async () => {
+      createComponent();
       await waitForPromises();
 
       expect(findWorkItemRelationships().exists()).toBe(false);
@@ -633,7 +532,7 @@ describe('WorkItemDetail component', () => {
       const handler = jest.fn().mockResolvedValue(mockWorkItemLinkedItem);
 
       it('renders relationship widget when work item has linked items', async () => {
-        createComponent({ handler });
+        createComponent({ handler, linkedWorkItemsEnabled: true });
         await waitForPromises();
 
         expect(findWorkItemRelationships().exists()).toBe(true);
@@ -642,7 +541,8 @@ describe('WorkItemDetail component', () => {
       it('opens the modal with the linked item when `showModal` is emitted', async () => {
         createComponent({
           handler,
-          workItemsAlphaEnabled: true,
+          linkedWorkItemsEnabled: true,
+          workItemsMvc2Enabled: true,
         });
         await waitForPromises();
 
@@ -665,7 +565,8 @@ describe('WorkItemDetail component', () => {
           createComponent({
             isModal: true,
             handler,
-            workItemsAlphaEnabled: true,
+            workItemsMvc2Enabled: true,
+            linkedWorkItemsEnabled: true,
           });
 
           await waitForPromises();
@@ -697,7 +598,7 @@ describe('WorkItemDetail component', () => {
       createComponent();
       await waitForPromises();
 
-      const { confidential } = workItemByIidQueryResponse.data.workspace.workItem;
+      const { confidential } = workItemQueryResponse.data.workspace.workItems.nodes[0];
 
       expect(findNotesWidget().exists()).toBe(true);
       expect(findNotesWidget().props('isWorkItemConfidential')).toBe(confidential);
@@ -719,7 +620,7 @@ describe('WorkItemDetail component', () => {
     });
 
     it('should not be visible by default', () => {
-      expect(findWorkItemAbuseModal().exists()).toBe(false);
+      expect(findAbuseCategorySelector().exists()).toBe(false);
     });
 
     it('should be visible when the work item modal emits `openReportAbuse` event', async () => {
@@ -727,25 +628,13 @@ describe('WorkItemDetail component', () => {
 
       await nextTick();
 
-      expect(findWorkItemAbuseModal().exists()).toBe(true);
+      expect(findAbuseCategorySelector().exists()).toBe(true);
 
-      findWorkItemAbuseModal().vm.$emit('close-modal');
+      findAbuseCategorySelector().vm.$emit('close-drawer');
 
       await nextTick();
 
-      expect(findWorkItemAbuseModal().exists()).toBe(false);
-    });
-
-    it('should be visible when the work item actions button emits `toggleReportAbuseModal` event', async () => {
-      findWorkItemActions().vm.$emit('toggleReportAbuseModal', true);
-      await nextTick();
-
-      expect(findWorkItemAbuseModal().exists()).toBe(true);
-
-      findWorkItemAbuseModal().vm.$emit('close-modal');
-      await nextTick();
-
-      expect(findWorkItemAbuseModal().exists()).toBe(false);
+      expect(findAbuseCategorySelector().exists()).toBe(false);
     });
   });
 
@@ -758,29 +647,6 @@ describe('WorkItemDetail component', () => {
 
     it('does not renders if not logged in', () => {
       expect(findWorkItemTodos().exists()).toBe(false);
-    });
-  });
-
-  describe('design widget', () => {
-    it('does not render if application has no router', async () => {
-      createComponent({ router: false });
-      await waitForPromises();
-
-      expect(findWorkItemDesigns().exists()).toBe(false);
-    });
-
-    it('renders if work item has design widget', async () => {
-      createComponent();
-      await waitForPromises();
-
-      expect(findWorkItemDesigns().exists()).toBe(true);
-    });
-
-    it('renders if within a drawer', async () => {
-      createComponent({ isDrawer: true });
-      await waitForPromises();
-
-      expect(findWorkItemDesigns().exists()).toBe(true);
     });
   });
 
@@ -805,100 +671,113 @@ describe('WorkItemDetail component', () => {
   });
 
   describe('work item two column view', () => {
-    beforeEach(async () => {
-      createComponent();
-      await waitForPromises();
+    describe('when `workItemsBeta` is false', () => {
+      beforeEach(async () => {
+        createComponent({ workItemsBeta: false });
+        await waitForPromises();
+      });
+
+      it('does not have the `work-item-overview` class', () => {
+        expect(findWorkItemTwoColumnViewContainer().classes()).not.toContain('work-item-overview');
+      });
+
+      it('does not have sticky header component', () => {
+        expect(findStickyHeader().exists()).toBe(false);
+      });
+
+      it('does not have right sidebar', () => {
+        expect(findRightSidebar().exists()).toBe(false);
+      });
     });
 
-    it('has the `work-item-overview` class', () => {
-      expect(findWorkItemTwoColumnViewContainer().classes()).toContain('work-item-overview');
-    });
+    describe('when `workItemsBeta` is true', () => {
+      beforeEach(async () => {
+        createComponent({ workItemsBeta: true });
+        await waitForPromises();
+      });
 
-    it('renders the work item sticky header component', () => {
-      expect(findStickyHeader().exists()).toBe(true);
-    });
+      it('has the `work-item-overview` class', () => {
+        expect(findWorkItemTwoColumnViewContainer().classes()).toContain('work-item-overview');
+      });
 
-    it('has the right sidebar', () => {
-      expect(findRightSidebar().exists()).toBe(true);
-    });
-  });
+      it('renders the work item sticky header component', () => {
+        expect(findStickyHeader().exists()).toBe(true);
+      });
 
-  describe('work item sticky header', () => {
-    beforeEach(async () => {
-      createComponent();
-      await waitForPromises();
-    });
-
-    it('enables the edit mode when event `toggleEditMode` is emitted', async () => {
-      findStickyHeader().vm.$emit('toggleEditMode');
-      await nextTick();
-
-      expect(findWorkItemDescription().props('editMode')).toBe(true);
-    });
-
-    it('sticky header is visible by default', () => {
-      expect(findStickyHeader().exists()).toBe(true);
-    });
-
-    it('sticky header is not visible if is drawer view', async () => {
-      createComponent({ isDrawer: true });
-      await waitForPromises();
-
-      expect(findStickyHeader().exists()).toBe(false);
+      it('has the right sidebar', () => {
+        expect(findRightSidebar().exists()).toBe(true);
+      });
     });
   });
 
   describe('edit button for work item title and description', () => {
-    describe('with permissions to update', () => {
+    describe('when `workItemsBeta` is false', () => {
       beforeEach(async () => {
-        createComponent();
+        createComponent({ workItemsBeta: false });
         await waitForPromises();
       });
 
-      it('shows the edit button', () => {
-        expect(findEditButton().exists()).toBe(true);
-      });
-
-      it('renders the work item title with edit component', () => {
-        expect(findWorkItemTitle().exists()).toBe(true);
-        expect(findWorkItemTitle().props('isEditing')).toBe(false);
-      });
-
-      it('work item description is not shown in edit mode by default', () => {
-        expect(findWorkItemDescription().props('editMode')).toBe(false);
-      });
-
-      describe('when edit is clicked', () => {
-        beforeEach(async () => {
-          findEditButton().vm.$emit('click');
-          await nextTick();
-        });
-
-        it('work item title component shows in edit mode', () => {
-          expect(findWorkItemTitle().props('isEditing')).toBe(true);
-        });
-
-        it('work item description component shows in edit mode', () => {
-          expect(findWorkItemDescription().props('editMode')).toBe(true);
-        });
-      });
-    });
-
-    describe('without permissions', () => {
-      it('does not show edit button when user does not have the permissions for it', async () => {
-        createComponent({ handler: successHandlerWithNoPermissions });
-        await waitForPromises();
+      it('does not show the edit button', () => {
         expect(findEditButton().exists()).toBe(false);
       });
+
+      it('renders the work item title inline editable component', () => {
+        expect(findWorkItemTitle().exists()).toBe(true);
+      });
+
+      it('does not render the work item title with edit component', () => {
+        expect(findWorkItemTitleWithEdit().exists()).toBe(false);
+      });
     });
-  });
 
-  describe('calculates correct isGroup prop for attributes wrapper', () => {
-    it('equal to modalIsGroup prop when provided', async () => {
-      createComponent({ modalIsGroup: true });
-      await waitForPromises();
+    describe('when `workItemsBeta` is true', () => {
+      describe('with permissions to update', () => {
+        beforeEach(async () => {
+          createComponent({ workItemsBeta: true });
+          await waitForPromises();
+        });
 
-      expect(findWorkItemAttributesWrapper().props('isGroup')).toBe(true);
+        it('shows the edit button', () => {
+          expect(findEditButton().exists()).toBe(true);
+        });
+
+        it('does not render the work item title inline editable component', () => {
+          expect(findWorkItemTitle().exists()).toBe(false);
+        });
+
+        it('renders the work item title with edit component', () => {
+          expect(findWorkItemTitleWithEdit().exists()).toBe(true);
+          expect(findWorkItemTitleWithEdit().props('isEditing')).toBe(false);
+        });
+
+        it('work item description is not shown in edit mode by default', () => {
+          expect(findWorkItemDescription().props('editMode')).toBe(false);
+        });
+
+        describe('when edit is clicked', () => {
+          beforeEach(async () => {
+            findEditButton().vm.$emit('click');
+            await nextTick();
+          });
+
+          it('work item title component shows in edit mode', () => {
+            expect(findWorkItemTitleWithEdit().props('isEditing')).toBe(true);
+          });
+
+          it('work item description component shows in edit mode', () => {
+            expect(findWorkItemDescription().props('disableInlineEditing')).toBe(true);
+            expect(findWorkItemDescription().props('editMode')).toBe(true);
+          });
+        });
+      });
+
+      describe('without permissions', () => {
+        it('does not show edit button when user does not have the permissions for it', async () => {
+          createComponent({ handler: successHandlerWithNoPermissions });
+          await waitForPromises();
+          expect(findEditButton().exists()).toBe(false);
+        });
+      });
     });
   });
 });

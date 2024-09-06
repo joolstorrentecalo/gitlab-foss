@@ -29,7 +29,14 @@ module QA
       let(:executor) { "qa-runner-#{Time.now.to_i}" }
       let(:emails) { %w[foo@bar.com baz@buzz.com] }
       let(:project) { create(:project, name: 'pipeline-status-project') }
-      let!(:runner) { create(:project_runner, project: project, name: executor, tags: [executor]) }
+
+      let!(:runner) do
+        Resource::ProjectRunner.fabricate! do |runner|
+          runner.project = project
+          runner.name = executor
+          runner.tags = [executor]
+        end
+      end
 
       let(:mail_hog) { Vendor::MailHog::API.new }
 

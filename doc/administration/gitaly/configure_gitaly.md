@@ -20,11 +20,6 @@ Configure Gitaly in one of two ways:
    [Gitaly settings](https://gitlab.com/gitlab-org/gitaly/-/blob/master/config.toml.example).
 1. Save the file and [reconfigure GitLab](../restart_gitlab.md#reconfigure-a-linux-package-installation).
 
-:::TabTitle Helm chart (Kubernetes)
-
-1. Configure the [Gitaly chart](https://docs.gitlab.com/charts/charts/gitlab/gitaly/).
-1. [Upgrade your Helm release](https://docs.gitlab.com/charts/installation/deployment.html).
-
 :::TabTitle Self-compiled (source)
 
 1. Edit `/home/git/gitaly/config.toml` and add or change the [Gitaly settings](https://gitlab.com/gitlab-org/gitaly/blob/master/config.toml.example).
@@ -229,6 +224,7 @@ Configure Gitaly server.
    puma['enable'] = false
    sidekiq['enable'] = false
    gitlab_workhorse['enable'] = false
+   grafana['enable'] = false
    gitlab_exporter['enable'] = false
    gitlab_kas['enable'] = false
 
@@ -309,8 +305,8 @@ Configure Gitaly server.
 
 1. Save the file and [reconfigure GitLab](../restart_gitlab.md#reconfigure-a-linux-package-installation).
 1. Confirm that Gitaly can perform callbacks to the GitLab internal API:
-   - For GitLab 15.3 and later, run `sudo -u git -- /opt/gitlab/embedded/bin/gitaly check /var/opt/gitlab/gitaly/config.toml`.
-   - For GitLab 15.2 and earlier, run `sudo -u git -- /opt/gitlab/embedded/bin/gitaly-hooks check /var/opt/gitlab/gitaly/config.toml`.
+   - For GitLab 15.3 and later, run `sudo /opt/gitlab/embedded/bin/gitaly check /var/opt/gitlab/gitaly/config.toml`.
+   - For GitLab 15.2 and earlier, run `sudo /opt/gitlab/embedded/bin/gitaly-hooks check /var/opt/gitlab/gitaly/config.toml`.
 
 :::TabTitle Self-compiled (source)
 
@@ -326,6 +322,9 @@ Configure Gitaly server.
    level = 'info'
    dir = '/var/log/gitaly'
    ```
+
+    For GitLab 14.9 and earlier, set `internal_socket_dir = '/var/opt/gitlab/gitaly'` instead
+    of `runtime_dir`.
 
 1. Append the following to `/home/git/gitaly/config.toml` for each respective Gitaly server:
 
@@ -357,8 +356,8 @@ Configure Gitaly server.
 
 1. Save the files and [restart GitLab](../restart_gitlab.md#self-compiled-installations).
 1. Confirm that Gitaly can perform callbacks to the GitLab internal API:
-   - For GitLab 15.3 and later, run `sudo -u git -- /opt/gitlab/embedded/bin/gitaly check /var/opt/gitlab/gitaly/config.toml`.
-   - For GitLab 15.2 and earlier, run `sudo -u git -- /opt/gitlab/embedded/bin/gitaly-hooks check /var/opt/gitlab/gitaly/config.toml`.
+   - For GitLab 15.3 and later, run `sudo /opt/gitlab/embedded/bin/gitaly check /var/opt/gitlab/gitaly/config.toml`.
+   - For GitLab 15.2 and earlier, run `sudo /opt/gitlab/embedded/bin/gitaly-hooks check /var/opt/gitlab/gitaly/config.toml`.
 
 ::EndTabs
 
@@ -395,7 +394,7 @@ You can't define Gitaly servers with some as a local Gitaly server
 server (with `gitaly_address`) unless you use
 [mixed configuration](#mixed-configuration).
 
-Configure Gitaly clients in one of two ways. These instructions are for unencrypted connections but you can also enable [TLS support](tls_support.md):
+Configure Gitaly clients in one of two ways:
 
 ::Tabs
 
@@ -531,7 +530,7 @@ reconfigure the GitLab application servers to remove the `default` entry from `g
 To work around the limitation:
 
 1. Define an additional storage location on the new Gitaly service and configure the additional storage to be `default`.
-1. In the [**Admin** area](../repository_storage_paths.md#configure-where-new-repositories-are-stored), set `default` to a weight of zero
+1. In the [Admin Area](../repository_storage_paths.md#configure-where-new-repositories-are-stored), set `default` to a weight of zero
    to prevent repositories being stored there.
 
 ### Disable Gitaly where not required (optional)
@@ -895,10 +894,10 @@ fetch responses. This can reduce server load when your server receives
 lots of CI fetch traffic.
 
 The pack-objects cache wraps `git pack-objects`, an internal part of
-Git that gets invoked indirectly by using the PostUploadPack and
+Git that gets invoked indirectly via the PostUploadPack and
 SSHUploadPack Gitaly RPCs. Gitaly runs PostUploadPack when a
-user does a Git fetch by using HTTP, or SSHUploadPack when a
-user does a Git fetch by using SSH.
+user does a Git fetch via HTTP, or SSHUploadPack when a
+user does a Git fetch via SSH.
 When the cache is enabled, anything that uses PostUploadPack or SSHUploadPack can
 benefit from it. It is orthogonal to:
 
@@ -1127,13 +1126,11 @@ Configure the `cat-file` cache in the [Gitaly configuration file](reference.md).
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/19185) in GitLab 15.4.
 > - Displaying **Verified** badge for signed GitLab UI commits [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/124218) in GitLab 16.3 [with a flag](../feature_flags.md) named `gitaly_gpg_signing`. Disabled by default.
-> - Verifying the signatures using multiple keys specified in `rotated_signing_keys` option [introduced](https://gitlab.com/gitlab-org/gitaly/-/merge_requests/6163) in GitLab 16.3.
-> - [Enabled by default](https://gitlab.com/gitlab-org/gitaly/-/merge_requests/6876) on self-managed and GitLab Dedicated in GitLab 17.0.
 
 FLAG:
-On self-managed GitLab, by default this feature is available. To hide the feature,
-an administrator can [disable the feature flag](../feature_flags.md) named `gitaly_gpg_signing`.
-On GitLab.com, this feature is not available. On GitLab Dedicated, this feature is available.
+On self-managed GitLab, by default this feature is not available. To make it available,
+an administrator can [enable the feature flag](../feature_flags.md) named `gitaly_gpg_signing`.
+On GitLab.com and GitLab Dedicated, this feature is not available.
 
 By default, Gitaly doesn't sign commits made using GitLab UI. For example, commits made using:
 
@@ -1150,12 +1147,6 @@ because the signature belongs to neither the author nor the committer of the com
 You can configure Gitaly to reflect that a commit has been committed by your instance by
 setting `committer_email` and `committer_name`. For example, on GitLab.com these configuration options are
 set to `noreply@gitlab.com` and `GitLab`.
-
-`rotated_signing_keys` is a list of keys to use for verification only. Gitaly tries to verify a web commit using the configured `signing_key`, and then uses
-the rotated keys one by one until it succeeds. Set the `rotated_signing_keys` option when either:
-
-- The signing key is rotated.
-- You want to specify multiple keys to migrate projects from other instances and want to display their web commits as **Verified**.
 
 Configure Gitaly to sign commits made with the GitLab UI in one of two ways:
 
@@ -1189,7 +1180,6 @@ Configure Gitaly to sign commits made with the GitLab UI in one of two ways:
         committer_name: 'Your Instance',
         committer_email: 'noreply@yourinstance.com',
         signing_key: '/etc/gitlab/gitaly/signing_key.gpg',
-        rotated_signing_keys: ['/etc/gitlab/gitaly/previous_signing_key.gpg'],
         # ...
       },
    }
@@ -1222,7 +1212,6 @@ Configure Gitaly to sign commits made with the GitLab UI in one of two ways:
    committer_name = "Your Instance"
    committer_email = "noreply@yourinstance.com"
    signing_key = "/etc/gitlab/gitaly/signing_key.gpg"
-   rotated_signing_keys = ["/etc/gitlab/gitaly/previous_signing_key.gpg"]
    ```
 
 1. Save the file and [restart GitLab](../restart_gitlab.md#self-compiled-installations).
@@ -1289,7 +1278,6 @@ Gitaly fails to start up if either:
 > - [Introduced](https://gitlab.com/gitlab-org/gitaly/-/issues/4941) in GitLab 16.3.
 > - Server-side support for restoring a specified backup instead of the latest backup [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/132188) in GitLab 16.6.
 > - Server-side support for creating incremental backups [introduced](https://gitlab.com/gitlab-org/gitaly/-/merge_requests/6475) in GitLab 16.6.
-> - Server-side support added to Helm chart installations in GitLab 17.0.
 
 Repository backups can be configured so that the Gitaly node that hosts each
 repository is responsible for creating the backup and streaming it to
@@ -1319,15 +1307,10 @@ gitaly['env'] = {
 }
 gitaly['configuration'] = {
     backup: {
-        go_cloud_url: 'azblob://<bucket>'
+        go_cloud_url: 'azblob://gitaly-backups'
     }
 }
 ```
-
-:::TabTitle Helm chart (Kubernetes)
-
-For Helm-based deployments, see the
-[server-side backup documentation for Gitaly chart](https://docs.gitlab.com/charts/charts/gitlab/gitaly/index.html#server-side-backups).
 
 :::TabTitle Self-compiled (source)
 
@@ -1335,7 +1318,7 @@ Edit `/home/git/gitaly/config.toml` and configure `go_cloud_url`:
 
 ```toml
 [backup]
-go_cloud_url = "azblob://<bucket>"
+go_cloud_url = "azblob://gitaly-backups"
 ```
 
 ::EndTabs
@@ -1364,15 +1347,10 @@ gitaly['env'] = {
 }
 gitaly['configuration'] = {
     backup: {
-        go_cloud_url: 'gs://<bucket>'
+        go_cloud_url: 'gs://gitaly-backups'
     }
 }
 ```
-
-:::TabTitle Helm chart (Kubernetes)
-
-For Helm-based deployments, see the
-[server-side backup documentation for Gitaly chart](https://docs.gitlab.com/charts/charts/gitlab/gitaly/index.html#server-side-backups).
 
 :::TabTitle Self-compiled (source)
 
@@ -1380,7 +1358,7 @@ Edit `/home/git/gitaly/config.toml` and configure `go_cloud_url`:
 
 ```toml
 [backup]
-go_cloud_url = "gs://<bucket>"
+go_cloud_url = "gs://gitaly-backups"
 ```
 
 ::EndTabs
@@ -1410,15 +1388,10 @@ gitaly['env'] = {
 }
 gitaly['configuration'] = {
     backup: {
-        go_cloud_url: 's3://<bucket>?region=us-west-1'
+        go_cloud_url: 's3://gitaly-backups?region=us-west-1'
     }
 }
 ```
-
-:::TabTitle Helm chart (Kubernetes)
-
-For Helm-based deployments, see the
-[server-side backup documentation for Gitaly chart](https://docs.gitlab.com/charts/charts/gitlab/gitaly/index.html#server-side-backups).
 
 :::TabTitle Self-compiled (source)
 
@@ -1426,7 +1399,7 @@ Edit `/home/git/gitaly/config.toml` and configure `go_cloud_url`:
 
 ```toml
 [backup]
-go_cloud_url = "s3://<bucket>?region=us-west-1"
+go_cloud_url = "s3://gitaly-backups?region=us-west-1"
 ```
 
 ::EndTabs
@@ -1444,11 +1417,6 @@ The following parameters are supported:
 
 ::Tabs
 
-:::TabTitle Helm chart (Kubernetes)
-
-For Helm-based deployments, see the
-[server-side backup documentation for Gitaly chart](https://docs.gitlab.com/charts/charts/gitlab/gitaly/index.html#server-side-backups).
-
 :::TabTitle Linux package (Omnibus)
 
 Edit `/etc/gitlab/gitlab.rb` and configure the `go_cloud_url`:
@@ -1460,7 +1428,7 @@ gitaly['env'] = {
 }
 gitaly['configuration'] = {
     backup: {
-        go_cloud_url: 's3://<bucket>?region=minio&endpoint=my.minio.local:8080&disableSSL=true&s3ForcePathStyle=true'
+        go_cloud_url: 's3://gitaly-backups?region=minio&endpoint=my.minio.local:8080&disableSSL=true&s3ForcePathStyle=true'
     }
 }
 ```
@@ -1471,7 +1439,7 @@ Edit `/home/git/gitaly/config.toml` and configure `go_cloud_url`:
 
 ```toml
 [backup]
-go_cloud_url = "s3://<bucket>?region=minio&endpoint=my.minio.local:8080&disableSSL=true&s3ForcePathStyle=true"
+go_cloud_url = "s3://gitaly-backups?region=minio&endpoint=my.minio.local:8080&disableSSL=true&s3ForcePathStyle=true"
 ```
 
 ::EndTabs

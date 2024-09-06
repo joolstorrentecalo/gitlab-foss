@@ -18,7 +18,6 @@ import { convertToGraphQLId } from '~/graphql_shared/utils';
 import glFeatureFlagsMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import { isLoggedIn } from '~/lib/utils/common_utils';
 import StatusBadge from '~/issuable/components/status_badge.vue';
-import ImportedBadge from '~/vue_shared/components/imported_badge.vue';
 import { TYPE_MERGE_REQUEST } from '~/issues/constants';
 import DiscussionCounter from '~/notes/components/discussion_counter.vue';
 import TodoWidget from '~/sidebar/components/todo_toggle/sidebar_todo_widget.vue';
@@ -31,7 +30,6 @@ export default {
   TYPE_MERGE_REQUEST,
   apollo: {
     $subscribe: {
-      // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
       title: {
         query() {
           return titleSubscription;
@@ -60,7 +58,6 @@ export default {
     GlIcon,
     DiscussionCounter,
     StatusBadge,
-    ImportedBadge,
     TodoWidget,
     SubscriptionsWidget,
     ClipboardButton,
@@ -78,11 +75,6 @@ export default {
     blocksMerge: { default: false },
   },
   props: {
-    isImported: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     tabs: {
       type: Array,
       required: true,
@@ -161,44 +153,46 @@ export default {
     @disappear="setStickyHeaderVisible(true)"
   >
     <div
-      class="issue-sticky-header merge-request-sticky-header gl-border-b gl-fixed gl-hidden gl-flex-col gl-justify-end gl-bg-default md:gl-flex"
-      :class="{ 'gl-invisible': !isStickyHeaderVisible }"
+      class="issue-sticky-header merge-request-sticky-header gl-fixed gl-bg-white gl-display-none gl-md-display-flex gl-flex-direction-column gl-justify-content-end gl-border-b"
+      :class="{ 'gl-visibility-hidden': !isStickyHeaderVisible }"
     >
       <div
-        class="issue-sticky-header-text gl-mx-auto gl-flex gl-w-full gl-flex-col gl-items-center"
+        class="issue-sticky-header-text gl-display-flex gl-flex-direction-column gl-align-items-center gl-mx-auto gl-w-full"
         :class="{ 'container-limited': !isFluidLayout }"
       >
-        <div class="gl-flex gl-w-full gl-items-center gl-gap-2">
-          <status-badge :issuable-type="$options.TYPE_MERGE_REQUEST" :state="badgeState.state" />
-          <imported-badge v-if="isImported" :importable-type="$options.TYPE_MERGE_REQUEST" />
+        <div class="gl-w-full gl-display-flex gl-align-items-baseline">
+          <status-badge
+            class="gl-align-self-center gl-mr-3"
+            :issuable-type="$options.TYPE_MERGE_REQUEST"
+            :state="badgeState.state"
+          />
           <a
             v-safe-html:[$options.safeHtmlConfig]="titleHtml"
             href="#top"
-            class="gl-my-0 gl-ml-1 gl-mr-2 gl-hidden gl-overflow-hidden gl-text-ellipsis gl-whitespace-nowrap gl-font-bold gl-text-default lg:gl-block"
+            class="gl-display-none gl-lg-display-block gl-font-weight-bold gl-overflow-hidden gl-white-space-nowrap gl-text-overflow-ellipsis gl-my-0 gl-mr-4 gl-text-black-normal"
           ></a>
-          <div class="gl-flex gl-items-center">
+          <div class="gl-display-flex gl-align-items-baseline">
             <gl-sprintf :message="__('%{source} %{copyButton} into %{target}')">
               <template #copyButton>
                 <clipboard-button
-                  tooltip-placement="bottom"
-                  :title="copySourceBranchTooltip"
+                  v-gl-tooltip.bottom.html="copySourceBranchTooltip"
                   :text="getNoteableData.source_branch"
                   size="small"
                   category="tertiary"
-                  class="js-source-branch-copy gl-mx-1"
+                  class="gl-m-0! gl-mx-1! js-source-branch-copy gl-align-self-center"
                 />
               </template>
               <template #source>
                 <gl-link
                   :title="getNoteableData.source_branch"
                   :href="getNoteableData.source_branch_path"
-                  class="gl-mt-2 gl-max-w-26 gl-truncate gl-rounded-base gl-bg-blue-50 gl-px-2 gl-text-sm gl-font-monospace"
+                  class="gl-text-blue-500! gl-font-monospace gl-bg-blue-50 gl-rounded-base gl-font-sm gl-px-2 gl-text-truncate gl-max-w-26"
                   data-testid="source-branch"
                 >
                   <span
                     v-if="isForked"
                     v-gl-tooltip
-                    class="-gl-mr-2 gl-align-middle"
+                    class="gl-vertical-align-middle gl-mr-n2"
                     :title="__('The source project is a fork')"
                   >
                     <gl-icon name="fork" :size="12" class="gl-ml-1" />
@@ -210,7 +204,7 @@ export default {
                 <gl-link
                   :title="getNoteableData.target_branch"
                   :href="getNoteableData.target_branch_path"
-                  class="gl-ml-2 gl-mt-2 gl-max-w-26 gl-truncate gl-rounded-base gl-bg-blue-50 gl-px-2 gl-text-sm !gl-text-blue-500 gl-font-monospace"
+                  class="gl-text-blue-500! gl-font-monospace gl-bg-blue-50 gl-rounded-base gl-font-sm gl-px-2 gl-text-truncate gl-max-w-26 gl-ml-2"
                 >
                   {{ getNoteableData.target_branch }}
                 </gl-link>
@@ -218,18 +212,23 @@ export default {
             </gl-sprintf>
           </div>
         </div>
-        <div class="gl-flex gl-w-full">
+        <div class="gl-w-full gl-display-flex">
           <ul
-            class="merge-request-tabs nav-tabs nav nav-links gl-m-0 gl-flex gl-flex-nowrap gl-border-b-0 gl-p-0"
+            class="merge-request-tabs nav-tabs nav nav-links gl-display-flex gl-flex-nowrap gl-m-0 gl-p-0 gl-border-b-0"
           >
             <li
               v-for="(tab, index) in tabs"
               :key="tab[0]"
               :class="{ active: activeTab === tab[0] }"
             >
-              <gl-link :href="tab[2]" :data-action="tab[0]" class="!gl-py-4" @click="visitTab">
+              <gl-link
+                :href="tab[2]"
+                :data-action="tab[0]"
+                class="gl-outline-0! gl-py-4!"
+                @click="visitTab"
+              >
                 {{ tab[1] }}
-                <gl-badge variant="muted">
+                <gl-badge variant="muted" size="sm">
                   <template v-if="index === 0 && discussionCounter !== 0">
                     {{ discussionCounter }}
                   </template>
@@ -240,9 +239,12 @@ export default {
               </gl-link>
             </li>
           </ul>
-          <div class="gl-ml-auto gl-hidden gl-items-center lg:gl-flex">
+          <div class="gl-display-none gl-lg-display-flex gl-align-items-center gl-ml-auto">
             <discussion-counter :blocks-merge="blocksMerge" hide-options />
-            <div v-if="isSignedIn" :class="{ 'gl-flex gl-gap-3': isNotificationsTodosButtons }">
+            <div
+              v-if="isSignedIn"
+              :class="{ 'gl-display-flex gl-gap-3': isNotificationsTodosButtons }"
+            >
               <todo-widget
                 :issuable-id="issuableId"
                 :issuable-iid="issuableIid"

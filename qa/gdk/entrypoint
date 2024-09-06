@@ -2,7 +2,7 @@
 
 set -e
 
-unset BUNDLE_PATH BUNDLE_WITHOUT
+unset BUNDLE_PATH
 
 if [[ "${WITH_LOAD_BALANCER}" == "true" ]]; then
   gdk config set postgresql.replica.enabled true

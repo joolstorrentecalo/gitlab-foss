@@ -1,9 +1,16 @@
 import { GlEmptyState } from '@gitlab/ui';
 import { shallowMount } from '@vue/test-utils';
 import EmptyStateWithAnyIssues from '~/issues/list/components/empty_state_with_any_issues.vue';
+import IssuesListApp from '~/issues/list/components/issues_list_app.vue';
 
 describe('EmptyStateWithAnyIssues component', () => {
   let wrapper;
+
+  const defaultProvide = {
+    emptyStateSvgPath: 'empty/state/svg/path',
+    newIssuePath: 'new/issue/path',
+    showNewIssueLink: false,
+  };
 
   const findGlEmptyState = () => wrapper.findComponent(GlEmptyState);
 
@@ -11,58 +18,50 @@ describe('EmptyStateWithAnyIssues component', () => {
     wrapper = shallowMount(EmptyStateWithAnyIssues, {
       propsData: {
         hasSearch: true,
-        isEpic: false,
         isOpenTab: true,
         ...props,
       },
-      provide: {
-        newIssuePath: 'new/issue/path',
-        showNewIssueLink: false,
-      },
+      provide: defaultProvide,
     });
   };
 
   describe('when there is a search (with no results)', () => {
-    it('shows empty state', () => {
+    beforeEach(() => {
       mountComponent({ hasSearch: true });
+    });
 
+    it('shows empty state', () => {
       expect(findGlEmptyState().props()).toMatchObject({
-        description: 'To widen your search, change or remove filters above',
-        title: 'Sorry, your filter produced no results',
+        description: IssuesListApp.i18n.noSearchResultsDescription,
+        title: IssuesListApp.i18n.noSearchResultsTitle,
+        svgPath: defaultProvide.emptyStateSvgPath,
       });
     });
   });
 
   describe('when "Open" tab is active', () => {
-    it('shows empty state', () => {
+    beforeEach(() => {
       mountComponent({ hasSearch: false, isOpenTab: true });
+    });
 
-      expect(findGlEmptyState().props('title')).toBe('There are no open issues');
+    it('shows empty state', () => {
+      expect(findGlEmptyState().props()).toMatchObject({
+        description: IssuesListApp.i18n.noOpenIssuesDescription,
+        title: IssuesListApp.i18n.noOpenIssuesTitle,
+        svgPath: defaultProvide.emptyStateSvgPath,
+      });
     });
   });
 
   describe('when "Closed" tab is active', () => {
-    it('shows empty state', () => {
+    beforeEach(() => {
       mountComponent({ hasSearch: false, isOpenTab: false });
-
-      expect(findGlEmptyState().props('title')).toBe('There are no closed issues');
-    });
-  });
-
-  describe('when epic', () => {
-    describe('when "Open" tab is active', () => {
-      it('shows empty state', () => {
-        mountComponent({ hasSearch: false, isEpic: true, isOpenTab: true });
-
-        expect(findGlEmptyState().props('title')).toBe('There are no open epics');
-      });
     });
 
-    describe('when "Closed" tab is active', () => {
-      it('shows empty state', () => {
-        mountComponent({ hasSearch: false, isEpic: true, isOpenTab: false });
-
-        expect(findGlEmptyState().props('title')).toBe('There are no closed epics');
+    it('shows empty state', () => {
+      expect(findGlEmptyState().props()).toMatchObject({
+        title: IssuesListApp.i18n.noClosedIssuesTitle,
+        svgPath: defaultProvide.emptyStateSvgPath,
       });
     });
   });

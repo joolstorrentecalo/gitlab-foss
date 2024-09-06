@@ -1,5 +1,4 @@
-import { initShow } from '~/milestones';
-import InitMoreActionsDropdown from '~/milestones/init_more_actions_dropdown';
+import { initDeleteMilestoneModal, initShow } from '~/milestones';
 
 initShow();
-InitMoreActionsDropdown();
+initDeleteMilestoneModal();

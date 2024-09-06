@@ -13,10 +13,6 @@ RSpec.shared_examples 'it has loose foreign keys' do
     end
   end
 
-  before do
-    allow(Gitlab::Database::SharedModel).to receive(:using_connection).and_yield
-  end
-
   it 'has at least one loose foreign key definition' do
     definitions = Gitlab::Database::LooseForeignKeys.definitions_by_table[table_name]
     expect(definitions.size).to be > 0
@@ -69,8 +65,8 @@ RSpec.shared_examples 'cleanup by a loose foreign key' do
   def find_model
     query = model.class
     # handle composite primary keys
-    primary_keys = model.class.connection.primary_keys(model.class.table_name) - model.class.ignored_columns
-    primary_keys.each do |primary_key|
+    connection = model.class.connection
+    connection.primary_keys(model.class.table_name).each do |primary_key|
       query = query.where(primary_key => model.public_send(primary_key))
     end
     query.first

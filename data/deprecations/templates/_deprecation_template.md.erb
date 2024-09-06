@@ -60,7 +60,6 @@ For deprecation reviewers (Technical Writers only):
 ### <%= deprecation["title"] %>
 
 <div class="deprecation-notes">
-
 - Announced in GitLab <span class="milestone"><%= deprecation["announcement_milestone"]%></span>
 <% if deprecation["end_of_support_milestone"] -%>
 - End of Support in GitLab <span class="milestone"><%= deprecation["end_of_support_milestone"]%></span>
@@ -71,7 +70,6 @@ For deprecation reviewers (Technical Writers only):
 <% if deprecation["issue_url"] -%>
 - To discuss this change or learn more, see the [deprecation issue](<%= deprecation["issue_url"]%>).
 <%- end -%>
-
 </div>
 
 <%= deprecation["body"] -%>
@@ -85,5 +83,6 @@ DISCLAIMER:
 This page contains information related to upcoming products, features, and functionality.
 It is important to note that the information presented is for informational purposes only.
 Please do not rely on this information for purchasing or planning purposes.
-The development, release, and timing of any products, features, or functionality may be subject to change or delay and remain at the
+As with all projects, the items mentioned on this page are subject to change or delay.
+The development, release, and timing of any products, features, or functionality remain at the
 sole discretion of GitLab Inc.

@@ -4,20 +4,14 @@ module Packages
   class GroupPackagesFinder
     include ::Packages::FinderHelper
 
-    def initialize(
-      current_user, group, params = { exclude_subgroups: false,
-                                      exact_name: false,
-                                      order_by: 'created_at',
-                                      sort: 'asc',
-                                      packages_class: ::Packages::Package }
-    )
+    def initialize(current_user, group, params = { exclude_subgroups: false, exact_name: false, order_by: 'created_at', sort: 'asc' })
       @current_user = current_user
       @group = group
       @params = params
     end
 
     def execute
-      return packages_class.none unless group
+      return ::Packages::Package.none unless group
 
       packages_for_group_projects
     end
@@ -27,7 +21,7 @@ module Packages
     attr_reader :current_user, :group, :params
 
     def packages_for_group_projects(installable_only: false)
-      packages = packages_class
+      packages = ::Packages::Package
         .including_project_namespace_route
         .including_tags
         .for_projects(group_projects_visible_to_current_user.select(:id))
@@ -71,10 +65,6 @@ module Packages
 
     def preload_pipelines
       params.fetch(:preload_pipelines, true)
-    end
-
-    def packages_class
-      params.fetch(:packages_class, ::Packages::Package)
     end
   end
 end

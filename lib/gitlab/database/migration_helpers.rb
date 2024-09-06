@@ -887,10 +887,10 @@ module Gitlab
         conditions = ActiveRecord::Base.sanitize_sql(
           [
             'job_class_name = :job_class_name AND table_name = :table_name AND column_name = :column_name AND job_arguments = :job_arguments',
-            { job_class_name: 'CopyColumnUsingBackgroundMigrationJob',
-              table_name: table,
-              column_name: primary_key,
-              job_arguments: [columns, columns.map { |column| convert_to_bigint_column(column) }].to_json }
+            job_class_name: 'CopyColumnUsingBackgroundMigrationJob',
+            table_name: table,
+            column_name: primary_key,
+            job_arguments: [columns, columns.map { |column| convert_to_bigint_column(column) }].to_json
           ])
 
         execute("DELETE FROM batched_background_migrations WHERE #{conditions}")
@@ -970,9 +970,9 @@ module Gitlab
       def copy_foreign_keys(table, old, new)
         foreign_keys_for(table, old).each do |fk|
           add_concurrent_foreign_key(fk.from_table,
-            fk.to_table,
-            column: new,
-            on_delete: fk.on_delete)
+                                     fk.to_table,
+                                     column: new,
+                                     on_delete: fk.on_delete)
         end
       end
 
@@ -1233,15 +1233,8 @@ into similar problems in the future (e.g. when new tables are created).
         end
       end
 
-      def lock_tables(*tables, mode: :access_exclusive, only: nil, nowait: nil)
-        only_param = only && 'ONLY'
-        nowait_param = nowait && 'NOWAIT'
-        tables_param = tables.map { |t| quote_table_name(t) }.join(', ')
-        mode_param = mode.to_s.upcase.tr('_', ' ')
-
-        execute(<<~SQL.squish)
-          LOCK TABLE #{only_param} #{tables_param} IN #{mode_param} MODE #{nowait_param}
-        SQL
+      def lock_tables(*tables, mode: :access_exclusive)
+        execute("LOCK TABLE #{tables.join(', ')} IN #{mode.to_s.upcase.tr('_', ' ')} MODE")
       end
 
       private
@@ -1271,15 +1264,12 @@ into similar problems in the future (e.g. when new tables are created).
       end
 
       def column_is_nullable?(table, column)
-        table_name, schema_name = table.to_s.split('.').reverse
-        schema_name ||= current_schema
-
         # Check if table.column has not been defined with NOT NULL
         check_sql = <<~SQL
           SELECT c.is_nullable
           FROM information_schema.columns c
-          WHERE c.table_schema = #{connection.quote(schema_name)}
-            AND c.table_name = #{connection.quote(table_name)}
+          WHERE c.table_schema = #{connection.quote(current_schema)}
+            AND c.table_name = #{connection.quote(table)}
             AND c.column_name = #{connection.quote(column)}
         SQL
 
@@ -1326,9 +1316,9 @@ into similar problems in the future (e.g. when new tables are created).
         new_limit = limit || old_col.limit
 
         add_column(table, new, new_type,
-          limit: new_limit,
-          precision: old_col.precision,
-          scale: old_col.scale)
+                   limit: new_limit,
+                   precision: old_col.precision,
+                   scale: old_col.scale)
 
         # We set the default value _after_ adding the column so we don't end up
         # updating any existing data with the default value. This isn't

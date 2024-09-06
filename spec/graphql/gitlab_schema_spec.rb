@@ -4,11 +4,12 @@ require 'spec_helper'
 
 RSpec.describe GitlabSchema do
   let_it_be(:connections) { described_class.connections.all_wrappers }
+  let_it_be(:tracers) { described_class.tracers }
 
   let(:user) { build :user }
 
   it 'uses batch loading' do
-    expect(described_class.trace_modules_for(:default)).to include(BatchLoader::GraphQL::Trace)
+    expect(tracers).to include(BatchLoader::GraphQL)
   end
 
   it 'has the base mutation' do

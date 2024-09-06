@@ -52,7 +52,7 @@
       margin-top: $gl-spacing-scale-3;
       margin-bottom: $gl-spacing-scale-3;
       margin-right: 0;
-      @apply gl-shadow-inner-l-4-gray-100;
+      @include gl-inset-border-l-4-gray-100;
       margin-left: 4px;
       border: 0 !important;
     }
@@ -60,8 +60,10 @@
 
   header,
   nav,
+  .nav-sidebar,
   .super-sidebar,
   .super-sidebar-overlay,
+  .profiler-results,
   .tree-ref-holder,
   .tree-holder .breadcrumb,
   .nav,
@@ -74,7 +76,6 @@
   .note-action-button,
   .right-sidebar,
   .flash-container,
-  .top-bar-fixed,
   copy-code,
   #js-peek {
     display: none !important;
@@ -98,7 +99,7 @@
     content: none !important;
   }
 
-  .with-performance-bar .layout-page, .content-wrapper {
+  .with-performance-bar .layout-page {
     padding-top: 0;
   }
 }

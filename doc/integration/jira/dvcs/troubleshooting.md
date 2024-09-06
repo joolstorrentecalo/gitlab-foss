@@ -1,5 +1,5 @@
 ---
-stage: Foundations
+stage: Manage
 group: Import and Integrate
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -83,11 +83,28 @@ The requested scope is invalid, unknown, or malformed.
 Potential resolutions:
 
 1. Verify that the URL shown in the browser after being redirected from Jira in the
-   [Jira DVCS connector setup](https://confluence.atlassian.com/adminjiraserver/linking-gitlab-accounts-1027142272.html#LinkingGitLabaccounts-InJiraagain) includes `scope=api` in
+   [Jira DVCS connector setup](index.md#configure-jira-for-dvcs) includes `scope=api` in
    the query string.
 1. If `scope=api` is missing from the URL, edit the
-   [GitLab account configuration](https://confluence.atlassian.com/adminjiraserver/linking-gitlab-accounts-1027142272.html#LinkingGitLabaccounts-InGitLab). Review
+   [GitLab account configuration](index.md#create-a-gitlab-application-for-dvcs). Review
    the **Scopes** field and ensure the `api` checkbox is selected.
+
+## Error when adding an account in Jira
+
+After you complete the **Add New Account** form in Jira and authorize access, you might
+encounter these issues:
+
+- An `Error! Failed adding the account: [Error retrieving list of repositories]` error.
+- An `Account is already integrated with JIRA` error when you select **Try Again**.
+- An account is visible in the DVCS accounts view, but no repositories are listed.
+
+To resolve this issue:
+
+- If you're using GitLab Free, ensure you're using GitLab 13.4 or later.
+- If you're using GitLab versions 11.10-12.7, upgrade to GitLab 12.8.10 or later
+  to resolve [an identified issue](https://gitlab.com/gitlab-org/gitlab/-/issues/37012).
+
+[Contact GitLab Support](https://about.gitlab.com/support/) if none of these reasons apply.
 
 ## `410 Gone` when connecting to Jira
 
@@ -136,7 +153,7 @@ To find webhook logs in a DVCS-linked project:
 
 1. On the left sidebar, select **Search or go to** and find your project.
 1. Select **Settings > Webhooks**.
-1. Scroll down to **Project hooks**.
+1. Scroll down to **Project Hooks**.
 1. Next to the log that points to your Jira instance, select **Edit**.
 1. Scroll down to **Recent events**.
 

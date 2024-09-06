@@ -14,14 +14,18 @@ module Resolvers
       alias_method :organization, :object
 
       def resolve_groups(**args)
-        ::Organizations::GroupsFinder.new(current_user, finder_params(args)).execute
+        ::Organizations::GroupsFinder.new(context[:current_user], finder_params(args)).execute
       end
 
       def finder_params(args)
-        args.merge(organization: organization)
+        extra_args = if Feature.enabled?(:resolve_all_organization_groups, current_user)
+                       { organization: organization }
+                     else
+                       { organization: organization, include_ancestors: false, all_available: false }
+                     end
+
+        super.merge(extra_args)
       end
     end
   end
 end
-
-Resolvers::Organizations::GroupsResolver.prepend_mod

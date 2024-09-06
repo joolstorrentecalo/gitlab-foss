@@ -11,7 +11,7 @@ module Packages
       belongs_to :project
 
       validates :package, :project, :fields, presence: true
-      validates :fields, json_schema: { filename: 'terraform_module_metadata', detail_errors: true }
+      validates :fields, json_schema: { filename: 'terraform_module_metadata' }
       validate :terraform_module_package_type
       validate :ensure_fields_size
 

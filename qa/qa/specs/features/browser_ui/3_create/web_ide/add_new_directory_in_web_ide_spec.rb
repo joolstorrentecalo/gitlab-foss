@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module QA
-  RSpec.describe 'Create', product_group: :remote_development do
+  RSpec.describe 'Create', product_group: :ide do
     describe 'Add a directory in Web IDE' do
       let(:project) { create(:project, :with_readme, name: 'webide-add-directory-project') }
 
@@ -20,12 +20,10 @@ module QA
 
           project.visit!
           Page::Project::Show.perform(&:open_web_ide!)
-          Page::Project::WebIDE::VSCode.perform do |ide|
-            ide.wait_for_ide_to_load('README.md')
-          end
+          Page::Project::WebIDE::VSCode.perform(&:wait_for_ide_to_load)
         end
 
-        it 'throws an error', :blocking, testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/386760' do
+        it 'throws an error', testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/386760' do
           Page::Project::WebIDE::VSCode.perform do |ide|
             ide.create_new_folder(directory_name)
 
@@ -42,7 +40,7 @@ module QA
           Page::Project::WebIDE::VSCode.perform(&:wait_for_ide_to_load)
         end
 
-        it 'shows successfully but not able to be committed', :blocking,
+        it 'shows successfully but not able to be committed',
           testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/386761' do
           Page::Project::WebIDE::VSCode.perform do |ide|
             ide.create_new_folder(directory_name)

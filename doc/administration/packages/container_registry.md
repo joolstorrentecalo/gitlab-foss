@@ -12,7 +12,7 @@ DETAILS:
 
 NOTE:
 The [next-generation container registry](container_registry_metadata_database.md)
-is now available for upgrade on self-managed instances.
+is now available for upgrade and testing on self-managed instances as a beta feature.
 This upgraded registry supports online garbage collection, and has significant performance
 and reliability improvements.
 
@@ -47,11 +47,6 @@ Otherwise, the container registry is not enabled. To enable it:
 
 The container registry works under HTTPS by default. You can use HTTP
 but it's not recommended and is beyond the scope of this document.
-
-### Helm Charts installations
-
-For Helm Charts installations, see [Using the Container Registry](https://docs.gitlab.com/charts/charts/registry/).
-in the Helm Charts documentation.
 
 ### Self-compiled installations
 
@@ -360,7 +355,7 @@ the container registry by themselves, follow the steps below.
 In GitLab, tokens for the container registry expire every five minutes.
 To increase the token duration:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > CI/CD**.
 1. Expand **Container Registry**.
 1. For the **Authorization token duration (minutes)**, update the value.
@@ -398,6 +393,19 @@ The different supported drivers are:
 Although most S3 compatible services (like [MinIO](https://min.io/)) should work with the container registry,
 we only guarantee support for AWS S3. Because we cannot assert the correctness of third-party S3 implementations,
 we can debug issues, but we cannot patch the registry unless an issue is reproducible against an AWS S3 bucket.
+
+<!--- start_remove The following content will be removed on remove_date: '2024-05-16' -->
+
+WARNING:
+Support for the following drivers was [deprecated](https://gitlab.com/gitlab-org/container-registry/-/issues/1141)
+in GitLab 16.6, and is planned for removal in 17.0. This change is a breaking change.
+
+| Driver  | Description |
+|---------|-------------|
+| `swift` | OpenStack Swift Object Storage |
+| `oss`   | Aliyun OSS  |
+
+<!--- end_remove -->
 
 ### Use file system
 
@@ -516,16 +524,16 @@ To configure the `s3` storage driver for a Linux package installation:
    set `maxrequestspersecond` to a number within the [S3 request rate threshold](https://repost.aws/knowledge-center/http-5xx-errors-s3):
 
    ```ruby
-   registry['storage'] = {
-     's3' => {
-       'accesskey' => 's3-access-key',
-       'secretkey' => 's3-secret-key-for-access-key',
-       'bucket' => 'your-s3-bucket',
-       'region' => 'your-s3-region',
-       'regionendpoint' => 'your-s3-regionendpoint',
-       'maxrequestspersecond' => 100
-     }
-   }
+      registry['storage'] = {
+      's3' => {
+        'accesskey' => 's3-access-key',
+        'secretkey' => 's3-secret-key-for-access-key',
+        'bucket' => 'your-s3-bucket',
+        'region' => 'your-s3-region',
+        'regionendpoint' => 'your-s3-regionendpoint',
+        'maxrequestspersecond' => 100
+      }
+    }
    ```
 
 1. Save the file and [reconfigure GitLab](../restart_gitlab.md#reconfigure-a-linux-package-installation) for the changes to take effect.
@@ -535,14 +543,14 @@ To configure the `gcs` storage driver for a Linux package installation:
 1. Edit `/etc/gitlab/gitlab.rb`:
 
    ```ruby
-   registry['storage'] = {
-     'gcs' => {
-       'bucket' => 'BUCKET_NAME',
-       'keyfile' => 'PATH/TO/KEYFILE',
-       # If you have the bucket shared with other apps beyond the registry, uncomment the following:
-       # 'rootdirectory' => '/gcs/object/name/prefix'
-     }
-   }
+      registry['storage'] = {
+      'gcs' => {
+        'bucket' => 'BUCKET_NAME',
+        'keyfile' => 'PATH/TO/KEYFILE',
+        # If you have the bucket shared with other apps beyond the registry, uncomment the following:
+        # 'rootdirectory' => '/gcs/object/name/prefix'
+      }
+    }
    ```
 
    GitLab supports all available parameters.
@@ -647,6 +655,12 @@ you can pull from the container registry, but you cannot push.
 
 #### Moving to Azure Object Storage
 
+> - The default configuration for the storage driver is scheduled to be [changed](https://gitlab.com/gitlab-org/container-registry/-/issues/854) in GitLab 16.0.
+
+When moving from an existing file system or another object storage provider to Azure Object Storage, you must configure the registry to use the standard root directory.
+Configure it by setting [`trimlegacyrootprefix: true`](https://gitlab.com/gitlab-org/container-registry/-/blob/master/docs/upstream-differences.md#azure-storage-driver) in the Azure storage driver section of the registry configuration.
+Without this configuration, the Azure storage driver uses `//` instead of `/` as the first section of the root path, rendering the migrated images inaccessible.
+
 ::Tabs
 
 :::TabTitle Linux package (Omnibus)
@@ -654,9 +668,10 @@ you can pull from the container registry, but you cannot push.
 ```ruby
 registry['storage'] = {
   'azure' => {
-    'accountname' => '<your_storage_account_name>',
-    'accountkey' => '<base64_encoded_account_key>',
-    'container' => '<container_name>',
+    'accountname' => 'accountname',
+    'accountkey' => 'base64encodedaccountkey',
+    'container' => 'containername',
+    'rootdirectory' => '/azure/virtual/container',
     'trimlegacyrootprefix' => true
   }
 }
@@ -667,9 +682,10 @@ registry['storage'] = {
 ```yaml
 storage:
   azure:
-    accountname: <your_storage_account_name>
-    accountkey: <base64_encoded_account_key>
-    container: <container_name>
+    accountname: accountname
+    accountkey: base64encodedaccountkey
+    container: containername
+    rootdirectory: /azure/virtual/container
     trimlegacyrootprefix: true
 ```
 
@@ -692,11 +708,11 @@ However, this behavior is undesirable for registries used by internal hosts that
    ```ruby
    registry['storage'] = {
      's3' => {
-       'accesskey' => '<s3_access_key>',
-       'secretkey' => '<s3_secret_key_for_access_key>',
-       'bucket' => '<your_s3_bucket>',
-       'region' => '<your_s3_region>',
-       'regionendpoint' => '<your_s3_regionendpoint>'
+       'accesskey' => 's3-access-key',
+       'secretkey' => 's3-secret-key-for-access-key',
+       'bucket' => 'your-s3-bucket',
+       'region' => 'your-s3-region',
+       'regionendpoint' => 'your-s3-regionendpoint'
      },
      'redirect' => {
        'disable' => true
@@ -713,11 +729,11 @@ However, this behavior is undesirable for registries used by internal hosts that
    ```yaml
    storage:
      s3:
-       accesskey: '<s3_access_key>'
-       secretkey: '<s3_secret_key_for_access_key>'
-       bucket: '<your_s3_bucket>'
-       region: '<your_s3_region>'
-       regionendpoint: '<your_s3_regionendpoint>'
+       accesskey: 'AKIAKIAKI'
+       secretkey: 'secret123'
+       bucket: 'gitlab-registry-bucket-AKIAKIAKI'
+       region: 'your-s3-region'
+       regionendpoint: 'your-s3-regionendpoint'
      redirect:
        disable: true
      cache:
@@ -749,11 +765,11 @@ on how you installed GitLab. Follow the instructions here that match your instal
    ```ruby
    registry['storage'] = {
      's3' => {
-       'accesskey' => '<s3_access_key>',
-       'secretkey' => '<s3_secret_key_for_access_key>',
-       'bucket' => '<your_s3_bucket>',
-       'region' => '<your_s3_region>',
-       'regionendpoint' => '<your_s3_regionendpoint>',
+       'accesskey' => 's3-access-key',
+       'secretkey' => 's3-secret-key-for-access-key',
+       'bucket' => 'your-s3-bucket',
+       'region' => 'your-s3-region',
+       'regionendpoint' => 'your-s3-regionendpoint',
        'encrypt' => true
      }
    }
@@ -769,11 +785,11 @@ on how you installed GitLab. Follow the instructions here that match your instal
    ```yaml
    storage:
      s3:
-       accesskey: '<s3_access_key>'
-       secretkey: '<s3_secret_key_for_access_key>'
-       bucket: '<your_s3_bucket>'
-       region: '<your_s3_region>'
-       regionendpoint: '<your_s3_regionendpoint>'
+       accesskey: 'AKIAKIAKI'
+       secretkey: 'secret123'
+       bucket: 'gitlab-registry-bucket-AKIAKIAKI'
+       region: 'your-s3-region'
+       regionendpoint: 'your-s3-regionendpoint'
        encrypt: true
    ```
 
@@ -941,10 +957,6 @@ response to events happening in the registry.
 Read more about the container registry notifications configuration options in the
 [Docker Registry notifications documentation](https://distribution.github.io/distribution/about/notifications/).
 
-WARNING:
-Support for the `threshold` parameter was [deprecated](https://gitlab.com/gitlab-org/container-registry/-/issues/1243)
-in GitLab 17.0, and is planned for removal in 18.0. Use `maxretries` instead.
-
 You can configure multiple endpoints for the container registry.
 
 ::Tabs
@@ -961,8 +973,7 @@ To configure a notification endpoint for a Linux package installation:
        'name' => 'test_endpoint',
        'url' => 'https://gitlab.example.com/notify',
        'timeout' => '500ms',
-       'threshold' => 5, # DEPRECATED: use `maxretries` instead.
-       'maxretries' => 5,
+       'threshold' => 5,
        'backoff' => '1s',
        'headers' => {
          "Authorization" => ["AUTHORIZATION_EXAMPLE_TOKEN"]
@@ -988,8 +999,7 @@ notifications:
       url: https://my.listener.com/event
       headers: <http.Header>
       timeout: 500
-      threshold: 5 # DEPRECATED: use `maxretries` instead.
-      maxretries: 5
+      threshold: 5
       backoff: 1000
 ```
 
@@ -1090,8 +1100,7 @@ end
 DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
-
-> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/423459) in GitLab 17.3.
+**Status:** Beta
 
 The metadata database enables many new registry features, including
 online garbage collection, and increases the efficiency of many registry operations.
@@ -1200,16 +1209,16 @@ To enable the read-only mode:
 1. In `/etc/gitlab/gitlab.rb`, specify the read-only mode:
 
    ```ruby
-   registry['storage'] = {
-     'filesystem' => {
-       'rootdirectory' => "<your_registry_storage_path>"
-     },
-     'maintenance' => {
-       'readonly' => {
-         'enabled' => true
+     registry['storage'] = {
+       'filesystem' => {
+         'rootdirectory' => "<your_registry_storage_path>"
+       },
+       'maintenance' => {
+         'readonly' => {
+           'enabled' => true
+         }
        }
      }
-   }
    ```
 
 1. Save and reconfigure GitLab:
@@ -1235,16 +1244,16 @@ To enable the read-only mode:
 1. Once done, in `/etc/gitlab/gitlab.rb` change it back to read-write mode:
 
    ```ruby
-   registry['storage'] = {
-     'filesystem' => {
-       'rootdirectory' => "<your_registry_storage_path>"
-     },
-     'maintenance' => {
-       'readonly' => {
-         'enabled' => false
-       }
-     }
-   }
+    registry['storage'] = {
+      'filesystem' => {
+        'rootdirectory' => "<your_registry_storage_path>"
+      },
+      'maintenance' => {
+        'readonly' => {
+          'enabled' => false
+        }
+      }
+    }
    ```
 
 1. Save and reconfigure GitLab:
@@ -1285,10 +1294,18 @@ itself on the system so that the `gitlab-ctl` command can bring the registry ser
 Also, there's no way to save progress or results during the mark phase of the process. Only once
 blobs start being deleted is anything permanent done.
 
-### Continuous zero-downtime garbage collection
+### Continuous Zero Downtime Garbage Collection
+
+DETAILS:
+**Status:** Beta
 
 You can run garbage collection in the background without the need to schedule it or require read-only mode,
 if you migrate to the [metadata database](container_registry_metadata_database.md).
+
+NOTE:
+If you would like to try this [Beta feature](../../policy/experiment-beta-support.md#beta),
+you should review the [known limitations](container_registry_metadata_database.md#known-limitations). If you have any feedback,
+you can let us know in the [feedback issue](https://gitlab.com/gitlab-org/gitlab/-/issues/423459).
 
 ## Configure GitLab and Registry to run on separate nodes (Linux package installations)
 
@@ -1596,7 +1613,7 @@ project or branch name. Special characters can include:
 To get around this, you can [change the group path](../../user/group/manage.md#change-a-groups-path),
 [change the project path](../../user/project/working_with_projects.md#rename-a-repository) or change the
 branch name. Another option is to create a [push rule](../../user/project/repository/push_rules.md) to prevent
-this error for the entire instance.
+this at the instance level.
 
 ### Image push errors
 
@@ -1659,25 +1676,90 @@ curl "localhost:5001/debug/health"
 curl "localhost:5001/debug/vars"
 ```
 
-#### Enable Registry Prometheus Metrics
+### Access old schema v1 Docker images
 
-If the debug server is enabled, you can also enable Prometheus metrics. This endpoint exposes highly detailed telemetry
-related to almost all registry operations.
+Support for the Docker registry API V1,
+including [schema V1 image manifests](https://distribution.github.io/distribution/spec/deprecated-schema-v1/),
+was:
 
-```ruby
-registry['debug'] = {
-  'prometheus' => {
-    'enabled' => true,
-    'path' => '/metrics'
-  }
-}
-```
+- [Deprecated in GitLab 13.7](https://about.gitlab.com/releases/2020/12/22/gitlab-13-7-released/#deprecate-pulls-that-use-v1-of-the-docker-registry-api)
+- [Removed in GitLab 13.9](https://about.gitlab.com/releases/2021/02/22/gitlab-13-9-released/#deprecate-pulls-that-use-v1-of-the-docker-registry-api)
 
-Use curl to request debug output from Prometheus:
+It's no longer possible to push or pull v1 images from the GitLab container registry.
 
-```shell
-curl "localhost:5001/debug/metrics"
-```
+If you had v1 images in the GitLab container registry, but you did not upgrade them (following the
+[steps Docker recommends](https://distribution.github.io/distribution/spec/deprecated-schema-v1/))
+ahead of the GitLab 13.9 upgrade, these images are no longer accessible. If you try to pull them,
+this error appears:
+
+- `Error response from daemon: manifest invalid: Schema 1 manifest not supported`
+
+For self-managed GitLab instances, you can regain access to these images by temporarily downgrading
+the GitLab container registry to a version lower than `v3.0.0-gitlab`. Follow these steps to regain
+access to these images:
+
+1. Downgrade the container registry to [`v2.13.1-gitlab`](https://gitlab.com/gitlab-org/container-registry/-/releases/v2.13.1-gitlab).
+1. Upgrade any v1 images.
+1. Revert the container registry downgrade.
+
+There's no need to put the registry in read-only mode during the image upgrade process. Ensure that
+you are not relying on any new feature introduced since `v3.0.0-gitlab`. Such features are
+unavailable during the upgrade process. See the [complete registry changelog](https://gitlab.com/gitlab-org/container-registry/-/blob/master/CHANGELOG.md)
+for more information.
+
+The following sections provide additional details about each installation method.
+
+::Tabs
+
+:::TabTitle Helm chart (Kubernetes)
+
+For Helm chart installations:
+
+1. Override the [`image.tag`](https://docs.gitlab.com/charts/charts/registry/#configuration)
+   configuration parameter with `v2.13.1-gitlab`.
+1. Restart.
+1. Performing the [images upgrade](#images-upgrade)) steps.
+1. Revert the `image.tag` parameter to the previous value.
+
+No other registry configuration changes are required.
+
+:::TabTitle Linux package (Omnibus)
+
+For Linux package installations:
+
+1. Temporarily replace the registry binary that ships with GitLab 13.9+ for one prior to
+   `v3.0.0-gitlab`. To do so, pull a previous version of the Docker image for the GitLab Container
+   Registry, such as `v2.13.1-gitlab`. You can then grab the `registry` binary from within this
+   image, located at `/bin/registry`:
+
+   ```shell
+   id=$(docker create registry.gitlab.com/gitlab-org/build/cng/gitlab-container-registry:v2.13.1-gitlab)
+   docker cp $id:/bin/registry registry-2.13.1-gitlab
+   docker rm $id
+   ```
+
+1. Replace the binary embedded in the Linux package installation located at
+   `/opt/gitlab/embedded/bin/registry`, with `registry-2.13.1-gitlab`. Make sure to start by backing
+   up the original binary embedded in the Linux package, and restore it after performing the
+   [image upgrade](#images-upgrade) steps. You should [stop](https://docs.gitlab.com/omnibus/maintenance/#starting-and-stopping)
+   the registry service before replacing its binary and start it right after. No registry
+   configuration changes are required.
+
+:::TabTitle Self-compiled (source)
+
+Locate your `registry` binary and temporarily replace it with the one
+obtained from `v3.0.0-gitlab`, as explained for Linux package installations.
+Make sure to start by backing up the original registry binary, and restore it after performing the
+[images upgrade](#images-upgrade) steps.
+
+::EndTabs
+
+#### Images upgrade
+
+Follow the [steps that Docker recommends to upgrade v1 images](https://distribution.github.io/distribution/spec/deprecated-schema-v1/).
+The most straightforward option is to pull those images and push them once again to the registry,
+using a Docker client version above v1.12. Docker converts images automatically before pushing them
+to the registry. Once done, all your v1 images should now be available as v2 images.
 
 ### Tags with an empty name
 
@@ -1713,7 +1795,7 @@ by running the below script from the [Rails console](../../administration/operat
 This can help diagnose problems with the policy.
 
 ```ruby
-repo = ContainerRepository.find(<repository_id>)
+repo = ContainerRepository.find(<project_id>)
 policy = repo.project.container_expiration_policy
 
 tags = repo.tags
@@ -1897,22 +1979,3 @@ if prj.has_container_registry_tags?
   prj.container_repositories.each { |p| p.destroy }
 end
 ```
-
-### Registry service listens on IPv6 address instead of IPv4
-
-You might see the following error if the `localhost` hostname resolves to a IPv6
-loopback address (`::1`) on your GitLab server and GitLab expects the registry service
-to be available on the IPv4 loopback address (`127.0.0.1`):
-
-```plaintext
-request: "GET /v2/ HTTP/1.1", upstream: "http://[::1]:5000/v2/", host: "registry.example.com:5005"
-[error] 1201#0: *13442797 connect() failed (111: Connection refused) while connecting to upstream, client: x.x.x.x, server: registry.example.com, request: "GET /v2/<path> HTTP/1.1", upstream: "http://[::1]:5000/v2/<path>", host: "registry.example.com:5005"
-```
-
-To fix the error, change `registry['registry_http_addr']` to an IPv4 address in `/etc/gitlab/gitlab.rb`. For example:
-
-```ruby
-registry['registry_http_addr'] = "127.0.0.1:5000"
-```
-
-See [issue 5449](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/5449) for more details.

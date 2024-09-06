@@ -14,43 +14,34 @@ RSpec.describe Members::InvitedPrivateGroupAccessibilityAssigner, feature_catego
 
       subject(:assigner) { described_class.new(members, source: source, current_user: current_user) }
 
-      shared_examples 'sets is_source_accessible_to_current_user to true for all members' do
-        specify do
+      context 'for direct members' do
+        let_it_be(:source) { create(source_type) } # rubocop:disable Rails/SaveBang -- Using factory, not ActiveRecord
+        let_it_be(:direct_member) { source.add_developer(member_user) }
+        let(:members) { [direct_member] }
+
+        it 'sets is_source_accessible_to_current_user to true for all members' do
+          assigner.execute
+
+          expect(members.map(&:is_source_accessible_to_current_user)).to all(be_truthy)
+        end
+      end
+
+      context 'for inherited members' do
+        let_it_be(:parent) { create(:group) }
+        let_it_be(:source) { create(source_type, parent_key => parent) }
+        let_it_be(:inherited_member) { parent.add_developer(member_user) }
+        let(:members) { [inherited_member] }
+
+        it 'sets is_source_accessible_to_current_user to true for all members' do
           assigner.execute
 
           expect(members.first.is_source_accessible_to_current_user).to eq(true)
         end
       end
 
-      context 'for direct members' do
-        where(source_visibility: %i[public private])
-
-        with_them do
-          let(:source) { create(source_type, source_visibility) }
-          let(:direct_member) { source.add_developer(member_user) }
-          let(:members) { [direct_member] }
-
-          it_behaves_like 'sets is_source_accessible_to_current_user to true for all members'
-        end
-      end
-
-      context 'for inherited members' do
-        where(source_visibility: %i[public private])
-
-        with_them do
-          let(:parent) { create(:group, source_visibility) }
-          let(:source) { create(source_type, source_visibility, parent_key => parent) }
-          let(:inherited_member) { parent.add_developer(member_user) }
-          let(:members) { [inherited_member] }
-
-          it_behaves_like 'sets is_source_accessible_to_current_user to true for all members'
-        end
-      end
-
       context 'for shared source members' do
         let(:shared_source) { create(source_type, shared_source_visibility) }
-        let(:invited_group_parent) { create(:group, invited_group_visibility) }
-        let(:invited_group) { create(:group, invited_group_visibility, parent: invited_group_parent) }
+        let(:invited_group) { create(:group, invited_group_visibility) }
         let(:source) { shared_source }
         let(:invited_member) { invited_group.add_developer(member_user) }
         let(:members) { [invited_member] }
@@ -64,12 +55,15 @@ RSpec.describe Members::InvitedPrivateGroupAccessibilityAssigner, feature_catego
               expect(members.first.is_source_accessible_to_current_user).to eq(can_see_invited_members_source?)
             end
 
-            context 'with multiple members belonging to the same source' do
+            context 'with multiple members belonging to different sources' do
               it 'avoid N+1 queries' do
                 assigner # Initialize objects in let blocks
                 recorder = ActiveRecord::QueryRecorder.new { assigner.execute }
 
-                members = create_list(:group_member, 3, group: invited_group)
+                members = create_list(:group, 3, invited_group_visibility).map do |invited_group|
+                  create_link(shared_source, invited_group)
+                  create(:group_member, group: invited_group)
+                end
 
                 assigner = described_class.new(members, source: shared_source, current_user: current_user)
                 expect { assigner.execute }.not_to exceed_query_limit(recorder)
@@ -113,25 +107,11 @@ RSpec.describe Members::InvitedPrivateGroupAccessibilityAssigner, feature_catego
           include_examples 'sets correct is_source_accessible_to_current_user for invited members'
         end
 
-        context 'when current user is a direct member of shared group and of invited group through sharing' do
+        context 'when current user a direct member of shared group and of invited group through sharing' do
           before do
-            group = create(:group, :private, developers: current_user)
+            group = create(:group, :private)
+            group.add_developer(current_user)
             create(:group_group_link, shared_group: invited_group, shared_with_group: group)
-          end
-
-          where(:shared_source_visibility, :invited_group_visibility, :can_see_invited_members_source?) do
-            :public  | :public  | true
-            :public  | :private | true
-            :private | :public  | true
-            :private | :private | true
-          end
-
-          include_examples 'sets correct is_source_accessible_to_current_user for invited members'
-        end
-
-        context 'when current user is a direct member of shared group and of invited group through inheritance' do
-          before do
-            invited_group_parent.add_developer(current_user)
           end
 
           where(:shared_source_visibility, :invited_group_visibility, :can_see_invited_members_source?) do

@@ -8,7 +8,7 @@ RSpec.describe 'GFM autocomplete', :js, feature_category: :team_planning do
   let_it_be(:user) { create(:user, name: '💃speciąl someone💃', username: 'someone.special') }
   let_it_be(:user2) { create(:user, name: 'Marge Simpson', username: 'msimpson') }
 
-  let_it_be(:group) { create(:group, maintainers: [user, user2]) }
+  let_it_be(:group) { create(:group) }
   let_it_be(:project) { create(:project, group: group) }
   let_it_be(:issue) { create(:issue, project: project, assignees: [user]) }
   let_it_be(:label) { create(:label, project: project, title: 'special+') }
@@ -17,9 +17,15 @@ RSpec.describe 'GFM autocomplete', :js, feature_category: :team_planning do
   let_it_be(:snippet) { create(:project_snippet, project: project, title: 'code snippet') }
 
   let_it_be(:user_xss_title) { 'eve <img src=x onerror=alert(2)&lt;img src=x onerror=alert(1)&gt;' }
-  let_it_be(:user_xss) { create(:user, name: user_xss_title, username: 'xss.user', maintainer_of: group) }
+  let_it_be(:user_xss) { create(:user, name: user_xss_title, username: 'xss.user') }
   let_it_be(:label_xss_title) { 'alert label &lt;img src=x onerror="alert(\'Hello xss\');" a' }
   let_it_be(:label_xss) { create(:label, project: project, title: label_xss_title) }
+
+  before_all do
+    group.add_maintainer(user)
+    group.add_maintainer(user_xss)
+    group.add_maintainer(user2)
+  end
 
   describe 'new issue page' do
     before do
@@ -179,7 +185,7 @@ RSpec.describe 'GFM autocomplete', :js, feature_category: :team_planning do
       end
     end
 
-    context 'autocomplete user mentions' do
+    shared_examples 'autocomplete user mentions' do
       it 'does not wrap with quotes for assignee values' do
         fill_in 'Comment', with: "@#{user.username}"
 
@@ -246,6 +252,8 @@ RSpec.describe 'GFM autocomplete', :js, feature_category: :team_planning do
       end
     end
 
+    it_behaves_like 'autocomplete user mentions'
+
     context 'autocomplete wiki pages' do
       let_it_be(:wiki_page1) { create(:wiki_page, project: project, title: 'Home') }
       let_it_be(:wiki_page2) { create(:wiki_page, project: project, title: 'How to use GitLab') }
@@ -262,6 +270,14 @@ RSpec.describe 'GFM autocomplete', :js, feature_category: :team_planning do
 
         expect(find_field('Comment').value).to have_text('[[How to use GitLab|How-to-use-GitLab]]')
       end
+    end
+
+    context 'when mention_autocomplete_backend_filtering is disabled' do
+      before do
+        stub_feature_flags(mention_autocomplete_backend_filtering: false)
+      end
+
+      it_behaves_like 'autocomplete user mentions'
     end
 
     context 'if a selected value has special characters' do
@@ -353,7 +369,7 @@ RSpec.describe 'GFM autocomplete', :js, feature_category: :team_planning do
       end
     end
 
-    context 'issues', quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/471790' do
+    context 'issues' do
       let(:object) { issue }
       let(:expected_body) { object.to_reference }
 

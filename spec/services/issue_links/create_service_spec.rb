@@ -22,8 +22,9 @@ RSpec.describe IssueLinks::CreateService, feature_category: :team_planning do
     let(:params) { {} }
 
     before do
-      project.add_guest(user)
-      another_project.add_guest(user)
+      project.add_developer(user)
+      restricted_issuable.project.add_guest(user)
+      another_project.add_developer(user)
     end
 
     it_behaves_like 'issuable link creation'

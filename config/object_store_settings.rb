@@ -2,8 +2,7 @@
 
 # Set default values for object_store settings
 class ObjectStoreSettings
-  SUPPORTED_TYPES = %w[artifacts external_diffs lfs uploads packages dependency_proxy terraform_state pages
-    ci_secure_files].freeze
+  SUPPORTED_TYPES = %w[artifacts external_diffs lfs uploads packages dependency_proxy terraform_state pages].freeze
   ALLOWED_OBJECT_STORE_OVERRIDES = %w[bucket enabled proxy_download cdn].freeze
 
   # To ensure the one Workhorse credential matches the Rails config, we
@@ -11,16 +10,11 @@ class ObjectStoreSettings
   # endpoints. Technically dependency_proxy and terraform_state fall
   # into this category, but they will likely be handled by Workhorse in
   # the future.
-  #
-  # ci_secure_files doesn't support Workhorse yet
-  # (https://gitlab.com/gitlab-org/gitlab/-/issues/461124), and it was
-  # introduced first as a storage-specific setting. To avoid breaking
-  # consolidated settings for other object types, exclude it here.
-  WORKHORSE_ACCELERATED_TYPES = SUPPORTED_TYPES - %w[pages ci_secure_files]
+  WORKHORSE_ACCELERATED_TYPES = SUPPORTED_TYPES - %w[pages]
 
-  # pages and ci_secure_files may be enabled but use legacy disk storage
+  # pages may be enabled but use legacy disk storage
   # we don't need to raise an error in that case
-  ALLOWED_INCOMPLETE_TYPES = %w[pages ci_secure_files].freeze
+  ALLOWED_INCOMPLETE_TYPES = %w[pages].freeze
 
   attr_accessor :settings
 
@@ -200,26 +194,16 @@ class ObjectStoreSettings
   # 2. The legacy settings are not defined
   def use_consolidated_settings?
     return false unless settings.dig('object_store', 'enabled')
-
-    connection = settings.dig('object_store', 'connection')
-
-    return false unless connection.present?
+    return false unless settings.dig('object_store', 'connection').present?
 
     WORKHORSE_ACCELERATED_TYPES.each do |store|
       section = settings.try(store)
 
       next unless section
-      next unless section.dig('object_store', 'enabled')
 
-      section_connection = section.dig('object_store', 'connection')
-
-      # We can use consolidated settings if the main object store
-      # connection matches the section-specific connection. This makes
-      # it possible to automatically use consolidated settings as new
-      # settings (such as ci_secure_files) get promoted to a supported
-      # type. Omnibus defaults to an empty hash for the
-      # section-specific connection.
-      return false if section_connection.present? && section_connection.to_h != connection.to_h
+      return false if section.dig('object_store', 'enabled')
+      # Omnibus defaults to an empty hash
+      return false if section.dig('object_store', 'connection').present?
     end
 
     true

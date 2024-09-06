@@ -8,20 +8,21 @@ info: Any user with at least the Maintainer role can merge updates to this conte
 
 ## Deep Dive
 
-<!-- vale gitlab_base.Spelling = NO -->
+<!-- vale gitlab.Spelling = NO -->
 
 In December 2018, Tiago Botelho hosted a Deep Dive (GitLab team members only: `https://gitlab.com/gitlab-org/create-stage/-/issues/1`)
 on the GitLab [Pull Repository Mirroring functionality](../user/project/repository/mirror/pull.md)
 to share his domain specific knowledge with anyone who may work in this part of the
 codebase in the future. You can find the <i class="fa fa-youtube-play youtube" aria-hidden="true"></i> [recording on YouTube](https://www.youtube.com/watch?v=sSZq0fpdY-Y),
 and the slides in [PDF](https://gitlab.com/gitlab-org/create-stage/uploads/8693404888a941fd851f8a8ecdec9675/Gitlab_Create_-_Pull_Mirroring_Deep_Dive.pdf).
-Specific details may have changed since then, but it should still serve as a good introduction.
+Everything covered in this deep dive was accurate as of GitLab 11.6, and while specific
+details may have changed since then, it should still serve as a good introduction.
 
-<!-- vale gitlab_base.Spelling = YES -->
+<!-- vale gitlab.Spelling = YES -->
 
 ## Explanation of mirroring process
 
-GitLab performs these steps when an
+GitLab version 14 performs these steps when an
 [API call](../api/projects.md#start-the-pull-mirroring-process-for-a-project)
 triggers a pull mirror. Scheduled mirror updates are similar, but do not start with the API call:
 

@@ -4,8 +4,6 @@
 module InternalEventsCli
   module Helpers
     module Files
-      MAX_FILENAME_LENGTH = 100
-
       def prompt_to_save_file(filepath, content)
         cli.say <<~TEXT.chomp
           #{format_info('Preparing to generate definition with these attributes:')}
@@ -33,7 +31,7 @@ module InternalEventsCli
         format_prefix "    ", <<~TEXT
           #{format_selection(verb)} #{filepath}
 
-          #{errors.map { |e| [format_warning('!! WARNING: '), JSONSchemer::Errors.pretty(e)].join }.join("\n")}
+          #{errors.map { |e| [format_warning('!! WARNING: '), JSONSchemer::Errors.pretty(e)].join }.join}
 
             These errors will cause one of the following specs to fail and should be resolved before merging your changes:
               - spec/lib/gitlab/tracking/event_definition_validate_all_spec.rb
@@ -44,10 +42,7 @@ module InternalEventsCli
       def write_to_file(filepath, content, verb)
         File.write(filepath, content)
 
-        file_saved_message(verb, filepath).tap do |message|
-          cli.say message
-          cli.global.reload_definitions
-        end
+        file_saved_message(verb, filepath).tap { |message| cli.say message }
       end
     end
   end

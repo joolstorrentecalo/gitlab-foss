@@ -7,9 +7,12 @@ module SystemCheck
 
       def multi_check
         active_users = User.active.count
-        color_status = :red
-        color_status = :green if active_users > 0
-        $stdout.puts Rainbow(active_users.to_s).color(color_status)
+
+        if active_users > 0
+          $stdout.puts active_users.to_s.color(:green)
+        else
+          $stdout.puts active_users.to_s.color(:red)
+        end
       end
     end
   end

@@ -30,11 +30,9 @@ RSpec.describe QA::Specs::Helpers::Quarantine do
           before(:all) do
             executed_hooks << :before_all
           end
-
           before do
             executed_hooks << :before
           end
-
           example {}
         end
 
@@ -51,11 +49,9 @@ RSpec.describe QA::Specs::Helpers::Quarantine do
           before(:all) do
             executed_hooks << :before_all
           end
-
           before do
             executed_hooks << :before
           end
-
           example {}
         end
 
@@ -78,11 +74,9 @@ RSpec.describe QA::Specs::Helpers::Quarantine do
           before(:all) do
             executed_hooks << :before_all
           end
-
           before do
             executed_hooks << :before
           end
-
           example {}
         end
 
@@ -97,11 +91,9 @@ RSpec.describe QA::Specs::Helpers::Quarantine do
           before(:all) do
             executed_hooks << :before_all
           end
-
           before do
             executed_hooks << :before
           end
-
           example {}
         end
 

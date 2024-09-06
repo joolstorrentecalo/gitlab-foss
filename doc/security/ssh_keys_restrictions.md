@@ -23,11 +23,11 @@ limit the allowed SSH key algorithms.
 GitLab allows you to restrict the allowed SSH key technology as well as specify
 the minimum key length for each technology:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin Area**.
 1. Select **Settings > General** .
 1. Expand **Visibility and access controls**:
 
-   ![SSH keys restriction **Admin** area settings](img/ssh_keys_restrictions_settings.png)
+   ![SSH keys restriction Admin Area settings](img/ssh_keys_restrictions_settings.png)
 
 If a restriction is imposed on any key type, users cannot upload new SSH keys that don't meet the
 requirement. Any existing keys that don't meet it are disabled but not removed and users cannot
@@ -44,12 +44,12 @@ Hovering over this icon tells you why the key is restricted.
 By default, the GitLab.com and self-managed settings for the
 [supported key types](../user/ssh.md#supported-ssh-key-types) are:
 
-- DSA SSH keys are forbidden.
 - RSA SSH keys are allowed.
+- DSA SSH keys are forbidden ([since GitLab 11.0](https://about.gitlab.com/releases/2018/06/22/gitlab-11-0-released/#support-for-dsa-ssh-keys)).
 - ECDSA SSH keys are allowed.
 - ED25519 SSH keys are allowed.
-- ECDSA_SK SSH keys are allowed.
-- ED25519_SK SSH keys are allowed.
+- ECDSA_SK SSH keys are allowed (GitLab 14.8 and later).
+- ED25519_SK SSH keys are allowed (GitLab 14.8 and later).
 
 ## Block banned or compromised keys
 

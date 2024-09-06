@@ -70,6 +70,7 @@ export default {
   data() {
     return {
       collapsed: true,
+      collapsedCount: 0,
       state: {},
     };
   },
@@ -117,6 +118,7 @@ export default {
       return [...this.checks]
         .filter((s) => {
           if (this.isStatusInactive(s) || !this.hasMessage(s)) return false;
+          if (this.collapsedCount > 0 && this.collapsed) return false;
 
           return this.collapsed ? this.isStatusFailed(s) : true;
         })
@@ -129,12 +131,15 @@ export default {
       return this.checks.filter((c) => this.isStatusWarning(c));
     },
     showChecks() {
+      if (this.collapsed && this.collapsedCount > 0) return false;
+
       return this.failedChecks.length > 0 || !this.collapsed;
     },
   },
   methods: {
     toggleCollapsed() {
       this.collapsed = !this.collapsed;
+      this.collapsedCount += 1;
     },
     checkComponent(check) {
       return COMPONENTS[check.identifier.toLowerCase()] || COMPONENTS.default;
@@ -156,7 +161,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="gl-rounded-0!">
     <state-container
       :is-loading="isLoading"
       :status="statusIcon"
@@ -179,7 +184,7 @@ export default {
     </state-container>
     <div
       v-if="showChecks"
-      class="gl-relative gl-border-t-1 gl-border-gray-100 gl-bg-gray-10 gl-border-t-solid"
+      class="gl-border-t-1 gl-border-t-solid gl-border-gray-100 gl-relative gl-bg-gray-10"
       data-testid="merge-checks-full"
     >
       <div>
@@ -189,7 +194,7 @@ export default {
           :key="index"
           class="gl-pl-9 gl-pr-4"
           :class="{
-            'gl-border-b-1 gl-border-gray-100 gl-border-b-solid': index !== sortedChecks.length - 1,
+            'gl-border-b-solid gl-border-b-1 gl-border-gray-100': index !== sortedChecks.length - 1,
           }"
           :check="check"
           :mr="mr"

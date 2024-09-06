@@ -8,11 +8,11 @@ module Preloaders
     end
 
     def execute
-      return if projects.is_a?(ActiveRecord::Relation) && projects.null_relation?
+      return if projects.is_a?(ActiveRecord::NullRelation)
 
       ActiveRecord::Associations::Preloader.new(
         records: projects,
-        associations: { creator: [], organization: [], group: :route, namespace: :owner }
+        associations: { creator: [], group: :route, namespace: :owner }
       ).call
       ::Preloaders::UserMaxAccessLevelInProjectsPreloader.new(projects, current_user).execute
     end

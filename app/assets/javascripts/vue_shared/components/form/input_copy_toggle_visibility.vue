@@ -96,14 +96,10 @@ export default {
     },
     formInputClass() {
       return [
-        '!gl-font-monospace !gl-cursor-default',
+        'gl-font-monospace! gl-cursor-default!',
         { 'input-copy-show-disc': !this.computedValueIsVisible },
         this.formInputGroupProps.class,
       ];
-    },
-    invalidFeedbackIsVisible() {
-      const hasFeedback = Boolean(this.$attrs['invalid-feedback']);
-      return this.formInputGroupProps?.state === false && hasFeedback;
     },
   },
   mounted() {
@@ -159,10 +155,7 @@ export default {
 };
 </script>
 <template>
-  <gl-form-group
-    v-bind="$attrs"
-    :class="{ 'input-copy-toggle-visibility-is-invalid': invalidFeedbackIsVisible }"
-  >
+  <gl-form-group v-bind="$attrs">
     <gl-form-input-group>
       <gl-form-input
         ref="input"
@@ -206,12 +199,5 @@ export default {
 <style>
 .input-copy-show-disc {
   -webkit-text-security: disc;
-}
-/*
-  Bootstrap's invalid feedback displays based on a sibling selector which is incompatible with form-input-group.
-  So we must manually force the feedback to display when the input is invalid. See: https://github.com/bootstrap-vue/bootstrap-vue/issues/1251
- */
-.input-copy-toggle-visibility-is-invalid .invalid-feedback {
-  display: block;
 }
 </style>

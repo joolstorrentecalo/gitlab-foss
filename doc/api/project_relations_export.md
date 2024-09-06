@@ -1,5 +1,5 @@
 ---
-stage: Foundations
+stage: Manage
 group: Import and Integrate
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
@@ -10,6 +10,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/70330) in GitLab 14.4 behind the `bulk_import` [feature flag](../administration/feature_flags.md), disabled by default.
 > - New application setting `bulk_import_enabled` introduced in GitLab 15.8. `bulk_import` feature flag removed.
 
 The project relations export API partially exports a project's structure as separate files for each

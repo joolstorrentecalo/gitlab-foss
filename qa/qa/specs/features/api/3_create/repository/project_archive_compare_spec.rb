@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'airborne'
 require 'digest'
 
 module QA
@@ -27,7 +28,7 @@ module QA
         end
       end
 
-      it 'download archives of each user project then check they are different', :blocking,
+      it 'download archives of each user project then check they are different', :reliable,
         testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/347748' do
         archive_checksums = {}
 
@@ -58,7 +59,7 @@ module QA
       def download_project_archive_via_api(api_client, project, type = 'tar.gz')
         get_project_archive_zip = Runtime::API::Request.new(api_client, project.api_get_archive_path(type))
         project_archive_download = Support::API.get(get_project_archive_zip.url, raw_response: true)
-        expect(project_archive_download.code).to eq(Support::API::HTTP_STATUS_OK)
+        expect(project_archive_download.code).to eq(200)
 
         project_archive_download.file
       end

@@ -31,10 +31,7 @@ export function initMrPage() {
 
     if (changesCountBadge.textContent === '-') {
       changesCountBadge.textContent = fileCount;
-
-      const DIFF_TAB_INDEX = 3;
-      const diffTab = tabData.tabs[tabData.tabs.length - 1];
-      diffTab[DIFF_TAB_INDEX] = fileCount;
+      Vue.set(tabData.tabs[tabData.tabs.length - 1], 3, fileCount);
     }
   });
 }
@@ -54,7 +51,6 @@ requestIdleCallback(() => {
       isFluidLayout,
       sourceProjectPath,
       blocksMerge,
-      imported,
     } = JSON.parse(data);
 
     tabData.tabs = tabs;
@@ -62,7 +58,6 @@ requestIdleCallback(() => {
     // eslint-disable-next-line no-new
     new Vue({
       el,
-      name: 'MergeRequestStickyHeaderRoot',
       store,
       apolloProvider,
       provide: {
@@ -78,7 +73,6 @@ requestIdleCallback(() => {
         return h(StickyHeader, {
           props: {
             tabs: tabData.tabs,
-            isImported: parseBoolean(imported),
           },
         });
       },

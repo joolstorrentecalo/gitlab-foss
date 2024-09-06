@@ -19,7 +19,6 @@ RSpec.describe Gitlab::Auth::Ldap::Person do
       }
     )
   end
-
   let(:username_attribute) { %w[uid sAMAccountName userid] }
 
   describe '.normalize_dn' do

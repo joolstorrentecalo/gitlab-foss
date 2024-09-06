@@ -10,10 +10,9 @@ DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-WARNING:
-This feature was [deprecated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/159841) in GitLab 17.3
-and is planned for removal in 18.0. Use [pipeline execution policy type](../application_security/policies/pipeline_execution_policies.md) instead.
-This change is a breaking change. For more information, see the [migration guide](#migrate-to-pipeline-execution-policies).
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/3156) in GitLab 13.9, disabled behind `ff_evaluate_group_level_compliance_pipeline` [feature flag](../../administration/feature_flags.md).
+> - [Enabled by default](https://gitlab.com/gitlab-org/gitlab/-/issues/300324) in GitLab 13.11.
+> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/331231) in GitLab 14.2.
 
 Group owners can configure a compliance pipeline in a project separate to other projects. By default, the compliance
 pipeline configuration (for example, `.compliance-gitlab-ci.yml`) is run instead of the pipeline configuration (for example, `.gitlab-ci.yml`) of labeled
@@ -47,27 +46,14 @@ framework has a compliance pipeline configured or not.
 
 Therefore, communicate with project users about compliance pipeline configuration to reduce uncertainty and confusion.
 
-### Multiple compliance frameworks
-
-You can [apply to a single project](compliance_frameworks.md#apply-a-compliance-framework-to-a-project) multiple compliance frameworks with compliance pipelines configured.
-In this case, only the first compliance framework applied to a project has its compliance pipeline included in the project pipeline.
-
-To ensure that the correct compliance pipeline is included in a project:
-
-1. Remove all compliance frameworks from the project.
-1. Apply the compliance framework with the correct compliance pipeline to the project.
-1. Apply additional compliance frameworks to the project.
-
 ## Configure a compliance pipeline
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/383209) in GitLab 15.11, compliance frameworks moved to compliance center.
 
 To configure a compliance pipeline:
 
 1. On the left sidebar, select **Search or go to** and find your group.
-1. Select **Secure** > **Compliance Center**.
-1. Select **Frameworks** section.
-1. Select **New framework** section, add information of compliance framework including path to the compliance framework configuration. Use the
+1. Select **Settings** > **General**.
+1. Expand the **Compliance frameworks** section.
+1. In **Compliance pipeline configuration (optional)**, add the path to the compliance framework configuration. Use the
    `path/file.y[a]ml@group-name/project-name` format. For example:
 
    - `.compliance-ci.yml@gitlab-org/gitlab`.
@@ -80,7 +66,7 @@ framework label, the compliance pipeline configuration is run instead of the lab
 The user running the pipeline in the labeled project must at least have the Reporter role on the compliance project.
 
 When used to enforce scan execution, this feature has some overlap with
-[scan execution policies](../application_security/policies/scan_execution_policies.md). We have not
+[scan execution policies](../application_security/policies/scan-execution-policies.md). We have not
 [unified the user experience for these two features](https://gitlab.com/groups/gitlab-org/-/epics/7312). For details on
 the similarities and differences between these features, see [Enforce scan execution](../application_security/index.md#enforce-scan-execution).
 
@@ -164,11 +150,7 @@ You can leave it out if your compliance pipeline only ever runs in labeled proje
 #### Compliance pipelines and custom pipeline configuration hosted externally
 
 The example above assumes that all projects host their pipeline configuration in the same project.
-If any projects use [configuration hosted externally](../../ci/pipelines/settings.md#specify-a-custom-cicd-configuration-file),
-the example configuration does not work. See [issue 393960](https://gitlab.com/gitlab-org/gitlab/-/issues/393960)
-for more details.
-
-With projects that use externally hosted configuration, you can try the this workaround:
+If any projects use [configuration hosted externally to the project](../../ci/pipelines/settings.md#specify-a-custom-cicd-configuration-file):
 
 - The `include` section in the example compliance pipeline configuration must be adjusted.
   For example, using [`include:rules`](../../ci/yaml/includes.md#use-rules-with-include):
@@ -251,7 +233,8 @@ include:  # Execute individual project's configuration
 In this example, a configuration file is only included if it exists for the given `ref`
 in the project in `exists:project: $CI_PROJECT_PATH'`.
 
-If `exists:project` is not specified in the compliance pipeline configuration, it searches for files in the project
+You cannot use [`rules:exists` with `include`](../../ci/yaml/includes.md#include-with-rulesexists)
+to solve this problem because `include:rules:exists` searches for files in the project
 in which the `include` is defined. In compliance pipelines, the `include` from the example above
 is defined in the project hosting the compliance pipeline configuration file, not the project
 running the pipeline.
@@ -287,6 +270,24 @@ cannot change them:
 - Explicitly set any relevant GitLab pre-defined [job keywords](../../ci/yaml/index.md#job-keywords).
   This ensures that your job uses the settings you intend and that they are not overridden by
   project-level pipelines.
+
+## Avoid parent and child pipelines in GitLab 14.7 and earlier
+
+NOTE:
+This advice does not apply to GitLab 14.8 and later because [a fix](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/78878) added
+compatibility for combining compliance pipelines, and parent and child pipelines.
+
+Compliance pipelines start on the run of _every_ pipeline in a labeled project. This means that if a pipeline in the labeled project
+triggers a child pipeline, the compliance pipeline runs first. This can trigger the parent pipeline, instead of the child pipeline.
+
+Therefore, in projects with compliance frameworks, you should replace
+[parent-child pipelines](../../ci/pipelines/downstream_pipelines.md#parent-child-pipelines) with the following:
+
+- Direct [`include`](../../ci/yaml/index.md#include) statements that provide the parent pipeline with child pipeline configuration.
+- Child pipelines placed in another project that are run using the [trigger API](../../ci/triggers/index.md) rather than the parent-child
+  pipeline feature.
+
+This alternative ensures the compliance pipeline does not re-start the parent pipeline.
 
 ## Troubleshooting
 
@@ -358,22 +359,3 @@ include:
     file: '$CI_CONFIG_PATH'
     ref: '$CI_COMMIT_SHA'
 ```
-
-## Migrate to pipeline execution policies
-
-To consolidate and simplify scan and pipeline enforcement, we have introduced pipeline execution policies. We have deprecated compliance pipelines in GitLab 17.3 and will remove compliance pipelines in GitLab 18.0.
-Customers should migrate from compliance pipelines to the new [pipeline execution policy type](../application_security/policies/pipeline_execution_policies.md) as soon as possible.
-
-Pipeline execution policies extend a project's `.gitlab-ci.yml` file with the configuration provided in separate YAML file (for example, `pipeline-execution.yml`) linked in
-the pipeline execution policy.
-
-### Troubleshooting
-
-#### Job names must be unique
-
-To configure a compliance pipeline, the [example configuration](#example-configuration) recommends including the individual project configuration with `include.project`.
-
-This can lead to an error when running the projects pipeline: `Pipeline execution policy error: Job names must be unique`. This error occurs because the pipeline execution
-policy includes the project's `.gitlab-ci.yml` and tries to insert the jobs when the jobs have already been declared in the pipeline.
-
-To resolve this error, remove `include.project` from the separate YAML file linked in the pipeline execution policy.

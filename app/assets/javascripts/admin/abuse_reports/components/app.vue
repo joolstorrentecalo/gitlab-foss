@@ -39,11 +39,12 @@ export default {
     <filtered-search-bar />
 
     <gl-empty-state v-if="abuseReports.length == 0" :title="s__('AbuseReports|No reports found')" />
-    <ul v-else class="gl-pl-0">
-      <li v-for="(report, index) in abuseReports" :key="index" class="gl-list-none">
-        <abuse-report-row :report="report" />
-      </li>
-    </ul>
+    <abuse-report-row
+      v-for="(report, index) in abuseReports"
+      v-else
+      :key="index"
+      :report="report"
+    />
 
     <gl-pagination
       v-if="showPagination"
@@ -51,6 +52,10 @@ export default {
       :per-page="pagination.perPage"
       :total-items="pagination.totalItems"
       :link-gen="paginationLinkGenerator"
+      :prev-text="__('Prev')"
+      :next-text="__('Next')"
+      :label-next-page="__('Go to next page')"
+      :label-prev-page="__('Go to previous page')"
       align="center"
       class="gl-mt-3"
     />

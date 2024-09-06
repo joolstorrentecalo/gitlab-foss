@@ -10,10 +10,12 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - Moved from Starter to Premium in GitLab 13.9.
+
 In large teams with shared ownership, it can be difficult
 to track who is working on an issue, who's already done, or who hasn't started yet.
 
-You can add multiple [assignees](managing_issues.md#assignees) to an issue, making it easier to
+You can add multiple [assignees](managing_issues.md#assignee) to an issue, making it easier to
 track, and making clearer who is accountable for it.
 
 Multiple assignees for issues makes collaboration smoother,

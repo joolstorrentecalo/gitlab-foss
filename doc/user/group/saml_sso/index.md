@@ -10,6 +10,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com
 
+> - Introduced in GitLab 11.0.
+
 Users can sign in to GitLab through their SAML identity provider.
 
 [SCIM](scim_setup.md) synchronizes users with the group on GitLab.com.
@@ -43,7 +45,7 @@ To set up SSO with Azure as your identity provider:
 1. On the left sidebar, select **Search or go to** and find your group.
 1. Select **Settings > SAML SSO**.
 1. Note the information on this page.
-1. Go to Azure, [create a non-gallery application](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/overview-application-gallery#create-your-own-application), and [configure SSO for an application](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/add-application-portal-setup-sso). The following GitLab settings correspond to the Azure fields.
+1. Go to Azure and [follow the instructions for configuring SSO for an application](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/add-application-portal-setup-sso). The following GitLab settings correspond to the Azure fields.
 
    | GitLab setting                           | Azure field                                    |
    | -----------------------------------------| ---------------------------------------------- |
@@ -153,7 +155,7 @@ For more information, see an [example configuration page](example_saml_config.md
 
 ### OneLogin
 
-OneLogin supports its own [GitLab (SaaS) application](https://onelogin.service-now.com/support?id=kb_article&sys_id=08e6b9d9879a6990c44486e5cebb3556&kb_category=50984e84db738300d5505eea4b961913).
+OneLogin supports its own [GitLab (SaaS) application](https://onelogin.service-now.com/support?id=kb_article&sys_id=92e4160adbf16cd0ca1c400e0b961923&kb_category=50984e84db738300d5505eea4b961913).
 
 To set up OneLogin as your identity provider:
 
@@ -247,22 +249,15 @@ After you set up your identity provider to work with GitLab, you must configure 
 1. Complete the fields:
    - In the **Identity provider single sign-on URL** field, enter the SSO URL from your identity provider.
    - In the **Certificate fingerprint** field, enter the fingerprint for the SAML token signing certificate.
-1. For groups on GitLab.com: in the **Default membership role** field, select:
-   1. The role to assign to new users.
-   1. The role to assign to
-      [users who are not members of a mapped SAML group](../saml_sso/group_sync.md#automatic-member-removal)
-      when SAML Group Links is configured for the group.
-1. For groups on self-managed instances: in the **Default membership role** field,
-   select the role to assign to new users.
+1. In the **Default membership role** field, select the role to assign to new users.
    The default role is **Guest**. That role becomes the starting role of all users
    added to the group:
+   - In [GitLab 13.3](https://gitlab.com/gitlab-org/gitlab/-/issues/214523) and
+     later, group Owners can set a default membership role other than **Guest**.
    - In GitLab 16.7 and later, group Owners can set a [custom role](../../custom_roles.md)
-   - In GitLab 16.6 and earlier, group Owners can set a default membership role other than **Guest**.
      as the default membership role.
 1. Select the **Enable SAML authentication for this group** checkbox.
 1. Optional. Select:
-   - In GitLab 17.4 and later, **Disable password authentication for enterprise users**.
-     For more information, see the [Disable password authentication for enterprise users documentation](#disable-password-authentication-for-enterprise-users).
    - **Enforce SSO-only authentication for web activity for this group**.
    - **Enforce SSO-only authentication for Git activity for this group**.
      For more information, see the [SSO enforcement documentation](#sso-enforcement).
@@ -274,6 +269,8 @@ The certificate [fingerprint algorithm](../../../integration/saml.md#configure-s
 If you are having issues configuring GitLab, see the [troubleshooting documentation](#troubleshooting).
 
 ## User access and management
+
+> - SAML user provisioning [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/268142) in GitLab 13.7.
 
 After group SSO is configured and enabled, users can access the GitLab.com group through the identity provider's dashboard.
 If [SCIM](scim_setup.md) is configured, see [user access](scim_setup.md#user-access) on the SCIM page.
@@ -363,6 +360,7 @@ providers, see [set up your identity provider](#set-up-your-identity-provider).
 
 ### Configure enterprise user settings from SAML response
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/263661) in GitLab 13.7.
 > - [Changed](https://gitlab.com/gitlab-org/gitlab/-/issues/412898) to configure only enterprise user settings in GitLab 16.7.
 
 GitLab allows setting certain user attributes based on values from the SAML response.
@@ -418,31 +416,6 @@ automatically confirms user accounts. Users still receive an
 - The user is provisioned with SAML or SCIM.
 - The user has an email address that belongs to the verified domain.
 
-### Disable password authentication for enterprise users
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/373718) in GitLab 17.4.
-
-Prerequisites:
-
-- You must have the Owner role for the group that the enterprise user belongs to.
-- The group SSO must be enabled.
-
-You can disable password authentication for the group's [enterprise users](../../enterprise_user/index.md).
-This stops enterprise users from using their username and password to authenticate.
-Instead, these users can do either of the following:
-
-- Use the group's SAML IdP to authenticate with GitLab web UI.
-- Use a personal access token to authenticate with GitLab API and Git using HTTP Basic Authentication, [unless personal access token use is disabled](../../../user/profile/personal_access_tokens.md#disable-personal-access-tokens-for-enterprise-users).
-
-This applies even if an enterprise user is also an administrator of the group.
-
-To disable password authentication for enterprise users:
-
-1. On the left sidebar, select **Search or go to** and find your group.
-1. Select **Settings > SAML SSO**.
-1. Under **Configuration**, select **Disable password authentication for enterprise users**.
-1. Select **Save changes**.
-
 ### Block user access
 
 To rescind a user's access to the group when only SAML SSO is configured, either:
@@ -480,6 +453,12 @@ For example, to unlink the `MyOrg` account:
 
 ## SSO enforcement
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/5291) in GitLab 11.8.
+> - [Improved](https://gitlab.com/gitlab-org/gitlab/-/issues/9255) in GitLab 11.11 with ongoing enforcement in the GitLab UI.
+> - [Improved](https://gitlab.com/gitlab-org/gitlab/-/issues/292811) in GitLab 13.8, with an updated timeout experience.
+> - [Improved](https://gitlab.com/gitlab-org/gitlab/-/issues/211962) in GitLab 13.8 with allowing group owners to not go through SSO.
+> - [Improved](https://gitlab.com/gitlab-org/gitlab/-/issues/9152) in GitLab 13.11 with enforcing open SSO session to use Git if this setting is switched on.
+> - [Improved](https://gitlab.com/gitlab-org/gitlab/-/issues/339888) in GitLab 14.7 to not enforce SSO checks for Git activity originating from CI/CD jobs.
 > - [Improved](https://gitlab.com/gitlab-org/gitlab/-/issues/215155) in GitLab 15.5 [with a flag](../../../administration/feature_flags.md) named `transparent_sso_enforcement` to include transparent enforcement even when SSO enforcement is not enabled. Disabled on GitLab.com.
 > - [Improved](https://gitlab.com/gitlab-org/gitlab/-/issues/375788) in GitLab 15.8 by enabling transparent SSO by default on GitLab.com.
 > - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/389562) in GitLab 15.10. Feature flag `transparent_sso_enforcement` removed.
@@ -488,7 +467,7 @@ On GitLab.com, SSO is enforced:
 
 - When SAML SSO is enabled.
 - For users with an existing SAML identity when accessing groups and projects in the organization's
-  group hierarchy. By using their GitLab.com credentials, users can view other groups and projects outside their organization, as well as their user settings, without signing in through SAML SSO.
+  group hierarchy. Users can view other groups and projects as well as their user settings without SSO sign in by using their GitLab.com credentials.
 
 A user has a SAML identity if one or both of the following are true:
 
@@ -508,7 +487,7 @@ SSO is enforced as follows:
 | Public                   | Off                 | Enforced             | Not enforced            | Not enforced                |
 | Public                   | On                  | Enforced             | Enforced                | Not enforced                |
 
-An [issue exists](https://gitlab.com/gitlab-org/gitlab/-/issues/297389) to add a similar SSO requirement for API activity. Until this requirement is added, you can use features that rely on APIs without an active SSO session.
+An [issue exists](https://gitlab.com/gitlab-org/gitlab/-/issues/297389) to add a similar SSO requirement for API activity.
 
 ### SSO-only for web activity enforcement
 
@@ -518,7 +497,7 @@ When the **Enforce SSO-only authentication for web activity for this group** opt
   to access group resources, regardless of whether they have an existing SAML
   identity.
 - SSO is enforced when users access groups and projects in the organization's
-  group hierarchy. Users can view other groups and projects outside their organization without signing in through SAML SSO.
+  group hierarchy. Users can view other groups and projects without SSO sign in.
 - Users cannot be added as new members manually.
 - Users with the Owner role can use the standard sign in process to make
   necessary changes to top-level group settings.
@@ -552,7 +531,7 @@ SSO enforcement for web activity has the following effects when enabled:
   Git activity is under SSO enforcement. For example, creating or deleting a
   branch, commit, or tag. For Git activity over SSH and HTTPS, users must
   have at least one active session signed-in through SSO before they can push to or
-  pull from a GitLab repository. The active session can be on a different device.
+  pull from a GitLab repository.
 
 When SSO for web activity is enforced, non-SSO group members do not lose access
 immediately. If the user:
@@ -561,17 +540,6 @@ immediately. If the user:
   hours until the identity provider session times out.
 - Is signed out, they cannot access the group after being removed from the
   identity provider.
-
-## Migrate to a new identity provider
-
-To migrate to a new identity provider, use the [SAML API](../../../api/saml.md) to update all of your group member's identities.
-
-For example:
-
-1. Set a maintenance window to ensure that no users are active at that time.
-1. Use the SAML API [to update each user's identity](../../../api/saml.md#update-extern_uid-field-for-a-saml-identity).
-1. Configure the new identity provider.
-1. Test that sign in works.
 
 ## Related topics
 

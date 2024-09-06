@@ -26,21 +26,18 @@ This function takes pagination parameters `page` and `per_page` to restrict the 
 GET /users
 ```
 
-| Attribute          | Type    | Required | Description                                                 |
-| ------------------ | ------- | -------- | ------------------------------------------------------------|
-| `username`         | string  | no       | Get a single user with a specific username.                 |
-| `search`           | string  | no       | Search for a username.                                      |
-| `active`           | boolean | no       | Filters only active users. Default is `false`.              |
-| `external`         | boolean | no       | Filters only external users. Default is `false`.            |
-| `blocked`          | boolean | no       | Filters only blocked users. Default is `false`.             |
-| `humans`           | boolean | no       | Filters only regular users that are not bot or internal users. Default is `false`. |
-| `created_after`    | DateTime| no       | Returns users created after specified time.                 |
-| `created_before`   | DateTime| no       | Returns users created before specified time.                |
-| `exclude_active`   | boolean | no       | Filters only non active users. Default is `false`.          |
-| `exclude_external` | boolean | no       | Filters only non external users. Default is `false`.        |
-| `exclude_humans`   | boolean | no       | Filters only bot or internal users. Default is `false`.     |
-| `exclude_internal` | boolean | no       | Filters only non internal users. Default is `false`.        |
-| `without_project_bots`| boolean | no    | Filters user without project bots. Default is `false`.      |
+| Attribute          | Type    | Required | Description                                                                                                            |
+| ------------------ | ------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `username`         | string  | no       | Get a single user with a specific username.                                                                            |
+| `search`           | string  | no       | Search for a username.                                                                                                |
+| `active`           | boolean | no       | Filters only active users. Default is `false`.                                                                         |
+| `external`         | boolean | no       | Filters only external users. Default is `false`.                                                                       |
+| `exclude_external` | boolean | no       | Filters only non external users. Default is `false`.                                                                   |
+| `blocked`          | boolean | no       | Filters only blocked users. Default is `false`.                                                                        |
+| `created_after`    | DateTime| no       | Returns users created after specified time.                                                                            |
+| `created_before`   | DateTime| no       | Returns users created before specified time.                                                                           |
+| `exclude_internal` | boolean | no       | Filters only non internal users. Default is `false`.                                                                   |
+| `without_project_bots`| boolean | no       | Filters user without project bots. Default is `false`.                                                             |
 
 ```json
 [
@@ -107,8 +104,9 @@ GET /users?external=true
 
 GitLab supports bot users such as the [alert bot](../operations/incident_management/integrations.md)
 or the [support bot](../user/project/service_desk/configure.md#support-bot-user).
-You can exclude the following types of [internal users](../administration/internal_users.md#internal-users)
-from the users' list with the `exclude_internal=true` parameter:
+You can exclude the following types of [internal users](../development/internal_users.md#internal-users)
+from the users' list with the `exclude_internal=true` parameter
+([introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/241144) in GitLab 13.4):
 
 - Alert bot
 - Support bot
@@ -140,6 +138,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed, GitLab Dedicated
 
+> - The `namespace_id` field in the response was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/82045) in GitLab 14.10.
 > - The `created_by` field in the response was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/93092) in GitLab 15.6.
 > - The `scim_identities` field in the response [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/324247) in GitLab 16.1.
 > - The `auditors` field in the response [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/418023) in GitLab 16.2.
@@ -551,9 +550,11 @@ over `password`. In addition, `reset_password` and
 `force_random_password` can be used together.
 
 NOTE:
-`private_profile` defaults to the value of the
-[Set profiles of new users to private by default](../administration/settings/account_and_limit_settings.md#set-profiles-of-new-users-to-private-by-default) setting.
-`bio` defaults to `""` instead of `null`.
+From [GitLab 12.1](https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/29888/), `private_profile` defaults to `false`.
+From [GitLab 15.8](https://gitlab.com/gitlab-org/gitlab/-/issues/231301), `private_profile` defaults to the value determined by [this](../administration/settings/account_and_limit_settings.md#set-profiles-of-new-users-to-private-by-default) setting.
+
+NOTE:
+From [GitLab 13.2](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/35604), `bio` defaults to `""` instead of `null`.
 
 ```plaintext
 POST /users
@@ -684,11 +685,7 @@ DETAILS:
 **Offering:** Self-managed, GitLab Dedicated
 
 Deletes a user. Available only for administrators.
-This returns a:
-
-- `204 No Content` status code if the operation was successful.
-- `404` if the resource was not found.
-- `409` if the user cannot be soft deleted.
+This returns a `204 No Content` status code if the operation was successfully, `404` if the resource was not found or `409` if the user cannot be soft deleted.
 
 ```plaintext
 DELETE /users/:id
@@ -1065,15 +1062,15 @@ Example response:
 
 ## User counts
 
-Get the counts (same as in the upper-left menu) of the authenticated user.
+Get the counts (same as in the upper-right menu) of the authenticated user.
 
 | Attribute                         | Type   | Description                                                                  |
 | --------------------------------- | ------ | ---------------------------------------------------------------------------- |
-| `assigned_issues`                 | number | Number of issues that are open and assigned to the current user.             |
-| `assigned_merge_requests`         | number | Number of merge requests that are active and assigned to the current user.   |
-| `merge_requests`                  | number | [Deprecated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/50026) in GitLab 13.8. Equivalent to and replaced by `assigned_merge_requests`.        |
-| `review_requested_merge_requests` | number | Number of merge requests that the current user has been requested to review. |
-| `todos`                           | number | Number of pending to-do items for current user.                              |
+| `assigned_issues`                 | number | Number of issues that are open and assigned to the current user. [Added](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/66909) in GitLab 14.2. |
+| `assigned_merge_requests`         | number | Number of merge requests that are active and assigned to the current user. [Added](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/50026) in GitLab 13.8. |
+| `merge_requests`                  | number | [Deprecated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/50026) in GitLab 13.8. Equivalent to and replaced by `assigned_merge_requests`. |
+| `review_requested_merge_requests` | number | Number of merge requests that the current user has been requested to review. [Added](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/50026) in GitLab 13.8. |
+| `todos`                           | number | Number of pending to-do items for current user. [Added](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/66909) in GitLab 14.2. |
 
 ```plaintext
 GET /user_counts
@@ -1131,58 +1128,6 @@ Example response:
 }
 ```
 
-## List service account users
-
-DETAILS:
-**Tier:** Premium, Ultimate
-**Offering:** Self-managed, GitLab Dedicated
-
-> - Ability to list all service account users [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/416729) in GitLab 17.1.
-
-Prerequisites:
-
-- You must be an administrator of the self-managed instance.
-
-Lists all service account users.
-
-This function takes pagination parameters `page` and `per_page` to restrict the list of users.
-
-This API endpoint requires the user to be an instance admin.
-
-Example request:
-
-```plaintext
-GET /service_accounts
-```
-
-```shell
-curl --request GET --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/service_accounts"
-```
-
-Supported attributes:
-
-| Attribute    | Type     | Required  | Description                                                 |
-|:-------------|:---------|:----------|:------------------------------------------------------------|
-| `order_by`   | string   | no        | Orders list of users by `username` or `id` Default is `id`. |
-| `sort`       | string   | no        | Specifies sorting by `asc` or `desc`. Default is `desc`.    |
-
-Example response:
-
-```json
-[
-  {
-    "id": 114,
-    "username": "service_account_33",
-    "name": "Service account user"
-  },
-  {
-    "id": 137,
-    "username": "service_account_34",
-    "name": "john doe"
-  }
-]
-```
-
 ## List user projects
 
 See the [list of user projects](projects.md#list-user-projects).
@@ -1217,6 +1162,485 @@ Example response:
   "issues_count": 8,
   "merge_requests_count": 5
 }
+```
+
+## List SSH keys
+
+Get a list of the authenticated user's SSH keys.
+
+This function takes pagination parameters `page` and `per_page` to restrict the list of keys.
+
+```plaintext
+GET /user/keys
+```
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Public key",
+    "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
+    "created_at": "2014-08-01T14:47:39.080Z"
+  },
+  {
+    "id": 3,
+    "title": "Another Public key",
+    "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
+    "created_at": "2014-08-01T14:47:39.080Z"
+  }
+]
+```
+
+Parameters:
+
+- **none**
+
+## List SSH keys for user
+
+Get a list of a specified user's SSH keys.
+
+```plaintext
+GET /users/:id_or_username/keys
+```
+
+| Attribute        | Type   | Required | Description                                             |
+| ---------------- | ------ | -------- | ------------------------------------------------------- |
+| `id_or_username` | string | yes      | ID or username of the user to get the SSH keys for. |
+
+## Single SSH key
+
+Get a single key.
+
+```plaintext
+GET /user/keys/:key_id
+```
+
+Parameters:
+
+| Attribute | Type   | Required | Description          |
+|-----------|--------|----------|----------------------|
+| `key_id`  | string | yes      | ID of an SSH key |
+
+```json
+{
+  "id": 1,
+  "title": "Public key",
+  "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
+  "created_at": "2014-08-01T14:47:39.080Z"
+}
+```
+
+## Single SSH key for given user
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/81790) in GitLab 14.9.
+
+Get a single key for a given user.
+
+```plaintext
+GET /users/:id/keys/:key_id
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description          |
+|-----------|---------|----------|----------------------|
+| `id`      | integer | yes      | ID of specified user |
+| `key_id`  | integer | yes      | SSH key ID           |
+
+```json
+{
+  "id": 1,
+  "title": "Public key",
+  "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
+  "created_at": "2014-08-01T14:47:39.080Z"
+}
+```
+
+## Add SSH key
+
+> - The `usage_type` parameter was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/105551) in GitLab 15.7.
+
+Creates a new key owned by the authenticated user.
+
+```plaintext
+POST /user/keys
+```
+
+Parameters:
+
+| Attribute    | Type   | Required | Description                                                                    |
+|--------------|--------|----------|--------------------------------------------------------------------------------|
+| `title`      | string | yes      | New SSH key's title                                                            |
+| `key`        | string | yes      | New SSH key                                                                    |
+| `expires_at` | string | no       | Expiration date of the SSH key in ISO 8601 format (`YYYY-MM-DDTHH:MM:SSZ`) |
+| `usage_type` | string | no       | Scope of usage for the SSH key: `auth`, `signing` or `auth_and_signing`. Default: `auth_and_signing` |
+
+```json
+{
+  "title": "ABC",
+  "key": "ssh-dss AAAAB3NzaC1kc3MAAACBAMLrhYgI3atfrSD6KDas1b/3n6R/HP+bLaHHX6oh+L1vg31mdUqK0Ac/NjZoQunavoyzqdPYhFz9zzOezCrZKjuJDS3NRK9rspvjgM0xYR4d47oNZbdZbwkI4cTv/gcMlquRy0OvpfIvJtjtaJWMwTLtM5VhRusRuUlpH99UUVeXAAAAFQCVyX+92hBEjInEKL0v13c/egDCTQAAAIEAvFdWGq0ccOPbw4f/F8LpZqvWDydAcpXHV3thwb7WkFfppvm4SZte0zds1FJ+Hr8Xzzc5zMHe6J4Nlay/rP4ewmIW7iFKNBEYb/yWa+ceLrs+TfR672TaAgO6o7iSRofEq5YLdwgrwkMmIawa21FrZ2D9SPao/IwvENzk/xcHu7YAAACAQFXQH6HQnxOrw4dqf0NqeKy1tfIPxYYUZhPJfo9O0AmBW2S36pD2l14kS89fvz6Y1g8gN/FwFnRncMzlLY/hX70FSc/3hKBSbH6C6j8hwlgFKfizav21eS358JJz93leOakJZnGb8XlWvz1UJbwCsnR2VEY8Dz90uIk1l/UqHkA= loic@call",
+  "expires_at": "2016-01-21T00:00:00.000Z",
+  "usage_type": "auth"
+}
+```
+
+Returns a created key with status `201 Created` on success. If an
+error occurs a `400 Bad Request` is returned with a message explaining the error:
+
+```json
+{
+  "message": {
+    "fingerprint": [
+      "has already been taken"
+    ],
+    "key": [
+      "has already been taken"
+    ]
+  }
+}
+```
+
+## Add SSH key for user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+> - The `usage_type` parameter was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/105551) in GitLab 15.7.
+
+Create new key owned by specified user. Available only for administrator.
+
+```plaintext
+POST /users/:id/keys
+```
+
+Parameters:
+
+| Attribute    | Type    | Required | Description                                                                    |
+|--------------|---------|----------|--------------------------------------------------------------------------------|
+| `id`         | integer | yes      | ID of specified user                                                           |
+| `title`      | string  | yes      | New SSH key's title                                                            |
+| `key`        | string  | yes      | New SSH key                                                                    |
+| `expires_at` | string  | no       | Expiration date of the SSH key in ISO 8601 format (`YYYY-MM-DDTHH:MM:SSZ`) |
+| `usage_type` | string  | no       | Scope of usage for the SSH key: `auth`, `signing` or `auth_and_signing`. Default: `auth_and_signing` |
+
+```json
+{
+  "title": "ABC",
+  "key": "ssh-dss AAAAB3NzaC1kc3MAAACBAMLrhYgI3atfrSD6KDas1b/3n6R/HP+bLaHHX6oh+L1vg31mdUqK0Ac/NjZoQunavoyzqdPYhFz9zzOezCrZKjuJDS3NRK9rspvjgM0xYR4d47oNZbdZbwkI4cTv/gcMlquRy0OvpfIvJtjtaJWMwTLtM5VhRusRuUlpH99UUVeXAAAAFQCVyX+92hBEjInEKL0v13c/egDCTQAAAIEAvFdWGq0ccOPbw4f/F8LpZqvWDydAcpXHV3thwb7WkFfppvm4SZte0zds1FJ+Hr8Xzzc5zMHe6J4Nlay/rP4ewmIW7iFKNBEYb/yWa+ceLrs+TfR672TaAgO6o7iSRofEq5YLdwgrwkMmIawa21FrZ2D9SPao/IwvENzk/xcHu7YAAACAQFXQH6HQnxOrw4dqf0NqeKy1tfIPxYYUZhPJfo9O0AmBW2S36pD2l14kS89fvz6Y1g8gN/FwFnRncMzlLY/hX70FSc/3hKBSbH6C6j8hwlgFKfizav21eS358JJz93leOakJZnGb8XlWvz1UJbwCsnR2VEY8Dz90uIk1l/UqHkA= loic@call",
+  "expires_at": "2016-01-21T00:00:00.000Z",
+  "usage_type": "auth"
+}
+```
+
+Returns a created key with status `201 Created` on success. If an
+error occurs a `400 Bad Request` is returned with a message explaining the error:
+
+```json
+{
+  "message": {
+    "fingerprint": [
+      "has already been taken"
+    ],
+    "key": [
+      "has already been taken"
+    ]
+  }
+}
+```
+
+NOTE:
+This also adds an audit event.
+
+## Delete SSH key for current user
+
+Deletes key owned by the authenticated user.
+
+This returns a `204 No Content` status code if the operation was successfully
+or `404` if the resource was not found.
+
+```plaintext
+DELETE /user/keys/:key_id
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description |
+|-----------|---------|----------|-------------|
+| `key_id`  | integer | yes      | SSH key ID  |
+
+## Delete SSH key for given user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+Deletes key owned by a specified user. Available only for administrator.
+
+```plaintext
+DELETE /users/:id/keys/:key_id
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description          |
+|-----------|---------|----------|----------------------|
+| `id`      | integer | yes      | ID of specified user |
+| `key_id`  | integer | yes      | SSH key ID           |
+
+## List all GPG keys
+
+Get a list of the authenticated user's GPG keys.
+
+```plaintext
+GET /user/gpg_keys
+```
+
+```shell
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/user/gpg_keys"
+```
+
+Example response:
+
+```json
+[
+    {
+        "id": 1,
+        "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\r\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\r\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\r\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\r\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\r\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\r\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\r\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\r\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\r\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\r\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\r\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\r\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\r\n=XQoy\r\n-----END PGP PUBLIC KEY BLOCK-----",
+        "created_at": "2017-09-05T09:17:46.264Z"
+    }
+]
+```
+
+## Get a specific GPG key
+
+Get a specific GPG key of authenticated user.
+
+```plaintext
+GET /user/gpg_keys/:key_id
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| `key_id`  | integer | yes      | ID of the GPG key |
+
+```shell
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/user/gpg_keys/1"
+```
+
+Example response:
+
+```json
+  {
+      "id": 1,
+      "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\r\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\r\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\r\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\r\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\r\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\r\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\r\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\r\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\r\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\r\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\r\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\r\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\r\n=XQoy\r\n-----END PGP PUBLIC KEY BLOCK-----",
+      "created_at": "2017-09-05T09:17:46.264Z"
+  }
+```
+
+## Add a GPG key
+
+Creates a new GPG key owned by the authenticated user.
+
+```plaintext
+POST /user/gpg_keys
+```
+
+Parameters:
+
+| Attribute | Type   | Required | Description     |
+|-----------|--------|----------|-----------------|
+| `key`     | string | yes      | New GPG key |
+
+```shell
+
+export KEY="$( gpg --armor --export <your_gpg_key_id>)"
+
+curl --data-urlencode "key=-----BEGIN PGP PUBLIC KEY BLOCK-----
+> xsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj
+> t1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O
+> CfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa
+> qKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO
+> VaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57
+> vilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp
+> IDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV
+> CAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/
+> oO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5
+> crfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4
+> bjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn
+> iE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp
+> o4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=
+> =XQoy
+> -----END PGP PUBLIC KEY BLOCK-----" \
+     --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/user/gpg_keys"
+```
+
+Example response:
+
+```json
+[
+    {
+        "id": 1,
+        "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\n=XQoy\n-----END PGP PUBLIC KEY BLOCK-----",
+        "created_at": "2017-09-05T09:17:46.264Z"
+    }
+]
+```
+
+## Delete a GPG key
+
+Delete a GPG key owned by the authenticated user.
+
+```plaintext
+DELETE /user/gpg_keys/:key_id
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| `key_id`  | integer | yes      | ID of the GPG key |
+
+```shell
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/user/gpg_keys/1"
+```
+
+Returns `204 No Content` on success or `404 Not Found` if the key cannot be found.
+
+## List all GPG keys for given user
+
+Get a list of a specified user's GPG keys. This endpoint can be accessed without authentication.
+
+```plaintext
+GET /users/:id/gpg_keys
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description        |
+| --------- | ------- | -------- | ------------------ |
+| `id`      | integer | yes      | ID of the user |
+
+```shell
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/users/2/gpg_keys"
+```
+
+Example response:
+
+```json
+[
+    {
+        "id": 1,
+        "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\r\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\r\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\r\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\r\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\r\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\r\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\r\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\r\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\r\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\r\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\r\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\r\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\r\n=XQoy\r\n-----END PGP PUBLIC KEY BLOCK-----",
+        "created_at": "2017-09-05T09:17:46.264Z"
+    }
+]
+```
+
+## Get a specific GPG key for a given user
+
+Get a specific GPG key for a given user. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/43693)
+in GitLab 13.5, this endpoint can be accessed without administrator authentication.
+
+```plaintext
+GET /users/:id/gpg_keys/:key_id
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| `id`      | integer | yes      | ID of the user    |
+| `key_id`  | integer | yes      | ID of the GPG key |
+
+```shell
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/users/2/gpg_keys/1"
+```
+
+Example response:
+
+```json
+  {
+      "id": 1,
+      "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\r\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\r\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\r\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\r\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\r\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\r\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\r\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\r\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\r\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\r\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\r\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\r\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\r\n=XQoy\r\n-----END PGP PUBLIC KEY BLOCK-----",
+      "created_at": "2017-09-05T09:17:46.264Z"
+  }
+```
+
+## Add a GPG key for a given user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+Create new GPG key owned by the specified user. Available only for administrator.
+
+```plaintext
+POST /users/:id/gpg_keys
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| `id`      | integer | yes      | ID of the user    |
+| `key_id`  | integer | yes      | ID of the GPG key |
+
+```shell
+curl --data-urlencode "key=-----BEGIN PGP PUBLIC KEY BLOCK-----
+> xsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj
+> t1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O
+> CfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa
+> qKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO
+> VaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57
+> vilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp
+> IDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV
+> CAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/
+> oO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5
+> crfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4
+> bjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn
+> iE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp
+> o4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=
+> =XQoy
+> -----END PGP PUBLIC KEY BLOCK-----" \
+     --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/users/2/gpg_keys"
+```
+
+Example response:
+
+```json
+[
+    {
+        "id": 1,
+        "key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\nxsBNBFVjnlIBCACibzXOLCiZiL2oyzYUaTOCkYnSUhymg3pdbfKtd4mpBa58xKBj\nt1pTHVpw3Sk03wmzhM/Ndlt1AV2YhLv++83WKr+gAHFYFiCV/tnY8bx3HqvVoy8O\nCfxWhw4QZK7+oYzVmJj8ZJm3ZjOC4pzuegNWlNLCUdZDx9OKlHVXLCX1iUbjdYWa\nqKV6tdV8hZolkbyjedQgrpvoWyeSHHpwHF7yk4gNJWMMI5rpcssL7i6mMXb/sDzO\nVaAtU5wiVducsOa01InRFf7QSTxoAm6Xy0PGv/k48M6xCALa9nY+BzlOv47jUT57\nvilf4Szy9dKD0v9S0mQ+IHB+gNukWrnwtXx5ABEBAAHNFm5hbWUgKGNvbW1lbnQp\nIDxlbUBpbD7CwHUEEwECACkFAlVjnlIJEINgJNgv009/AhsDAhkBBgsJCAcDAgYV\nCAIJCgsEFgIDAQAAxqMIAFBHuBA8P1v8DtHonIK8Lx2qU23t8Mh68HBIkSjk2H7/\noO2cDWCw50jZ9D91PXOOyMPvBWV2IE3tARzCvnNGtzEFRtpIEtZ0cuctxeIF1id5\ncrfzdMDsmZyRHAOoZ9VtuD6mzj0ybQWMACb7eIHjZDCee3Slh3TVrLy06YRdq2I4\nbjMOPePtK5xnIpHGpAXkB3IONxyITpSLKsA4hCeP7gVvm7r7TuQg1ygiUBlWbBYn\niE5ROzqZjG1s7dQNZK/riiU2umGqGuwAb2IPvNiyuGR3cIgRE4llXH/rLuUlspAp\no4nlxaz65VucmNbN1aMbDXLJVSqR1DuE00vEsL1AItI=\n=XQoy\n-----END PGP PUBLIC KEY BLOCK-----",
+        "created_at": "2017-09-05T09:17:46.264Z"
+    }
+]
+```
+
+## Delete a GPG key for a given user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+Delete a GPG key owned by a specified user. Available only for administrator.
+
+```plaintext
+DELETE /users/:id/gpg_keys/:key_id
+```
+
+Parameters:
+
+| Attribute | Type    | Required | Description           |
+| --------- | ------- | -------- | --------------------- |
+| `id`      | integer | yes      | ID of the user    |
+| `key_id`  | integer | yes      | ID of the GPG key |
+
+```shell
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/users/2/gpg_keys/1"
 ```
 
 ## List emails
@@ -1395,6 +1819,156 @@ Parameters:
 | `id`       | integer | yes      | ID of specified user |
 | `email_id` | integer | yes      | Email ID             |
 
+## Block user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+Blocks the specified user. Available only for administrator.
+
+```plaintext
+POST /users/:id/block
+```
+
+Parameters:
+
+| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| `id`       | integer | yes      | ID of specified user |
+
+Returns:
+
+- `201 OK` on success.
+- `404 User Not Found` if user cannot be found.
+- `403 Forbidden` when trying to block:
+  - A user that is blocked through LDAP.
+  - An internal user.
+
+## Unblock user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+Unblocks the specified user. Available only for administrator.
+
+```plaintext
+POST /users/:id/unblock
+```
+
+Parameters:
+
+| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| `id`       | integer | yes      | ID of specified user |
+
+Returns `201 OK` on success, `404 User Not Found` is user cannot be found or
+`403 Forbidden` when trying to unblock a user blocked by LDAP synchronization.
+
+## Deactivate user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/22257) in GitLab 12.4.
+
+Deactivates the specified user. Available only for administrator.
+
+```plaintext
+POST /users/:id/deactivate
+```
+
+Parameters:
+
+| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| `id`       | integer | yes      | ID of specified user |
+
+Returns:
+
+- `201 OK` on success.
+- `404 User Not Found` if user cannot be found.
+- `403 Forbidden` when trying to deactivate a user that is:
+  - Blocked by administrator or by LDAP synchronization.
+  - Not [dormant](../administration/moderate_users.md#automatically-deactivate-dormant-users).
+  - Internal.
+
+## Activate user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/22257) in GitLab 12.4.
+
+Activates the specified user. Available only for administrator.
+
+```plaintext
+POST /users/:id/activate
+```
+
+Parameters:
+
+| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| `id`       | integer | yes      | ID of specified user |
+
+Returns:
+
+- `201 OK` on success.
+- `404 User Not Found` if the user cannot be found.
+- `403 Forbidden` if the user cannot be activated because they are blocked by an administrator or by LDAP synchronization.
+
+## Ban user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/327354) in GitLab 14.3.
+
+Bans the specified user. Available only for administrator.
+
+```plaintext
+POST /users/:id/ban
+```
+
+Parameters:
+
+- `id` (required) - ID of specified user
+
+Returns:
+
+- `201 OK` on success.
+- `404 User Not Found` if user cannot be found.
+- `403 Forbidden` when trying to ban a user that is not active.
+
+## Unban user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/327354) in GitLab 14.3.
+
+Unbans the specified user. Available only for administrator.
+
+```plaintext
+POST /users/:id/unban
+```
+
+Parameters:
+
+- `id` (required) - ID of specified user
+
+Returns:
+
+- `201 OK` on success.
+- `404 User Not Found` if the user cannot be found.
+- `403 Forbidden` when trying to unban a user that is not banned.
+
 ## Get user contribution events
 
 See the [Events API documentation](events.md#get-user-contribution-events)
@@ -1458,6 +2032,94 @@ Example response:
       "last_used_at": "2017-03-24T09:44:21.722Z"
    }
 ]
+```
+
+## Approve user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/263107) in GitLab 13.7.
+
+Approves the specified user. Available only for administrators.
+
+```plaintext
+POST /users/:id/approve
+```
+
+Parameters:
+
+| Attribute  | Type    | Required | Description          |
+|------------|---------|----------|----------------------|
+| `id`       | integer | yes      | ID of specified user |
+
+```shell
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/users/42/approve"
+```
+
+Returns:
+
+- `201 Created` on success.
+- `404 User Not Found` if user cannot be found.
+- `403 Forbidden` if the user cannot be approved because they are blocked by an administrator or by LDAP synchronization.
+- `409 Conflict` if the user has been deactivated.
+
+Example Responses:
+
+```json
+{ "message": "Success" }
+```
+
+```json
+{ "message": "404 User Not Found" }
+```
+
+```json
+{ "message": "The user you are trying to approve is not pending approval" }
+```
+
+## Reject user
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/339925) in GitLab 14.3.
+
+Rejects specified user that is [pending approval](../administration/moderate_users.md#users-pending-approval). Available only for administrators.
+
+```plaintext
+POST /users/:id/reject
+```
+
+Parameters:
+
+- `id` (required) - ID of specified user
+
+```shell
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/users/42/reject"
+```
+
+Returns:
+
+- `200 OK` on success.
+- `403 Forbidden` if not authenticated as an administrator.
+- `404 User Not Found` if user cannot be found.
+- `409 Conflict` if user is not pending approval.
+
+Example Responses:
+
+```json
+{ "message": "Success" }
+```
+
+```json
+{ "message": "404 User Not Found" }
+```
+
+```json
+{ "message": "User does not have a pending request" }
 ```
 
 ## Get an impersonation token of a user
@@ -1583,6 +2245,8 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/17176) in GitLab 13.6.
+> - [Feature flag removed](https://gitlab.com/gitlab-org/gitlab/-/issues/267553) in GitLab 13.8.
 > - The `expires_at` attribute default was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/120213) in GitLab 16.0.
 
 Use this API to create a new personal access token. Token values are returned once so,
@@ -1597,7 +2261,7 @@ POST /users/:user_id/personal_access_tokens
 | ------------ | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `user_id`    | integer | yes      | ID of the user                                                                                                       |
 | `name`       | string  | yes      | Name of the personal access token                                                                                    |
-| `expires_at` | date    | no       | Expiration date of the access token in ISO format (`YYYY-MM-DD`). If no date is set, the expiration is set to the [maximum allowable lifetime of an access token](../user/profile/personal_access_tokens.md#access-token-expiration). |
+| `expires_at` | date    | no       | Expiration date of the access token in ISO format (`YYYY-MM-DD`). If no date is set, the expiration is set to the [maximum allowable lifetime of an access token](../user/profile/personal_access_tokens.md#when-personal-access-tokens-expire). |
 | `scopes`     | array   | yes      | Array of scopes of the personal access token. See [personal access token scopes](../user/profile/personal_access_tokens.md#personal-access-token-scopes) for possible values. |
 
 ```shell
@@ -1649,7 +2313,7 @@ POST /user/personal_access_tokens
 |--------------|--------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `name`       | string | yes      | Name of the personal access token                                                                                                                                                                                                                                                                     |
 | `scopes`     | array  | yes      | Array of scopes of the personal access token. Possible values are `k8s_proxy`                                                                                                                                                                                                                         |
-| `expires_at` | array  | no       | Expiration date of the access token in ISO format (`YYYY-MM-DD`). If no date is set, the expiration is at the end of the current day. The expiration is subject to the [maximum allowable lifetime of an access token](../user/profile/personal_access_tokens.md#access-token-expiration). |
+| `expires_at` | array  | no       | Expiration date of the access token in ISO format (`YYYY-MM-DD`). If no date is set, the expiration is at the end of the current day. The expiration is subject to the [maximum allowable lifetime of an access token](../user/profile/personal_access_tokens.md#when-personal-access-tokens-expire). |
 
 ```shell
 curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" --data "name=mytoken" --data "scopes[]=k8s_proxy" "https://gitlab.example.com/api/v4/user/personal_access_tokens"
@@ -1875,47 +2539,7 @@ Example response:
 ```json
 {
     "id": 9171,
-    "token": "<access-token>",
+    "token": "glrt-kyahzxLaj4Dc1jQf4xjX",
     "token_expires_at": null
-}
-```
-
-## Upload a current user avatar
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/148130) in GitLab 17.0.
-
-Upload an avatar to current user.
-
-```plaintext
-PUT /user/avatar
-```
-
-| Attribute | Type              | Required | Description                                                                                                 |
-|-----------|-------------------|----------|-------------------------------------------------------------------------------------------------------------|
-| `avatar`  | string            | Yes      | The file to be uploaded. The ideal image size is 192 x 192 pixels. The maximum file size allowed is 200 KiB. |
-
-To upload an avatar from your file system, use the `--form` argument. This causes
-cURL to post data using the header `Content-Type: multipart/form-data`. The
-`file=` parameter must point to an image file on your file system and be
-preceded by `@`. For example:
-
-Example request:
-
-```shell
-curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" \
-     --form "avatar=@avatar.png" \
-     --url "https://gitlab.example.com/api/v4/user/avatar"
-```
-
-Returned object:
-
-Returns `400 Bad Request` for file sizes greater than 200 KiB.
-
-If successful, returns [`200`](rest/index.md#status-codes) and the following
-response attributes:
-
-```json
-{
-  "avatar_url": "http://gdk.test:3000/uploads/-/system/user/avatar/76/avatar.png",
 }
 ```

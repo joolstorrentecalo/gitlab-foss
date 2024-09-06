@@ -23,7 +23,7 @@ describe('ContributionEventReopened', () => {
     event                                       | expectedMessage                                                     | iconName
     ${eventMilestoneReopened()}                 | ${'Reopened milestone %{targetLink} in %{resourceParentLink}.'}     | ${'status_open'}
     ${eventIssueReopened()}                     | ${'Reopened issue %{targetLink} in %{resourceParentLink}.'}         | ${'status_open'}
-    ${eventMergeRequestReopened()}              | ${'Reopened merge request %{targetLink} in %{resourceParentLink}.'} | ${'merge-request'}
+    ${eventMergeRequestReopened()}              | ${'Reopened merge request %{targetLink} in %{resourceParentLink}.'} | ${'merge-request-open'}
     ${{ target: { type: 'unsupported type' } }} | ${'Reopened resource.'}                                             | ${'status_open'}
   `('when event target type is $event.target.type', ({ event, expectedMessage, iconName }) => {
     it('renders `ContributionEventBase` with correct props', () => {
@@ -33,6 +33,7 @@ describe('ContributionEventReopened', () => {
         event,
         message: expectedMessage,
         iconName,
+        iconClass: 'gl-text-green-500',
       });
     });
   });
@@ -51,6 +52,7 @@ describe('ContributionEventReopened', () => {
           event,
           message: expectedMessage,
           iconName: 'status_open',
+          iconClass: 'gl-text-green-500',
         });
       });
     });

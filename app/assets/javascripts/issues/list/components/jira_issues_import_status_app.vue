@@ -103,6 +103,7 @@ export default {
       <gl-label
         :background-color="jiraImport.label.color"
         scoped
+        size="sm"
         :target="labelTarget"
         :title="jiraImport.label.title"
       />

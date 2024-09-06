@@ -41,6 +41,7 @@ export default {
   },
   [types.RECEIVE_PUBLISH_REVIEW_SUCCESS](state) {
     state.isPublishing = false;
+    state.drafts = [];
   },
   [types.RECEIVE_PUBLISH_REVIEW_ERROR](state) {
     state.isPublishing = false;

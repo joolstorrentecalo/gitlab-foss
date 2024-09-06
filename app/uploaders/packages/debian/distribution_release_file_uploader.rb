@@ -2,7 +2,6 @@
 class Packages::Debian::DistributionReleaseFileUploader < GitlabUploader
   extend Workhorse::UploadPath
   include ObjectStorage::Concern
-  include Packages::GcsSignedUrlMetadata
 
   storage_location :packages
 

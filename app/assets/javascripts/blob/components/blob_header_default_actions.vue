@@ -18,14 +18,7 @@ export default {
   directives: {
     GlTooltip: GlTooltipDirective,
   },
-  inject: {
-    blobHash: {
-      default: '',
-    },
-    canDownloadCode: {
-      default: true,
-    },
-  },
+  inject: ['blobHash'],
   props: {
     rawPath: {
       type: String,
@@ -130,12 +123,11 @@ export default {
       variant="default"
     />
     <gl-button
-      v-if="!isEmpty && canDownloadCode"
+      v-if="!isEmpty"
       v-gl-tooltip.hover
       :aria-label="$options.BTN_DOWNLOAD_TITLE"
       :title="$options.BTN_DOWNLOAD_TITLE"
       :href="downloadUrl"
-      data-testid="download-button"
       target="_blank"
       icon="download"
       category="primary"

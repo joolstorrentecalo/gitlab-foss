@@ -21,11 +21,12 @@ RSpec.describe Ci::PipelineSchedules::UpdateService, feature_category: :continuo
     project.add_owner(project_owner)
     project.add_reporter(reporter)
     repository.add_branch(project.creator, 'patch-x', 'master')
-    repository.add_branch(project.creator, 'ambiguous', 'master')
-    repository.add_branch(project.creator, '1/nested/branch-name', 'master')
-    repository.add_tag(project.creator, 'ambiguous', 'master')
 
     pipeline_schedule.reload
+  end
+
+  before do
+    stub_feature_flags(enforce_full_refs_for_pipeline_schedules: false)
   end
 
   describe "execute" do
@@ -45,11 +46,10 @@ RSpec.describe Ci::PipelineSchedules::UpdateService, feature_category: :continuo
     end
 
     context 'when user has permission' do
-      let(:ref) { 'patch-x' }
       let(:params) do
         {
           description: 'updated_desc',
-          ref: ref,
+          ref: 'patch-x',
           active: false,
           cron: '*/1 * * * *',
           variables_attributes: [
@@ -60,6 +60,35 @@ RSpec.describe Ci::PipelineSchedules::UpdateService, feature_category: :continuo
 
       subject(:service) { described_class.new(pipeline_schedule, user, params) }
 
+      context 'when enforce_full_refs_for_pipeline_schedules is enabled' do
+        before do
+          stub_feature_flags(enforce_full_refs_for_pipeline_schedules: true)
+        end
+
+        it 'updates database values with passed params' do
+          expect do
+            service.execute
+            pipeline_schedule.reload
+          end.to change { pipeline_schedule.description }
+                   .from('pipeline schedule').to('updated_desc')
+                   .and change { pipeline_schedule.ref }
+                          .from("#{Gitlab::Git::BRANCH_REF_PREFIX}master")
+                          .to("#{Gitlab::Git::BRANCH_REF_PREFIX}patch-x")
+                          .and change {
+                            pipeline_schedule.active
+                          }.from(true).to(false)
+                           .and change {
+                             pipeline_schedule.cron
+                           }.from('0 1 * * *').to('*/1 * * * *')
+                            .and change {
+                              pipeline_schedule.variables.last.key
+                            }.from('foo').to('bar')
+                             .and change {
+                               pipeline_schedule.variables.last.value
+                             }.from('foovalue').to('barvalue')
+        end
+      end
+
       it 'updates database values with passed params' do
         expect do
           service.execute
@@ -67,8 +96,7 @@ RSpec.describe Ci::PipelineSchedules::UpdateService, feature_category: :continuo
         end.to change { pipeline_schedule.description }
                  .from('pipeline schedule').to('updated_desc')
                  .and change { pipeline_schedule.ref }
-                        .from("#{Gitlab::Git::BRANCH_REF_PREFIX}master")
-                        .to("#{Gitlab::Git::BRANCH_REF_PREFIX}patch-x")
+                        .from("#{Gitlab::Git::BRANCH_REF_PREFIX}master").to("patch-x")
                         .and change {
                           pipeline_schedule.active
                         }.from(true).to(false)
@@ -81,35 +109,6 @@ RSpec.describe Ci::PipelineSchedules::UpdateService, feature_category: :continuo
                            .and change {
                              pipeline_schedule.variables.last.value
                            }.from('foovalue').to('barvalue')
-      end
-
-      context 'when the ref is ambiguous' do
-        let(:ref) { 'ambiguous' }
-
-        it 'returns ambiguous ref error' do
-          result = service.execute
-
-          expect(result).to be_a(ServiceResponse)
-          expect(result.error?).to be(true)
-          expect(result.message).to match_array(['Ref is ambiguous'])
-          expect(result.payload.errors.full_messages).to match_array(['Ref is ambiguous'])
-        end
-
-        context 'when the branch name is nested' do
-          let(:ref) { '1/nested/branch-name' }
-
-          it 'saves values with passed params' do
-            result = service.execute
-
-            expect(result.payload).to have_attributes(
-              description: 'updated_desc',
-              ref: "#{Gitlab::Git::BRANCH_REF_PREFIX}1/nested/branch-name",
-              active: false,
-              cron: '*/1 * * * *',
-              cron_timezone: 'UTC'
-            )
-          end
-        end
       end
 
       context 'when the new branch is protected', :request_store do

@@ -6,10 +6,11 @@ module Gitlab
       class Provider
         LABELS = {
           "alicloud" => "AliCloud",
+          "dingtalk" => "DingTalk",
           "github" => "GitHub",
           "gitlab" => "GitLab.com",
           "google_oauth2" => "Google",
-          "azure_oauth2" => "Azure AD (Obsolete)",
+          "azure_oauth2" => "Azure AD",
           "azure_activedirectory_v2" => "Azure AD v2",
           'atlassian_oauth2' => 'Atlassian'
         }.freeze
@@ -100,7 +101,3 @@ module Gitlab
     end
   end
 end
-
-# Added for JiHu
-# Used in https://jihulab.com/gitlab-cn/gitlab/-/blob/main-jh/jh/lib/gitlab/auth/o_auth/provider.rb
-Gitlab::Auth::OAuth::Provider.singleton_class.prepend_mod_with('Gitlab::Auth::OAuth::Provider::ClassMethods')

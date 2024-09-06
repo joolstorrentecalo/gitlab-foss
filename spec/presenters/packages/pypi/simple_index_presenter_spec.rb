@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe ::Packages::Pypi::SimpleIndexPresenter, :aggregate_failures, feature_category: :package_registry do
+RSpec.describe ::Packages::Pypi::SimpleIndexPresenter, :aggregate_failures do
   using RSpec::Parameterized::TableSyntax
 
   let_it_be(:group) { create(:group) }
@@ -36,21 +36,6 @@ RSpec.describe ::Packages::Pypi::SimpleIndexPresenter, :aggregate_failures, feat
           expect(presenter).to include(expected_link1)
           expect(presenter).to include(expected_link2)
         end
-      end
-
-      it 'strips leading whitespace from the output' do
-        expect(presenter.first).not_to eq(' ')
-      end
-
-      it 'avoids n+1 database queries', :use_sql_query_cache do
-        control = ActiveRecord::QueryRecorder.new(skip_cached: false) do
-          described_class.new(project.packages.reload, project_or_group).body
-        end
-
-        create_list(:pypi_package, 5, project: project)
-
-        expect { described_class.new(project.packages.reload, project_or_group).body }
-          .to issue_same_number_of_queries_as(control)
       end
     end
 

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe FormHelper, feature_category: :shared do
+RSpec.describe FormHelper do
   include Devise::Test::ControllerHelpers
 
   describe '#dropdown_max_select' do
@@ -81,14 +81,6 @@ RSpec.describe FormHelper, feature_category: :shared do
         .to include('The form contains the following error:')
       expect(helper.form_errors(multi_errors))
         .to include('The form contains the following errors:')
-    end
-
-    it 'uses passed custom headline' do
-      resource = double(errors: errors_stub('A'))
-
-      result = helper.form_errors(resource, custom_headline: 'There were errors:')
-      expect(result).to include('There were errors:')
-      expect(result).not_to include('The form contains the following error:')
     end
 
     it 'renders each message' do

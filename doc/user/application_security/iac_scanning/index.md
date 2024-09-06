@@ -10,6 +10,8 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/6655) in GitLab 14.5.
+
 Infrastructure as Code (IaC) scanning runs in your CI/CD pipeline, checking your infrastructure
 definition files for known vulnerabilities. Identify vulnerabilities before they're committed to
 the default branch to proactively address the risk to your application.
@@ -88,6 +90,8 @@ DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> Support for overriding rules [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/235359) in GitLab 14.8.
+
 You can customize the default IaC scanning rules provided with GitLab.
 
 The following customization options can be used separately, or together:
@@ -139,16 +143,6 @@ the `kics` analyzer by matching the `type` and `value` of identifiers:
       value = "b03a748a-542d-44f4-bb86-9199ab4fd2d5"
 ```
 
-### Disable scanning using comments
-
-You can use [KICS annotations](https://docs.kics.io/latest/running-kics/#using_commands_on_scanned_files_as_comments) to control how the KICS-based GitLab IaC Scanning analyzer scans your codebase. For example:
-
-- To skip scanning an entire file, you can add `# kics-scan ignore` as a comment at the top of the file.
-- To disable a specific rule in an entire file, you can add `# kics-scan disable=<kics_id>` as a comment at the top of the file.
-
-NOTE:
-This feature is only available for some types of IaC files. See the [KICS documentation](https://docs.kics.io/latest/running-kics/#using_commands_on_scanned_files_as_comments) for a list of supported file types.
-
 ### Override rules
 
 You can override specific IaC scanning rules to customize them. For example, assign a rule a lower
@@ -182,61 +176,6 @@ In the following example `sast-ruleset.toml` file, rules are matched by the `typ
       name = "OVERRIDDEN name"
       severity = "Info"
 ```
-
-### Offline configuration
-
-DETAILS:
-**Tier:** PREMIUM
-**Offering:** Self-managed
-
-An offline environment has limited, restricted, or intermittent access to external resources through
-the internet. For self-managed GitLab instances in such an environment, IaC requires
-some configuration changes. The instructions in this section must be completed together with the
-instructions detailed in [offline environments](../offline_deployments/index.md).
-
-#### Configure GitLab Runner
-
-By default, a runner tries to pull Docker images from the GitLab container registry even if a local
-copy is available. You should use this default setting, to ensure Docker images remain current.
-However, if no network connectivity is available, you must change the default GitLab Runner
-`pull_policy` variable.
-
-Configure the GitLab Runner CI/CD variable `pull_policy` to
-[`if-not-present`](https://docs.gitlab.com/runner/executors/docker.html#using-the-if-not-present-pull-policy).
-
-#### Use local IaC analyzer image
-
-Use a local IaC analyzer image if you want to obtain the image from a local Docker
-registry instead of the GitLab container registry.
-
-Prerequisites:
-
-- Importing Docker images into a local offline Docker registry depends on your
-  network security policy. Consult your IT staff to find an accepted and approved process
-  to import or temporarily access external resources.
-
-1. Import the default IaC analyzer image from `registry.gitlab.com` into your
-   [local Docker container registry](../../packages/container_registry/index.md):
-
-   ```plaintext
-   registry.gitlab.com/security-products/kics:5
-   ```
-
-   The IaC analyzer's image is [periodically updated](../index.md#vulnerability-scanner-maintenance)
-   so you should periodically update the local copy.
-
-1. Set the CI/CD variable `SECURE_ANALYZERS_PREFIX` to the local Docker container registry.
-
-   ```yaml
-   include:
-     - template: Jobs/SAST-IaC.gitlab-ci.yml
-
-   variables:
-     SECURE_ANALYZERS_PREFIX: "localhost:5000/analyzers"
-   ```
-
-The IaC job should now use the local copy of the analyzer Docker image,
-without requiring internet access.
 
 ## Use a specific analyzer version
 
@@ -277,6 +216,8 @@ kics-iac-sast:
 GitLab scanners are provided with a base Alpine image for size and maintainability.
 
 ### Use FIPS-enabled images
+
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/6479) in GitLab 14.10.
 
 GitLab provides [FIPS-enabled Red Hat UBI](https://www.redhat.com/en/blog/introducing-red-hat-universal-base-image)
 versions of the scanners' images, in addition to the standard images.

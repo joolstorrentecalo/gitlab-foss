@@ -32,9 +32,6 @@ export const initJobDetails = () => {
     aiRootCauseAnalysisAvailable,
     testReportSummaryUrl,
     pipelineTestReportUrl,
-    logViewerPath,
-    duoFeaturesEnabled,
-    jobGid,
   } = el.dataset;
 
   const fullScreenAPIAvailable = document.fullscreenEnabled;
@@ -57,9 +54,7 @@ export const initJobDetails = () => {
       projectPath,
       retryOutdatedJobDocsUrl,
       aiRootCauseAnalysisAvailable: parseBoolean(aiRootCauseAnalysisAvailable),
-      duoFeaturesEnabled: parseBoolean(duoFeaturesEnabled),
       pipelineTestReportUrl,
-      jobGid,
     },
     render(h) {
       return h(JobApp, {
@@ -68,7 +63,6 @@ export const initJobDetails = () => {
           deploymentHelpUrl,
           runnerSettingsUrl,
           subscriptionsMoreMinutesUrl,
-          logViewerPath,
         },
       });
     },

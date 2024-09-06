@@ -4,8 +4,8 @@ module Notes
   class CreateService < ::Notes::BaseService
     include IncidentManagement::UsageData
 
-    def execute(skip_capture_diff_note_position: false, skip_merge_status_trigger: false, executing_user: nil)
-      note = build_note(executing_user)
+    def execute(skip_capture_diff_note_position: false, skip_merge_status_trigger: false)
+      note = Notes::BuildService.new(project, current_user, params.except(:merge_request_diff_head_sha)).execute
 
       # n+1: https://gitlab.com/gitlab-org/gitlab-foss/issues/37440
       note_valid = Gitlab::GitalyClient.allow_n_plus_1_calls do
@@ -21,9 +21,12 @@ module Notes
       # only, there is no need be create a note!
 
       execute_quick_actions(note) do |only_commands|
-        note.check_for_spam(action: :create, user: current_user) if check_for_spam?(only_commands)
+        note.check_for_spam(action: :create, user: current_user) unless only_commands
 
-        after_commit(note)
+        note.run_after_commit do
+          # Finish the harder work in the background
+          NewNoteWorker.perform_async(note.id)
+        end
 
         note_saved = note.with_transaction_returning_status do
           break false if only_commands
@@ -46,24 +49,6 @@ module Notes
     end
 
     private
-
-    def build_note(executing_user)
-      Notes::BuildService
-        .new(project, current_user, params.except(:merge_request_diff_head_sha))
-        .execute(executing_user: executing_user)
-    end
-
-    def check_for_spam?(only_commands)
-      !only_commands
-    end
-
-    def after_commit(note)
-      note.run_after_commit do
-        # Complete more expensive operations like sending
-        # notifications and post processing in a background worker.
-        NewNoteWorker.perform_async(note.id)
-      end
-    end
 
     def execute_quick_actions(note)
       return yield(false) unless quick_actions_supported?(note)
@@ -187,6 +172,19 @@ module Notes
       track_note_creation_usage_for_merge_requests(note) if note.for_merge_request?
       track_incident_action(user, note.noteable, 'incident_comment') if note.for_issue?
       track_note_creation_in_ipynb(note)
+      track_note_creation_visual_review(note)
+
+      metric_key_path = 'counts.commit_comment'
+
+      Gitlab::Tracking.event(
+        'Notes::CreateService',
+        'create_commit_comment',
+        project: project,
+        namespace: project&.namespace,
+        user: user,
+        label: metric_key_path,
+        context: [Gitlab::Usage::MetricDefinition.context_for(metric_key_path).to_context]
+      )
     end
 
     def tracking_data_for(note)
@@ -217,6 +215,10 @@ module Notes
       return unless should_track_ipynb_notes?(note)
 
       Gitlab::UsageDataCounters::IpynbDiffActivityCounter.note_created(note)
+    end
+
+    def track_note_creation_visual_review(note)
+      Gitlab::Tracking.event('Notes::CreateService', 'execute', **tracking_data_for(note))
     end
   end
 end

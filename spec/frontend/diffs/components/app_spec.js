@@ -1,5 +1,5 @@
 import { GlLoadingIcon, GlPagination } from '@gitlab/ui';
-import { createWrapper, shallowMount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import MockAdapter from 'axios-mock-adapter';
 import Vue, { nextTick } from 'vue';
 import VueApollo from 'vue-apollo';
@@ -31,7 +31,7 @@ import { HTTP_STATUS_OK } from '~/lib/utils/http_status';
 import { Mousetrap } from '~/lib/mousetrap';
 import * as urlUtils from '~/lib/utils/url_utility';
 import * as commonUtils from '~/lib/utils/common_utils';
-import { BV_HIDE_TOOLTIP, DEFAULT_DEBOUNCE_AND_THROTTLE_MS } from '~/lib/utils/constants';
+import { DEFAULT_DEBOUNCE_AND_THROTTLE_MS } from '~/lib/utils/constants';
 import { stubPerformanceWebAPI } from 'helpers/performance';
 import { getDiffFileMock } from 'jest/diffs/mock_data/diff_file';
 import waitForPromises from 'helpers/wait_for_promises';
@@ -277,7 +277,7 @@ describe('diffs/components/app', () => {
       });
 
       expect(wrapper.findComponent(NoChanges).exists()).toBe(false);
-      expect(wrapper.findComponent({ name: 'DynamicScroller' }).props('items')).toStrictEqual(
+      expect(wrapper.findComponent({ name: 'DynamicScroller' }).props('items')).toBe(
         store.state.diffs.diffFiles,
       );
     });
@@ -516,9 +516,6 @@ describe('diffs/components/app', () => {
               state.diffs.plainDiffPath = 'plain diff path';
               state.diffs.emailPatchPath = 'email patch path';
               state.diffs.size = 1;
-              state.diffs.treeEntries = {
-                111: { type: 'blob', fileHash: '111', path: '111.js' },
-              };
             },
           });
 
@@ -583,7 +580,7 @@ describe('diffs/components/app', () => {
       });
 
       expect(wrapper.findComponent({ name: 'DynamicScroller' }).exists()).toBe(true);
-      expect(wrapper.findComponent({ name: 'DynamicScroller' }).props('items')).toStrictEqual(
+      expect(wrapper.findComponent({ name: 'DynamicScroller' }).props('items')).toBe(
         store.state.diffs.diffFiles,
       );
     });
@@ -593,42 +590,18 @@ describe('diffs/components/app', () => {
       expect(wrapper.findComponent(DiffsFileTree).exists()).toBe(true);
     });
 
-    it('should pass visible to file tree as true when files are present', () => {
+    it('should pass renderDiffFiles to file tree as true when files are present', () => {
       createComponent({
         extendStore: ({ state }) => {
           state.diffs.treeEntries = { 111: { type: 'blob', fileHash: '111', path: '111.js' } };
         },
       });
-      expect(wrapper.findComponent(DiffsFileTree).props('visible')).toBe(true);
+      expect(wrapper.findComponent(DiffsFileTree).props('renderDiffFiles')).toBe(true);
     });
 
-    it('should pass visible to file tree as false without files', () => {
+    it('should pass renderDiffFiles to file tree as false without files', () => {
       createComponent({});
-      expect(wrapper.findComponent(DiffsFileTree).props('visible')).toBe(false);
-    });
-
-    it('should hide file tree when toggled', async () => {
-      createComponent({
-        extendStore: ({ state }) => {
-          state.diffs.treeEntries = { 111: { type: 'blob', fileHash: '111', path: '111.js' } };
-        },
-      });
-      wrapper.findComponent(DiffsFileTree).vm.$emit('toggled');
-      await nextTick();
-      expect(wrapper.findComponent(DiffsFileTree).props('visible')).toBe(false);
-    });
-
-    it('should show file tree when toggled', async () => {
-      createComponent({
-        extendStore: ({ state }) => {
-          state.diffs.treeEntries = { 111: { type: 'blob', fileHash: '111', path: '111.js' } };
-        },
-      });
-      wrapper.findComponent(DiffsFileTree).vm.$emit('toggled');
-      await nextTick();
-      wrapper.findComponent(DiffsFileTree).vm.$emit('toggled');
-      await nextTick();
-      expect(wrapper.findComponent(DiffsFileTree).props('visible')).toBe(true);
+      expect(wrapper.findComponent(DiffsFileTree).props('renderDiffFiles')).toBe(false);
     });
   });
 
@@ -991,26 +964,26 @@ describe('diffs/components/app', () => {
     });
   });
 
-  describe('linked file', () => {
-    const linkedFileUrl = 'http://localhost.test/linked-file';
-    let linkedFile;
+  describe('pinned file', () => {
+    const pinnedFileUrl = 'http://localhost.test/pinned-file';
+    let pinnedFile;
 
     beforeEach(() => {
-      linkedFile = getDiffFileMock();
-      mock.onGet(linkedFileUrl).reply(HTTP_STATUS_OK, { diff_files: [linkedFile] });
+      pinnedFile = getDiffFileMock();
+      mock.onGet(pinnedFileUrl).reply(HTTP_STATUS_OK, { diff_files: [pinnedFile] });
       mock
         .onGet(new RegExp(ENDPOINT_BATCH_URL))
         .reply(HTTP_STATUS_OK, { diff_files: [], pagination: {} });
       mock.onGet(new RegExp(ENDPOINT_METADATA_URL)).reply(HTTP_STATUS_OK, diffMetadata);
 
-      createComponent({ props: { shouldShow: true, linkedFileUrl } });
+      createComponent({ props: { shouldShow: true, pinnedFileUrl } });
     });
 
-    it('fetches and displays the file', async () => {
+    it('fetches and displays pinned file', async () => {
       await waitForPromises();
 
       expect(wrapper.findComponent({ name: 'DynamicScroller' }).props('items')[0].file_hash).toBe(
-        linkedFile.file_hash,
+        pinnedFile.file_hash,
       );
     });
 
@@ -1050,28 +1023,6 @@ describe('diffs/components/app', () => {
           expect.any(Object),
         );
       });
-    });
-  });
-
-  describe('tooltips', () => {
-    const scroll = () => {
-      const scrollEvent = document.createEvent('Event');
-      scrollEvent.initEvent('scroll', true, true, window, 1);
-      window.dispatchEvent(scrollEvent);
-    };
-
-    it('hides tooltips on scroll', () => {
-      createComponent({ props: { shouldShow: true } });
-      const rootWrapper = createWrapper(wrapper.vm.$root);
-      scroll();
-      expect(rootWrapper.emitted(BV_HIDE_TOOLTIP)).toStrictEqual([[]]);
-    });
-
-    it('does not hide tooltips on scroll when invisible', () => {
-      createComponent({ props: { shouldShow: false } });
-      const rootWrapper = createWrapper(wrapper.vm.$root);
-      scroll();
-      expect(rootWrapper.emitted(BV_HIDE_TOOLTIP)).toStrictEqual(undefined);
     });
   });
 });

@@ -51,7 +51,6 @@ Deployments show up in this list only after a deployment job has created them.
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/10754) in GitLab 15.5.
 > - [Searching environments within a folder](https://gitlab.com/gitlab-org/gitlab/-/issues/373850) was introduced in GitLab 15.7 with [Feature flag `enable_environments_search_within_folder`](https://gitlab.com/gitlab-org/gitlab/-/issues/382108). Enabled by default.
-> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/382108) in GitLab 17.4. Feature flag `enable_environments_search_within_folder` removed.
 
 To search environments by name:
 
@@ -240,7 +239,7 @@ Note the following:
 - If the environment URL isn't valid (for example, the URL is malformed), the system doesn't update
   the environment URL.
 - If the script that runs in `stop_review` exists only in your repository and therefore can't use
-  `GIT_STRATEGY: none` or `GIT_STRATEGY: empty`, configure [merge request pipelines](../../ci/pipelines/merge_request_pipelines.md)
+  `GIT_STRATEGY: none`, configure [merge request pipelines](../../ci/pipelines/merge_request_pipelines.md)
   for these jobs. This ensures that runners can fetch the repository even after a feature branch is
   deleted. For more information, see [Ref Specs for Runners](../pipelines/index.md#ref-specs-for-runners).
 
@@ -253,6 +252,7 @@ Add-Content -Path deploy.env -Value "DYNAMIC_ENVIRONMENT_URL=$DYNAMIC_ENVIRONMEN
 
 ### Rename an environment
 
+> - Renaming an environment by using the UI was [removed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/68550) in GitLab 14.3.
 > - Renaming an environment by using the API was [deprecated](https://gitlab.com/gitlab-org/gitlab/-/issues/338897) in GitLab 15.9.
 > - Renaming an environment with the API [removed](https://gitlab.com/gitlab-org/gitlab/-/issues/338897) in GitLab 16.0.
 
@@ -266,12 +266,12 @@ To achieve the same result as renaming an environment:
 
 ## Deployment tier of environments
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/300741) in GitLab 13.10.
+
 Sometimes, instead of using an [industry standard](https://en.wikipedia.org/wiki/Deployment_environment)
 environment name, like `production`, you might want to use a code name, like `customer-portal`.
 While there is no technical reason not to use a name like `customer-portal`, the name
-no longer indicates that the environment is used for production. This can affect how metrics
-like [deployment frequency](../../user/analytics/dora_metrics.md#how-deployment-frequency-is-calculated)
-are calculated.
+no longer indicates that the environment is used for production.
 
 To indicate that a specific environment is for a specific use,
 you can use tiers:
@@ -285,7 +285,6 @@ you can use tiers:
 | `other`          |                                                    |
 
 By default, GitLab assumes a tier based on [the environment name](../yaml/index.md#environmentname).
-You cannot set an environment tier using the UI.
 Instead, you can use the [`deployment_tier` keyword](../yaml/index.md#environmentdeployment_tier) to specify a tier.
 
 ## Configure manual deployments
@@ -308,35 +307,45 @@ deploy_prod:
 
 The `when: manual` action:
 
-- Exposes the **Run** (**{play}**) button for the job in the GitLab UI, with the text **Can be manually deployed to &lt;environment&gt;**.
-- Means the `deploy_prod` job must be triggered manually.
+- Exposes a play button for the job in the GitLab UI, with the text **Can be manually deployed to &lt;environment&gt;**.
+- Means the `deploy_prod` job is only triggered when the play button is selected.
 
-You can find **Run** (**{play}**) in the pipelines, environments, deployments, and jobs views.
+You can find the play button in the pipelines, environments, deployments, and jobs views.
 
 ## Track newly included merge requests per deployment
+
+> - Feature flag `link_fast_forward_merge_requests_to_deployment` [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/384104) in GitLab 16.10. Disabled by default.
 
 GitLab can track newly included merge requests per deployment.
 When a deployment succeeds, the system calculates commit-diffs between the latest deployment and the previous deployment.
 You can fetch tracking information with the [Deployment API](../../api/deployments.md#list-of-merge-requests-associated-with-a-deployment)
 or view it at a post-merge pipeline in [merge request pages](../../user/project/merge_requests/index.md).
 
-To enable tracking configure your environment so either:
+To enable tracking:
 
-- The [environment name](../yaml/index.md#environmentname) doesn't use folders with `/` (long-lived or top-level environments).
-- The [environment tier](#deployment-tier-of-environments) is either `production` or `staging`.
+1. Set your [project's merge method](../../user/project/merge_requests/methods/index.md).
+   The merge method:
 
-  Here are some example configurations using the [`environment` keyword](../yaml/index.md#environment) in `.gitlab-ci.yml`:
+   - Must _not_ be **Fast-forward merge**.
+   - Can be **Fast-forward merge** if the `link_fast_forward_merge_requests_to_deployment` feature flag is enabled.
 
-  ```yaml
-  # Trackable
-  environment: production
-  environment: production/aws
-  environment: development
+1. Configure your environment so either:
 
-  # Non Trackable
-  environment: review/$CI_COMMIT_REF_SLUG
-  environment: testing/aws
-  ```
+   - The [environment name](../yaml/index.md#environmentname) doesn't use folders with `/` (long-lived or top-level environments).
+   - The [environment tier](#deployment-tier-of-environments) is either `production` or `staging`.
+
+   Here are some example configurations using the [`environment` keyword](../yaml/index.md#environment) in `.gitlab-ci.yml`:
+
+   ```yaml
+   # Trackable
+   environment: production
+   environment: production/aws
+   environment: development
+
+   # Non Trackable
+   environment: review/$CI_COMMIT_REF_SLUG
+   environment: testing/aws
+   ```
 
 Configuration changes apply only to new deployments. Existing deployment records do not have merge requests linked or unlinked from them.
 
@@ -405,7 +414,7 @@ For example:
 #### Go from source files to public pages
 
 With GitLab [Route Maps](../review_apps/index.md#route-maps), you can go directly
-from source files to public pages in the environment set for review apps.
+from source files to public pages in the environment set for Review Apps.
 
 ### Stopping an environment
 
@@ -426,8 +435,8 @@ environment.
 - The job with [`action: stop` might not run](#the-job-with-action-stop-doesnt-run)
   if it's in a later stage than the job that started the environment.
 - If you can't use [merge request pipelines](../pipelines/merge_request_pipelines.md),
-  set [`GIT_STRATEGY`](../runners/configure_runners.md#git-strategy) to `none` or `empty`
-  in the `stop_review` job. Then, the [runner](https://docs.gitlab.com/runner/) doesn't
+  set the [`GIT_STRATEGY`](../runners/configure_runners.md#git-strategy) to `none` in the
+  `stop_review` job. Then the [runner](https://docs.gitlab.com/runner/) doesn't
   try to check out the code after the branch is deleted.
 
 ```yaml
@@ -484,11 +493,22 @@ stop_review:
 #### Run a pipeline job when environment is stopped
 
 > - Feature flag `environment_stop_actions_include_all_finished_deployments` [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/435128) in GitLab 16.9. Disabled by default.
-> - Feature flag `environment_stop_actions_include_all_finished_deployments` [removed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/150932) in GitLab 17.0.
+
+FLAG:
+On self-managed GitLab, by default this feature is not available. To make it available, an administrator can [enable the feature flag](../../administration/feature_flags.md) named `environment_stop_actions_include_all_finished_deployments`.
+On GitLab.com and GitLab Dedicated, this feature is not available.
 
 You can define a stop job for the environment with an [`on_stop` action](../yaml/index.md#environmenton_stop) in the environment's deploy job.
 
-The stop jobs of finished deployments in the latest finished pipeline are run when an environment is stopped. A deployment or pipeline is _finished_ if it has the successful, canceled, or failed status.
+If `environment_stop_actions_include_all_finished_deployments` is disabled:
+
+- The stop jobs of successful deployments in the latest successful pipeline are run when an environment is stopped.
+
+If `environment_stop_actions_include_all_finished_deployments` is enabled:
+
+- The stop jobs of finished deployments in the latest finished pipeline are run when an environment is stopped.
+
+  A deployment or pipeline is _finished_ if it has the successful, canceled, or failed status.
 
 Prerequisites:
 
@@ -586,22 +606,17 @@ To view an environment's expiration date and time:
 
 The expiration date and time is displayed in the upper-left corner, next to the environment's name.
 
-##### Override an environment's scheduled stop date and time
+##### Override a environment's scheduled stop date and time
 
 When a environment has been [scheduled to stop after a specified time period](#stop-an-environment-after-a-certain-time-period),
 you can override its expiration.
 
-To override an environment's expiration in the UI:
+To override an environment's expiration:
 
 1. On the left sidebar, select **Search or go to** and find your project.
 1. Select **Operate > Environments**.
 1. Select the deployment name.
 1. in the upper-right corner, select the thumbtack (**{thumbtack}**).
-
-To override an environment's expiration in the `.gitlab-ci.yml`:
-
-1. Open the project's `.gitlab-ci.yml`.
-1. Update the `auto_stop_in` setting of the corresponding deploy job to `auto_stop_in: never`.
 
 The `auto_stop_in` setting is overridden and the environment remains active until it's stopped
 manually.
@@ -610,7 +625,7 @@ manually.
 
 There may be times when you want to stop an environment without running the defined
 [`on_stop`](../yaml/index.md#environmenton_stop) action. For example, you want to delete many
-environments without using [compute quota](../pipelines/compute_minutes.md).
+environments without using [compute quota](../pipelines/cicd_minutes.md).
 
 To stop an environment without running the defined `on_stop` action, execute the
 [Stop an environment API](../../api/environments.md#stop-an-environment) with the parameter
@@ -632,6 +647,7 @@ To stop an environment in the GitLab UI:
 
 #### Multiple stop actions for an environment
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/22456) in GitLab 14.10 [with a flag](../../administration/feature_flags.md) named `environment_multiple_stop_actions`. Disabled by default.
 > - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/358911) in GitLab 15.0. [Feature flag `environment_multiple_stop_actions`](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/86685) removed.
 
 To configure multiple **parallel** stop actions on an environment, specify the
@@ -699,29 +715,9 @@ To delete an environment:
 1. Next to the environment you want to delete, select **Delete environment**.
 1. On the confirmation dialog, select **Delete environment**.
 
-### Clean up stale environments
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/108616) in GitLab 15.8 [with a flag](../../administration/feature_flags.md) named `stop_stale_environments`. Disabled by default.
-> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/112098) in GitLab 15.10. Feature flag `stop_stale_environments` removed.
-
-Clean up stale environments when you want to stop old environments in a project.
-
-Prerequisites:
-
-- You must have at least the Maintainer role.
-
-To clean up stale environments:
-
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Operate > Environments**.
-1. Select **Clean up environments**.
-1. Select the date to use for determining which environments to consider stale.
-1. Select **Clean up**.
-
-Active environments that haven't been updated after the specified date are stopped.
-Protected environments are ignored and not stopped.
-
 ### Access an environment for preparation or verification purposes
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/208655) in GitLab 13.2.
 
 You can define a job that accesses an environment for various purposes, such as verification or preparation. This
 effectively bypasses deployment creation, so that you can adjust your CD workflow more accurately.
@@ -784,7 +780,9 @@ DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-If you [set up an alert integration](../../operations/incident_management/integrations.md#configuration),
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/214634) in GitLab 13.4.
+
+If you [set up alerts for Prometheus metrics](../../operations/incident_management/integrations.md#configuration),
 alerts for environments are shown on the environments page. The alert with the highest
 severity is shown, so you can identify which environments need immediate attention.
 
@@ -802,6 +800,8 @@ DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/35404) in GitLab 13.7.
+
 In a typical Continuous Deployment workflow, the CI pipeline tests every commit before deploying to
 production. However, problematic code can still make it to production. For example, inefficient code
 that is logically correct can pass tests even though it causes severe performance degradation.
@@ -810,9 +810,7 @@ problematic deployment, they can roll back to a previous stable version.
 
 GitLab Auto Rollback eases this workflow by automatically triggering a rollback when a
 [critical alert](../../operations/incident_management/alerts.md)
-is detected.
-For GitLab to select the appropriate environment for the rollback, the alert should contain a `gitlab_environment_name` key with the name of the environment.
-GitLab selects and redeploys the most recent successful deployment.
+is detected. GitLab selects and redeploys the most recent successful deployment.
 
 Limitations of GitLab Auto Rollback:
 
@@ -829,6 +827,8 @@ GitLab Auto Rollback is turned off by default. To turn it on:
 1. Select **Save changes**.
 
 ### Web terminals (deprecated)
+
+> - [Deprecated](https://gitlab.com/groups/gitlab-org/configure/-/epics/8) in GitLab 14.5.
 
 WARNING:
 This feature was [deprecated](https://gitlab.com/groups/gitlab-org/configure/-/epics/8) in GitLab 14.5.
@@ -881,6 +881,10 @@ fetch = +refs/environments/*:refs/remotes/origin/environments/*
 ```
 
 ### Archive Old Deployments
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/73628) in GitLab 14.5.
+> - [Enabled on GitLab.com and self-managed](https://gitlab.com/gitlab-org/gitlab/-/issues/345027) in GitLab 14.6.
+> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/73628) in GitLab 14.0. [Feature flag `deployments_archive`](https://gitlab.com/gitlab-org/gitlab/-/issues/345027) removed.
 
 When a new deployment happens in your project,
 GitLab creates [a special Git-ref to the deployment](#check-out-deployments-locally).
@@ -974,7 +978,7 @@ See [Deployment-only access to protected environments](protected_environments.md
 - [Dashboard for Kubernetes](kubernetes_dashboard.md)
 - [Downstream pipelines for deployments](../pipelines/downstream_pipelines.md#downstream-pipelines-for-deployments)
 - [Deploy to multiple environments with GitLab CI/CD (blog post)](https://about.gitlab.com/blog/2021/02/05/ci-deployment-and-environments/)
-- [Review apps](../review_apps/index.md)
+- [Review Apps](../review_apps/index.md)
 - [Protected environments](protected_environments.md)
 - [Environments Dashboard](../environments/environments_dashboard.md)
 - [Deployment safety](deployment_safety.md#restrict-write-access-to-a-critical-environment)
@@ -991,8 +995,8 @@ with the `action: stop` is not in a runnable state due to its `stages:` or `need
 For example:
 
 - The environment might start in a stage that also has a job that failed.
-  Then the jobs in later stages job don't start. If the job with the `action: stop`
-  for the environment is also in a later stage, it can't start and the environment isn't deleted.
+Then the jobs in later stages job don't start. If the job with the `action: stop`
+for the environment is also in a later stage, it can't start and the environment isn't deleted.
 - The job with the `action: stop` might have a dependency on a job that has not yet completed.
 
 To ensure the `action: stop` can always run when needed, you can:
@@ -1051,14 +1055,12 @@ To ensure the `action: stop` can always run when needed, you can:
     when: manual
   ```
 
-### Error: job would create an environment with an invalid parameter
+### A deployment job failed with "This job could not be executed because it would create an environment with an invalid parameter" error
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/21182) in GitLab 14.4.
 
 If your project is configured to [create a dynamic environment](#create-a-dynamic-environment),
-you might encounter this error in a deployment job because the dynamically generated parameter can't be used for creating an environment:
-
-```plaintext
-This job could not be executed because it would create an environment with an invalid parameter.
-```
+you might encounter this error because the dynamically generated parameter can't be used for creating an environment.
 
 For example, your project has the following `.gitlab-ci.yml`:
 
@@ -1080,7 +1082,7 @@ To fix this, use one of the following solutions:
 - Ensure the variable exists in the pipeline. Review the
   [limitation on supported variables](../variables/where_variables_can_be_used.md#gitlab-ciyml-file).
 
-#### If you get this error on review apps
+#### If you get this error on Review Apps
 
 For example, if you have the following in your `.gitlab-ci.yml`:
 
@@ -1111,7 +1113,7 @@ To fix this, use one of the following solutions:
 
 ### Deployment refs are not found
 
-GitLab [deletes old deployment refs](#archive-old-deployments)
+Starting from GitLab 14.5, GitLab [deletes old deployment refs](#archive-old-deployments)
 to keep your Git repository performant.
 
 If you have to restore archived Git-refs, ask an administrator of your self-managed GitLab instance

@@ -1,16 +1,12 @@
 # frozen_string_literal: true
 
 module QA
-  RSpec.describe 'Package', :object_storage, product_group: :package_registry, quarantine: {
-    issue: 'https://gitlab.com/gitlab-org/gitlab/-/issues/455027',
-    only: { condition: -> { ENV['QA_RUN_TYPE']&.match?('gdk-qa-blocking') } },
-    type: :investigating
-  } do
+  RSpec.describe 'Package', :object_storage, product_group: :package_registry do
     describe 'NuGet project level endpoint', :external_api_calls do
       include Support::Helpers::MaskToken
 
       let(:project) { create(:project, :private, name: 'nuget-package-project', template_name: 'dotnetcore') }
-      let(:personal_access_token) { Resource::PersonalAccessToken.fabricate_via_api!.token }
+      let(:personal_access_token) { Resource::PersonalAccessToken.fabricate! }
       let(:project_deploy_token) do
         create(:project_deploy_token,
           name: 'package-deploy-token',
@@ -32,12 +28,10 @@ module QA
           project: project)
       end
 
-      before do
-        Flow::Login.sign_in
-      end
-
       after do
         runner.remove_via_api!
+        package.remove_via_api!
+        project.remove_via_api!
       end
 
       where do
@@ -84,11 +78,14 @@ module QA
         end
 
         it 'publishes a nuget package and installs', :blocking, testcase: params[:testcase] do
-          create(:commit, project: project, actions: [
-            {
-              action: 'update',
-              file_path: '.gitlab-ci.yml',
-              content: <<~YAML
+          Flow::Login.sign_in
+
+          Support::Retrier.retry_on_exception(max_attempts: 3, sleep_interval: 2) do
+            create(:commit, project: project, actions: [
+              {
+                action: 'update',
+                file_path: '.gitlab-ci.yml',
+                content: <<~YAML
                   stages:
                     - deploy
                     - install
@@ -117,36 +114,46 @@ module QA
                       - if: '$CI_COMMIT_BRANCH == "#{project.default_branch}"'
                     tags:
                       - "runner-for-#{project.name}"
-              YAML
-            },
-            {
-              action: 'update',
-              file_path: 'dotnetcore.csproj',
-              content: <<~XML
+                YAML
+              },
+              {
+                action: 'update',
+                file_path: 'dotnetcore.csproj',
+                content: <<~XML
                   <Project Sdk="Microsoft.NET.Sdk">
                     <PropertyGroup>
                       <OutputType>Exe</OutputType>
                       <TargetFramework>net5.0</TargetFramework>
                     </PropertyGroup>
                   </Project>
-              XML
-            }
-          ])
+                XML
+              }
+            ])
+          end
 
           project.visit!
-          Flow::Pipeline.wait_for_pipeline_creation_via_api(project: project, size: 2)
+          Flow::Pipeline.visit_latest_pipeline
 
-          project.visit_job('deploy')
+          Page::Project::Pipeline::Show.perform do |pipeline|
+            pipeline.click_job('deploy')
+          end
+
           Page::Project::Job::Show.perform do |job|
             expect(job).to be_successful(timeout: 800)
           end
 
-          project.visit_job('install')
+          page.go_back
+
+          Page::Project::Pipeline::Show.perform do |pipeline|
+            pipeline.click_job('install')
+          end
+
           Page::Project::Job::Show.perform do |job|
             expect(job).to be_successful(timeout: 800)
           end
 
           Page::Project::Menu.perform(&:go_to_package_registry)
+
           Page::Project::Packages::Index.perform do |index|
             expect(index).to have_package(package.name)
           end

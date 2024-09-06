@@ -24,6 +24,8 @@ const defaultMockDiscussion = {
   notes,
 };
 
+const DEFAULT_TODO_COUNT = 2;
+
 describe('Design discussions component', () => {
   let wrapper;
 
@@ -173,7 +175,9 @@ describe('Design discussions component', () => {
 
     beforeEach(() => {
       dispatchEventSpy = jest.spyOn(document, 'dispatchEvent');
-
+      jest.spyOn(document, 'querySelector').mockReturnValue({
+        innerText: DEFAULT_TODO_COUNT,
+      });
       createComponent({
         props: {
           discussion: {
@@ -225,7 +229,7 @@ describe('Design discussions component', () => {
       const dispatchedEvent = dispatchEventSpy.mock.calls[0][0];
 
       expect(dispatchEventSpy).toHaveBeenCalledTimes(1);
-      expect(dispatchedEvent.detail).toEqual({ delta: 0 });
+      expect(dispatchedEvent.detail).toEqual({ count: DEFAULT_TODO_COUNT });
       expect(dispatchedEvent.type).toBe('todo:toggle');
     });
 

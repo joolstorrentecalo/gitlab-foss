@@ -37,6 +37,7 @@ export const initPipelinesIndex = (selector = '#pipelines-list-vue') => {
     suggestedCiTemplates,
     canCreatePipeline,
     hasGitlabCi,
+    ciLintPath,
     resetCachePath,
     projectId,
     defaultBranchName,
@@ -44,8 +45,6 @@ export const initPipelinesIndex = (selector = '#pipelines-list-vue') => {
     fullPath,
     visibilityPipelineIdType,
     showJenkinsCiPrompt,
-    identityVerificationPath,
-    identityVerificationRequired,
   } = el.dataset;
 
   return new Vue({
@@ -58,11 +57,8 @@ export const initPipelinesIndex = (selector = '#pipelines-list-vue') => {
       manualActionsLimit: 50,
       pipelineEditorPath,
       pipelineSchedulesPath,
-      identityVerificationPath,
-      identityVerificationRequired: parseBoolean(identityVerificationRequired),
       suggestedCiTemplates: JSON.parse(suggestedCiTemplates),
       showJenkinsCiPrompt: parseBoolean(showJenkinsCiPrompt),
-      targetProjectFullPath: fullPath,
     },
     data() {
       return {
@@ -79,6 +75,7 @@ export const initPipelinesIndex = (selector = '#pipelines-list-vue') => {
       return createElement(Pipelines, {
         props: {
           canCreatePipeline: parseBoolean(canCreatePipeline),
+          ciLintPath,
           defaultBranchName,
           defaultVisibilityPipelineIdType: visibilityPipelineIdType,
           endpoint,

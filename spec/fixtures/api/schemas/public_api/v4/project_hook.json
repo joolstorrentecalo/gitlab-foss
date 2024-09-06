@@ -24,14 +24,10 @@
     "disabled_until",
     "emoji_events",
     "custom_webhook_template",
-    "resource_access_token_events",
-    "branch_filter_strategy"
+    "resource_access_token_events"
   ],
   "optional": [
-    "url_variables",
-    "custom_headers",
-    "name",
-    "description"
+    "url_variables"
   ],
   "properties": {
     "id": {
@@ -42,18 +38,6 @@
     },
     "url": {
       "type": "string"
-    },
-    "name": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "description": {
-      "type": [
-        "string",
-        "null"
-      ]
     },
     "created_at": {
       "type": "string",
@@ -153,24 +137,6 @@
         "string",
         "null"
       ]
-    },
-    "custom_headers": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "key"
-        ],
-        "properties": {
-          "key": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "branch_filter_strategy": {
-      "type": "string"
     }
   },
   "additionalProperties": false

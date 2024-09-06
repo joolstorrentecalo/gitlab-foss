@@ -39,12 +39,7 @@ module Gitlab
 
         def create_object
           klass.transaction do
-            case klass.to_s
-            when 'Epic'
-              klass.new(prepare_attributes)
-            else
-              klass.create(prepare_attributes)
-            end
+            klass.create(prepare_attributes)
           end
         end
 

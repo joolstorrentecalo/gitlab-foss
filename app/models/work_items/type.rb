@@ -6,14 +6,7 @@
 # 3. an emoji, with the format of `:smile:`
 module WorkItems
   class Type < ApplicationRecord
-    include IgnorableColumns
-    include Gitlab::Utils::StrongMemoize
-
-    DEFAULT_TYPES_NOT_SEEDED = Class.new(StandardError)
-
     self.table_name = 'work_item_types'
-
-    ignore_column :namespace_id, remove_with: '17.5', remove_after: '2024-09-19'
 
     include CacheMarkdownField
     include ReactiveCaching
@@ -60,20 +53,16 @@ module WorkItems
 
     enum base_type: BASE_TYPES.transform_values { |value| value[:enum_value] }
 
+    belongs_to :namespace, optional: true
     has_many :work_items, class_name: 'Issue', foreign_key: :work_item_type_id, inverse_of: :work_item_type
     has_many :widget_definitions, foreign_key: :work_item_type_id, inverse_of: :work_item_type
     has_many :enabled_widget_definitions, -> { where(disabled: false) }, foreign_key: :work_item_type_id,
       inverse_of: :work_item_type, class_name: 'WorkItems::WidgetDefinition'
     has_many :child_restrictions, class_name: 'WorkItems::HierarchyRestriction', foreign_key: :parent_type_id,
       inverse_of: :parent_type
-    has_many :parent_restrictions, class_name: 'WorkItems::HierarchyRestriction', foreign_key: :child_type_id,
-      inverse_of: :child_type
     has_many :allowed_child_types_by_name, -> { order_by_name_asc },
       through: :child_restrictions, class_name: 'WorkItems::Type',
       foreign_key: :child_type_id, source: :child_type
-    has_many :allowed_parent_types_by_name, -> { order_by_name_asc },
-      through: :parent_restrictions, class_name: 'WorkItems::Type',
-      foreign_key: :parent_type_id, source: :parent_type
 
     before_validation :strip_whitespace
     after_save :clear_reactive_cache!
@@ -81,27 +70,22 @@ module WorkItems
     # TODO: review validation rules
     # https://gitlab.com/gitlab-org/gitlab/-/issues/336919
     validates :name, presence: true
-    validates :name, uniqueness: { case_sensitive: false }
+    validates :name, uniqueness: { case_sensitive: false, scope: [:namespace_id] }
     validates :name, length: { maximum: 255 }
     validates :icon_name, length: { maximum: 255 }
 
+    scope :default, -> { where(namespace: nil) }
     scope :order_by_name_asc, -> { order(arel_table[:name].lower.asc) }
     scope :by_type, ->(base_type) { where(base_type: base_type) }
 
     def self.default_by_type(type)
-      found_type = find_by(base_type: type)
-      return found_type if found_type || !WorkItems::Type.base_types.key?(type.to_s)
+      found_type = find_by(namespace_id: nil, base_type: type)
+      return found_type if found_type
 
-      error_message = <<~STRING
-        Default work item types have not been created yet. Make sure the DB has been seeded successfully.
-        See related documentation in
-        https://docs.gitlab.com/omnibus/settings/database.html#seed-the-database-fresh-installs-only
-
-        If you have additional questions, you can ask in
-        https://gitlab.com/gitlab-org/gitlab/-/issues/423483
-      STRING
-
-      raise DEFAULT_TYPES_NOT_SEEDED, error_message
+      Gitlab::DatabaseImporters::WorkItems::BaseTypeImporter.upsert_types
+      Gitlab::DatabaseImporters::WorkItems::HierarchyRestrictionsImporter.upsert_restrictions
+      Gitlab::DatabaseImporters::WorkItems::RelatedLinksRestrictionsImporter.upsert_restrictions
+      find_by(namespace_id: nil, base_type: type)
     end
 
     def self.default_issue_type
@@ -112,30 +96,21 @@ module WorkItems
       base_types.keys.excluding('objective', 'key_result', 'epic', 'ticket')
     end
 
-    # method overridden in EE to perform the corresponding checks for the Epic type
-    def self.allowed_group_level_types(resource_parent)
-      if Feature.enabled?(:create_group_level_work_items, resource_parent, type: :wip)
-        base_types.keys.excluding('epic')
-      else
-        []
-      end
+    def default?
+      namespace.blank?
     end
 
     # resource_parent is used in EE
     def widgets(_resource_parent)
-      enabled_widget_definitions.filter(&:widget_class)
-    end
-
-    def widget_classes(resource_parent)
-      widgets(resource_parent).map(&:widget_class)
+      enabled_widget_definitions.filter_map(&:widget_class)
     end
 
     def supports_assignee?(resource_parent)
-      widget_classes(resource_parent).include?(::WorkItems::Widgets::Assignees)
+      widgets(resource_parent).include?(::WorkItems::Widgets::Assignees)
     end
 
     def supports_time_tracking?(resource_parent)
-      widget_classes(resource_parent).include?(::WorkItems::Widgets::TimeTracking)
+      widgets(resource_parent).include?(::WorkItems::Widgets::TimeTracking)
     end
 
     def default_issue?
@@ -143,42 +118,14 @@ module WorkItems
     end
 
     def calculate_reactive_cache
-      {
-        allowed_child_types_by_name: allowed_child_types_by_name,
-        allowed_parent_types_by_name: allowed_parent_types_by_name
-      }
+      allowed_child_types_by_name
     end
 
     def allowed_child_types(cache: false)
-      cached_data = cache ? with_reactive_cache { |query_data| query_data[:allowed_child_types_by_name] } : nil
+      cached_data = cache ? with_reactive_cache { |query_data| query_data } : nil
 
       cached_data || allowed_child_types_by_name
     end
-
-    def allowed_parent_types(cache: false)
-      cached_data = cache ? with_reactive_cache { |query_data| query_data[:allowed_parent_types_by_name] } : nil
-
-      cached_data || allowed_parent_types_by_name
-    end
-
-    def descendant_types
-      descendant_types = []
-      next_level_child_types = allowed_child_types(cache: true)
-
-      loop do
-        descendant_types += next_level_child_types
-
-        # We remove types that we've already seen to avoid circular dependencies
-        next_level_child_types = next_level_child_types.flat_map do |type|
-          type.allowed_child_types(cache: true)
-        end - descendant_types
-
-        break if next_level_child_types.empty?
-      end
-
-      descendant_types
-    end
-    strong_memoize_attr :descendant_types
 
     private
 

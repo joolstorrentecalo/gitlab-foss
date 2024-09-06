@@ -6,7 +6,7 @@ module Groups
       layout 'group_settings'
       skip_cross_project_access_check :show
       before_action :authorize_admin_group!, except: :show
-      before_action :authorize_show_cicd_settings!, only: :show
+      before_action :authorize_admin_cicd_variables!, only: :show
       before_action :authorize_update_max_artifacts_size!, only: [:update]
       before_action :define_variables, only: [:show]
       before_action :push_licensed_features, only: [:show]
@@ -16,7 +16,6 @@ module Groups
 
       before_action do
         push_frontend_feature_flag(:ci_variables_pages, current_user)
-        push_frontend_feature_flag(:ci_hidden_variables, group)
       end
 
       urgency :low
@@ -28,9 +27,9 @@ module Groups
 
       def update
         if update_group_service.execute
-          flash[:notice] = s_('GroupSettings|Group CI/CD settings were successfully updated.')
+          flash[:notice] = s_('GroupSettings|Pipeline settings was updated for the group')
         else
-          flash[:alert] = format(s_("GroupSettings|There was a problem updating the group CI/CD settings: %{error_messages}."), error_messages: group.errors.full_messages)
+          flash[:alert] = format(s_("GroupSettings|There was a problem updating the pipeline settings: %{error_messages}."), error_messages: group.errors.full_messages)
         end
 
         redirect_to group_settings_ci_cd_path
@@ -48,15 +47,6 @@ module Groups
 
       private
 
-      def authorize_show_cicd_settings!
-        return if can_any?(current_user, [
-          :admin_cicd_variables,
-          :admin_runner
-        ], group)
-
-        access_denied!
-      end
-
       def define_variables
         define_ci_variables
       end
@@ -69,13 +59,11 @@ module Groups
       end
 
       def authorize_admin_group!
-        render_404 unless can?(current_user, :admin_group, group)
+        return render_404 unless can?(current_user, :admin_group, group)
       end
 
       def authorize_update_max_artifacts_size!
-        if update_group_params.has_key?(:max_artifacts_size) && !can?(current_user, :update_max_artifacts_size, group)
-          render_404
-        end
+        return render_404 unless can?(current_user, :update_max_artifacts_size, group)
       end
 
       def auto_devops_params

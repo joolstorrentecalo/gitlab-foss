@@ -93,7 +93,7 @@ describe('Abuse Report Add Note', () => {
           'note-wrapper',
           'note-comment',
           'discussion-reply-holder',
-          '!gl-border-t-0',
+          'gl-border-t-0!',
           'clearfix',
         ]),
       );
@@ -101,7 +101,12 @@ describe('Abuse Report Add Note', () => {
       expect(findTimelineEntryInner().classes()).toEqual([]);
 
       expect(findCommentFormWrapper().classes()).toEqual(
-        expect.arrayContaining(['gl-relative', 'gl-flex', 'gl-items-start', 'gl-flex-nowrap']),
+        expect.arrayContaining([
+          'gl-relative',
+          'gl-display-flex',
+          'gl-align-items-flex-start',
+          'gl-flex-nowrap',
+        ]),
       );
     });
 
@@ -178,8 +183,8 @@ describe('Abuse Report Add Note', () => {
       await waitForPromises();
 
       const errorMessage = errorResponse
-        ? 'Comment could not be submitted: the discussion could not be found.'
-        : 'Comment could not be submitted. Please check your network connection and try again.';
+        ? 'Your comment could not be submitted because the discussion could not be found.'
+        : 'Your comment could not be submitted! Please check your network connection and try again.';
 
       expect(createAlert).toHaveBeenCalledWith({
         message: errorMessage,

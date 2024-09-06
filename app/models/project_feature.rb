@@ -156,7 +156,7 @@ class ProjectFeature < ApplicationRecord
 
     return false if ::Gitlab::Pages.access_control_is_forced?
 
-    pages_access_level == PUBLIC || (pages_access_level == ENABLED && project.public?)
+    pages_access_level == PUBLIC || pages_access_level == ENABLED && project.public?
   end
 
   def private_pages?
@@ -201,7 +201,7 @@ class ProjectFeature < ApplicationRecord
   # Validates builds and merge requests access level
   # which cannot be higher than repository access level
   def repository_children_level
-    validator = ->(field) do
+    validator = lambda do |field|
       level = public_send(field) || ENABLED # rubocop:disable GitlabSecurity/PublicSend
       not_allowed = level > repository_access_level
       self.errors.add(field, "cannot have higher visibility level than repository access level") if not_allowed

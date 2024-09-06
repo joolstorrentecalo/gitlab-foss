@@ -221,7 +221,7 @@ export default {
       >
         <div
           v-if="file"
-          class="card upload-dropzone-card upload-dropzone-border gl-h-full gl-w-full gl-items-center gl-justify-center gl-p-3"
+          class="card upload-dropzone-card upload-dropzone-border gl-w-full gl-h-full gl-align-items-center gl-justify-content-center gl-p-3"
         >
           <img v-if="filePreviewURL" :src="filePreviewURL" class="gl-h-11" />
           <div>{{ formattedFileSize }}</div>
@@ -236,7 +236,7 @@ export default {
         </div>
       </upload-dropzone>
       <gl-form-group :label="$options.i18n.COMMIT_LABEL" label-for="commit_message">
-        <gl-form-textarea v-model="commit" name="commit_message" :disabled="loading" no-resize />
+        <gl-form-textarea v-model="commit" name="commit_message" :disabled="loading" />
       </gl-form-group>
       <gl-form-group
         v-if="canPushCode"

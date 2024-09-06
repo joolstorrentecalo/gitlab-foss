@@ -1,6 +1,6 @@
 ---
 stage: Secure
-group: Secret Detection
+group: Static Analysis
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
@@ -9,6 +9,8 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
+
+> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/4639) in GitLab 13.6.
 
 GitLab Secret Detection automatically responds when it finds certain types of leaked secrets.
 Automatic responses can:
@@ -22,10 +24,10 @@ GitLab supports automatic response for the following types of secrets:
 
 | Secret type | Action taken | Supported on GitLab.com | Supported in self-managed |
 | ----- | --- | --- | --- |
-| GitLab [personal access tokens](../../profile/personal_access_tokens.md) | Immediately revoke token, send email to owner | ✅ | ✅ [15.9 and later](https://gitlab.com/gitlab-org/gitlab/-/issues/371658) |
+| GitLab [Personal access tokens](../../profile/personal_access_tokens.md) | Immediately revoke token, send email to owner | ✅ | ✅ [15.9 and later](https://gitlab.com/gitlab-org/gitlab/-/issues/371658) |
 | Amazon Web Services (AWS) [IAM access keys](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) | Notify AWS | ✅ | ⚙ |
 | Google Cloud [service account keys](https://cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys), [API keys](https://cloud.google.com/docs/authentication/api-keys), and [OAuth client secrets](https://support.google.com/cloud/answer/6158849#rotate-client-secret) | Notify Google Cloud | ✅ | ⚙ |
-| Postman [API keys](https://learning.postman.com/docs/developer/postman-api/authentication/) | Notify Postman; Postman [notifies the key owner](https://learning.postman.com/docs/administration/managing-your-team/secret-scanner/#protect-postman-api-keys-in-gitlab) | ✅ | ⚙ |
+| Postman [API keys](https://learning.postman.com/docs/developer/postman-api/authentication/) | Notify Postman; Postman [notifies the key owner](https://learning.postman.com/docs/administration/token-scanner/#protecting-postman-api-keys-in-gitlab) | ✅ | ⚙ |
 
 **Component legend**
 
@@ -46,11 +48,7 @@ Credentials are only post-processed when Secret Detection finds them:
 This diagram describes how a post-processing hook revokes a secret in the GitLab application:
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 sequenceDiagram
-accTitle: Architecture diagram
-accDescr: How a post-processing hook revokes a secret in the GitLab application.
-
     autonumber
     GitLab Rails-->+GitLab Rails: gl-secret-detection-report.json
     GitLab Rails->>+GitLab Sidekiq: StoreScansService
@@ -88,11 +86,7 @@ body. We strongly recommend that you verify incoming requests using this signatu
 request from GitLab. The diagram below details the necessary steps to receive, verify, and revoke leaked tokens:
 
 ```mermaid
-%%{init: { "fontFamily": "GitLab Sans" }}%%
 sequenceDiagram
-accTitle: Partner API data flow
-accDescr: How a Partner API should receive and respond to leaked token revocation requests.
-
     autonumber
     GitLab Token Revocation API-->>+Partner API: Send new leaked credentials
     Partner API-->>+GitLab Public Keys endpoint: Get active public keys
@@ -109,8 +103,8 @@ accDescr: How a Partner API should receive and respond to leaked token revocatio
 1. The Partner API [verifies the signature](#verifying-the-request) against the actual request body, using the public key (**4**).
 1. The Partner API processes the leaked tokens, which may involve automatic revocation (**5**).
 1. The Partner API responds to the GitLab Token Revocation API (**6**) with the appropriate HTTP status code:
-   - A successful response code (HTTP 200 through 299) acknowledges that the partner has received and processed the request.
-   - An error code (HTTP 400 or higher) causes the GitLab Token Revocation API to retry the request.
+    - A successful response code (HTTP 200 through 299) acknowledges that the partner has received and processed the request.
+    - An error code (HTTP 400 or higher) causes the GitLab Token Revocation API to retry the request.
 
 #### Revocation request
 

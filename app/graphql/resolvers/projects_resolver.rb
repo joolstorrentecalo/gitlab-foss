@@ -8,24 +8,25 @@ module Resolvers
     type Types::ProjectType.connection_type, null: true
 
     argument :ids, [GraphQL::Types::ID],
-      required: false,
-      description: 'Filter projects by IDs.'
+             required: false,
+             description: 'Filter projects by IDs.'
 
     argument :full_paths, [GraphQL::Types::String],
-      required: false,
-      description: 'Filter projects by full paths. You cannot provide more than 50 full paths.'
+             required: false,
+             description: 'Filter projects by full paths. You cannot provide more than 50 full paths.'
+
+    argument :sort, GraphQL::Types::String,
+             required: false,
+             description: "Sort order of results. Format: `<field_name>_<sort_direction>`, " \
+                 "for example: `id_desc` or `name_asc`"
 
     argument :with_issues_enabled, GraphQL::Types::Boolean,
-      required: false,
-      description: "Return only projects with issues enabled."
+             required: false,
+             description: "Return only projects with issues enabled."
 
     argument :with_merge_requests_enabled, GraphQL::Types::Boolean,
-      required: false,
-      description: "Return only projects with merge requests enabled."
-
-    argument :archived, ::Types::Projects::ArchivedEnum,
-      required: false,
-      description: 'Filter projects by archived status.'
+             required: false,
+             description: "Return only projects with merge requests enabled."
 
     def resolve_with_lookahead(**args)
       validate_args!(args)
@@ -68,8 +69,7 @@ module Resolvers
         **project_finder_params(args),
         with_issues_enabled: args[:with_issues_enabled],
         with_merge_requests_enabled: args[:with_merge_requests_enabled],
-        full_paths: args[:full_paths],
-        archived: args[:archived]
+        full_paths: args[:full_paths]
       }
     end
 

@@ -28,7 +28,8 @@ class RegistrationsController < Devise::RegistrationsController
 
   feature_category :instance_resiliency
 
-  helper_method :arkose_labs_enabled?, :registration_path_params, :preregistration_tracking_label
+  helper_method :arkose_labs_enabled?
+  helper_method :registration_path_params
 
   def new
     @resource = build_resource
@@ -42,9 +43,10 @@ class RegistrationsController < Devise::RegistrationsController
       if new_user.persisted?
         after_successful_create_hook(new_user)
       else
-        track_error(new_user)
+        track_weak_password_error(new_user, self.class.name, 'create')
       end
     end
+
     # Devise sets a flash message on both successful & failed signups,
     # but we only want to show a message if the resource is blocked by a pending approval.
     flash[:notice] = nil unless allow_flash_content?(resource)
@@ -161,6 +163,7 @@ class RegistrationsController < Devise::RegistrationsController
     {}
   end
 
+  # overridden in EE
   def track_successful_user_creation(user)
     label = user_invited? ? 'invited' : 'signup'
     Gitlab::Tracking.event(self.class.name, 'create_user', label: label, user: user)
@@ -234,8 +237,7 @@ class RegistrationsController < Devise::RegistrationsController
   def resource
     @resource ||= Users::RegistrationsBuildService
                     .new(current_user, sign_up_params.merge({ skip_confirmation: skip_confirmation?,
-                                                              preferred_language: preferred_language,
-                                                              organization_id: Current.organization_id }))
+                                                              preferred_language: preferred_language }))
                     .execute
   end
 
@@ -313,15 +315,6 @@ class RegistrationsController < Devise::RegistrationsController
 
   def arkose_labs_enabled?(user: nil) # rubocop:disable Lint/UnusedMethodArgument -- Param is unused here but used in EE override
     false
-  end
-
-  def preregistration_tracking_label
-    # overridden by EE module
-  end
-
-  # overridden by EE module
-  def track_error(new_user)
-    track_weak_password_error(new_user, self.class.name, 'create')
   end
 end
 

@@ -21,64 +21,55 @@ Code Coverage results are shown in:
 - Group repository analytics
 - Repository badge
 
-For more information on test coverage visualization in the file diff of the merge request, see [Test Coverage Visualization](test_coverage_visualization/index.md).
+For more information on test coverage visualization in the file diff of the MR, see [Test Coverage Visualization](test_coverage_visualization.md).
 
-### View code coverage results in the merge request
+### View code coverage results in the MR
 
 If you use test coverage in your code, you can use a regular expression to
 find coverage results in the job log. You can then include these results
-in the merge request.
+in the merge request in GitLab.
 
 If the pipeline succeeds, the coverage is shown in the merge request widget and
 in the jobs table. If multiple jobs in the pipeline have coverage reports, they are
 averaged.
 
-![MR widget coverage](img/pipelines_test_coverage_mr_widget_v17_3.png)
+![MR widget coverage](img/pipelines_test_coverage_mr_widget.png)
 
-![Build status coverage](img/pipelines_test_coverage_jobs_v17_3.png)
+![Build status coverage](img/pipelines_test_coverage_build.png)
 
 #### Add test coverage results using `coverage` keyword
 
-You can display test coverage results in a merge request by adding the
-[`coverage`](../yaml/index.md#coverage) keyword to your project's `.gitlab-ci.yml` file.
-
-To aggregate multiple test coverage values:
-
-- For each job you want to include in the aggregate value,
-  add the `coverage` keyword followed by a regular expression.
+To add test coverage results to a merge request using the project's `.gitlab-ci.yml` file, provide a regular expression
+using the [`coverage`](../yaml/index.md#coverage) keyword.
 
 #### Test coverage examples
 
-The following table lists sample regex patterns for many common test coverage tools.
+The following list shows sample regex patterns for many common test coverage tools.
 If the tooling has changed after these samples were created, or if the tooling was customized,
 the regex might not work. Test the regex carefully to make sure it correctly finds the
 coverage in the tool's output:
 
-<!-- vale gitlab_base.Spelling = NO -->
-<!-- markdownlint-disable MD056 -->
+<!-- vale gitlab.Spelling = NO -->
 
-| Name         | Language     | Command      | Example      |
-|--------------|--------------|--------------|--------------|
-| Simplecov | Ruby | None | `/\(\d+.\d+\%\) covered/` |
-| pytest-cov | Python | None | `/TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/` |
-| Scoverage | Scala | None | `/(?i)total.*? (100(?:\.0+)?\%\|[1-9]?\d(?:\.\d+)?\%)$/` |
-| pest | PHP | `pest --coverage --colors=never` | `/Statement coverage[A-Za-z\.*]\s*:\s*([^%]+)/` |
-| phpunit | PHP | `phpunit --coverage-text --colors=never` | `/^\s*Lines:\s*\d+.\d+\%/` |
-| gcovr | C/C++ | None | `/^TOTAL.*\s+(\d+\%)$/` |
-| tap | NodeJs | `tap --coverage-report=text-summary` | `/^Statements\s*:\s*([^%]+)/` |
-| nyc | NodeJs | `nyc npm test` | `/All files[^\|]*\|[^\|]*\s+([\d\.]+)/` |
-| jest | NodeJs | `jest --ci --coverage` | `/All files[^\|]*\|[^\|]*\s+([\d\.]+)/` |
-| excoveralls | Elixir | None | `/\[TOTAL\]\s+(\d+\.\d+)%/` |
-| mix | Elixir | `mix test --cover` | `/\d+.\d+\%\s+\|\s+Total/` |
-| JaCoCo | Java/Kotlin | None | `/Total.*?([0-9]{1,3})%/` |
-| go test | Go | `go test -cover` | `/coverage: \d+.\d+% of statements/` |
-| OpenCover | .NET | None | `/(Visited Points).*\((.*)\)/` |
-| dotnet test | .NET | `dotnet test` | `/Total\s*\|\s*(\d+(?:\.\d+)?)/` |
-| tarpaulin | Rust | None | `/^\d+.\d+% coverage/` |
-| Pester | PowerShell | None | `/Covered (\d+\.\d+%)/` |
+- Simplecov (Ruby). Example: `/\(\d+.\d+\%\) covered/`.
+- pytest-cov (Python). Example: `/TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/`.
+- Scoverage (Scala). Example: `/Statement coverage[A-Za-z\.*]\s*:\s*([^%]+)/`.
+- `pest --coverage --colors=never` (PHP). Example: `/^\s*Cov:\s*\d+\.\d+?%$/`.
+- `phpunit --coverage-text --colors=never` (PHP). Example: `/^\s*Lines:\s*\d+.\d+\%/`.
+- gcovr (C/C++). Example: `/^TOTAL.*\s+(\d+\%)$/`.
+- `tap --coverage-report=text-summary` (NodeJS). Example: `/^Statements\s*:\s*([^%]+)/`.
+- `nyc npm test` (NodeJS). Example: `/All files[^|]*\|[^|]*\s+([\d\.]+)/`.
+- `jest --ci --coverage` (NodeJS). Example: `/All files[^|]*\|[^|]*\s+([\d\.]+)/`.
+- excoveralls (Elixir). Example: `/\[TOTAL\]\s+(\d+\.\d+)%/`.
+- `mix test --cover` (Elixir). Example: `/\d+.\d+\%\s+\|\s+Total/`.
+- JaCoCo (Java/Kotlin). Example: `/Total.*?([0-9]{1,3})%/`.
+- `go test -cover` (Go). Example: `/^coverage: (\d+.\d+)% of statements$/`.
+- .NET (OpenCover). Example: `/(Visited Points).*\((.*)\)/`.
+- .NET (`dotnet test` line coverage). Example: `/Total\s*\|\s*(\d+(?:\.\d+)?)/`.
+- tarpaulin (Rust). Example: `/^\d+.\d+% coverage/`.
+- Pester (PowerShell). Example: `/Covered (\d+\.\d+%)/`.
 
-<!-- vale gitlab_base.Spelling = YES -->
-<!-- markdownlint-enable MD056 -->
+<!-- vale gitlab.Spelling = YES -->
 
 ### View history of project code coverage
 
@@ -115,17 +106,19 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-You can require specific users or a group to approve merge requests that would reduce the project's test coverage.
+When merging a request that would cause the project's test coverage to decline, you can stipulate that such merge requests require approval by selected users or a group.
 
-To add a `Coverage-Check` approval rule:
+Follow these steps to enable the `Coverage-Check` MR approval rule:
 
-1. [Add test coverage results to a merge request](#add-test-coverage-results-using-coverage-keyword).
+1. Set up a [`coverage`](../yaml/index.md#coverage) regular expression for all jobs you want to include in the overall coverage value.
 1. Go to your project and select **Settings > Merge requests**.
 1. Under **Merge request approvals**, select **Enable** next to the `Coverage-Check` approval rule.
 1. Select the **Target branch**.
 1. Set the number of **Approvals required** to greater than zero.
 1. Select the users or groups to provide approval.
 1. Select **Add approval rule**.
+
+![Coverage-Check approval rule](img/coverage_check_approval_rule_14_1.png)
 
 ## Troubleshooting
 

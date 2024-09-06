@@ -21,14 +21,6 @@
           "null"
         ]
       },
-      "imported": {
-        "type": "boolean"
-      },
-      "imported_from": {
-        "type": [
-          "string"
-        ]
-      },
       "files": {
         "type": "array",
         "items": {

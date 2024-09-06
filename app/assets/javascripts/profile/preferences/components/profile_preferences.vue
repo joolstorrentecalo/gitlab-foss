@@ -1,9 +1,8 @@
 <script>
 import { GlButton } from '@gitlab/ui';
 import { createAlert, VARIANT_DANGER } from '~/alert';
-import { INTEGRATION_VIEW_CONFIGS, i18n, INTEGRATION_EXTENSIONS_MARKETPLACE } from '../constants';
+import { INTEGRATION_VIEW_CONFIGS, i18n } from '../constants';
 import IntegrationView from './integration_view.vue';
-import ExtensionsMarketplaceWarning from './extensions_marketplace_warning.vue';
 
 function updateClasses(bodyClasses = '', applicationTheme, layout) {
   // Remove documentElement class for any previous theme, re-add current one
@@ -25,7 +24,6 @@ export default {
   components: {
     IntegrationView,
     GlButton,
-    ExtensionsMarketplaceWarning,
   },
   inject: {
     integrationViews: {
@@ -46,33 +44,18 @@ export default {
   },
   integrationViewConfigs: INTEGRATION_VIEW_CONFIGS,
   i18n,
-  INTEGRATION_EXTENSIONS_MARKETPLACE,
   data() {
-    const integrationValues = this.integrationViews.reduce((acc, { name }) => {
-      const { formName } = INTEGRATION_VIEW_CONFIGS[name];
-
-      acc[name] = Boolean(this.userFields[formName]);
-
-      return acc;
-    }, {});
-
     return {
       isSubmitEnabled: true,
-      colorModeOnCreate: null,
+      darkModeOnCreate: null,
       schemeOnCreate: null,
-      integrationValues,
     };
-  },
-  computed: {
-    extensionsMarketplaceView() {
-      return this.integrationViews.find(({ name }) => name === INTEGRATION_EXTENSIONS_MARKETPLACE);
-    },
   },
   created() {
     this.formEl.addEventListener('ajax:beforeSend', this.handleLoading);
     this.formEl.addEventListener('ajax:success', this.handleSuccess);
     this.formEl.addEventListener('ajax:error', this.handleError);
-    this.colorModeOnCreate = this.getSelectedColorMode();
+    this.darkModeOnCreate = this.darkModeSelected();
     this.schemeOnCreate = this.getSelectedScheme();
   },
   beforeDestroy() {
@@ -81,6 +64,10 @@ export default {
     this.formEl.removeEventListener('ajax:error', this.handleError);
   },
   methods: {
+    darkModeSelected() {
+      const mode = this.getSelectedColorMode();
+      return mode ? mode.css_class === 'gl-dark' : null;
+    },
     getSelectedColorMode() {
       const modeId = new FormData(this.formEl).get('user[color_mode_id]');
       const mode = this.colorModes.find((item) => item.id === Number(modeId));
@@ -101,7 +88,7 @@ export default {
       // Reload the page if the theme has changed from light to dark mode or vice versa
       // or if color scheme has changed to correctly load all required styles.
       if (
-        this.colorModeOnCreate !== this.getSelectedColorMode() ||
+        this.darkModeOnCreate !== this.darkModeSelected() ||
         this.schemeOnCreate !== this.getSelectedScheme()
       ) {
         window.location.reload();
@@ -123,18 +110,14 @@ export default {
 </script>
 
 <template>
-  <div class="js-preferences-form gl-contents">
+  <div class="gl-display-contents js-preferences-form">
     <div
       v-if="integrationViews.length"
-      class="settings-section js-search-settings-section gl-border-t !gl-pt-6"
+      class="settings-section gl-border-t gl-pt-6! js-search-settings-section"
     >
       <div class="settings-sticky-header">
         <div class="settings-sticky-header-inner">
-          <h4
-            id="integrations"
-            class="gl-my-0"
-            data-testid="profile-preferences-integrations-heading"
-          >
+          <h4 class="gl-my-0" data-testid="profile-preferences-integrations-heading">
             {{ $options.i18n.integrations }}
           </h4>
         </div>
@@ -146,7 +129,6 @@ export default {
         <integration-view
           v-for="view in integrationViews"
           :key="view.name"
-          v-model="integrationValues[view.name]"
           :help-link="view.help_link"
           :message="view.message"
           :message-url="view.message_url"
@@ -166,10 +148,5 @@ export default {
         {{ $options.i18n.saveChanges }}
       </gl-button>
     </div>
-    <extensions-marketplace-warning
-      v-if="extensionsMarketplaceView"
-      v-model="integrationValues[$options.INTEGRATION_EXTENSIONS_MARKETPLACE]"
-      :help-url="extensionsMarketplaceView.help_link"
-    />
   </div>
 </template>

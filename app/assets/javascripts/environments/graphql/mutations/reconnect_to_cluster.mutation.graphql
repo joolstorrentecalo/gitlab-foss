@@ -1,12 +1,12 @@
 mutation reconnectToCluster(
   $configuration: LocalConfiguration
   $namespace: String
-  $resourceTypeParam: ResourceTypeParam
+  $resourceType: String
 ) {
   reconnectToCluster(
     configuration: $configuration
     namespace: $namespace
-    resourceTypeParam: $resourceTypeParam
+    resourceType: $resourceType
   ) @client {
     errors
   }

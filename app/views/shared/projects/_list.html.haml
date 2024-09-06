@@ -11,7 +11,6 @@
 - skip_pagination = false unless local_assigns[:skip_pagination] == true
 - compact_mode = false unless local_assigns[:compact_mode] == true
 - card_mode = local_assigns[:card_mode] == true
-- event_tracking = local_assigns[:event_tracking]
 - css_classes = "#{'compact' if compact_mode} #{'explore' if explore_projects_tab?}"
 - contributed_projects_current_user_empty_message_header = s_('UserProfile|Explore public groups to find projects to contribute to')
 - contributed_projects_visitor_empty_message = s_('UserProfile|This user hasn\'t contributed to any projects')
@@ -21,13 +20,12 @@
 - own_projects_illustration_path = 'illustrations/empty-state/empty-projects-md.svg'
 - own_projects_current_user_empty_message_header = s_('UserProfile|You haven\'t created any personal projects')
 - own_projects_current_user_empty_message_description = s_('UserProfile|Your projects can be available publicly, internally, or privately, at your choice.')
-- own_projects_current_user_cant_create_description = s_("UserProfile|You cannot create projects in your personal namespace. Contact your GitLab administrator.")
 - own_projects_visitor_empty_message = s_('UserProfile|There are no projects available to be displayed here')
 - explore_page_empty_message = s_('UserProfile|Explore public groups to find projects to contribute to')
 - new_project_button_label = _('New project')
 - new_project_button_link = new_project_path
 - explore_projects_button_label = _('Explore projects')
-- explore_projects_button_link = starred_explore_projects_path
+- explore_projects_button_link = explore_projects_path
 - explore_groups_button_label = _('Explore groups')
 - explore_groups_button_link = explore_groups_path
 
@@ -37,7 +35,7 @@
     - load_max_project_member_accesses(projects) # Prime cache used in shared/projects/project view rendered below
     - load_catalog_resources(projects)
     - if card_mode
-      .projects-list.gl-text-secondary.gl-w-full.gl-flex.gl-flex-col.lg:gl-flex-row.gl-gap-4.gl-overflow-x-auto{ class: css_classes }
+      .projects-list.gl-text-secondary.gl-w-full.gl-display-flex.gl-flex-direction-column.gl-lg-flex-direction-row.gl-gap-4.gl-overflow-x-auto{ class: css_classes }
         - projects.take(projects_limit).each_with_index do |project, i| # rubocop: disable CodeReuse/ActiveRecord -- it's Enumerable#take
 
           = render "shared/projects/project_card", project: project, skip_namespace: skip_namespace,
@@ -54,7 +52,7 @@
             forks: able_to_see_forks_count?(project, user), show_last_commit_as_description: show_last_commit_as_description,
             user: user, merge_requests: able_to_see_merge_requests?(project, user), issues: able_to_see_issues?(project, user),
             pipeline_status: pipeline_status, compact_mode: compact_mode
-    = paginate_collection(projects, remote: remote, event_tracking: event_tracking) unless skip_pagination
+    = paginate_collection(projects, remote: remote) unless skip_pagination
   - else
     - if @contributed_projects
       = render partial: 'shared/empty_states/profile_tabs', locals: { illustration_path: own_projects_illustration_path,
@@ -71,10 +69,9 @@
         primary_button_link: explore_projects_button_link,
         visitor_empty_message: starred_projects_visitor_empty_message }
     - else
-      - user_has_limits = current_user&.projects_limit.to_i > 0
       = render partial: 'shared/empty_states/profile_tabs', locals: { illustration_path: own_projects_illustration_path,
         current_user_empty_message_header: own_projects_current_user_empty_message_header,
-        current_user_empty_message_description: user_has_limits ? own_projects_current_user_empty_message_description : own_projects_current_user_cant_create_description,
-        primary_button_label: user_has_limits ? new_project_button_label : nil,
-        primary_button_link: user_has_limits ? new_project_button_link : nil,
+        current_user_empty_message_description: own_projects_current_user_empty_message_description,
+        primary_button_label: new_project_button_label,
+        primary_button_link: new_project_button_link,
         visitor_empty_message: defined?(explore_page) && explore_page ? explore_page_empty_message : own_projects_visitor_empty_message }
