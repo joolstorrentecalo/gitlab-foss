@@ -63,4 +63,4 @@
             checkbox_options: { checked: @group.namespace_descendants.present? },
             help_text: s_('GroupSettings|Building the cache is asynchronous, happens in a background job. The cache invalidation is synchronous with strong consistency guarantees.')
 
-  = f.submit _('Save changes'), pajamas_button: true, class: 'gl-mt-3 js-dirty-submit', data: { testid: 'save-permissions-changes-button' }
+  = f.submit _('Save changes'), pajamas_button: true, class: 'gl-mt-3', data: { testid: 'save-permissions-changes-button' }

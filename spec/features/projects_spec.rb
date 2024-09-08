@@ -396,20 +396,6 @@ RSpec.describe 'Project', feature_category: :source_code_management do
     end
   end
 
-  describe 'edit' do
-    let(:user) { create(:user) }
-    let(:project) { create(:project, :public) }
-    let(:path) { edit_project_path(project) }
-
-    before do
-      project.add_maintainer(user)
-      sign_in(user)
-      visit path
-    end
-
-    it_behaves_like 'dirty submit form', [{ form: '.js-general-settings-form', input: 'input[name="project[name]"]', submit: 'button[type="submit"]' }]
-  end
-
   describe 'view for a user without an access to a repo' do
     let(:project) { create(:project, :repository) }
     let(:user) { create(:user) }

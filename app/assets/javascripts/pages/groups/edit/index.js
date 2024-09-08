@@ -1,5 +1,4 @@
 import { GROUP_BADGE } from '~/badges/constants';
-import dirtySubmitFactory from '~/dirty_submit/dirty_submit_factory';
 import initFilePickers from '~/file_pickers';
 import initTransferGroupForm from '~/groups/init_transfer_group_form';
 import { initGroupSelects } from '~/vue_shared/components/entity_select/init_group_selects';
@@ -30,9 +29,6 @@ initFilePickers();
 initConfirmDanger();
 initSettingsPanels();
 initTransferGroupForm();
-dirtySubmitFactory(
-  document.querySelectorAll('.js-general-settings-form, .js-general-permissions-form'),
-);
 mountBadgeSettings(GROUP_BADGE);
 
 // Initialize Subgroups selector

@@ -47474,9 +47474,6 @@ msgstr ""
 msgid "Save changes"
 msgstr ""
 
-msgid "Save changes before testing"
-msgstr ""
-
 msgid "Save comment"
 msgstr ""
 

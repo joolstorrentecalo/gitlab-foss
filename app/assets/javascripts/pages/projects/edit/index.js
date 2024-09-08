@@ -1,6 +1,5 @@
 import { PROJECT_BADGE } from '~/badges/constants';
 import initConfirmDanger from '~/init_confirm_danger';
-import dirtySubmitFactory from '~/dirty_submit/dirty_submit_factory';
 import initFilePickers from '~/file_pickers';
 import mountBadgeSettings from '~/pages/shared/mount_badge_settings';
 import initProjectDeleteButton from '~/projects/project_delete_button';
@@ -28,8 +27,6 @@ initServiceDesk();
 initProjectLoadingSpinner();
 initProjectPermissionsSettings();
 initTransferProjectForm();
-
-dirtySubmitFactory(document.querySelectorAll('.js-general-settings-form, .js-mr-settings-form'));
 
 initSearchSettings();
 initTopicsTokenSelector();
