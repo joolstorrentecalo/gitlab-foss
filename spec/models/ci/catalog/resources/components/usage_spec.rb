@@ -71,4 +71,56 @@ RSpec.describe Ci::Catalog::Resources::Components::Usage, type: :model, feature_
       expect(described_class.count).to eq(1)
     end
   end
+
+  describe '.used_by_project_ids' do
+    let_it_be(:group) { create(:group) }
+    let_it_be(:project1) { create(:project, group: group) }
+    let_it_be(:project2) { create(:project, group: group) }
+    let_it_be(:old_usage) do
+      create(:ci_catalog_resource_component_usage, component: component, used_by_project_id: project1.id,
+        used_date: 31.days.ago.to_date)
+    end
+
+    let_it_be(:recent_usage1) do
+      create(:ci_catalog_resource_component_usage, component: component, used_by_project_id: project2.id,
+        used_date: 2.days.ago.to_date)
+    end
+
+    it 'returns project IDs that used the component in the last 30 days' do
+      expect(described_class.used_by_project_ids(group.projects)).to contain_exactly(project2)
+    end
+  end
+
+  describe '.fetch_ci_components_used' do
+    let_it_be(:project) { create(:project) }
+    let_it_be(:component1) { create(:ci_catalog_resource_component, name: 'component1') }
+    let_it_be(:component2) { create(:ci_catalog_resource_component, name: 'component2') }
+    let_it_be(:component3) { create(:ci_catalog_resource_component, name: 'component3') }
+    let_it_be(:old_usage) do
+      create(:ci_catalog_resource_component_usage, component: component3, used_by_project_id: project.id,
+        used_date: 31.days.ago.to_date)
+    end
+
+    let_it_be(:recent_usage1) do
+      create(:ci_catalog_resource_component_usage, component: component1, used_by_project_id: project.id,
+        used_date: 1.day.ago.to_date)
+    end
+
+    let_it_be(:recent_usage_old1) do
+      create(:ci_catalog_resource_component_usage, component: component1, used_by_project_id: project.id,
+        used_date: 3.days.ago.to_date)
+    end
+
+    let_it_be(:recent_usage2) do
+      create(:ci_catalog_resource_component_usage, component: component2, used_by_project_id: project.id,
+        used_date: 1.day.ago.to_date)
+    end
+
+    it 'returns components used by the project in the last 30 days' do
+      expect(described_class.fetch_ci_components_used(project)).to contain_exactly(
+        { name: 'component1', version: component1.version.name, used_date: recent_usage1.used_date },
+        { name: 'component2', version: component2.version.name, used_date: recent_usage2.used_date }
+      )
+    end
+  end
 end

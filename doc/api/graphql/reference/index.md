@@ -955,6 +955,26 @@ four standard [pagination arguments](#pagination-arguments):
 | <a id="queryprojectswithissuesenabled"></a>`withIssuesEnabled` | [`Boolean`](#boolean) | Return only projects with issues enabled. |
 | <a id="queryprojectswithmergerequestsenabled"></a>`withMergeRequestsEnabled` | [`Boolean`](#boolean) | Return only projects with merge requests enabled. |
 
+### `Query.projectsUsingComponents`
+
+List of projects using CI components.
+
+DETAILS:
+**Introduced** in GitLab 17.4.
+**Status**: Experiment.
+
+Returns [`ProjectsUsingCiComponentsConnection`](#projectsusingcicomponentsconnection).
+
+This field returns a [connection](#connections). It accepts the
+four standard [pagination arguments](#pagination-arguments):
+`before: String`, `after: String`, `first: Int`, and `last: Int`.
+
+#### Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="queryprojectsusingcomponentsgroupid"></a>`groupId` | [`GroupID`](#groupid) | ID of the group to fetch projects from. |
+
 ### `Query.queryComplexity`
 
 Information about the complexity of the GraphQL query.
@@ -11456,6 +11476,29 @@ The edge type for [`CiCatalogResourceVersion`](#cicatalogresourceversion).
 | <a id="cicatalogresourceversionedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
 | <a id="cicatalogresourceversionedgenode"></a>`node` | [`CiCatalogResourceVersion`](#cicatalogresourceversion) | The item at the end of the edge. |
 
+#### `CiComponentUsageConnection`
+
+The connection type for [`CiComponentUsage`](#cicomponentusage).
+
+##### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="cicomponentusageconnectionedges"></a>`edges` | [`[CiComponentUsageEdge]`](#cicomponentusageedge) | A list of edges. |
+| <a id="cicomponentusageconnectionnodes"></a>`nodes` | [`[CiComponentUsage]`](#cicomponentusage) | A list of nodes. |
+| <a id="cicomponentusageconnectionpageinfo"></a>`pageInfo` | [`PageInfo!`](#pageinfo) | Information to aid in pagination. |
+
+#### `CiComponentUsageEdge`
+
+The edge type for [`CiComponentUsage`](#cicomponentusage).
+
+##### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="cicomponentusageedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
+| <a id="cicomponentusageedgenode"></a>`node` | [`CiComponentUsage`](#cicomponentusage) | The item at the end of the edge. |
+
 #### `CiConfigGroupConnection`
 
 The connection type for [`CiConfigGroup`](#ciconfiggroup).
@@ -15301,6 +15344,29 @@ The edge type for [`ProjectWikiRepositoryRegistry`](#projectwikirepositoryregist
 | <a id="projectwikirepositoryregistryedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
 | <a id="projectwikirepositoryregistryedgenode"></a>`node` | [`ProjectWikiRepositoryRegistry`](#projectwikirepositoryregistry) | The item at the end of the edge. |
 
+#### `ProjectsUsingCiComponentsConnection`
+
+The connection type for [`ProjectsUsingCiComponents`](#projectsusingcicomponents).
+
+##### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="projectsusingcicomponentsconnectionedges"></a>`edges` | [`[ProjectsUsingCiComponentsEdge]`](#projectsusingcicomponentsedge) | A list of edges. |
+| <a id="projectsusingcicomponentsconnectionnodes"></a>`nodes` | [`[ProjectsUsingCiComponents]`](#projectsusingcicomponents) | A list of nodes. |
+| <a id="projectsusingcicomponentsconnectionpageinfo"></a>`pageInfo` | [`PageInfo!`](#pageinfo) | Information to aid in pagination. |
+
+#### `ProjectsUsingCiComponentsEdge`
+
+The edge type for [`ProjectsUsingCiComponents`](#projectsusingcicomponents).
+
+##### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="projectsusingcicomponentsedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
+| <a id="projectsusingcicomponentsedgenode"></a>`node` | [`ProjectsUsingCiComponents`](#projectsusingcicomponents) | The item at the end of the edge. |
+
 #### `ProtectedEnvironmentApprovalRuleConnection`
 
 The connection type for [`ProtectedEnvironmentApprovalRule`](#protectedenvironmentapprovalrule).
@@ -18710,6 +18776,18 @@ four standard [pagination arguments](#pagination-arguments):
 | <a id="cicatalogresourceversionreadme"></a>`readme` | [`String`](#string) | Readme data. |
 | <a id="cicatalogresourceversionreadmehtml"></a>`readmeHtml` | [`String`](#string) | GitLab Flavored Markdown rendering of `readme`. |
 | <a id="cicatalogresourceversionreleasedat"></a>`releasedAt` **{warning-solid}** | [`Time`](#time) | **Introduced** in GitLab 16.7. **Status**: Experiment. Timestamp of when the version was released. |
+
+### `CiComponentUsage`
+
+Represents a CI component used by a project.
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="cicomponentusagename"></a>`name` | [`String!`](#string) | Name of the CI component. |
+| <a id="cicomponentusageuseddate"></a>`usedDate` | [`ISO8601Date!`](#iso8601date) | Date when the component was used in the project. |
+| <a id="cicomponentusageversion"></a>`version` | [`String!`](#string) | Version of the CI component. |
 
 ### `CiConfig`
 
@@ -31542,6 +31620,17 @@ Represents the Geo replication and verification state of a project_wiki_reposito
 | <a id="projectwikirepositoryregistryverificationstartedat"></a>`verificationStartedAt` | [`Time`](#time) | Timestamp when the verification started of ProjectWikiRepositoryRegistry. |
 | <a id="projectwikirepositoryregistryverificationstate"></a>`verificationState` | [`VerificationStateEnum`](#verificationstateenum) | Verification state of the ProjectWikiRepositoryRegistry. |
 | <a id="projectwikirepositoryregistryverifiedat"></a>`verifiedAt` | [`Time`](#time) | Timestamp of the most recent successful verification of the ProjectWikiRepositoryRegistry. |
+
+### `ProjectsUsingCiComponents`
+
+Represents a project using CI components.
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="projectsusingcicomponentscicomponentsused"></a>`ciComponentsUsed` | [`CiComponentUsageConnection`](#cicomponentusageconnection) | CI components used by the project. (see [Connections](#connections)) |
+| <a id="projectsusingcicomponentsfullpath"></a>`fullPath` | [`String!`](#string) | Full path of the project. |
 
 ### `PrometheusAlert`
 
