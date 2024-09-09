@@ -13,7 +13,15 @@ module Packages
           ::Packages::Maven::PackageFinder.new(current_user, project, path: path)
           .execute&.last
 
+        # Old logic
         if !Namespace::PackageSetting.duplicates_allowed?(package) && target_package_is_duplicate?(package)
+          return ServiceResponse.error(message: 'Duplicate package is not allowed')
+        end
+
+        # Additional new logic
+        if Namespace::PackageSetting.duplicates_allowed?(package) &&
+            target_package_is_duplicate?(package) &&
+            target_package_is_duplicate_exception?(package)
           return ServiceResponse.error(message: 'Duplicate package is not allowed')
         end
 
@@ -74,7 +82,7 @@ module Packages
 
       def target_package_is_duplicate?(package)
         # duplicate metadata files can be uploaded multiple times
-        return false if package.version.nil?
+        return false unless package&.version
 
         existing_file_names = strip_snapshot_parts(
           package.package_files
@@ -84,6 +92,16 @@ module Packages
 
         published_file_name = strip_snapshot_parts_from(file_name)
         existing_file_names.include?(published_file_name)
+      end
+
+      def target_package_is_duplicate_exception?(package)
+        return false if package.version.nil?
+
+        exception_regex = project.namespace.package_settings.maven_duplicate_exception_regex
+
+        # Check the logic in _is_duplicate? method
+        # filenames with a classifier should not be detected as a duplicate
+        exception_regex.match(package.name) || exception_regex.match(package.version)
       end
 
       def strip_snapshot_parts(file_names)

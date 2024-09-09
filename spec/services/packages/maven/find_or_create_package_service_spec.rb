@@ -204,6 +204,58 @@ RSpec.describe Packages::Maven::FindOrCreatePackageService, feature_category: :p
       end
     end
 
+    context 'when package duplicates are allowed' do
+      let_it_be_with_refind(:package_settings) do
+        create(:namespace_package_setting, :group, maven_duplicates_allowed: true)
+      end
+
+      let_it_be_with_refind(:group) { package_settings.namespace }
+      let_it_be_with_refind(:project) { create(:project, group: group) }
+
+      let!(:existing_package) { create(:maven_package, name: path, version: version, project: project) }
+
+      let(:existing_file_name) { file_name }
+      let(:jar_file) { existing_package.package_files.with_file_name_like('%.jar').first }
+
+      before do
+        jar_file.update_column(:file_name, existing_file_name)
+      end
+
+      it_behaves_like 'reuse existing package'
+
+      context 'when the package name matches the exception regex' do
+        before do
+          package_settings.update!(maven_duplicate_exception_regex: existing_package.name)
+        end
+
+        it_behaves_like 'returning an error', with_message: 'Duplicate package is not allowed'
+      end
+
+      context 'when the package version matches the exception regex' do
+        before do
+          package_settings.update!(maven_duplicate_exception_regex: existing_package.version)
+        end
+
+        it_behaves_like 'returning an error', with_message: 'Duplicate package is not allowed'
+      end
+
+      context 'when the exception regex is blank' do
+        before do
+          package_settings.update!(maven_duplicate_exception_regex: '')
+        end
+
+        it_behaves_like 'reuse existing package'
+      end
+
+      context 'when both the package name and version does not match the exception regex' do
+        before do
+          package_settings.update!(maven_duplicate_exception_regex: 'asdf42')
+        end
+
+        it_behaves_like 'reuse existing package'
+      end
+    end
+
     context 'with a very large file name' do
       let(:params) { super().merge(file_name: 'a' * (described_class::MAX_FILE_NAME_LENGTH + 1)) }
 
