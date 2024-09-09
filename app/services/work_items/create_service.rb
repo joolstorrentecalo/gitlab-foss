@@ -17,16 +17,8 @@ module WorkItems
 
     def execute(skip_system_notes: false)
       result = skip_system_notes? ? super(skip_system_notes: true) : super
-      return result if result.error?
 
-      work_item = result[:issue]
-
-      if work_item.valid?
-        publish_event(work_item)
-        success(payload(work_item))
-      else
-        error(work_item.errors.full_messages, :unprocessable_entity, pass_back: payload(work_item))
-      end
+      service_response(result)
     rescue ::WorkItems::Widgets::BaseService::WidgetError, ::Issuable::Callbacks::Base::Error => e
       error(e.message, :unprocessable_entity)
     end
@@ -90,6 +82,19 @@ module WorkItems
             namespace_id: work_item.namespace_id
           })
         )
+      end
+    end
+
+    def service_response(result)
+      return result if result.error?
+
+      work_item = result[:issue]
+
+      if work_item.valid?
+        publish_event(work_item)
+        success(payload(work_item))
+      else
+        error(work_item.errors.full_messages, :unprocessable_entity, pass_back: payload(work_item))
       end
     end
   end
