@@ -30,7 +30,6 @@ module Gitlab
         # :ensure_merge_request_diff in the MergeRequest class, makes that
         # when the merge request is going to be created and it doesn't have
         # one, a default one will be generated.
-        @merge_request.merge_request_diff = nil unless @merge_request.merge_request_diff&.valid?
         @merge_request
       end
 
