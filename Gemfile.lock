@@ -1417,7 +1417,7 @@ GEM
     prime (0.1.2)
       forwardable
       singleton
-    prism (0.29.0)
+    prism (1.0.0)
     proc_to_ast (0.1.0)
       coderay
       parser
@@ -1647,9 +1647,9 @@ GEM
     ruby-fogbugz (0.3.0)
       crack (~> 0.4)
       multipart-post (~> 2.0)
-    ruby-lsp (0.17.15)
+    ruby-lsp (0.17.17)
       language_server-protocol (~> 3.17.0)
-      prism (>= 0.29.0, < 0.31)
+      prism (~> 1.0)
       rbs (>= 3, < 4)
       sorbet-runtime (>= 0.5.10782)
     ruby-lsp-rails (0.3.13)
