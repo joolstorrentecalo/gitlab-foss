@@ -61,7 +61,7 @@ module Gitlab
             false
           end
         rescue LdapConnectionError
-          false
+          true # Succeed on LDAP connection error - ignore flakey AD controllers
         end
 
         def update_user
@@ -90,6 +90,9 @@ module Gitlab
 
         def block_user(user, reason)
           user.ldap_block
+
+          # Remove 2FA for blocked users
+          TwoFactor::DestroyService.new(user, user: user).execute if user.two_factor_enabled?
 
           if provider
             Gitlab::AppLogger.info(
