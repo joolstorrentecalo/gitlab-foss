@@ -20,20 +20,28 @@ if (hasTranslations) {
 
 /**
  * Translates `text`.
- * @param {string} text - The text to be translated
- * @returns {string} The translated text
+ * @template {string} T
+ * @param {T} text - The text to be translated
+ * @returns {T} The translated text
  */
 const gettext = (text) => locale.gettext(ensureSingleLine(text));
+
+/**
+ * @template {string} T
+ * @typedef {(T extends `${string}|${infer Key}` ? Key : T)} DropContext
+ */
 
 /**
  * Translate the text with a number.
  *
  * If the number is more than 1 it will use the `pluralText` translation.
  * This method allows for contexts, see below re. contexts
- * @param {string} text - Singular text to translate (e.g. '%d day')
- * @param {string} pluralText - Plural text to translate (e.g. '%d days')
+ * @template {string} T1
+ * @template {string} T2
+ * @param {T1} text - Singular text to translate (e.g. '%d day')
+ * @param {T2} pluralText - Plural text to translate (e.g. '%d days')
  * @param {number} count - Number to decide which translation to use (e.g. 2)
- * @returns {string} Translated text with the number replaced (e.g. '2 days')
+ * @returns {DropContext<T1> | DropContext<T2>} Translated text with the number replaced (e.g. '2 days')
  */
 const ngettext = (text, pluralText, count) => {
   const translated = locale
@@ -45,15 +53,23 @@ const ngettext = (text, pluralText, count) => {
 };
 
 /**
- * Translate context based text.
+ * @template {string} T
+ * @overload
+ * @param {T} keyOrContext - Context and a key to translation (e.g. 'Context|Text')
+ * @returns {DropContext<T>} Translated context based text
+ */
+
+/**
+ * @template {string} T
+ * @overload
+ * @param {string} keyOrContext - Context to translation
+ * @param {T} key - key to translation
+ * @returns {DropContext<T>} Translated context based text
+ *
  * @example
- * s__('Context|Text to translate');
+ * gettext('Context|Text')
  * @example
- * s__('Context', 'Text to translate');
- * @param {string} keyOrContext - Context and a key to translation (e.g. 'Context|Text')
- * or just a context (e.g. 'Context')
- * @param {string} [key] - if `keyOrContext` is just a context, this is the key to translation
- * @returns {string} Translated context based text
+ * gettext('Context', 'Text')
  */
 const pgettext = (keyOrContext, key) => {
   const normalizedKey = ensureSingleLine(key ? `${keyOrContext}|${key}` : keyOrContext);
