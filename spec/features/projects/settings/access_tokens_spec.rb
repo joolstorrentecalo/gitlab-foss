@@ -5,10 +5,11 @@ require 'spec_helper'
 RSpec.describe 'Project > Settings > access tokens', :js, feature_category: :user_management do
   include Spec::Support::Helpers::ModalHelpers
 
-  let_it_be(:user) { create(:user) }
-  let_it_be(:bot_user) { create(:user, :project_bot) }
-  let_it_be(:group) { create(:group) }
-  let_it_be(:project) { create(:project, group: group, maintainers: user) }
+  let_it_be(:organization) { create(:organization) }
+  let_it_be(:user) { create(:user, organizations: [organization]) }
+  let_it_be(:bot_user) { create(:user, :project_bot, organizations: [organization]) }
+  let_it_be(:group) { create(:group, organization: organization) }
+  let_it_be(:project) { create(:project, group: group, maintainers: user, organization: group.organization) }
   let_it_be(:resource_settings_access_tokens_path) { project_settings_access_tokens_path(project) }
 
   before do
@@ -18,7 +19,7 @@ RSpec.describe 'Project > Settings > access tokens', :js, feature_category: :use
   def create_resource_access_token
     project.add_maintainer(bot_user)
 
-    create(:personal_access_token, user: bot_user)
+    create(:personal_access_token, user: bot_user, organization: organization)
   end
 
   def role_dropdown_options
@@ -70,7 +71,7 @@ RSpec.describe 'Project > Settings > access tokens', :js, feature_category: :use
     it_behaves_like 'resource access tokens creation disallowed', 'Project access token creation is disabled in this group.'
 
     context 'with a project in a personal namespace' do
-      let(:personal_project) { create(:project) }
+      let_it_be(:personal_project) { create(:project, organization: organization) }
 
       before do
         personal_project.add_maintainer(user)

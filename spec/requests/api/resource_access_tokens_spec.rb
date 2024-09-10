@@ -5,6 +5,7 @@ require "spec_helper"
 RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
   let_it_be(:user) { create(:user) }
   let_it_be(:user_non_priviledged) { create(:user) }
+  let_it_be(:organization) { create(:organization) }
 
   shared_examples 'resource access token API' do |source_type|
     context "GET #{source_type}s/:id/access_tokens" do
@@ -12,9 +13,18 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
 
       context "when the user has valid permissions" do
         let_it_be(:project_bot) { create(:user, :project_bot) }
-        let_it_be(:active_access_tokens) { create_list(:personal_access_token, 5, user: project_bot) }
-        let_it_be(:expired_token) { create(:personal_access_token, :expired, user: project_bot) }
-        let_it_be(:revoked_token) { create(:personal_access_token, :revoked, user: project_bot) }
+        let_it_be(:active_access_tokens) do
+          create_list(:personal_access_token, 5, user: project_bot, organization: organization)
+        end
+
+        let_it_be(:expired_token) do
+          create(:personal_access_token, :expired, user: project_bot, organization: organization)
+        end
+
+        let_it_be(:revoked_token) do
+          create(:personal_access_token, :revoked, user: project_bot, organization: organization)
+        end
+
         let_it_be(:inactive_access_tokens) { [expired_token, revoked_token] }
         let_it_be(:all_access_tokens) { active_access_tokens + inactive_access_tokens }
         let_it_be(:resource_id) { resource.id }
@@ -152,7 +162,10 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
       context "when the user does not have valid permissions" do
         let_it_be(:user) { user_non_priviledged }
         let_it_be(:project_bot) { create(:user, :project_bot) }
-        let_it_be(:access_tokens) { create_list(:personal_access_token, 3, user: project_bot) }
+        let_it_be(:access_tokens) do
+          create_list(:personal_access_token, 3, user: project_bot, organization: organization)
+        end
+
         let_it_be(:resource_id) { resource.id }
 
         before do
@@ -171,7 +184,7 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
       subject(:get_token) { get api("/#{source_type}s/#{resource_id}/access_tokens/#{token_id}", user) }
 
       let_it_be(:project_bot) { create(:user, :project_bot) }
-      let_it_be(:token) { create(:personal_access_token, user: project_bot) }
+      let_it_be(:token) { create(:personal_access_token, user: project_bot, organization: organization) }
       let_it_be(:resource_id) { resource.id }
       let_it_be(:token_id) { token.id }
 
@@ -204,7 +217,10 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
 
         context "when using #{source_type} access token to GET other #{source_type} access token" do
           let_it_be(:other_project_bot) { create(:user, :project_bot) }
-          let_it_be(:other_token) { create(:personal_access_token, user: other_project_bot) }
+          let_it_be(:other_token) do
+            create(:personal_access_token, user: other_project_bot, organization: organization)
+          end
+
           let_it_be(:token_id) { other_token.id }
 
           before do
@@ -268,7 +284,7 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
       subject(:delete_token) { delete api("/#{source_type}s/#{resource_id}/access_tokens/#{token_id}", user) }
 
       let_it_be(:project_bot) { create(:user, :project_bot) }
-      let_it_be(:token) { create(:personal_access_token, user: project_bot) }
+      let_it_be(:token) { create(:personal_access_token, user: project_bot, organization: organization) }
       let_it_be(:resource_id) { resource.id }
       let_it_be(:token_id) { token.id }
 
@@ -294,7 +310,10 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
 
           context "when using #{source_type} access token to DELETE other #{source_type} access token" do
             let_it_be(:other_project_bot) { create(:user, :project_bot) }
-            let_it_be(:other_token) { create(:personal_access_token, user: other_project_bot) }
+            let_it_be(:other_token) do
+              create(:personal_access_token, user: other_project_bot, organization: organization)
+            end
+
             let_it_be(:token_id) { other_token.id }
 
             before do
@@ -324,7 +343,10 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
 
         context "when using #{source_type} access token to DELETE other #{source_type} access token" do
           let_it_be(:other_project_bot) { create(:user, :project_bot) }
-          let_it_be(:other_token) { create(:personal_access_token, user: other_project_bot) }
+          let_it_be(:other_token) do
+            create(:personal_access_token, user: other_project_bot, organization: resource.organization)
+          end
+
           let_it_be(:token_id) { other_token.id }
 
           before do
@@ -542,7 +564,7 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
 
     context "POST #{source_type}s/:id/access_tokens/:token_id/rotate" do
       let_it_be(:project_bot) { create(:user, :project_bot) }
-      let_it_be(:token) { create(:personal_access_token, user: project_bot) }
+      let_it_be(:token) { create(:personal_access_token, user: project_bot, organization: organization) }
       let_it_be(:resource_id) { resource.id }
       let_it_be(:token_id) { token.id }
       let(:params) { {} }
@@ -703,9 +725,10 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
   end
 
   context 'when the resource is a project' do
-    let_it_be(:resource) { create(:project, group: create(:group)) }
-    let_it_be(:other_resource) { create(:project) }
-    let_it_be(:unknown_resource) { create(:project) }
+    let_it_be(:group) { create(:group, organization: organization) }
+    let_it_be(:resource) { create(:project, group: group) }
+    let_it_be(:other_resource) { create(:project, organization: organization) }
+    let_it_be(:unknown_resource) { create(:project, organization: organization) }
 
     before_all do
       resource.add_maintainer(user)
@@ -717,9 +740,9 @@ RSpec.describe API::ResourceAccessTokens, feature_category: :system_access do
   end
 
   context 'when the resource is a group' do
-    let_it_be(:resource) { create(:group) }
-    let_it_be(:other_resource) { create(:group) }
-    let_it_be(:unknown_resource) { create(:project) }
+    let_it_be(:resource) { create(:group, organization: organization) }
+    let_it_be(:other_resource) { create(:group, organization: organization) }
+    let_it_be(:unknown_resource) { create(:project, organization: organization) }
 
     before_all do
       resource.add_owner(user)

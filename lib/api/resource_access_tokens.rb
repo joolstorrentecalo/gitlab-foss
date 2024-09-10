@@ -28,7 +28,7 @@ module API
 
           next unauthorized! unless current_user.can?(:read_resource_access_tokens, resource)
 
-          tokens = PersonalAccessTokensFinder.new({ user: resource.bots, impersonation: false, state: params[:state] }).execute.preload_users
+          tokens = PersonalAccessTokensFinder.new({ user: resource.bots, impersonation: false, state: params[:state], organization: resource.organization }).execute.preload_users
 
           resource.members.load
           present paginate(tokens), with: Entities::ResourceAccessToken, resource: resource
@@ -188,7 +188,7 @@ module API
       end
 
       def find_token(resource, token_id)
-        PersonalAccessTokensFinder.new({ user: resource.bots, impersonation: false }).find_by_id(token_id)
+        PersonalAccessTokensFinder.new({ user: resource.bots, impersonation: false, organization: resource.organization }).find_by_id(token_id)
       end
     end
   end

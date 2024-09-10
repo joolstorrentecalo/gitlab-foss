@@ -3,9 +3,10 @@
 require 'spec_helper'
 
 RSpec.describe Groups::Settings::AccessTokensController, feature_category: :system_access do
-  let_it_be(:user) { create(:user) }
-  let_it_be(:resource) { create(:group, owners: user) }
-  let_it_be(:access_token_user) { create(:user, :project_bot, maintainer_of: resource) }
+  let_it_be(:organization) { create(:organization) }
+  let_it_be(:user) { create(:user, organizations: [organization]) }
+  let_it_be(:resource) { create(:group, owners: user, organization: organization) }
+  let_it_be(:access_token_user) { create(:user, :project_bot, maintainer_of: resource, organizations: [organization]) }
 
   before do
     sign_in(user)
@@ -84,7 +85,7 @@ RSpec.describe Groups::Settings::AccessTokensController, feature_category: :syst
   end
 
   describe 'PUT /:namespace/-/settings/access_tokens/:id', :sidekiq_inline do
-    let(:resource_access_token) { create(:personal_access_token, user: access_token_user) }
+    let(:resource_access_token) { create(:personal_access_token, user: access_token_user, organization: organization) }
 
     subject do
       put revoke_group_settings_access_token_path(resource, resource_access_token)
@@ -96,7 +97,7 @@ RSpec.describe Groups::Settings::AccessTokensController, feature_category: :syst
   end
 
   describe '#index' do
-    let_it_be(:resource_access_tokens) { create_list(:personal_access_token, 3, user: access_token_user) }
+    let_it_be(:resource_access_tokens) { create_list(:personal_access_token, 3, user: access_token_user, organization: organization) }
 
     before do
       get group_settings_access_tokens_path(resource)
