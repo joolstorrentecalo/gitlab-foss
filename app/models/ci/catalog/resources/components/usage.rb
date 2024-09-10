@@ -28,6 +28,31 @@ module Ci
 
           before_validation :set_used_date, unless: :used_date?
 
+          def self.used_by_project_ids(projects, days: 30)
+            start_date = Date.today - days.days
+            project_ids = where('used_date >= ?', start_date)
+                          .select(:used_by_project_id)
+                          .distinct
+            projects.select(:id).where(id: project_ids)
+          end
+
+          def self.fetch_ci_components_used(project, days: 30)
+            start_date = Date.today - days.days
+            joins(component: :version)
+              .where(used_by_project_id: project.id)
+              .where('used_date >= ?', start_date)
+              .group(:component_id)
+              .select('MAX(used_date) as latest_used_date, component_id')
+              .map do |usage|
+                component = usage.component
+                {
+                  name: component.name,
+                  version: component.version.name,
+                  used_date: usage.latest_used_date
+                }
+              end
+          end
+
           private
 
           def set_used_date
