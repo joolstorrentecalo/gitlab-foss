@@ -177,19 +177,6 @@ RSpec.describe Ci::Stage, :models, feature_category: :continuous_integration do
   end
 
   describe '#update_status' do
-    context 'when stage objects needs to be updated' do
-      before do
-        create(:ci_build, :success, stage_id: stage.id)
-        create(:ci_build, :running, stage_id: stage.id)
-      end
-
-      it 'updates stage status correctly' do
-        expect { stage.update_legacy_status }
-          .to change { stage.reload.status }
-          .to eq 'running'
-      end
-    end
-
     context 'when stage has only created builds' do
       let(:stage) { create(:ci_stage, status: :created) }
 
@@ -199,89 +186,6 @@ RSpec.describe Ci::Stage, :models, feature_category: :continuous_integration do
 
       it 'updates status to skipped' do
         expect(stage.reload.status).to eq 'created'
-      end
-    end
-
-    context 'when stage is skipped because of skipped builds' do
-      before do
-        create(:ci_build, :skipped, stage_id: stage.id)
-      end
-
-      it 'updates status to skipped' do
-        expect { stage.update_legacy_status }
-          .to change { stage.reload.status }
-          .to eq 'skipped'
-      end
-    end
-
-    context 'when stage is scheduled because of scheduled builds' do
-      before do
-        create(:ci_build, :scheduled, stage_id: stage.id)
-      end
-
-      it 'updates status to scheduled' do
-        expect { stage.update_legacy_status }
-          .to change { stage.reload.status }
-          .to 'scheduled'
-      end
-    end
-
-    context 'when build is waiting for resource' do
-      before do
-        create(:ci_build, :waiting_for_resource, stage_id: stage.id)
-      end
-
-      it 'updates status to waiting for resource' do
-        expect { stage.update_legacy_status }
-          .to change { stage.reload.status }
-          .to 'waiting_for_resource'
-      end
-    end
-
-    context 'when build is waiting for callback' do
-      before do
-        create(:ci_build, :waiting_for_callback, stage_id: stage.id)
-      end
-
-      it 'updates status to waiting for callback' do
-        expect { stage.update_legacy_status }
-          .to change { stage.reload.status }
-          .to 'waiting_for_callback'
-      end
-    end
-
-    context 'when stage is skipped because is empty' do
-      it 'updates status to skipped' do
-        expect { stage.update_legacy_status }
-          .to change { stage.reload.status }
-          .to eq('skipped')
-      end
-    end
-
-    context 'when stage object is locked' do
-      before do
-        create(:ci_build, :failed, stage_id: stage.id)
-      end
-
-      it 'retries a lock to update a stage status' do
-        stage.lock_version = 100
-
-        stage.update_legacy_status
-
-        expect(stage.reload).to be_failed
-      end
-    end
-
-    context 'when statuses status was not recognized' do
-      before do
-        allow(stage)
-          .to receive(:latest_stage_status)
-          .and_return(:unknown)
-      end
-
-      it 'raises an exception' do
-        expect { stage.update_legacy_status }
-          .to raise_error(Ci::HasStatus::UnknownStatusError)
       end
     end
   end
