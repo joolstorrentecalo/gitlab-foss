@@ -31,6 +31,8 @@ class Key < ApplicationRecord
 
   validate :expiration, on: :create
   validate :banned_key, if: :key_changed?
+  # Check key against known old keys
+  validate :key_not_known, on: :create
 
   delegate :name, :email, to: :user, prefix: true
 
@@ -46,6 +48,8 @@ class Key < ApplicationRecord
   after_destroy :refresh_user_cache
   after_commit :add_to_authorized_keys, on: :create
   after_commit :remove_from_authorized_keys, on: :destroy
+  # Save deleted keys
+  after_commit :add_to_known_keys, on: :destroy
 
   alias_attribute :fingerprint_md5, :fingerprint
   alias_attribute :name, :title
@@ -114,6 +118,12 @@ class Key < ApplicationRecord
     AuthorizedKeysWorker.perform_async(:remove_key, shell_id)
   end
 
+  # Copy deleted key to KnownKeys to prevent re-upload
+  def add_to_known_keys
+    known_key = KnownKeyFingerprint.new(fingerprint: public_key.fingerprint)
+    known_key.save
+  end
+
   # rubocop: disable CodeReuse/ServiceClass
   def refresh_user_cache
     return unless user
@@ -167,6 +177,13 @@ class Key < ApplicationRecord
       _('cannot be used because it belongs to a compromised private key. Stop using this key and generate a new one.'),
       help_page_url: help_page_url
     )
+  end
+
+  # Check key against known old keys
+  def key_not_known
+    return unless KnownKeyFingerprint.where(fingerprint: public_key.fingerprint).any?
+
+    errors.add(:key, "must be a newly generated public key - this one is old")
   end
 
   def expiration
