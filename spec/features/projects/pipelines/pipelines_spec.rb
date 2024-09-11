@@ -404,9 +404,8 @@ RSpec.describe 'Pipelines', :js, feature_category: :continuous_integration do
           end
         end
 
-        context 'when user played a delayed job immediately' do
+        context 'when user played a delayed job immediately', :js do
           let(:manual_action_selector) { '[data-testid="pipelines-manual-actions-dropdown"] button' }
-          let(:manual_action_dropdown) { '[data-testid="pipelines-manual-actions-dropdown"]' }
 
           before do
             find(manual_action_selector).click
@@ -414,14 +413,10 @@ RSpec.describe 'Pipelines', :js, feature_category: :continuous_integration do
               click_button 'delayed job 1'
             end
 
-            # Wait for UI to transition to ensure a request has been made
-            within(manual_action_dropdown) { find('.gl-spinner') }
-            within(manual_action_dropdown) { find_by_testid('play-icon') }
-
             wait_for_requests
           end
 
-          it 'enqueues the delayed job', :js, quarantine: 'https://gitlab.com/gitlab-org/gitlab/-/issues/410129' do
+          it 'enqueues the delayed job' do
             expect(delayed_job.reload).to be_pending
           end
         end
