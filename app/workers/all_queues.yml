@@ -750,6 +750,15 @@
   :weight: 1
   :idempotent: true
   :tags: []
+- :name: cronjob:personal_access_tokens_ensure_valid_expire
+  :worker_name: PersonalAccessTokens::EnsureValidExpireWorker
+  :feature_category:
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: false
+  :tags: []
 - :name: cronjob:personal_access_tokens_expired_notification
   :worker_name: PersonalAccessTokens::ExpiredNotificationWorker
   :feature_category: :system_access
