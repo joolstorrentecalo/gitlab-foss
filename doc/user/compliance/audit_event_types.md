@@ -230,6 +230,7 @@ Audit event types belong to the following product categories.
 | [`ci_variable_deleted`](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/91983) | Triggered when a CI/CD variable is deleted for a project | **{check-circle}** Yes | **{check-circle}** Yes | GitLab [15.2](https://gitlab.com/gitlab-org/gitlab/-/issues/363090) | Project |
 | [`ci_variable_updated`](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/91983) | Triggered when a CI/CD variable is updated for a project | **{check-circle}** Yes | **{check-circle}** Yes | GitLab [15.2](https://gitlab.com/gitlab-org/gitlab/-/issues/363090) | Project |
 | [`destroy_pipeline`](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/135255) | Triggered when a pipeline is deleted | **{check-circle}** Yes | **{check-circle}** Yes | GitLab [16.6](https://gitlab.com/gitlab-org/gitlab/-/issues/339041) | Project |
+| [`multi_project_downstream_pipeline_created`](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/165793) | Triggered when multi project downstream pipeline is created | **{dotted-circle}** No | **{check-circle}** Yes | GitLab [17.4](https://gitlab.com/gitlab-org/gitlab/-/issues/481325) | Project |
 
 ### Deployment management
 
