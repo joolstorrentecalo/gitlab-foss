@@ -276,6 +276,7 @@ module.exports = {
       redirect_listbox: './entrypoints/behaviors/redirect_listbox.js',
       sandboxed_swagger: './lib/swagger.js',
       super_sidebar: './entrypoints/super_sidebar.js',
+      inertia: './entrypoints/inertia.js',
       tracker: './entrypoints/tracker.js',
       analytics: './entrypoints/analytics.js',
       ...incrementalCompiler.filterEntryPoints(generateEntries({ defaultEntries, entriesState })),
@@ -386,6 +387,17 @@ module.exports = {
           ],
           ...defaultJsOptions,
         },
+      },
+      {
+        // In an earlier draft of this MR, webpack was working and this was required.
+        // TODO: Check if this is still required today.
+        // test: /inertia/,
+        // include: /node_modules/,
+        // loader: 'babel-loader',
+        // options: {
+        //   plugins: ['@babel/plugin-syntax-optional-chaining'],
+        //   ...defaultJsOptions,
+        // },
       },
       {
         test: /\.(js|cjs)$/,

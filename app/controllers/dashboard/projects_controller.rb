@@ -7,6 +7,7 @@ class Dashboard::ProjectsController < Dashboard::ApplicationController
   include SortingHelper
   include SortingPreference
   include FiltersEvents
+  include Inertia::Share
 
   prepend_before_action(only: [:index]) { authenticate_sessionless_user!(:rss) }
   before_action :set_non_archived_param, only: [:index, :starred]
@@ -20,7 +21,12 @@ class Dashboard::ProjectsController < Dashboard::ApplicationController
   def index
     respond_to do |format|
       format.html do
-        render_projects
+        render inertia: 'Projects/Index', props: {
+          breadcrumbs: [
+            { text: _('Your work'), href: root_url },
+            { text: _('Projects'), href: dashboard_projects_path }
+          ]
+        }
       end
       format.atom do
         load_events
@@ -56,13 +62,6 @@ class Dashboard::ProjectsController < Dashboard::ApplicationController
 
   def projects
     @projects ||= load_projects(params.merge(non_public: true, not_aimed_for_deletion: true))
-  end
-
-  def render_projects
-    # n+1: https://gitlab.com/gitlab-org/gitlab-foss/issues/40260
-    Gitlab::GitalyClient.allow_n_plus_1_calls do
-      render
-    end
   end
 
   def load_projects(finder_params)

@@ -736,3 +736,5 @@ gem 'gitlab-sdk', '~> 0.3.0', feature_category: :application_instrumentation
 gem 'openbao_client', path: 'gems/openbao_client' # rubocop:todo Gemfile/MissingFeatureCategory
 
 gem 'paper_trail', '~> 15.0' # rubocop:todo Gemfile/MissingFeatureCategory
+
+gem 'inertia_rails', '~> 3.2' # rubocop:todo Gemfile/MissingFeatureCategory

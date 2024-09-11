@@ -993,6 +993,8 @@ GEM
     ice_nine (0.11.2)
     imagen (0.1.8)
       parser (>= 2.5, != 2.5.1.1)
+    inertia_rails (3.2.0)
+      railties (>= 5)
     influxdb-client (3.1.0)
     invisible_captcha (2.1.0)
       rails (>= 5.2)
@@ -2118,6 +2120,7 @@ DEPENDENCIES
   html2text
   httparty (~> 0.21.0)
   icalendar (~> 2.10.1)
+  inertia_rails (~> 3.2)
   influxdb-client (~> 3.1)
   invisible_captcha (~> 2.1.0)
   ipaddr (~> 1.2.5)

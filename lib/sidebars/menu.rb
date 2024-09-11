@@ -72,6 +72,10 @@ module Sidebars
       false
     end
 
+    def inertia_page?
+      false
+    end
+
     # Returns a tree-like representation of itself and all
     # renderable menu entries, with additional information
     # on whether the item(s) have an active route
@@ -90,7 +94,8 @@ module Sidebars
         is_active: is_active,
         pill_count: has_pill? ? pill_count : nil,
         items: items,
-        separated: separated?
+        separated: separated?,
+        inertia_page: inertia_page?
       }
     end
 

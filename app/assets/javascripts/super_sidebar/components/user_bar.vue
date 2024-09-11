@@ -167,26 +167,18 @@ export default {
         data-track-label="issues_link"
         data-track-property="nav_core_menu"
       />
-      <component
-        :is="mergeRequestMenuComponent"
-        class="!gl-block gl-basis-1/3"
-        :items="sidebarData.merge_request_menu"
-        @shown="mrMenuShown = true"
-        @hidden="mrMenuShown = false"
-      >
-        <counter
-          v-gl-tooltip:super-sidebar.bottom="mrMenuShown ? '' : $options.i18n.mergeRequests"
-          class="gl-w-full"
-          icon="merge-request"
-          :href="sidebarData.merge_request_dashboard_path"
-          :count="mergeRequestTotalCount"
-          :label="$options.i18n.mergeRequests"
-          data-testid="merge-requests-shortcut-button"
-          data-track-action="click_dropdown"
-          data-track-label="merge_requests_menu"
-          data-track-property="nav_core_menu"
-        />
-      </component>
+      <counter
+        v-gl-tooltip:super-sidebar.bottom="mrMenuShown ? '' : $options.i18n.mergeRequests"
+        class="gl-basis-1/3"
+        icon="merge-request"
+        href="/dashboard/merge_requests"
+        :count="mergeRequestTotalCount"
+        :label="$options.i18n.mergeRequests"
+        data-testid="merge-requests-shortcut-button"
+        data-track-action="click_dropdown"
+        data-track-label="merge_requests_menu"
+        data-track-property="nav_core_menu"
+      />
       <counter
         v-gl-tooltip:super-sidebar.bottom="$options.i18n.todoList"
         class="shortcuts-todos js-todos-count gl-basis-1/3"

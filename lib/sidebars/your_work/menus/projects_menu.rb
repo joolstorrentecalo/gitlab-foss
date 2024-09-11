@@ -28,6 +28,11 @@ module Sidebars
         def active_routes
           { controller: ['root', 'projects', 'dashboard/projects'] }
         end
+
+        override :inertia_page?
+        def inertia_page?
+          true
+        end
       end
     end
   end
