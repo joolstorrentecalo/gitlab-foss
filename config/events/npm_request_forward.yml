@@ -1,0 +1,17 @@
+---
+description:
+action: npm_request_forward
+identifiers:
+- project
+- namespace
+- user
+product_group:
+milestone: '14.0'
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/164498
+distributions:
+- ce
+- ee
+tiers:
+- free
+- premium
+- ultimate
