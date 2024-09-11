@@ -10,7 +10,10 @@ module Chaos
     include ChaosQueue
 
     def perform(duration_s)
-      Gitlab::Chaos.cpu_spin(duration_s)
+      ::ApplicationRecord.transaction do
+        Project.first
+        Gitlab::Chaos.cpu_spin(duration_s)
+      end
     end
   end
 end

@@ -222,5 +222,13 @@ module WorkerAttributes
     def database_health_check_attrs
       get_class_attribute(:database_health_check_attrs)
     end
+
+    def quotas(config)
+      set_class_attribute(:quotas, config)
+    end
+
+    def get_quotas
+      get_class_attribute(:quotas) || {} # use get_urgency and fetch urgency defaults
+    end
   end
 end
