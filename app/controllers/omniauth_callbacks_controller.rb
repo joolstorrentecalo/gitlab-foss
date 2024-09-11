@@ -226,6 +226,9 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
         store_idp_two_factor_status(false)
       else
         if @user.deactivated?
+          # Reject service account reactivations
+          raise Gitlab::Auth::OAuth::User::SignupServiceAccountError if auth_user.is_service_account?
+
           @user.activate
           flash[:notice] = _('Welcome back! Your account had been deactivated due to inactivity but is now reactivated.')
         end
@@ -248,6 +251,9 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
     handle_disabled_provider
   rescue Gitlab::Auth::OAuth::User::SignupDisabledError
     handle_signup_error
+  # Reject service account signups
+  rescue Gitlab::Auth::OAuth::User::SignupServiceAccountError
+    handle_signup_service_account
   end
 
   def handle_signup_error
@@ -303,6 +309,13 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def handle_disabled_provider
     label = Gitlab::Auth::OAuth::Provider.label_for(oauth['provider'])
     flash[:alert] = _("Signing in using %{label} has been disabled") % { label: label }
+
+    redirect_to new_user_session_path
+  end
+
+  # Handle service accounts
+  def handle_signup_service_account
+    flash[:alert] = _("Service Accounts are not permitted access; see FAQ")
 
     redirect_to new_user_session_path
   end

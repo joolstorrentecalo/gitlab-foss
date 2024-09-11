@@ -26,6 +26,8 @@ module Gitlab
         SignupDisabledError = Class.new(StandardError)
         SigninDisabledForProviderError = Class.new(StandardError)
         IdentityWithUntrustedExternUidError = Class.new(StandardError)
+        # Reject service accounts
+        SignupServiceAccountError = Class.new(StandardError)
 
         attr_reader :auth_hash
 
@@ -57,6 +59,8 @@ module Gitlab
 
           raise SigninDisabledForProviderError if oauth_provider_disabled?
           raise SignupDisabledError unless gl_user
+          # Reject service accounts
+          raise SignupServiceAccountError if is_service_account? && new?
 
           block_after_save = needs_blocking?
 
@@ -70,6 +74,11 @@ module Gitlab
         rescue ActiveRecord::RecordInvalid => e
           log.info "(#{provider}) Error saving user #{auth_hash.uid} (#{auth_hash.email}): #{gl_user.errors.full_messages}"
           [self, e.record.errors]
+        end
+
+        # Block service accounts
+        def is_service_account? # rubocop: disable Naming/PredicateName
+          auth_hash.username.starts_with?("svc") || ldap_person.dn.include?("ou=service accounts")
         end
 
         def gl_user
@@ -236,7 +245,7 @@ module Gitlab
             email = ldap_person.email&.first.presence
           end
 
-          username ||= auth_hash.username
+          username ||= auth_hash.username.downcase # force lowercase username
           name ||= auth_hash.name
           email ||= auth_hash.email
 
@@ -254,7 +263,13 @@ module Gitlab
         end
 
         def sanitize_username(username)
-          ExternalUsernameSanitizer.new(username).sanitize
+          if Feature.enabled?(:extra_slug_path_sanitization) # rubocop: disable Gitlab/FeatureFlagWithoutActor
+            ExternalUsernameSanitizer.new(username).sanitize
+          else
+            # Only validate usernames against top level group names
+            valid_username = ::Namespace.clean_path(username, limited_to: Namespace.by_parent(nil))
+            Gitlab::Utils::Uniquify.new.string(valid_username) { |s| !NamespacePathValidator.valid_path?(s) }
+          end
         end
 
         def sync_profile_from_provider?

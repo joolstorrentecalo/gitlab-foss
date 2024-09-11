@@ -189,7 +189,8 @@ module Gitlab
       end
 
       def authenticate_using_internal_or_ldap_password?
-        Gitlab::CurrentSettings.password_authentication_enabled_for_git? || Gitlab::Auth::Ldap::Config.enabled?
+        # Disable LDAP auth
+        false
       end
 
       def service_request_check(login, password, project)
@@ -249,11 +250,13 @@ module Gitlab
 
         return unless valid_scoped_token?(token, all_available_scopes)
 
-        if project && (token.user.project_bot? || token.user.service_account?)
+        # Allow gitlab service accounts the ability to clone a repo
+        if project && bot_user?(token.user)
           return unless can_read_project?(token.user, project)
         end
 
-        if token.user.can_log_in_with_non_expired_password? || (token.user.project_bot? || token.user.service_account?)
+        # Allow gitlab service accounts the ability to clone a repo
+        if token.user.can_log_in_with_non_expired_password? || bot_user?(token.user)
           ::PersonalAccessTokens::LastUsedService.new(token).execute
 
           Gitlab::Auth::Result.new(token.user, nil, :personal_access_token, abilities_for_scopes(token.scopes))
@@ -262,6 +265,11 @@ module Gitlab
 
       def can_read_project?(user, project)
         user.can?(:read_project, project)
+      end
+
+      # Allow gitlab service accounts the ability to clone a repo
+      def bot_user?(user)
+        user.project_bot? || user.security_policy_bot? || user.service_account?
       end
 
       def bot_user_can_read_project?(user, project)
