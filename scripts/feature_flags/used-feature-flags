@@ -3,6 +3,7 @@
 
 require 'set' # rubocop:disable Lint/RedundantRequireStatement -- Ruby 3.1 and earlier needs this. Drop this line after Ruby 3.2+ is only supported.
 require 'fileutils'
+require 'yaml'
 require_relative '../../lib/gitlab_edition'
 
 ADDITIONAL_EDITIONS = %w[ee jh].freeze
@@ -31,6 +32,18 @@ def add_definition_path!(edition, flag_def_paths)
   flag_def_paths << "#{edition}/config/feature_flags/**/*.yml"
 end
 
+def mark_cloud_connector_flags_as_used
+  return unless GitlabEdition.ee?
+
+  # Cloud connector feature flags are constructed dynamically and there's no explicit checks in the codebase so we mark
+  # all the cloud connector 'service cut off date' derived feature flags as used.
+  # See https://gitlab.com/gitlab-org/gitlab/-/blob/7de12ccf5d5baf1f858dba40808fff5fa49acb1d/ee/lib/cloud_connector/base_available_service_data.rb#L67
+  YAML.load_file(File.join('ee/config/cloud_connector/access_data.yml'))['services'].each_key do |service_name|
+    feature_flag_name = "#{service_name}_cut_off_date_expired"
+    FileUtils.touch(File.join('tmp', 'feature_flags', "#{feature_flag_name}.used"))
+  end
+end
+
 def mark_replicator_flags_as_used(edition)
   return unless GitlabEdition.public_send(:"#{edition}?") # rubocop:disable GitlabSecurity/PublicSend
 
@@ -57,6 +70,8 @@ ADDITIONAL_EDITIONS.each do |edition|
   add_definition_path!(edition, flag_definition_paths)
   mark_replicator_flags_as_used(edition)
 end
+
+mark_cloud_connector_flags_as_used
 
 all_flags = {}
 additional_flags = Set.new
