@@ -19461,6 +19461,8 @@ GitLab CI/CD configuration template.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
+| <a id="cloudconnectorproberesultdetails"></a>`details` | [`JSON`](#json) | Additional details about the probe result. |
+| <a id="cloudconnectorproberesulterrors"></a>`errors` | [`[String!]`](#string) | Full list of errors about the probe result. |
 | <a id="cloudconnectorproberesultmessage"></a>`message` | [`String`](#string) | Additional message or details about the probe result. |
 | <a id="cloudconnectorproberesultname"></a>`name` | [`String`](#string) | Name of the probe. |
 | <a id="cloudconnectorproberesultsuccess"></a>`success` | [`Boolean`](#boolean) | Indicates if the probe was successful. |
@@ -20992,6 +20994,7 @@ A software dependency used by a project.
 | <a id="dependencylocation"></a>`location` | [`Location`](#location) | Information about where the dependency is located. |
 | <a id="dependencyname"></a>`name` | [`String!`](#string) | Name of the dependency. |
 | <a id="dependencypackager"></a>`packager` | [`PackageManager`](#packagemanager) | Description of the tool used to manage the dependency. |
+| <a id="dependencyreachability"></a>`reachability` | [`ReachabilityType`](#reachabilitytype) | Information about reachability of a dependency. |
 | <a id="dependencyversion"></a>`version` | [`String`](#string) | Version of the dependency. |
 
 ### `DependencyProxyBlob`
@@ -37931,6 +37934,15 @@ Values for sorting projects.
 | <a id="projectsortcreated_desc"></a>`created_desc` **{warning-solid}** | **Deprecated** in GitLab 13.5. This was renamed. Use: `CREATED_DESC`. |
 | <a id="projectsortupdated_asc"></a>`updated_asc` **{warning-solid}** | **Deprecated** in GitLab 13.5. This was renamed. Use: `UPDATED_ASC`. |
 | <a id="projectsortupdated_desc"></a>`updated_desc` **{warning-solid}** | **Deprecated** in GitLab 13.5. This was renamed. Use: `UPDATED_DESC`. |
+
+### `ReachabilityType`
+
+Dependency reachability status.
+
+| Value | Description |
+| ----- | ----------- |
+| <a id="reachabilitytypein_use"></a>`IN_USE` | Dependency is imported and in use. |
+| <a id="reachabilitytypeunknown"></a>`UNKNOWN` | Dependency reachability status is unknown. |
 
 ### `RefType`
 
