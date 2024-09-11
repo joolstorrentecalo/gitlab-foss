@@ -4,7 +4,7 @@ require 'resolv'
 
 class InstanceConfiguration
   SSH_ALGORITHMS = %w[DSA ECDSA ED25519 RSA].freeze
-  SSH_ALGORITHMS_PATH = '/etc/ssh/'
+  SSH_ALGORITHMS_PATH = '/var/opt/gitlab/gitlab-sshd/'
   CACHE_KEY = 'instance_configuration'
   EXPIRATION_TIME = 24.hours
 
