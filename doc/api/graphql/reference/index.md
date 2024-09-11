@@ -1764,6 +1764,7 @@ Input type: `AiSelfHostedModelCreateInput`
 | <a id="mutationaiselfhostedmodelcreateendpoint"></a>`endpoint` | [`String!`](#string) | Endpoint of the self-hosted model. |
 | <a id="mutationaiselfhostedmodelcreatemodel"></a>`model` | [`AiAcceptedSelfHostedModels!`](#aiacceptedselfhostedmodels) | AI model deployed. |
 | <a id="mutationaiselfhostedmodelcreatename"></a>`name` | [`String!`](#string) | Deployment name of the self-hosted model. |
+| <a id="mutationaiselfhostedmodelcreateservedmodelname"></a>`servedModelName` | [`String!`](#string) | Served model name of the self-hosted model. |
 
 #### Fields
 
@@ -35531,6 +35532,7 @@ LLMs supported by the self-hosted model features.
 
 | Value | Description |
 | ----- | ----------- |
+| <a id="aiacceptedselfhostedmodelsanthropic"></a>`ANTHROPIC` | Anthropic: Suitable for code generation and duo chat. |
 | <a id="aiacceptedselfhostedmodelscodegemma"></a>`CODEGEMMA` | CodeGemma 7b-it: Suitable for code generation. |
 | <a id="aiacceptedselfhostedmodelscodegemma_2b"></a>`CODEGEMMA_2B` | CodeGemma 2b: Suitable for code completion. |
 | <a id="aiacceptedselfhostedmodelscodegemma_7b"></a>`CODEGEMMA_7B` | CodeGemma 7b: Suitable for code completion. |
