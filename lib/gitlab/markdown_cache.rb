@@ -13,8 +13,15 @@ module Gitlab
     # See: https://gitlab.com/gitlab-org/gitlab/-/issues/330313
     CACHE_COMMONMARK_VERSION       = 33
     CACHE_COMMONMARK_VERSION_START = 10
+    CACHE_COMMONMARK_VERSION_SHIFTED = CACHE_COMMONMARK_VERSION << 16
 
     BaseError = Class.new(StandardError)
     UnsupportedClassError = Class.new(BaseError)
+
+    def self.latest_cached_markdown_version
+      settings = Gitlab::CurrentSettings.current_application_settings
+
+      CACHE_COMMONMARK_VERSION_SHIFTED | settings.local_markdown_version
+    end
   end
 end

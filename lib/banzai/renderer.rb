@@ -175,7 +175,7 @@ module Banzai
     def self.full_cache_key(cache_key, pipeline_name)
       return unless cache_key
 
-      ["banzai", *cache_key, pipeline_name || :full]
+      ["banzai", *cache_key, pipeline_name || :full, Gitlab::MarkdownCache.latest_cached_markdown_version]
     end
 
     # To map Rails.cache.read_multi results we need to know the Rails.cache.expanded_key.
