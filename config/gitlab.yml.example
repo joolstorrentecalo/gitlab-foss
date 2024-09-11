@@ -724,6 +724,9 @@ production: &base
       # enabled: true
       # primary_api_url: http://localhost:5000/ # internal address to the primary registry, will be used by GitLab to directly communicate with primary registry API
 
+    dr:
+      # enabled: true
+
   ## Feature Flag https://docs.gitlab.com/ee/operations/feature_flags.html
   feature_flags:
     unleash:

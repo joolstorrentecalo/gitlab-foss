@@ -379,6 +379,7 @@ Gitlab.ee do
   #
   Settings.geo['registry_replication'] ||= {}
   Settings.geo.registry_replication['enabled'] ||= false
+  # Settings.geo.dr['enabled'] ||= false
 end
 
 #
