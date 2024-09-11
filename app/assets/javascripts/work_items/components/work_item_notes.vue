@@ -22,6 +22,7 @@ import {
   updateCacheAfterCreatingNote,
   updateCacheAfterDeletingNote,
 } from '~/work_items/graphql/cache_utils';
+import { convertToGraphQLId } from '~/graphql_shared/utils';
 import { getLocationHash } from '~/lib/utils/url_utility';
 import { getIdFromGraphQLId } from '~/graphql_shared/utils';
 import { collapseSystemNotes } from '~/work_items/notes/collapse_utils';
@@ -31,6 +32,7 @@ import workItemNoteCreatedSubscription from '~/work_items/graphql/notes/work_ite
 import workItemNoteUpdatedSubscription from '~/work_items/graphql/notes/work_item_note_updated.subscription.graphql';
 import workItemNoteDeletedSubscription from '~/work_items/graphql/notes/work_item_note_deleted.subscription.graphql';
 import deleteNoteMutation from '../graphql/notes/delete_work_item_notes.mutation.graphql';
+import workItemNoteQuery from '../graphql/notes/work_item_note.query.graphql';
 import workItemNotesByIidQuery from '../graphql/notes/work_item_notes_by_iid.query.graphql';
 import WorkItemAddNote from './notes/work_item_add_note.vue';
 
@@ -105,6 +107,7 @@ export default {
       discussionFilter: WORK_ITEM_NOTES_FILTER_ALL_NOTES,
       addNoteKey: uniqueId(`work-item-add-note-${this.workItemId}`),
       workItemNamespace: '',
+      previewNote: null,
     };
   },
   computed: {
@@ -131,7 +134,7 @@ export default {
       return markdownPreviewPath({ fullPath, iid, isGroup });
     },
     isGroupWorkItem() {
-      return this.workItemNamespace?.id.includes('Group');
+      return this.workItemNamespace?.id?.includes?.('Group');
     },
     autocompleteDataSources() {
       const { fullPath, workItemIid: iid } = this;
@@ -175,6 +178,15 @@ export default {
         return true;
       });
 
+      if (this.previewNote && !this.previewNoteLoadedInList) {
+        const preview = {
+          notes: {
+            nodes: [this.previewNote],
+          },
+        };
+        visibleNotes = [...visibleNotes, preview];
+      }
+
       if (this.sortOrder === DESC) {
         return [...visibleNotes].reverse();
       }
@@ -187,8 +199,68 @@ export default {
     targetNoteHash() {
       return getLocationHash();
     },
+    previewNoteId() {
+      const hash = getLocationHash();
+      const noteId = hash && hash.replace(/^note_/, '');
+
+      return noteId;
+    },
+    noteSha() {
+      const [, noteSha] = this.targetNoteHash.match(/note_([a-f0-9]{40})/) || [];
+      return noteSha || '';
+    },
+    previewIsSyntheticNote() {
+      return Boolean(this.noteSha);
+    },
+    previewNoteLoadedInList() {
+      const notes = this.workItemNotes?.nodes || [];
+      const id = convertToGraphQLId(TYPENAME_NOTE, this.previewNoteId);
+      const n = notes.find((d) => d.notes.nodes[0].id === id);
+      return Boolean(n);
+    },
+  },
+  watch: {
+    notesArray(newNotesArray) {
+      if (this.previewNoteId) {
+        const id = convertToGraphQLId(TYPENAME_NOTE, this.previewNoteId);
+        const n = newNotesArray.find((d) => d.notes.nodes[0].id === id);
+        if (n) {
+          scrollToTargetOnResize();
+        }
+      }
+    },
   },
   apollo: {
+    previewNote: {
+      skip() {
+        return !this.previewNoteId || this.previewIsSyntheticNote;
+      },
+      query: workItemNoteQuery,
+      variables() {
+        return {
+          id: convertToGraphQLId(TYPENAME_NOTE, this.previewNoteId),
+        };
+      },
+      update(data) {
+        return data.note ?? {};
+      },
+      result(result) {
+        if (result?.errors?.length > 0) {
+          Sentry.captureException(result.errors[0].message);
+          this.fallback();
+        }
+
+        if (!result?.data?.note) {
+          this.fallback();
+        }
+
+        this.isLoadingMore = true;
+      },
+      error(error) {
+        Sentry.captureException(error);
+        this.fallback();
+      },
+    },
     // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     workItemNotes: {
       query: workItemNotesByIidQuery,
@@ -369,8 +441,8 @@ export default {
       @changeFilter="filterDiscussions"
     />
     <work-item-notes-loading v-if="initialLoading" class="gl-mt-5" />
-    <div v-else class="issuable-discussion gl-mb-5 !gl-clearfix">
-      <template v-if="!initialLoading">
+    <div v-if="!initialLoading || previewNoteId" class="issuable-discussion gl-mb-5 !gl-clearfix">
+      <template v-if="!initialLoading || previewNoteId">
         <div v-if="formAtTop && !commentsDisabled" class="js-comment-form">
           <ul class="notes notes-form timeline">
             <work-item-add-note
@@ -411,6 +483,7 @@ export default {
               />
             </template>
           </template>
+
           <work-item-history-only-filter-note
             v-if="commentsDisabled"
             @changeFilter="filterDiscussions"
