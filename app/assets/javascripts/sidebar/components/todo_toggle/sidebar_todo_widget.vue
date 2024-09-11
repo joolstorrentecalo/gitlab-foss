@@ -3,6 +3,8 @@ import { GlButton, GlIcon, GlTooltipDirective } from '@gitlab/ui';
 import { produce } from 'immer';
 import { createAlert } from '~/alert';
 import { TYPE_MERGE_REQUEST } from '~/issues/constants';
+import { convertToGraphQLId } from '~/graphql_shared/utils';
+import { TYPENAME_USER } from '~/graphql_shared/constants';
 import { __, sprintf } from '~/locale';
 import glFeatureFlagsMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import Tracking from '~/tracking';
@@ -48,6 +50,7 @@ export default {
   },
   data() {
     return {
+      todoId: null,
       loading: false,
     };
   },
@@ -84,6 +87,22 @@ export default {
             issuableType: this.issuableType,
           }),
         });
+      },
+      subscribeToMore: {
+        document() {
+          return todoQueries[this.issuableType].subscription;
+        },
+        variables() {
+          return {
+            userId: convertToGraphQLId(TYPENAME_USER, gon.current_user_id),
+            issuableId: this.issuableId,
+          };
+        },
+        skip() {
+          return (
+            !this.glFeatures.realtimeIssuableTodo || !todoQueries[this.issuableType].subscription
+          );
+        },
       },
     },
   },
@@ -146,7 +165,6 @@ export default {
               query: this.todoIdQuery,
               variables: this.todoIdQueryVariables,
             };
-
             const sourceData = store.readQuery(queryProps);
             const data = produce(sourceData, (draftState) => {
               draftState.workspace.issuable.currentUserTodos.nodes = this.hasTodo ? [] : [todo];

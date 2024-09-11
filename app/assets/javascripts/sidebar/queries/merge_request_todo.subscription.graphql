@@ -1,0 +1,12 @@
+subscription issuableTodoUpdated($userId: UserID!, $issuableId: IssuableID!) {
+  issuableTodoUpdated(issuableId: $issuableId, userId: $userId) {
+    ... on MergeRequest {
+      id
+      currentUserTodos(state: pending) {
+        nodes {
+          id
+        }
+      }
+    }
+  }
+}
