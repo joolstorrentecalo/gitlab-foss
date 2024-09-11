@@ -1,4 +1,4 @@
-- hidden_variables_enabled = (@group.present? && Feature.enabled?(:ci_hidden_variables, @group)) || (@project.present? && Feature.enabled?(:ci_hidden_variables, @project.group))
+- hidden_variables_enabled = @group.present? || @project.present?
 
 %p
   = s_('CiVariables|Variables can be accidentally exposed in a job log, or maliciously sent to a third party server. The masked variable feature can help reduce the risk of accidentally exposing variable values, but is not a guaranteed method to prevent malicious users from accessing variables.')
