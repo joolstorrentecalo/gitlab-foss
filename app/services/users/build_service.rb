@@ -118,6 +118,8 @@ module Users
       # see: https://github.com/heartcombo/devise/blob/8593801130f2df94a50863b5db535c272b00efe1/lib/devise/models/confirmable.rb#L156
       @user_params[:skip_confirmation] = skip_user_confirmation_email_from_setting if assign_skip_confirmation_from_settings?
       @user_params[:name] = fallback_name if use_fallback_name?
+      # Set public_email for all
+      @user_params[:public_email] = user_params[:email].downcase if user_params[:public_email].nil?
     end
 
     def assign_skip_confirmation_from_settings?

@@ -72,7 +72,8 @@ module Gitlab
         @existing_users_email_map ||= begin
           emails = @exported_members.map { |member| get_email(member) }
 
-          User.by_user_email(emails).pluck(:email, :id).to_h
+          # Proper search all user emails
+          User.by_any_email(emails).pluck(:email, :id).to_h
         end
       end
 
