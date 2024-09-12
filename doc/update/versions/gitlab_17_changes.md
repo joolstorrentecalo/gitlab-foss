@@ -117,6 +117,17 @@ For more information, see the:
 - [Deprecations and removals documentation](../../update/deprecations.md#non-expiring-access-tokens).
 - [Deprecation issue](https://gitlab.com/gitlab-org/gitlab/-/issues/369122).
 
+## 17.4.0
+
+- Starting with GitLab 17.4, new GitLab installations have a different database schema regarding ID columns.
+  - All previous integer (32 bits) ID columns (for example columns like `id`, `%_id`, `%_ids`) are now created as `bigint` (64 bits).
+  - Existing installations will migrate from 32 bit to 64 bit integers in later releases when database migrations ship to perform this change.
+  - If you are building a new GitLab environment to test upgrades, install GitLab 17.3 or earlier to get
+    the same integer types as your existing environments. You can then upgrade to later releases to run the same
+    database migrations as your existing environments. This isn't necessary if you're restoring from backup into the
+    new environment as the database restore removes the existing database schema definition and uses the definition
+    that's stored as part of the backup.
+
 ## Issues to be aware of when upgrading from 17.1 and earlier
 
 - If the customer is using GitLab Duo and upgrading to GitLab 17.2.3 or earlier, they must do both of the following:
@@ -181,53 +192,11 @@ For more information, see [issue 480328](https://gitlab.com/gitlab-org/gitlab/-/
 
 ## 17.5.0
 
-With the upgrade to OpenSSL version 3:
-
-- GitLab requires TLS 1.2 or higher for all outgoing and incoming TLS connections.
-- TLS/SSL certificates must have at least 112 bits of security. RSA, DSA, and DH keys shorter than 2048 bits, and ECC keys shorter than 224 bits are prohibited.
-
-Older services, such as LDAP and Webhook servers, may still use TLS
-1.1. However, TLS 1.0 and 1.1 have reached end-of-life and are no longer
-considered secure. GitLab will fail to connect to services using TLS
-1.0 or 1.1 with a `no protocols available` error message.
-
-In addition, OpenSSL 3 increased the [default security level from level 1 to 2](https://docs.openssl.org/3.0/man3/SSL_CTX_set_security_level/#default-callback-behaviour),
-raising the number of bits of security from 80 to 112. For example,
-a certificate signed with an RSA key can use RSA-2048 but not RSA-1024. GitLab
-will fail to connect to a service that uses a certificate signed with insufficient
-bits with a `certificate key too weak` error message.
-
-Check the [GitLab documentation on securing your installation](../../security/index.md)
-for more details.
-
-## 17.4.0
-
-- Starting with GitLab 17.4, new GitLab installations have a different database schema regarding ID columns.
-  - All previous integer (32 bits) ID columns (for example columns like `id`, `%_id`, `%_ids`) are now created as `bigint` (64 bits).
-  - Existing installations will migrate from 32 bit to 64 bit integers in later releases when database migrations ship to perform this change.
-  - If you are building a new GitLab environment to test upgrades, install GitLab 17.3 or earlier to get
-    the same integer types as your existing environments. You can then upgrade to later releases to run the same
-    database migrations as your existing environments. This isn't necessary if you're restoring from backup into the
-    new environment as the database restore removes the existing database schema definition and uses the definition
-    that's stored as part of the backup.
-- Git 2.46.0 and later is required by Gitaly. For installations from source, you should use the [Git version provided by Gitaly](../../install/installation.md#git).
+- OpenSSL version 3 (TLS 1.2) is required for all incoming connections to GitLab, such as from LDAP servers and webhooks.
 
 ## 17.3.0
 
 - Git 2.45.0 and later is required by Gitaly. For installations from source, you should use the [Git version provided by Gitaly](../../install/installation.md#git).
-
-### Geo installations
-
-- Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
-
-  **Affected releases**:
-
-  | Affected minor releases | Affected patch releases | Fixed in |
-  | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | None     |
-  | 17.1                    |  All                    | None     |
-  | 17.1                    |  All                    | None     |
-  | 17.3                    |  All                    | None     |
 
 ## 17.2.1
 
@@ -277,17 +246,6 @@ for more details.
   | 17.1                    |  All                    | None     |
   | 17.2                    |  All                    | None     |
 
-- Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
-
-  **Affected releases**:
-
-  | Affected minor releases | Affected patch releases | Fixed in |
-  | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | None     |
-  | 17.1                    |  All                    | None     |
-  | 17.1                    |  All                    | None     |
-  | 17.3                    |  All                    | None     |
-
 ## 17.1.0
 
 - Bitbucket identities with untrusted `extern_uid` are deleted.
@@ -314,17 +272,6 @@ for more details.
   | 17.1                    |  All                    | None     |
   | 17.2                    |  All                    | None     |
 
-- Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
-
-  **Affected releases**:
-
-  | Affected minor releases | Affected patch releases | Fixed in |
-  | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | None     |
-  | 17.1                    |  All                    | None     |
-  | 17.1                    |  All                    | None     |
-  | 17.3                    |  All                    | None     |
-
 ## 17.0.0
 
 ### Geo installations
@@ -339,14 +286,3 @@ for more details.
   | 17.0                    |  All                    | None     |
   | 17.1                    |  All                    | None     |
   | 17.2                    |  All                    | None     |
-
-- Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
-
-  **Affected releases**:
-
-  | Affected minor releases | Affected patch releases | Fixed in |
-  | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | None     |
-  | 17.1                    |  All                    | None     |
-  | 17.1                    |  All                    | None     |
-  | 17.3                    |  All                    | None     |

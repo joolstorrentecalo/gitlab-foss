@@ -785,28 +785,6 @@ If you are using `OUTBOUND` with the `direction` argument to control the directi
 
 <div class="deprecation breaking-change" data-milestone="18.0">
 
-### The `heroku/builder:22` image is deprecated
-
-<div class="deprecation-notes">
-
-- Announced in GitLab <span class="milestone">17.4</span>
-- Removal in GitLab <span class="milestone">18.0</span> ([breaking change](https://docs.gitlab.com/ee/update/terminology.html#breaking-change))
-- To discuss this change or learn more, see the [deprecation issue](https://gitlab.com/gitlab-org/cluster-integration/auto-build-image/-/issues/79).
-
-</div>
-
-The cloud native buildpack (CNB) builder image was updated to `heroku/builder:24` in the Auto DevOps Build project. While we don't expect the changes to be disruptive for the most part, this might be a breaking change for some users of Auto DevOps, and especially users of Auto Build. To better understand the impact of you workloads, review the following:
-
-- [Heroku-24 stack release notes](https://devcenter.heroku.com/articles/heroku-24-stack#what-s-new)
-- [Heroku-24 stack upgrade notes](https://devcenter.heroku.com/articles/heroku-24-stack#upgrade-notes)
-- [Heroku stack packages](https://devcenter.heroku.com/articles/stack-packages)
-
-These changes affect you if your pipelines use the [`auto-build-image`](https://gitlab.com/gitlab-org/cluster-integration/auto-build-image) provided by [the Auto Build stage of Auto DevOps](https://docs.gitlab.com/ee/topics/autodevops/stages.html#auto-build).
-
-</div>
-
-<div class="deprecation breaking-change" data-milestone="18.0">
-
 ### Toggle notes confidentiality on APIs
 
 <div class="deprecation-notes">
@@ -972,23 +950,6 @@ This is one small step towards moving away from CI/CD templates in preference of
 
 <div class="deprecation " data-milestone="17.6">
 
-### Group vulnerability report by OWASP top 10 2017 is deprecated
-
-<div class="deprecation-notes">
-
-- Announced in GitLab <span class="milestone">17.0</span>
-- Removal in GitLab <span class="milestone">17.6</span>
-- To discuss this change or learn more, see the [deprecation issue](https://gitlab.com/gitlab-org/gitlab/-/issues/458835).
-
-</div>
-
-Grouping the vulnerability report by OWASP top 10 2017 is deprecated, replaced by grouping by OWASP top 10 2021.
-In the future we will support the most recent version of OWASP top 10 for grouping on the vulnerability report.
-
-</div>
-
-<div class="deprecation " data-milestone="17.6">
-
 ### Support for Debian 10
 
 <div class="deprecation-notes">
@@ -1013,7 +974,7 @@ Debian 11 or Debian 12 for continued support.
 
 <div class="deprecation " data-milestone="17.5">
 
-### TLS 1.0 and 1.1 are deprecated
+### Support for OpenSSL version 1
 
 <div class="deprecation-notes">
 
@@ -1023,14 +984,10 @@ Debian 11 or Debian 12 for continued support.
 
 </div>
 
-Long term support (LTS) for [OpenSSL version 1.1.1 ended in September 2023](https://endoflife.date/openssl). Therefore, OpenSSL 3 will be the default in GitLab 17.5.
+Long term support (LTS) for [OpenSSL version 1.1.1 ended in September 2023](https://endoflife.date/openssl).
 
-With the upgrade to OpenSSL 3:
-
-- GitLab requires TLS 1.2 or higher for all outgoing and incoming TLS connections.
-- TLS/SSL certificates must have at least 112 bits of security. RSA, DSA, and DH keys shorter than 2048 bits, and ECC keys shorter than 224 bits are prohibited.
-
-See the [GitLab 17.5 changes](https://docs.gitlab.com/ee/update/versions/gitlab_17_changes.html#1750) for more details.
+Therefore, we have deprecated support for incoming OpenSSL version 1 (TLS 1.0 or 1.1) connections to GitLab and will remove support in GitLab 17.5.
+External integrations such as LDAP servers and webhooks must use OpenSSL version 3 (TLS 1.2).
 
 </div>
 </div>
@@ -1038,6 +995,23 @@ See the [GitLab 17.5 changes](https://docs.gitlab.com/ee/update/versions/gitlab_
 <div class="milestone-wrapper" data-milestone="17.4">
 
 ## GitLab 17.4
+
+<div class="deprecation " data-milestone="17.4">
+
+### Group vulnerability report by OWASP top 10 2017 is deprecated
+
+<div class="deprecation-notes">
+
+- Announced in GitLab <span class="milestone">17.0</span>
+- Removal in GitLab <span class="milestone">17.4</span>
+- To discuss this change or learn more, see the [deprecation issue](https://gitlab.com/gitlab-org/gitlab/-/issues/458835).
+
+</div>
+
+Grouping the vulnerability report by OWASP top 10 2017 is deprecated, replaced by grouping by OWASP top 10 2021.
+In the future we will support the most recent version of OWASP top 10 for grouping on the vulnerability report.
+
+</div>
 
 <div class="deprecation " data-milestone="17.4">
 
@@ -3743,7 +3717,7 @@ GitLab 16.0.
 
 </div>
 
-GitLab administrators can no longer perform actions on protected branches or tags unless they have been explicitly granted that permission. These actions include pushing and merging into a [protected branch](https://docs.gitlab.com/ee/user/project/repository/branches/protected.html), unprotecting a branch, and creating [protected tags](https://docs.gitlab.com/ee/user/project/protected_tags.html).
+GitLab administrators can no longer perform actions on protected branches or tags unless they have been explicitly granted that permission. These actions include pushing and merging into a [protected branch](https://docs.gitlab.com/ee/user/project/protected_branches.html), unprotecting a branch, and creating [protected tags](https://docs.gitlab.com/ee/user/project/protected_tags.html).
 
 </div>
 

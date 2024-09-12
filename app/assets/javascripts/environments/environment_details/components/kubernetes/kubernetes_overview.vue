@@ -4,12 +4,14 @@ import {
   GlSprintf,
   GlLink,
   GlAlert,
+  GlDrawer,
   GlDisclosureDropdown,
   GlDisclosureDropdownItem,
   GlModalDirective,
 } from '@gitlab/ui';
 import CLUSTER_EMPTY_SVG from '@gitlab/svgs/dist/illustrations/empty-state/empty-state-clusters.svg?url';
-import { isEmpty } from 'lodash';
+import { DRAWER_Z_INDEX } from '~/lib/utils/constants';
+import { getContentWrapperHeight } from '~/lib/utils/dom_utils';
 import { s__, __ } from '~/locale';
 import { createAlert } from '~/alert';
 import { InternalEvents } from '~/tracking';
@@ -31,7 +33,8 @@ import {
   KUSTOMIZATIONS_RESOURCE_TYPE,
 } from '~/environments/constants';
 import { CONNECT_MODAL_ID } from '~/clusters_list/constants';
-import WorkloadDetailsDrawer from '~/kubernetes_dashboard/components/workload_details_drawer.vue';
+import WorkloadDetails from '~/kubernetes_dashboard/components/workload_details.vue';
+import eventHub from '~/environments/event_hub';
 import ConnectToAgentModal from '~/clusters_list/components/connect_to_agent_modal.vue';
 import updateFluxResourceMutation from '~/environments/graphql/mutations/update_flux_resource.mutation.graphql';
 import KubernetesStatusBar from './kubernetes_status_bar.vue';
@@ -47,10 +50,11 @@ export default {
     KubernetesStatusBar,
     KubernetesAgentInfo,
     KubernetesTabs,
-    WorkloadDetailsDrawer,
+    WorkloadDetails,
     GlSprintf,
     GlLink,
     GlAlert,
+    GlDrawer,
     GlDisclosureDropdown,
     GlDisclosureDropdownItem,
     DeletePodModal,
@@ -87,6 +91,7 @@ export default {
     },
   },
   apollo: {
+    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     fluxKustomization: {
       query: fluxKustomizationQuery,
       variables() {
@@ -104,6 +109,7 @@ export default {
         this.fluxApiError = err.message;
       },
     },
+    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     fluxHelmRelease: {
       query: fluxHelmReleaseQueryStatus,
       variables() {
@@ -129,10 +135,10 @@ export default {
       podsLoading: false,
       activeTab: k8sResourceType.k8sPods,
       fluxApiError: '',
+      selectedItem: {},
+      showDetailsDrawer: false,
       focusedElement: null,
       podToDelete: {},
-      fluxHelmRelease: {},
-      fluxKustomization: {},
     };
   },
   computed: {
@@ -155,7 +161,13 @@ export default {
       return Object.values(this.failedState).some((item) => item);
     },
     fluxResourceStatus() {
-      return this.fluxKustomization.conditions || this.fluxHelmRelease.conditions;
+      return this.fluxKustomization?.conditions || this.fluxHelmRelease?.conditions;
+    },
+    drawerHeaderHeight() {
+      return getContentWrapperHeight();
+    },
+    hasSelectedItem() {
+      return Object.keys(this.selectedItem).length;
     },
   },
   methods: {
@@ -193,27 +205,32 @@ export default {
       };
     },
     showFluxResourceDetails() {
-      const fluxResource = !isEmpty(this.fluxKustomization)
-        ? this.fluxKustomization
-        : this.fluxHelmRelease;
+      const fluxResource = this.fluxKustomization || this.fluxHelmRelease;
       const fluxResourceTransformed = this.transformFluxResourceData(fluxResource);
 
-      this.toggleDetailsDrawer(fluxResourceTransformed);
+      this.openDetailsDrawer(fluxResourceTransformed);
     },
-    toggleDetailsDrawer(item) {
-      this.$refs.detailsDrawer?.toggle(item);
+    openDetailsDrawer(item) {
+      this.selectedItem = item;
+      this.showDetailsDrawer = true;
+      this.focusedElement = document.activeElement;
+      this.$nextTick(() => {
+        this.$refs.drawer?.$el?.querySelector('button')?.focus();
+      });
     },
     closeDetailsDrawer() {
-      this.$refs.detailsDrawer?.close();
+      this.showDetailsDrawer = false;
+      this.selectedItem = {};
+      eventHub.$emit('closeDetailsDrawer');
+      this.$nextTick(() => {
+        this.focusedElement?.focus();
+      });
     },
     onDeletePod(pod) {
       this.podToDelete = pod;
     },
     onCloseModal() {
       this.podToDelete = {};
-    },
-    onPodDeleted() {
-      this.closeDetailsDrawer();
     },
     onFluxReconcile() {
       this.trackEvent('click_trigger_flux_reconciliation');
@@ -254,6 +271,7 @@ export default {
   learnMoreLink: helpPagePath('user/clusters/agent/index'),
   getStartedLink: helpPagePath('ci/environments/kubernetes_dashboard'),
   CLUSTER_EMPTY_SVG,
+  DRAWER_Z_INDEX,
   CONNECT_MODAL_ID,
 };
 </script>
@@ -308,7 +326,7 @@ export default {
       @cluster-error="handleError"
       @loading="podsLoading = $event"
       @update-failed-state="handleFailedState"
-      @select-item="toggleDetailsDrawer"
+      @show-resource-details="openDetailsDrawer"
       @remove-selection="closeDetailsDrawer"
       @delete-pod="onDeletePod"
     />
@@ -318,15 +336,31 @@ export default {
       :configuration="k8sAccessConfiguration"
       :agent-id="gitlabAgentId"
       :environment-id="environmentId"
-      @pod-deleted="onPodDeleted"
       @close="onCloseModal"
     />
-    <workload-details-drawer
-      ref="detailsDrawer"
-      :configuration="k8sAccessConfiguration"
-      @delete-pod="onDeletePod"
-      @flux-reconcile="onFluxReconcile"
-    />
+
+    <gl-drawer
+      ref="drawer"
+      :open="showDetailsDrawer"
+      :header-height="drawerHeaderHeight"
+      :z-index="$options.DRAWER_Z_INDEX"
+      @close="closeDetailsDrawer"
+    >
+      <template #title>
+        <h2 class="gl-m-0 gl-font-bold gl-break-anywhere">
+          {{ selectedItem.name }}
+        </h2>
+      </template>
+      <template #default>
+        <workload-details
+          v-if="hasSelectedItem"
+          :item="selectedItem"
+          :configuration="k8sAccessConfiguration"
+          @delete-pod="onDeletePod"
+          @flux-reconcile="onFluxReconcile"
+        />
+      </template>
+    </gl-drawer>
   </div>
   <gl-empty-state
     v-else

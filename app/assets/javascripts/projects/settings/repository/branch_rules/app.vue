@@ -133,6 +133,9 @@ export default {
       this.$refs[this.$options.modalId].show();
     },
     addBranchRule({ name }) {
+      InternalEvents.trackEvent(PROTECTED_BRANCH, {
+        label: BRANCH_RULE_DETAILS_LABEL,
+      });
       this.$apollo
         .mutate({
           mutation: createBranchRuleMutation,
@@ -142,9 +145,6 @@ export default {
           },
         })
         .then(() => {
-          InternalEvents.trackEvent(PROTECTED_BRANCH, {
-            label: BRANCH_RULE_DETAILS_LABEL,
-          });
           visitUrl(this.getBranchRuleEditPath(name));
         })
         .catch(() => {

@@ -65,7 +65,6 @@ RSpec.describe 'new tables missing sharding_key', feature_category: :cell do
       'ci_job_artifacts.project_id',
       'ci_namespace_monthly_usages.namespace_id', # https://gitlab.com/gitlab-org/gitlab/-/issues/321400
       'ci_builds_metadata.project_id',
-      'p_ci_job_annotations.project_id', # LFK already present on p_ci_builds and cascade delete all ci resources
       'ldap_group_links.group_id',
       'namespace_descendants.namespace_id',
       'p_batched_git_ref_updates_deletions.project_id',
@@ -200,7 +199,6 @@ RSpec.describe 'new tables missing sharding_key', feature_category: :cell do
       "vulnerability_exports" => 'https://gitlab.com/gitlab-org/gitlab/-/issues/476219',
       "personal_access_tokens" => 'https://gitlab.com/gitlab-org/gitlab/-/issues/477750',
       "sbom_components" => 'https://gitlab.com/gitlab-org/gitlab/-/issues/469436',
-      "sbom_component_versions" => 'https://gitlab.com/gitlab-org/gitlab/-/issues/483194',
       "subscription_user_add_on_assignments" => "https://gitlab.com/gitlab-org/gitlab/-/issues/480697",
       "topics" => 'https://gitlab.com/gitlab-org/gitlab/-/issues/463254'
     }

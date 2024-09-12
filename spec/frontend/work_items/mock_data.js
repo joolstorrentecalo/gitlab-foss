@@ -1070,7 +1070,6 @@ export const workItemResponseFactory = ({
   editableWeightWidget = true,
   hasParent = false,
   healthStatus = 'onTrack',
-  rolledUpHealthStatus = [],
   rolledUpWeight = 0,
   rolledUpCompletedWeight = 0,
 } = {}) => ({
@@ -1268,7 +1267,6 @@ export const workItemResponseFactory = ({
           ? {
               __typename: 'WorkItemWidgetHealthStatus',
               type: 'HEALTH_STATUS',
-              rolledUpHealthStatus,
               healthStatus,
             }
           : { type: 'MOCK TYPE' },
@@ -4628,7 +4626,6 @@ export const createWorkItemQueryResponse = {
           {
             type: 'HEALTH_STATUS',
             healthStatus: 'needsAttention',
-            rolledUpHealthStatus: [],
             __typename: 'WorkItemWidgetHealthStatus',
           },
           {

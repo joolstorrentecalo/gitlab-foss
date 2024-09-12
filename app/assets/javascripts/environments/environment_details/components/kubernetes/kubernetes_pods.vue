@@ -23,6 +23,7 @@ export default {
     WorkloadTable,
   },
   apollo: {
+    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     k8sPods: {
       query: k8sPodsQuery,
       variables() {
@@ -81,7 +82,6 @@ export default {
     return {
       error: '',
       filterOption: '',
-      k8sPods: [],
     };
   },
   computed: {
@@ -130,7 +130,10 @@ export default {
       return filteredPods.length;
     },
     onItemSelect(item) {
-      this.$emit('select-item', item);
+      this.$emit('show-resource-details', item);
+    },
+    onRemoveSelection() {
+      this.$emit('remove-selection');
     },
     filterPods(status) {
       this.filterOption = status;
@@ -164,6 +167,7 @@ export default {
         :fields="$options.PODS_TABLE_FIELDS"
         class="gl-mt-8"
         @select-item="onItemSelect"
+        @remove-selection="onRemoveSelection"
         @delete-pod="onDeletePod"
       />
     </template>

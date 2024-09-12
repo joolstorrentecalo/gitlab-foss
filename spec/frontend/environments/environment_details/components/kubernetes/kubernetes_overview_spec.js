@@ -3,19 +3,19 @@ import VueApollo from 'vue-apollo';
 import {
   GlEmptyState,
   GlAlert,
+  GlDrawer,
   GlSprintf,
   GlDisclosureDropdown,
   GlDisclosureDropdownItem,
 } from '@gitlab/ui';
 import { shallowMount } from '@vue/test-utils';
 import waitForPromises from 'helpers/wait_for_promises';
-import { stubComponent } from 'helpers/stub_component';
 import createMockApollo from 'helpers/mock_apollo_helper';
 import { useMockInternalEventsTracking } from 'helpers/tracking_internal_events_helper';
 import { createAlert } from '~/alert';
 import { getIdFromGraphQLId } from '~/graphql_shared/utils';
 import { createMockDirective, getBinding } from 'helpers/vue_mock_directive';
-import WorkloadDetailsDrawer from '~/kubernetes_dashboard/components/workload_details_drawer.vue';
+import WorkloadDetails from '~/kubernetes_dashboard/components/workload_details.vue';
 import KubernetesOverview from '~/environments/environment_details/components/kubernetes/kubernetes_overview.vue';
 import KubernetesStatusBar from '~/environments/environment_details/components/kubernetes/kubernetes_status_bar.vue';
 import KubernetesAgentInfo from '~/environments/environment_details/components/kubernetes/kubernetes_agent_info.vue';
@@ -24,6 +24,7 @@ import DeletePodModal from '~/environments/environment_details/components/kubern
 import { k8sResourceType } from '~/environments/graphql/resolvers/kubernetes/constants';
 import ConnectToAgentModal from '~/clusters_list/components/connect_to_agent_modal.vue';
 import { mockPodsTableItems } from 'jest/kubernetes_dashboard/graphql/mock_data';
+import eventHub from '~/environments/event_hub';
 import { CONNECT_MODAL_ID } from '~/clusters_list/constants';
 import { agent, kubernetesNamespace } from '../../../graphql/mock_data';
 import { mockKasTunnelUrl, fluxResourceStatus, fluxKustomization } from '../../../mock_data';
@@ -58,9 +59,6 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
   const kustomizationResourcePath =
     'kustomize.toolkit.fluxcd.io/v1/namespaces/my-namespace/kustomizations/app';
 
-  const toggleDetailsDrawerSpy = jest.fn();
-  const closeDetailsDrawerSpy = jest.fn();
-
   let updateFluxResourceMutationMock;
   let fluxKustomizationQuery;
   let fluxHelmReleaseQuery;
@@ -92,12 +90,7 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
         fluxResourcePath,
       },
       apolloProvider,
-      stubs: {
-        GlSprintf,
-        WorkloadDetailsDrawer: stubComponent(WorkloadDetailsDrawer, {
-          methods: { toggle: toggleDetailsDrawerSpy, close: closeDetailsDrawerSpy },
-        }),
-      },
+      stubs: { GlSprintf },
       directives: {
         GlModalDirective: createMockDirective('gl-modal-directive'),
       },
@@ -109,7 +102,8 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
   const findKubernetesTabs = () => wrapper.findComponent(KubernetesTabs);
   const findEmptyState = () => wrapper.findComponent(GlEmptyState);
   const findAlert = () => wrapper.findComponent(GlAlert);
-  const findWorkloadDetailsDrawer = () => wrapper.findComponent(WorkloadDetailsDrawer);
+  const findDrawer = () => wrapper.findComponent(GlDrawer);
+  const findWorkloadDetails = () => wrapper.findComponent(WorkloadDetails);
   const findDeletePodModal = () => wrapper.findComponent(DeletePodModal);
   const findDisclosureDropdown = () => wrapper.findComponent(GlDisclosureDropdown);
   const findDisclosureDropdownItem = () => wrapper.findComponent(GlDisclosureDropdownItem);
@@ -325,18 +319,53 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
     });
 
     describe('resource details drawer', () => {
-      beforeEach(() => {
+      it('is closed by default', () => {
         wrapper = createWrapper();
+
+        expect(findDrawer().props('open')).toBe(false);
       });
 
-      it('renders workload-details-drawer', () => {
-        expect(findWorkloadDetailsDrawer().props('configuration')).toEqual(configuration);
-      });
+      describe('when receives show-resource-details event from the tabs', () => {
+        beforeEach(() => {
+          wrapper = createWrapper();
+          findKubernetesTabs().vm.$emit('show-resource-details', mockPodsTableItems[0]);
+        });
 
-      it('toggles the details drawer when receives select-item event from the tabs', () => {
-        findKubernetesTabs().vm.$emit('select-item', mockPodsTableItems[0]);
+        it('opens the drawer', () => {
+          expect(findDrawer().props('open')).toBe(true);
+        });
 
-        expect(toggleDetailsDrawerSpy).toHaveBeenCalledWith(mockPodsTableItems[0]);
+        it('provides the resource details to the drawer', () => {
+          expect(findWorkloadDetails().props('item')).toEqual(mockPodsTableItems[0]);
+        });
+
+        it('provides the agent access configuration to the drawer', () => {
+          expect(findWorkloadDetails().props('configuration')).toEqual(configuration);
+        });
+
+        it('renders a title with the selected item name', () => {
+          expect(findDrawer().text()).toContain(mockPodsTableItems[0].name);
+        });
+
+        it('is closed when clicked on a cross button', async () => {
+          const eventHubSpy = jest.spyOn(eventHub, '$emit');
+
+          expect(findDrawer().props('open')).toBe(true);
+
+          await findDrawer().vm.$emit('close');
+          expect(findDrawer().props('open')).toBe(false);
+          expect(eventHubSpy).toHaveBeenCalledWith('closeDetailsDrawer');
+        });
+
+        it('is closed on remove-selection event', async () => {
+          const eventHubSpy = jest.spyOn(eventHub, '$emit');
+
+          expect(findDrawer().props('open')).toBe(true);
+
+          await findKubernetesTabs().vm.$emit('remove-selection');
+          expect(findDrawer().props('open')).toBe(false);
+          expect(eventHubSpy).toHaveBeenCalledWith('closeDetailsDrawer');
+        });
       });
 
       describe('when receives show-flux-resource-details event from the status bar', () => {
@@ -351,7 +380,11 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
           findKubernetesStatusBar().vm.$emit('show-flux-resource-details', fluxKustomization);
         });
 
-        it('toggles the details drawer', () => {
+        it('opens the drawer when gets selected item', () => {
+          expect(findDrawer().props('open')).toBe(true);
+        });
+
+        it('provides the resource details to the drawer', () => {
           const selectedItem = {
             name: fluxKustomization.metadata.name,
             namespace: fluxKustomization.metadata.namespace,
@@ -369,8 +402,11 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
               },
             ],
           };
+          expect(findWorkloadDetails().props('item')).toEqual(selectedItem);
+        });
 
-          expect(toggleDetailsDrawerSpy).toHaveBeenCalledWith(selectedItem);
+        it('renders a title with the selected item name', () => {
+          expect(findDrawer().text()).toContain(fluxKustomization.metadata.name);
         });
       });
     });
@@ -390,7 +426,7 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
 
           findKubernetesStatusBar().vm.$emit('show-flux-resource-details', fluxKustomization);
           await nextTick();
-          findWorkloadDetailsDrawer().vm.$emit('flux-reconcile', fluxKustomization);
+          findWorkloadDetails().vm.$emit('flux-reconcile', fluxKustomization);
         });
 
         it('tracks `click_trigger_flux_reconciliation` event', () => {
@@ -423,10 +459,10 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
           );
         });
 
-        it('closes the details drawer when mutation is successful', async () => {
-          expect(closeDetailsDrawerSpy).not.toHaveBeenCalled();
+        it('closes the drawer when mutation is successful', async () => {
+          expect(findDrawer().props('open')).toBe(true);
           await waitForPromises();
-          expect(closeDetailsDrawerSpy).toHaveBeenCalledTimes(1);
+          expect(findDrawer().props('open')).toBe(false);
         });
       });
 
@@ -444,7 +480,7 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
 
           findKubernetesStatusBar().vm.$emit('show-flux-resource-details', fluxKustomization);
           await nextTick();
-          findWorkloadDetailsDrawer().vm.$emit('flux-reconcile', fluxKustomization);
+          findWorkloadDetails().vm.$emit('flux-reconcile', fluxKustomization);
           await waitForPromises();
         });
 
@@ -493,19 +529,10 @@ describe('~/environments/environment_details/components/kubernetes/kubernetes_ov
         const podToDelete = mockPodsTableItems[1];
         findKubernetesTabs().vm.$emit('show-resource-details', mockPodsTableItems[1]);
         await nextTick();
-        findWorkloadDetailsDrawer().vm.$emit('delete-pod', podToDelete);
+        findWorkloadDetails().vm.$emit('delete-pod', podToDelete);
         await nextTick();
 
         expect(findDeletePodModal().props('pod')).toEqual(podToDelete);
-      });
-
-      it('closes the details drawer when pod is deleted', async () => {
-        expect(closeDetailsDrawerSpy).not.toHaveBeenCalled();
-
-        findDeletePodModal().vm.$emit('pod-deleted');
-        await nextTick();
-
-        expect(closeDetailsDrawerSpy).toHaveBeenCalledTimes(1);
       });
     });
 

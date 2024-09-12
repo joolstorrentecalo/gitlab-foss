@@ -3,12 +3,7 @@ import { GlIcon, GlTooltip, GlPopover } from '@gitlab/ui';
 import { s__, __ } from '~/locale';
 import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
 import { findWidget } from '~/issues/list/utils';
-import {
-  i18n,
-  WIDGET_TYPE_WEIGHT,
-  WORK_ITEM_TYPE_VALUE_EPIC,
-  WIDGET_TYPE_HEALTH_STATUS,
-} from '../../constants';
+import { i18n, WIDGET_TYPE_WEIGHT, WORK_ITEM_TYPE_VALUE_EPIC } from '../../constants';
 import WorkItemRolledUpCount from './work_item_rolled_up_count.vue';
 
 export default {
@@ -17,10 +12,6 @@ export default {
     GlTooltip,
     GlPopover,
     WorkItemRolledUpCount,
-    WorkItemRolledUpHealthStatus: () =>
-      import(
-        'ee_component/work_items/components/work_item_links/work_item_rolled_up_health_status.vue'
-      ),
   },
   i18n: {
     progressLabel: s__('WorkItem|Progress'),
@@ -80,9 +71,6 @@ export default {
     workItemWeight() {
       return findWidget(WIDGET_TYPE_WEIGHT, this.workItem);
     },
-    workItemHealthStatus() {
-      return findWidget(WIDGET_TYPE_HEALTH_STATUS, this.workItem);
-    },
     shouldRolledUpWeightBeVisible() {
       return this.showRolledUpWeight && this.rolledUpWeight !== null;
     },
@@ -103,9 +91,6 @@ export default {
     },
     weightTooltip() {
       return this.workItemType === WORK_ITEM_TYPE_VALUE_EPIC ? __('Issue weight') : __('Weight');
-    },
-    rolledUpHealthStatus() {
-      return this.workItemHealthStatus?.rolledUpHealthStatus;
     },
   },
 };
@@ -155,12 +140,5 @@ export default {
       </gl-popover>
     </span>
     <!-- END Rolled up Progress -->
-
-    <!-- Rolled up health status -->
-    <work-item-rolled-up-health-status
-      v-if="rolledUpHealthStatus"
-      :rolled-up-health-status="rolledUpHealthStatus"
-    />
-    <!-- END Rolled up health status -->
   </div>
 </template>

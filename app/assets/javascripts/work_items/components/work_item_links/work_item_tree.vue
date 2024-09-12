@@ -281,7 +281,6 @@ export default {
   >
     <template #count>
       <work-item-rolled-up-data
-        v-if="!isLoadingChildren"
         :work-item-id="workItemId"
         :work-item-iid="workItemIid"
         :work-item-type="workItemType"

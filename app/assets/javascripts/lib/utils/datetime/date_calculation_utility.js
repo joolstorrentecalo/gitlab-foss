@@ -872,11 +872,3 @@ export function getMonthsBetweenDates(startDate, endDate) {
       };
     });
 }
-
-export function convertNanoToMs(nano) {
-  return nano / 1e6;
-}
-
-export function convertMsToNano(ms) {
-  return ms * 1e6;
-}

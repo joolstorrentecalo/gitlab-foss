@@ -244,7 +244,6 @@ rule in the defined policy are met.
 | `variables` | `object` | | A set of CI variables, supplied as an array of `key: value` pairs, to apply and enforce for the selected scan. The `key` is the variable name, with its `value` provided as a string. This parameter supports any variable that the GitLab CI job supports for the specified scan. |
 | `tags` | `array` of `string` | | A list of runner tags for the policy. The policy jobs are run by runner with the specified tags. |
 | `template` | `string` | `default`, `latest` | CI/CD template edition to be enforced. The [`latest`](../../../development/cicd/templates.md#latest-version) edition may introduce breaking changes. |
-| `scan_settings` | `object` | | A set of scan settings, supplied as an array of `key: value` pairs, to apply and enforce for the selected scan. The `key` is the setting name, with its `value` provided as a boolean or string. This parameter supports the settings defined in [scan settings](#scan-settings). |
 
 NOTE:
 If you have Merge Request Pipelines enabled for your project, you must select `template: latest` in your policy for each enforced scan. Using the latest template is crucial for compatibility with Merge Request Pipelines and allows you to take full advantage of GitLab security features. For more information on using security scanning tools with Merge Request Pipelines, please refer to our [security scanning documentation](../../application_security/index.md#use-security-scanning-tools-with-merge-request-pipelines).
@@ -283,20 +282,12 @@ The following requirements apply when enforcing Dynamic Application Security Tes
   [site profile](../dast/on-demand_scan.md#site-profile) and
   [scanner profile](../dast/on-demand_scan.md#scanner-profile) must exist. If these are not
   available, the policy is not applied and a job with an error message is created instead.
-- When a DAST site profile or scanner profile is named in an enabled scan execution policy, the
-  profile cannot be modified or deleted. To edit or delete the profile, you must first set the
-  policy to **Disabled** in the policy editor or set `enabled: false` in the YAML mode.
+- After you associate the site profile and scanner profile by name in the policy, it is not possible
+  to modify or delete them. If you want to modify them, you must first disable the policy by setting
+  the `active` flag to `false`.
 - When configuring policies with a scheduled DAST scan, the author of the commit in the security
   policy project's repository must have access to the scanner and site profiles. Otherwise, the scan
   is not scheduled successfully.
-
-### Scan settings
-
-The following settings are supported by the `scan_settings` parameter:
-
-| Setting | Type | Required | Possible values | Default | Description |
-|-------|------|----------|-----------------|-------------|-----------|
-| `ignore_default_before_after_script` | `boolean` | false | `true`, `false` | `false` | Specifies whether to exclude any default `before_script` and `after_script` definitions in the pipeline configuration from the scan job. |
 
 ## CI/CD variables
 
@@ -326,7 +317,6 @@ In GitLab 16.9 and earlier:
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/135398) in GitLab 16.7 [with a flag](../../../administration/feature_flags.md) named `security_policies_policy_scope`. Enabled by default.
 > - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/443594) in GitLab 16.11. Feature flag `security_policies_policy_scope` removed.
-> - Scoping by group [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/468384) in GitLab 17.4.
 
 Security policy enforcement depends first on establishing a link between:
 
@@ -343,7 +333,6 @@ You scope security policies to projects by setting the scopes in the `policy.yml
   the compliance framework's ID. To include projects, use `policy_scope.compliance_frameworks.id` to specify IDs of
   compliance frameworks that are applied to the projects.
 - _Include_ or _exclude_ selected projects from enforcement by using the project's ID.
-- _Include_ selected groups. Optionally use this with the `projects` object to exclude selected projects.
 
 ### Policy scope schema
 
@@ -351,7 +340,7 @@ A policy scope must conform to this schema.
 
 | Field | Type | Required | Possible values | Description |
 |-------|------|----------|-----------------|-------------|
-| `policy_scope` | `object` | false | `compliance_frameworks`, `projects`, `groups` | Scopes the policy based on compliance framework labels, projects, or groups you define. |
+| `policy_scope` | `object` | false | `compliance_frameworks`, `projects` | Scopes the policy based on compliance framework labels or projects you define. |
 
 #### `policy_scope` scope type
 
@@ -361,7 +350,6 @@ Policy scopes are one of two types.
 |-------|------|-----------------|-------------|
 | `compliance_frameworks` | `array` |  | List of IDs of the compliance frameworks in scope of enforcement, in an array of objects with key `id`. |
 | `projects` | `object` |  `including`, `excluding` | Use `excluding:` or `including:` then list the IDs of the projects you wish to include or exclude, in an array of objects with key `id`. |
-| `groups` | `object` | `including` | Use `including:` then list the IDs of the groups you wish to include, in an array of objects with key `id`. |
 
 #### Example `policy.yml` with security policy scopes
 
@@ -439,8 +427,6 @@ scan_execution_policy:
     scanner_profile: Scanner Profile C
     site_profile: Site Profile D
   - scan: secret_detection
-    scan_settings:
-      ignore_default_before_after_script: true
 - name: Enforce Secret Detection and Container Scanning in every default branch pipeline
   description: This policy enforces pipeline configuration to have a job with Secret Detection and Container Scanning scans for the default branch
   enabled: true

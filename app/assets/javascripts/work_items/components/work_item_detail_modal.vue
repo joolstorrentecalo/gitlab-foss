@@ -43,7 +43,6 @@ export default {
     return {
       error: undefined,
       updatedWorkItemIid: null,
-      updatedWorkItemId: null,
       isModalShown: false,
       hasNotes: false,
     };
@@ -51,9 +50,6 @@ export default {
   computed: {
     displayedWorkItemIid() {
       return this.updatedWorkItemIid || this.workItemIid;
-    },
-    displayedWorkItemId() {
-      return this.updatedWorkItemId || this.workItemId;
     },
   },
   watch: {
@@ -90,7 +86,6 @@ export default {
     },
     closeModal() {
       this.updatedWorkItemIid = null;
-      this.updatedWorkItemId = null;
       this.error = '';
       this.isModalShown = false;
       this.$emit('close');
@@ -106,7 +101,6 @@ export default {
     },
     updateModal($event, workItem) {
       this.updatedWorkItemIid = workItem.iid;
-      this.updatedWorkItemId = workItem.id;
       this.$emit('update-modal', $event, workItem);
     },
     onModalShow() {
@@ -142,7 +136,7 @@ export default {
 
     <work-item-detail
       is-modal
-      :work-item-id="displayedWorkItemId"
+      :work-item-id="workItemId"
       :work-item-iid="displayedWorkItemIid"
       :modal-work-item-full-path="workItemFullPath"
       class="gl-isolate -gl-mt-3 gl-bg-inherit gl-p-5"

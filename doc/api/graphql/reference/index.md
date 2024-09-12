@@ -80,10 +80,6 @@ four standard [pagination arguments](#pagination-arguments):
 
 Retrieve the active add-on purchase. This query can be used in GitLab SaaS and self-managed environments.
 
-DETAILS:
-**Deprecated** in GitLab 17.4.
-Use add_on_purchases instead.
-
 Returns [`AddOnPurchase`](#addonpurchase).
 
 #### Arguments
@@ -464,6 +460,22 @@ Returns [`EpicList`](#epiclist).
 | ---- | ---- | ----------- |
 | <a id="queryepicboardlistepicfilters"></a>`epicFilters` | [`EpicFilters`](#epicfilters) | Filters applied when getting epic metadata in the epic board list. |
 | <a id="queryepicboardlistid"></a>`id` | [`BoardsEpicListID!`](#boardsepiclistid) | Global ID of the list. |
+
+### `Query.explainVulnerabilityPrompt`
+
+GitLab Duo Vulnerability Explanation prompt for a specified vulnerability.
+
+DETAILS:
+**Introduced** in GitLab 16.2.
+**Status**: Experiment.
+
+Returns [`ExplainVulnerabilityPrompt`](#explainvulnerabilityprompt).
+
+#### Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="queryexplainvulnerabilitypromptvulnerabilityid"></a>`vulnerabilityId` | [`VulnerabilityID!`](#vulnerabilityid) | Vulnerability to generate a prompt for. |
 
 ### `Query.featureFlagEnabled`
 
@@ -1719,33 +1731,6 @@ Input type: `AiAgentUpdateInput`
 | <a id="mutationaiagentupdateagent"></a>`agent` | [`AiAgent`](#aiagent) | Agent after mutation. |
 | <a id="mutationaiagentupdateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
 | <a id="mutationaiagentupdateerrors"></a>`errors` | [`[String!]!`](#string) | Errors encountered during execution of the mutation. |
-
-### `Mutation.aiFeatureSettingUpdate`
-
-Updates or create setting for the AI feature.
-
-DETAILS:
-**Introduced** in GitLab 17.4.
-**Status**: Experiment.
-
-Input type: `AiFeatureSettingUpdateInput`
-
-#### Arguments
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationaifeaturesettingupdateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationaifeaturesettingupdatefeature"></a>`feature` | [`AiFeatures!`](#aifeatures) | AI feature being configured. |
-| <a id="mutationaifeaturesettingupdateprovider"></a>`provider` | [`AiFeatureProviders!`](#aifeatureproviders) | Provider for AI setting. |
-| <a id="mutationaifeaturesettingupdateselfhostedmodelid"></a>`selfHostedModelId` | [`AiSelfHostedModelID`](#aiselfhostedmodelid) | Global ID of the self-hosted model provide the AI setting. |
-
-#### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationaifeaturesettingupdateaifeaturesetting"></a>`aiFeatureSetting` | [`AiFeatureSetting`](#aifeaturesetting) | AI feature setting after mutation. |
-| <a id="mutationaifeaturesettingupdateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationaifeaturesettingupdateerrors"></a>`errors` | [`[String!]!`](#string) | Errors encountered during execution of the mutation. |
 
 ### `Mutation.aiSelfHostedModelCreate`
 
@@ -10868,52 +10853,6 @@ Some of the types in the schema exist solely to model connections. Each connecti
 has a distinct, named type, with a distinct named edge type. These are listed separately
 below.
 
-#### `AbuseReportDiscussionConnection`
-
-The connection type for [`AbuseReportDiscussion`](#abusereportdiscussion).
-
-##### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="abusereportdiscussionconnectionedges"></a>`edges` | [`[AbuseReportDiscussionEdge]`](#abusereportdiscussionedge) | A list of edges. |
-| <a id="abusereportdiscussionconnectionnodes"></a>`nodes` | [`[AbuseReportDiscussion]`](#abusereportdiscussion) | A list of nodes. |
-| <a id="abusereportdiscussionconnectionpageinfo"></a>`pageInfo` | [`PageInfo!`](#pageinfo) | Information to aid in pagination. |
-
-#### `AbuseReportDiscussionEdge`
-
-The edge type for [`AbuseReportDiscussion`](#abusereportdiscussion).
-
-##### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="abusereportdiscussionedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
-| <a id="abusereportdiscussionedgenode"></a>`node` | [`AbuseReportDiscussion`](#abusereportdiscussion) | The item at the end of the edge. |
-
-#### `AbuseReportNoteConnection`
-
-The connection type for [`AbuseReportNote`](#abusereportnote).
-
-##### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="abusereportnoteconnectionedges"></a>`edges` | [`[AbuseReportNoteEdge]`](#abusereportnoteedge) | A list of edges. |
-| <a id="abusereportnoteconnectionnodes"></a>`nodes` | [`[AbuseReportNote]`](#abusereportnote) | A list of nodes. |
-| <a id="abusereportnoteconnectionpageinfo"></a>`pageInfo` | [`PageInfo!`](#pageinfo) | Information to aid in pagination. |
-
-#### `AbuseReportNoteEdge`
-
-The edge type for [`AbuseReportNote`](#abusereportnote).
-
-##### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="abusereportnoteedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
-| <a id="abusereportnoteedgenode"></a>`node` | [`AbuseReportNote`](#abusereportnote) | The item at the end of the edge. |
-
 #### `AccessLevelDeployKeyConnection`
 
 The connection type for [`AccessLevelDeployKey`](#accessleveldeploykey).
@@ -15339,29 +15278,6 @@ The edge type for [`ProjectSavedReply`](#projectsavedreply).
 | <a id="projectsavedreplyedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
 | <a id="projectsavedreplyedgenode"></a>`node` | [`ProjectSavedReply`](#projectsavedreply) | The item at the end of the edge. |
 
-#### `ProjectSecurityExclusionConnection`
-
-The connection type for [`ProjectSecurityExclusion`](#projectsecurityexclusion).
-
-##### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="projectsecurityexclusionconnectionedges"></a>`edges` | [`[ProjectSecurityExclusionEdge]`](#projectsecurityexclusionedge) | A list of edges. |
-| <a id="projectsecurityexclusionconnectionnodes"></a>`nodes` | [`[ProjectSecurityExclusion]`](#projectsecurityexclusion) | A list of nodes. |
-| <a id="projectsecurityexclusionconnectionpageinfo"></a>`pageInfo` | [`PageInfo!`](#pageinfo) | Information to aid in pagination. |
-
-#### `ProjectSecurityExclusionEdge`
-
-The edge type for [`ProjectSecurityExclusion`](#projectsecurityexclusion).
-
-##### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="projectsecurityexclusionedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
-| <a id="projectsecurityexclusionedgenode"></a>`node` | [`ProjectSecurityExclusion`](#projectsecurityexclusion) | The item at the end of the edge. |
-
 #### `ProjectWikiRepositoryRegistryConnection`
 
 The connection type for [`ProjectWikiRepositoryRegistry`](#projectwikirepositoryregistry).
@@ -16870,49 +16786,28 @@ An abuse report.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| <a id="abusereportdiscussions"></a>`discussions` | [`AbuseReportDiscussionConnection!`](#abusereportdiscussionconnection) | All discussions on the noteable. (see [Connections](#connections)) |
+| <a id="abusereportcommenters"></a>`commenters` | [`UserCoreConnection!`](#usercoreconnection) | All commenters on this noteable. (see [Connections](#connections)) |
+| <a id="abusereportdiscussions"></a>`discussions` | [`DiscussionConnection!`](#discussionconnection) | All discussions on this noteable. (see [Connections](#connections)) |
 | <a id="abusereportid"></a>`id` | [`AbuseReportID!`](#abusereportid) | Global ID of the abuse report. |
 | <a id="abusereportlabels"></a>`labels` | [`LabelConnection`](#labelconnection) | Labels of the abuse report. (see [Connections](#connections)) |
-| <a id="abusereportnotes"></a>`notes` | [`AbuseReportNoteConnection!`](#abusereportnoteconnection) | All notes on the noteable. (see [Connections](#connections)) |
 
-### `AbuseReportDiscussion`
+#### Fields with arguments
 
-#### Fields
+##### `AbuseReport.notes`
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="abusereportdiscussionabusereport"></a>`abuseReport` | [`AbuseReport`](#abusereport) | Abuse report which the discussion belongs to. |
-| <a id="abusereportdiscussioncreatedat"></a>`createdAt` | [`Time!`](#time) | Timestamp of the discussion's creation. |
-| <a id="abusereportdiscussionid"></a>`id` | [`DiscussionID!`](#discussionid) | ID of the discussion. |
-| <a id="abusereportdiscussionnotes"></a>`notes` | [`AbuseReportNoteConnection!`](#abusereportnoteconnection) | All notes in the discussion. (see [Connections](#connections)) |
-| <a id="abusereportdiscussionreplyid"></a>`replyId` | [`DiscussionID!`](#discussionid) | ID used to reply to the discussion. |
-| <a id="abusereportdiscussionresolvable"></a>`resolvable` | [`Boolean!`](#boolean) | Indicates if the object can be resolved. |
-| <a id="abusereportdiscussionresolved"></a>`resolved` | [`Boolean!`](#boolean) | Indicates if the object is resolved. |
-| <a id="abusereportdiscussionresolvedat"></a>`resolvedAt` | [`Time`](#time) | Timestamp of when the object was resolved. |
-| <a id="abusereportdiscussionresolvedby"></a>`resolvedBy` | [`UserCore`](#usercore) | User who resolved the object. |
+All notes on this noteable.
 
-### `AbuseReportNote`
+Returns [`NoteConnection!`](#noteconnection).
 
-#### Fields
+This field returns a [connection](#connections). It accepts the
+four standard [pagination arguments](#pagination-arguments):
+`before: String`, `after: String`, `first: Int`, and `last: Int`.
+
+###### Arguments
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| <a id="abusereportnoteauthor"></a>`author` | [`UserCore`](#usercore) | User who wrote the note. |
-| <a id="abusereportnoteawardemoji"></a>`awardEmoji` | [`AwardEmojiConnection`](#awardemojiconnection) | List of emoji reactions associated with the note. (see [Connections](#connections)) |
-| <a id="abusereportnotebody"></a>`body` | [`String!`](#string) | Content of the note. |
-| <a id="abusereportnotebodyfirstlinehtml"></a>`bodyFirstLineHtml` | [`String!`](#string) | First line of the note content. |
-| <a id="abusereportnotebodyhtml"></a>`bodyHtml` | [`String`](#string) | GitLab Flavored Markdown rendering of the content of the note. |
-| <a id="abusereportnotecreatedat"></a>`createdAt` | [`Time!`](#time) | Timestamp of the note creation. |
-| <a id="abusereportnotediscussion"></a>`discussion` | [`AbuseReportDiscussion`](#abusereportdiscussion) | Discussion the note is a part of. |
-| <a id="abusereportnoteid"></a>`id` | [`AntiAbuseReportsNoteID!`](#antiabusereportsnoteid) | ID of the note. |
-| <a id="abusereportnotelasteditedat"></a>`lastEditedAt` | [`Time`](#time) | Timestamp when note was last edited. |
-| <a id="abusereportnotelasteditedby"></a>`lastEditedBy` | [`UserCore`](#usercore) | User who last edited the note. |
-| <a id="abusereportnoteresolvable"></a>`resolvable` | [`Boolean!`](#boolean) | Indicates if the object can be resolved. |
-| <a id="abusereportnoteresolved"></a>`resolved` | [`Boolean!`](#boolean) | Indicates if the object is resolved. |
-| <a id="abusereportnoteresolvedat"></a>`resolvedAt` | [`Time`](#time) | Timestamp of when the object was resolved. |
-| <a id="abusereportnoteresolvedby"></a>`resolvedBy` | [`UserCore`](#usercore) | User who resolved the object. |
-| <a id="abusereportnoteupdatedat"></a>`updatedAt` | [`Time!`](#time) | Timestamp of the note's last activity. |
-| <a id="abusereportnoteurl"></a>`url` | [`String`](#string) | URL to view the note in the Web UI. |
+| <a id="abusereportnotesfilter"></a>`filter` | [`NotesFilterType`](#notesfiltertype) | Type of notes collection: ALL_NOTES, ONLY_COMMENTS, ONLY_ACTIVITY. |
 
 ### `AccessLevel`
 
@@ -17433,19 +17328,6 @@ Information about a connected Agent.
 | <a id="aggregationstatusestimatednextupdateat"></a>`estimatedNextUpdateAt` | [`Time`](#time) | Estimated time when the next incremental update will happen. |
 | <a id="aggregationstatuslastupdateat"></a>`lastUpdateAt` | [`Time`](#time) | Last incremental update time. |
 
-### `AiAdditionalContext`
-
-Additional context for AI message.
-
-#### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="aiadditionalcontextcategory"></a>`category` | [`AiAdditionalContextCategory!`](#aiadditionalcontextcategory) | Category of the additional context. |
-| <a id="aiadditionalcontextcontent"></a>`content` | [`String!`](#string) | Content of the additional context. |
-| <a id="aiadditionalcontextid"></a>`id` | [`ID!`](#id) | ID of the additional context. |
-| <a id="aiadditionalcontextmetadata"></a>`metadata` | [`JSON`](#json) | Metadata of the additional context. |
-
 ### `AiAgent`
 
 An AI agent.
@@ -17474,18 +17356,6 @@ Version of an AI Agent.
 | <a id="aiagentversionmodel"></a>`model` | [`String!`](#string) | Model of the agent. |
 | <a id="aiagentversionprompt"></a>`prompt` | [`String!`](#string) | Prompt of the agent. |
 
-### `AiFeatureSetting`
-
-Duo Chat feature setting.
-
-#### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="aifeaturesettingfeature"></a>`feature` | [`String!`](#string) | AI feature. |
-| <a id="aifeaturesettingprovider"></a>`provider` | [`String!`](#string) | Chosen method to provide the feature. |
-| <a id="aifeaturesettingselfhostedmodel"></a>`selfHostedModel` | [`AiSelfHostedModel`](#aiselfhostedmodel) | Self-hosted model server which provide the feature. |
-
 ### `AiMessage`
 
 AI features communication message.
@@ -17494,7 +17364,6 @@ AI features communication message.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| <a id="aimessageadditionalcontext"></a>`additionalContext` | [`[AiAdditionalContext!]`](#aiadditionalcontext) | Additional context for the message. |
 | <a id="aimessageagentversionid"></a>`agentVersionId` | [`AiAgentVersionID`](#aiagentversionid) | Global ID of the agent version to answer the message. |
 | <a id="aimessagechunkid"></a>`chunkId` | [`Int`](#int) | Incremental ID for a chunk from a streamed message. Null when it is not a streamed message. |
 | <a id="aimessagecontent"></a>`content` | [`String`](#string) | Raw response content. |
@@ -19874,7 +19743,7 @@ Represents a ComplianceFramework associated with a Project.
 | <a id="complianceframeworkdescription"></a>`description` | [`String!`](#string) | Description of the compliance framework. |
 | <a id="complianceframeworkid"></a>`id` | [`ID!`](#id) | Compliance framework ID. |
 | <a id="complianceframeworkname"></a>`name` | [`String!`](#string) | Name of the compliance framework. |
-| <a id="complianceframeworkpipelineconfigurationfullpath"></a>`pipelineConfigurationFullPath` **{warning-solid}** | [`String`](#string) | **Deprecated** in GitLab 17.4. Use pipeline execution policies instead. |
+| <a id="complianceframeworkpipelineconfigurationfullpath"></a>`pipelineConfigurationFullPath` | [`String`](#string) | Full path of the compliance pipeline configuration stored in a project repository, such as `.gitlab/.compliance-gitlab-ci.yml@compliance/hipaa`. Ultimate only. |
 | <a id="complianceframeworkprojects"></a>`projects` | [`ProjectConnection`](#projectconnection) | Projects associated with the compliance framework. (see [Connections](#connections)) |
 | <a id="complianceframeworkscanexecutionpolicies"></a>`scanExecutionPolicies` | [`ScanExecutionPolicyConnection`](#scanexecutionpolicyconnection) | Scan Execution Policies of the compliance framework. (see [Connections](#connections)) |
 | <a id="complianceframeworkscanresultpolicies"></a>`scanResultPolicies` | [`ScanResultPolicyConnection`](#scanresultpolicyconnection) | Scan Result Policies of the compliance framework. (see [Connections](#connections)) |
@@ -20992,7 +20861,6 @@ A software dependency used by a project.
 | <a id="dependencylocation"></a>`location` | [`Location`](#location) | Information about where the dependency is located. |
 | <a id="dependencyname"></a>`name` | [`String!`](#string) | Name of the dependency. |
 | <a id="dependencypackager"></a>`packager` | [`PackageManager`](#packagemanager) | Description of the tool used to manage the dependency. |
-| <a id="dependencyreachability"></a>`reachability` | [`ReachabilityType`](#reachabilitytype) | Information about reachability of a dependency. |
 | <a id="dependencyversion"></a>`version` | [`String`](#string) | Version of the dependency. |
 
 ### `DependencyProxyBlob`
@@ -21663,10 +21531,10 @@ Aggregated summary of changes.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | <a id="discussioncreatedat"></a>`createdAt` | [`Time!`](#time) | Timestamp of the discussion's creation. |
-| <a id="discussionid"></a>`id` | [`DiscussionID!`](#discussionid) | ID of the discussion. |
+| <a id="discussionid"></a>`id` | [`DiscussionID!`](#discussionid) | ID of this discussion. |
 | <a id="discussionnoteable"></a>`noteable` | [`NoteableType`](#noteabletype) | Object which the discussion belongs to. |
 | <a id="discussionnotes"></a>`notes` | [`NoteConnection!`](#noteconnection) | All notes in the discussion. (see [Connections](#connections)) |
-| <a id="discussionreplyid"></a>`replyId` | [`DiscussionID!`](#discussionid) | ID used to reply to the discussion. |
+| <a id="discussionreplyid"></a>`replyId` | [`DiscussionID!`](#discussionid) | ID used to reply to this discussion. |
 | <a id="discussionresolvable"></a>`resolvable` | [`Boolean!`](#boolean) | Indicates if the object can be resolved. |
 | <a id="discussionresolved"></a>`resolved` | [`Boolean!`](#boolean) | Indicates if the object is resolved. |
 | <a id="discussionresolvedat"></a>`resolvedAt` | [`Time`](#time) | Timestamp of when the object was resolved. |
@@ -22380,6 +22248,25 @@ Representing an event.
 | <a id="eventcreatedat"></a>`createdAt` | [`Time!`](#time) | When this event was created. |
 | <a id="eventid"></a>`id` | [`ID!`](#id) | ID of the event. |
 | <a id="eventupdatedat"></a>`updatedAt` | [`Time!`](#time) | When this event was updated. |
+
+### `ExplainVulnerabilityPresubmissionCheckResults`
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="explainvulnerabilitypresubmissioncheckresultspotentialsecretsincode"></a>`potentialSecretsInCode` | [`Boolean!`](#boolean) | This flag is true if we think there might be a secret in the code that would be sent in the LLM prompt. |
+| <a id="explainvulnerabilitypresubmissioncheckresultssecretdetectionresult"></a>`secretDetectionResult` | [`Boolean!`](#boolean) | This flag is true if the vulnerability being explained is specifically a secret detection vulnerability. |
+
+### `ExplainVulnerabilityPrompt`
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="explainvulnerabilitypromptpresubmissionchecks"></a>`presubmissionChecks` | [`ExplainVulnerabilityPresubmissionCheckResults!`](#explainvulnerabilitypresubmissioncheckresults) | An object containing booleans. Each booolean indicates the result of a presubmission check: `true` for passed, and `false` for failed. |
+| <a id="explainvulnerabilitypromptpromptwithcode"></a>`promptWithCode` | [`String`](#string) | AI text prompt generated using the vulnerability's information, including the vulnerable code. |
+| <a id="explainvulnerabilitypromptpromptwithoutcode"></a>`promptWithoutCode` | [`String`](#string) | AI text prompt generated using the vulnerability's information, excluding the vulnerable code. |
 
 ### `ExternalAuditEventDestination`
 
@@ -23122,7 +23009,6 @@ four standard [pagination arguments](#pagination-arguments):
 | ---- | ---- | ----------- |
 | <a id="groupaddoneligibleusersaddontype"></a>`addOnType` | [`GitlabSubscriptionsAddOnType!`](#gitlabsubscriptionsaddontype) | Type of add on to filter the eligible users by. |
 | <a id="groupaddoneligibleuserssearch"></a>`search` | [`String`](#string) | Search the user list. |
-| <a id="groupaddoneligibleuserssort"></a>`sort` | [`GitlabSubscriptionsUserSort`](#gitlabsubscriptionsusersort) | Sort the user list. |
 
 ##### `Group.addOnPurchase`
 
@@ -27806,7 +27692,6 @@ four standard [pagination arguments](#pagination-arguments):
 | ---- | ---- | ----------- |
 | <a id="namespaceaddoneligibleusersaddontype"></a>`addOnType` | [`GitlabSubscriptionsAddOnType!`](#gitlabsubscriptionsaddontype) | Type of add on to filter the eligible users by. |
 | <a id="namespaceaddoneligibleuserssearch"></a>`search` | [`String`](#string) | Search the user list. |
-| <a id="namespaceaddoneligibleuserssort"></a>`sort` | [`GitlabSubscriptionsUserSort`](#gitlabsubscriptionsusersort) | Sort the user list. |
 
 ##### `Namespace.addOnPurchase`
 
@@ -30922,28 +30807,6 @@ four standard [pagination arguments](#pagination-arguments):
 | <a id="projectscanresultpoliciesincludeunscoped"></a>`includeUnscoped` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.3. **Status**: Experiment. Filter policies that are scoped to the project. |
 | <a id="projectscanresultpoliciesrelationship"></a>`relationship` | [`SecurityPolicyRelationType`](#securitypolicyrelationtype) | Filter policies by the given policy relationship. |
 
-##### `Project.securityExclusions`
-
-Security exclusions of the project.
-
-DETAILS:
-**Introduced** in GitLab 17.4.
-**Status**: Experiment.
-
-Returns [`ProjectSecurityExclusionConnection`](#projectsecurityexclusionconnection).
-
-This field returns a [connection](#connections). It accepts the
-four standard [pagination arguments](#pagination-arguments):
-`before: String`, `after: String`, `first: Int`, and `last: Int`.
-
-###### Arguments
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="projectsecurityexclusionsactive"></a>`active` | [`Boolean`](#boolean) | Filter entries by active status. |
-| <a id="projectsecurityexclusionsscanner"></a>`scanner` | [`ExclusionScannerEnum`](#exclusionscannerenum) | Filter entries by scanner. |
-| <a id="projectsecurityexclusionstype"></a>`type` | [`ExclusionTypeEnum`](#exclusiontypeenum) | Filter entries by exclusion type. |
-
 ##### `Project.securityPolicyProjectSuggestions`
 
 Security policy project suggestions.
@@ -31460,21 +31323,6 @@ Representation of a project secrets manager.
 | <a id="projectsecretsmanagercisecretsmountpath"></a>`ciSecretsMountPath` | [`String!`](#string) | Mount path of the secrets engine for the project. |
 | <a id="projectsecretsmanagerproject"></a>`project` | [`Project!`](#project) | Project the secrets manager belong to. |
 | <a id="projectsecretsmanagerstatus"></a>`status` | [`ProjectSecretsManagerStatus`](#projectsecretsmanagerstatus) | Status of the project secrets manager. |
-
-### `ProjectSecurityExclusion`
-
-Represents a project-level security scanner exclusion.
-
-#### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="projectsecurityexclusionactive"></a>`active` | [`Boolean!`](#boolean) | Whether the exclusion is active. |
-| <a id="projectsecurityexclusiondescription"></a>`description` | [`String`](#string) | Optional description for the exclusion. |
-| <a id="projectsecurityexclusionid"></a>`id` | [`ID!`](#id) | ID of the exclusion. |
-| <a id="projectsecurityexclusionscanner"></a>`scanner` | [`ExclusionScannerEnum!`](#exclusionscannerenum) | Security scanner the exclusion will be used for. |
-| <a id="projectsecurityexclusiontype"></a>`type` | [`ExclusionTypeEnum!`](#exclusiontypeenum) | Type of the exclusion. |
-| <a id="projectsecurityexclusionvalue"></a>`value` | [`String!`](#string) | Value of the exclusion. |
 
 ### `ProjectSecurityPolicySource`
 
@@ -33359,8 +33207,7 @@ Representing a to-do entry.
 | <a id="todonote"></a>`note` | [`Note`](#note) | Note which created this to-do item. |
 | <a id="todoproject"></a>`project` | [`Project`](#project) | Project this to-do item is associated with. |
 | <a id="todostate"></a>`state` | [`TodoStateEnum!`](#todostateenum) | State of the to-do item. |
-| <a id="todotarget"></a>`target` **{warning-solid}** | [`Todoable!`](#todoable) | **Deprecated** in GitLab 17.4. Use `target_entity` field. |
-| <a id="todotargetentity"></a>`targetEntity` | [`Todoable`](#todoable) | Target of the to-do item. |
+| <a id="todotarget"></a>`target` | [`Todoable!`](#todoable) | Target of the to-do item. |
 | <a id="todotargettype"></a>`targetType` | [`TodoTargetEnum!`](#todotargetenum) | Target type of the to-do item. |
 | <a id="todotargeturl"></a>`targetUrl` | [`String`](#string) | URL of the to-do item target. |
 
@@ -35541,11 +35388,8 @@ LLMs supported by the self-hosted model features.
 | <a id="aiacceptedselfhostedmodelscodestral"></a>`CODESTRAL` | Codestral 22B: Suitable for code completion and code generation. |
 | <a id="aiacceptedselfhostedmodelsdeepseekcoder"></a>`DEEPSEEKCODER` | Deepseek Coder 1.3b, 6.7b and 33b base or instruct. |
 | <a id="aiacceptedselfhostedmodelsmistral"></a>`MISTRAL` | Mistral 7B: Suitable for code generation and duo chat. |
-| <a id="aiacceptedselfhostedmodelsmistral_text"></a>`MISTRAL_TEXT` | Mistral-7B Text: Suitable for code completion. |
 | <a id="aiacceptedselfhostedmodelsmixtral"></a>`MIXTRAL` | Mixtral 8x7B: Suitable for code generation and duo chat. |
 | <a id="aiacceptedselfhostedmodelsmixtral_8x22b"></a>`MIXTRAL_8X22B` | Mixtral 8x22B: Suitable for code generation and duo chat. |
-| <a id="aiacceptedselfhostedmodelsmixtral_8x22b_text"></a>`MIXTRAL_8X22B_TEXT` | Mixtral-8x22B Text: Suitable for code completion. |
-| <a id="aiacceptedselfhostedmodelsmixtral_text"></a>`MIXTRAL_TEXT` | Mixtral-8x7B Text: Suitable for code completion. |
 
 ### `AiAction`
 
@@ -35563,38 +35407,6 @@ The category of the additional context.
 | ----- | ----------- |
 | <a id="aiadditionalcontextcategoryfile"></a>`FILE` | File content category. |
 | <a id="aiadditionalcontextcategorysnippet"></a>`SNIPPET` | Snippet content category. |
-
-### `AiFeatureProviders`
-
-Providers for AI features that can be configured.
-
-| Value | Description |
-| ----- | ----------- |
-| <a id="aifeatureprovidersdisabled"></a>`DISABLED` | Disabled option. |
-| <a id="aifeatureprovidersself_hosted"></a>`SELF_HOSTED` | Self hosted option. |
-| <a id="aifeatureprovidersvendored"></a>`VENDORED` | Vendored option. |
-
-### `AiFeatures`
-
-AI features that can be configured in the settings.
-
-| Value | Description |
-| ----- | ----------- |
-| <a id="aifeaturescode_completions"></a>`CODE_COMPLETIONS` | Code completion feature setting. |
-| <a id="aifeaturescode_generations"></a>`CODE_GENERATIONS` | Code generation feature setting. |
-| <a id="aifeaturesduo_chat"></a>`DUO_CHAT` | Duo chat feature setting. |
-| <a id="aifeaturesduo_chat_ci_editor_assistant"></a>`DUO_CHAT_CI_EDITOR_ASSISTANT` | Duo chat ci editor assistant feature setting. |
-| <a id="aifeaturesduo_chat_epic_reader"></a>`DUO_CHAT_EPIC_READER` | Duo chat epic reader feature setting. |
-| <a id="aifeaturesduo_chat_explain_code"></a>`DUO_CHAT_EXPLAIN_CODE` | Duo chat explain code feature setting. |
-| <a id="aifeaturesduo_chat_explain_vulnerability"></a>`DUO_CHAT_EXPLAIN_VULNERABILITY` | Duo chat explain vulnerability feature setting. |
-| <a id="aifeaturesduo_chat_fix_code"></a>`DUO_CHAT_FIX_CODE` | Duo chat fix code feature setting. |
-| <a id="aifeaturesduo_chat_gitlab_documentation"></a>`DUO_CHAT_GITLAB_DOCUMENTATION` | Duo chat gitlab documentation feature setting. |
-| <a id="aifeaturesduo_chat_issue_reader"></a>`DUO_CHAT_ISSUE_READER` | Duo chat issue reader feature setting. |
-| <a id="aifeaturesduo_chat_merge_request_reader"></a>`DUO_CHAT_MERGE_REQUEST_READER` | Duo chat merge request reader feature setting. |
-| <a id="aifeaturesduo_chat_refactor_code"></a>`DUO_CHAT_REFACTOR_CODE` | Duo chat refactor code feature setting. |
-| <a id="aifeaturesduo_chat_summarize_comments"></a>`DUO_CHAT_SUMMARIZE_COMMENTS` | Duo chat summarize comment feature setting. |
-| <a id="aifeaturesduo_chat_troubleshoot_job"></a>`DUO_CHAT_TROUBLESHOOT_JOB` | Duo chat troubleshoot job feature setting. |
-| <a id="aifeaturesduo_chat_write_tests"></a>`DUO_CHAT_WRITE_TESTS` | Duo chat write test feature setting. |
 
 ### `AiMessageRole`
 
@@ -36712,25 +36524,6 @@ Event action.
 | <a id="eventactionreopened"></a>`REOPENED` | Reopened action. |
 | <a id="eventactionupdated"></a>`UPDATED` | Updated action. |
 
-### `ExclusionScannerEnum`
-
-Enum for the security scanners used with exclusions.
-
-| Value | Description |
-| ----- | ----------- |
-| <a id="exclusionscannerenumsecret_push_protection"></a>`SECRET_PUSH_PROTECTION` | Secret Push Protection. |
-
-### `ExclusionTypeEnum`
-
-Enum for types of exclusion for a security scanner.
-
-| Value | Description |
-| ----- | ----------- |
-| <a id="exclusiontypeenumpath"></a>`PATH` | File or directory location. |
-| <a id="exclusiontypeenumraw_value"></a>`RAW_VALUE` | Raw value to ignore. |
-| <a id="exclusiontypeenumregex_pattern"></a>`REGEX_PATTERN` | Regex pattern matching rules. |
-| <a id="exclusiontypeenumrule"></a>`RULE` | Scanner rule identifier. |
-
 ### `ExtensionsMarketplaceOptInStatus`
 
 Values for status of the Web IDE Extension Marketplace opt-in for the user.
@@ -36822,19 +36615,6 @@ Role of User.
 | <a id="gitlabsubscriptionsuserrolemaintainer"></a>`MAINTAINER` | Maintainer. |
 | <a id="gitlabsubscriptionsuserroleowner"></a>`OWNER` | Owner. |
 | <a id="gitlabsubscriptionsuserrolereporter"></a>`REPORTER` | Reporter. |
-
-### `GitlabSubscriptionsUserSort`
-
-Values for sorting users.
-
-| Value | Description |
-| ----- | ----------- |
-| <a id="gitlabsubscriptionsusersortid_asc"></a>`ID_ASC` | Id by ascending order. |
-| <a id="gitlabsubscriptionsusersortid_desc"></a>`ID_DESC` | Id by descending order. |
-| <a id="gitlabsubscriptionsusersortlast_activity_on_asc"></a>`LAST_ACTIVITY_ON_ASC` | Last activity by ascending order. |
-| <a id="gitlabsubscriptionsusersortlast_activity_on_desc"></a>`LAST_ACTIVITY_ON_DESC` | Last activity by descending order. |
-| <a id="gitlabsubscriptionsusersortname_asc"></a>`NAME_ASC` | Name by ascending order. |
-| <a id="gitlabsubscriptionsusersortname_desc"></a>`NAME_DESC` | Name by descending order. |
 
 ### `GoogleCloudArtifactRegistryArtifactsSort`
 
@@ -37948,15 +37728,6 @@ Values for sorting projects.
 | <a id="projectsortupdated_asc"></a>`updated_asc` **{warning-solid}** | **Deprecated** in GitLab 13.5. This was renamed. Use: `UPDATED_ASC`. |
 | <a id="projectsortupdated_desc"></a>`updated_desc` **{warning-solid}** | **Deprecated** in GitLab 13.5. This was renamed. Use: `UPDATED_DESC`. |
 
-### `ReachabilityType`
-
-Dependency reachability status.
-
-| Value | Description |
-| ----- | ----------- |
-| <a id="reachabilitytypein_use"></a>`IN_USE` | Dependency is imported and in use. |
-| <a id="reachabilitytypeunknown"></a>`UNKNOWN` | Dependency reachability status is unknown. |
-
 ### `RefType`
 
 Type of ref.
@@ -38974,12 +38745,6 @@ An example `AnalyticsCycleAnalyticsValueStreamID` is: `"gid://gitlab/Analytics::
 A `AnalyticsDevopsAdoptionEnabledNamespaceID` is a global ID. It is encoded as a string.
 
 An example `AnalyticsDevopsAdoptionEnabledNamespaceID` is: `"gid://gitlab/Analytics::DevopsAdoption::EnabledNamespace/1"`.
-
-### `AntiAbuseReportsNoteID`
-
-A `AntiAbuseReportsNoteID` is a global ID. It is encoded as a string.
-
-An example `AntiAbuseReportsNoteID` is: `"gid://gitlab/AntiAbuse::Reports::Note/1"`.
 
 ### `AppSecFuzzingCoverageCorpusID`
 
@@ -40165,25 +39930,6 @@ Implementations:
 | <a id="auditeventstreamingdestinationinterfaceid"></a>`id` | [`ID!`](#id) | ID of the destination. |
 | <a id="auditeventstreamingdestinationinterfacename"></a>`name` | [`String!`](#string) | Name of the external destination to send audit events to. |
 
-#### `BaseDiscussionInterface`
-
-Implementations:
-
-- [`AbuseReportDiscussion`](#abusereportdiscussion)
-- [`Discussion`](#discussion)
-
-##### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="basediscussioninterfacecreatedat"></a>`createdAt` | [`Time!`](#time) | Timestamp of the discussion's creation. |
-| <a id="basediscussioninterfaceid"></a>`id` | [`DiscussionID!`](#discussionid) | ID of the discussion. |
-| <a id="basediscussioninterfacereplyid"></a>`replyId` | [`DiscussionID!`](#discussionid) | ID used to reply to the discussion. |
-| <a id="basediscussioninterfaceresolvable"></a>`resolvable` | [`Boolean!`](#boolean) | Indicates if the object can be resolved. |
-| <a id="basediscussioninterfaceresolved"></a>`resolved` | [`Boolean!`](#boolean) | Indicates if the object is resolved. |
-| <a id="basediscussioninterfaceresolvedat"></a>`resolvedAt` | [`Time`](#time) | Timestamp of when the object was resolved. |
-| <a id="basediscussioninterfaceresolvedby"></a>`resolvedBy` | [`UserCore`](#usercore) | User who resolved the object. |
-
 #### `BaseHeaderInterface`
 
 Implementations:
@@ -40199,32 +39945,6 @@ Implementations:
 | <a id="baseheaderinterfaceid"></a>`id` | [`ID!`](#id) | ID of the header. |
 | <a id="baseheaderinterfacekey"></a>`key` | [`String!`](#string) | Key of the header. |
 | <a id="baseheaderinterfacevalue"></a>`value` | [`String!`](#string) | Value of the header. |
-
-#### `BaseNoteInterface`
-
-Implementations:
-
-- [`AbuseReportNote`](#abusereportnote)
-- [`Note`](#note)
-
-##### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="basenoteinterfaceauthor"></a>`author` | [`UserCore`](#usercore) | User who wrote the note. |
-| <a id="basenoteinterfaceawardemoji"></a>`awardEmoji` | [`AwardEmojiConnection`](#awardemojiconnection) | List of emoji reactions associated with the note. (see [Connections](#connections)) |
-| <a id="basenoteinterfacebody"></a>`body` | [`String!`](#string) | Content of the note. |
-| <a id="basenoteinterfacebodyfirstlinehtml"></a>`bodyFirstLineHtml` | [`String!`](#string) | First line of the note content. |
-| <a id="basenoteinterfacebodyhtml"></a>`bodyHtml` | [`String`](#string) | GitLab Flavored Markdown rendering of the content of the note. |
-| <a id="basenoteinterfacecreatedat"></a>`createdAt` | [`Time!`](#time) | Timestamp of the note creation. |
-| <a id="basenoteinterfacelasteditedat"></a>`lastEditedAt` | [`Time`](#time) | Timestamp when note was last edited. |
-| <a id="basenoteinterfacelasteditedby"></a>`lastEditedBy` | [`UserCore`](#usercore) | User who last edited the note. |
-| <a id="basenoteinterfaceresolvable"></a>`resolvable` | [`Boolean!`](#boolean) | Indicates if the object can be resolved. |
-| <a id="basenoteinterfaceresolved"></a>`resolved` | [`Boolean!`](#boolean) | Indicates if the object is resolved. |
-| <a id="basenoteinterfaceresolvedat"></a>`resolvedAt` | [`Time`](#time) | Timestamp of when the object was resolved. |
-| <a id="basenoteinterfaceresolvedby"></a>`resolvedBy` | [`UserCore`](#usercore) | User who resolved the object. |
-| <a id="basenoteinterfaceupdatedat"></a>`updatedAt` | [`Time!`](#time) | Timestamp of the note's last activity. |
-| <a id="basenoteinterfaceurl"></a>`url` | [`String`](#string) | URL to view the note in the Web UI. |
 
 #### `CiVariable`
 
@@ -40420,6 +40140,7 @@ Returns [`UserMergeRequestInteraction`](#usermergerequestinteraction).
 
 Implementations:
 
+- [`AbuseReport`](#abusereport)
 - [`AlertManagementAlert`](#alertmanagementalert)
 - [`BoardEpic`](#boardepic)
 - [`Design`](#design)
@@ -40496,8 +40217,6 @@ Implementations:
 
 Implementations:
 
-- [`AbuseReportDiscussion`](#abusereportdiscussion)
-- [`AbuseReportNote`](#abusereportnote)
 - [`Discussion`](#discussion)
 - [`Note`](#note)
 
@@ -41117,7 +40836,6 @@ see the associated mutation type above.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | <a id="airesolvevulnerabilityinputresourceid"></a>`resourceId` | [`AiModelID!`](#aimodelid) | Global ID of the resource to mutate. |
-| <a id="airesolvevulnerabilityinputsuggestionmergerequestid"></a>`suggestionMergeRequestId` | [`MergeRequestID`](#mergerequestid) | Global ID of the merge request where resolution will be provided as a suggestion. |
 
 ### `AiSummarizeCommentsInput`
 
@@ -41248,7 +40966,7 @@ Attributes for defining a CI/CD variable.
 | <a id="complianceframeworkinputdefault"></a>`default` | [`Boolean`](#boolean) | Set this compliance framework as the default framework for the group. |
 | <a id="complianceframeworkinputdescription"></a>`description` | [`String`](#string) | New description for the compliance framework. |
 | <a id="complianceframeworkinputname"></a>`name` | [`String`](#string) | New name for the compliance framework. |
-| <a id="complianceframeworkinputpipelineconfigurationfullpath"></a>`pipelineConfigurationFullPath` **{warning-solid}** | [`String`](#string) | **Deprecated:** Use pipeline execution policies instead. Deprecated in GitLab 17.4. |
+| <a id="complianceframeworkinputpipelineconfigurationfullpath"></a>`pipelineConfigurationFullPath` | [`String`](#string) | Full path of the compliance pipeline configuration stored in a project repository, such as `.gitlab/.compliance-gitlab-ci.yml@compliance/hipaa`. Ultimate only. |
 
 ### `ComplianceStandardsAdherenceInput`
 

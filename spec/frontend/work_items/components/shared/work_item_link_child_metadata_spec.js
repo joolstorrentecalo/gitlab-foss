@@ -77,6 +77,5 @@ describe('WorkItemLinkChildMetadata', () => {
     });
 
     expect(findRolledUpCount().exists()).toBe(true);
-    expect(findRolledUpCount().props('hideCountWhenZero')).toBe(true);
   });
 });

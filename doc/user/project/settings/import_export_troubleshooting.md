@@ -110,7 +110,7 @@ reduce the repository size for another import attempt:
    use `git remote set-url origin <new-url> && git push --force --all`
    to complete the import.
 1. Update the imported repository's
-   [branch protection rules](../repository/branches/protected.md) and
+   [branch protection rules](../protected_branches.md) and
    its [default branch](../repository/branches/default.md), and
    delete the temporary, `smaller-tmp-main` branch, and
    the local, temporary data.

@@ -1302,4 +1302,32 @@ RSpec.describe Gitlab::Diff::File do
       it { is_expected.to eq(false) }
     end
   end
+
+  describe '#text_diff' do
+    subject(:text_diff) { diff_file.text_diff? }
+
+    it 'returns true for text diffs' do
+      expect(text_diff).to eq(true)
+    end
+
+    it 'returns false for unchanged files' do
+      allow(diff_file).to receive(:modified_file?).and_return(false)
+      expect(text_diff).to eq(false)
+    end
+
+    it 'returns false for non text files' do
+      allow(diff_file).to receive(:text?).and_return(false)
+      expect(text_diff).to eq(false)
+    end
+  end
+
+  describe '#diff_lines_with_match_tail' do
+    subject(:lines) { diff_file.diff_lines_with_match_tail }
+
+    it { expect(lines.last.type).to eq('match') }
+  end
+
+  describe '#viewer_hunks' do
+    it { expect(diff_file.viewer_hunks).to all(be_instance_of(Gitlab::Diff::ViewerHunk)) }
+  end
 end

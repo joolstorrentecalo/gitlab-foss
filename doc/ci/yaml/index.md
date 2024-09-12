@@ -314,7 +314,7 @@ include:
   - Using a specific SHA hash, which should be the most stable option. Use the
     full 40-character SHA hash to ensure the desired commit is referenced, because
     using a short SHA hash for the `ref` might be ambiguous.
-  - Applying both [protected branch](../../user/project/repository/branches/protected.md) and [protected tag](../../user/project/protected_tags.md#prevent-tag-creation-with-the-same-name-as-branches) rules to
+  - Applying both [protected branch](../../user/project/protected_branches.md) and [protected tag](../../user/project/protected_tags.md#prevent-tag-creation-with-the-same-name-as-branches) rules to
     the `ref` in the other project. Protected tags and branches are more likely to pass through change management before changing.
 
 #### `include:remote`
@@ -345,7 +345,7 @@ include:
 - Be careful when including another project's CI/CD configuration file. No pipelines or notifications trigger
   when the other project's files change. From a security perspective, this is similar to
   pulling a third-party dependency. If you link to another GitLab project you own, consider the use of both
-  [protected branches](../../user/project/repository/branches/protected.md) and [protected tags](../../user/project/protected_tags.md#prevent-tag-creation-with-the-same-name-as-branches)
+  [protected branches](../../user/project/protected_branches.md) and [protected tags](../../user/project/protected_tags.md#prevent-tag-creation-with-the-same-name-as-branches)
   to enforce change management rules.
 
 #### `include:template`
@@ -481,9 +481,7 @@ The order of the items in `stages` defines the execution order for jobs:
 - Jobs in the next stage run after the jobs from the previous stage complete successfully.
 
 If a pipeline contains only jobs in the `.pre` or `.post` stages, it does not run.
-There must be at least one other job in a different stage. `.pre` and `.post` stages
-can be used in [required pipeline configuration](../../administration/settings/continuous_integration.md#required-pipeline-configuration)
-to define compliance jobs that must run before or after project pipeline jobs.
+There must be at least one other job in a different stage.
 
 **Keyword type**: Global keyword.
 
@@ -1655,7 +1653,7 @@ cache between jobs. You can only use paths that are in the local working copy.
 Caches are:
 
 - Shared between pipelines and jobs.
-- By default, not shared between [protected](../../user/project/repository/branches/protected.md) and unprotected branches.
+- By default, not shared between [protected](../../user/project/protected_branches.md) and unprotected branches.
 - Restored before [artifacts](#artifacts).
 - Limited to a maximum of four [different caches](../caching/index.md#use-multiple-caches).
 
@@ -1891,7 +1889,7 @@ rspec:
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/362114) in GitLab 15.8.
 
-Use `cache:unprotect` to set a cache to be shared between [protected](../../user/project/repository/branches/protected.md)
+Use `cache:unprotect` to set a cache to be shared between [protected](../../user/project/protected_branches.md)
 and unprotected branches.
 
 WARNING:
@@ -3473,7 +3471,7 @@ On self-managed GitLab, by default this feature is not available. To make it ava
 an administrator can [enable the feature flag](../../administration/feature_flags.md) named
 `pages_multiple_versions_setting`. On GitLab.com and GitLab Dedicated, this feature is not available. This feature is not ready for production use.
 
-Use `pages.path_prefix` to configure a path prefix for [parallel deployments](../../user/project/pages/index.md#parallel-deployments) of GitLab Pages.
+Use `pages.path_prefix` to configure a path prefix for [multiple deployments](../../user/project/pages/index.md#create-multiple-deployments) of GitLab Pages.
 
 **Keyword type**: Job keyword. You can use it only as part of a `pages` job.
 
@@ -5230,7 +5228,7 @@ The keywords available for use in trigger jobs are:
 **Possible inputs**:
 
 - For multi-project pipelines, the path to the downstream project. CI/CD variables [are supported](../variables/where_variables_can_be_used.md#gitlab-ciyml-file)
-  in GitLab 15.3 and later, but not [job-only variables](../variables/predefined_variables.md#variable-availability).
+  in GitLab 15.3 and later, but not [job-level persisted variables](../variables/where_variables_can_be_used.md#persisted-variables).
   Alternatively, use [`trigger:project`](#triggerproject).
 - For child pipelines, use [`trigger:include`](#triggerinclude).
 
@@ -5253,7 +5251,7 @@ trigger-multi-project-pipeline:
 - [Pipeline variables](../variables/index.md#cicd-variable-precedence) are not passed
   to downstream pipelines by default. Use [trigger:forward](#triggerforward) to forward
   these variables to downstream pipelines.
-- [Job-only variables](../variables/predefined_variables.md#variable-availability)
+- [Job-level persisted variables](../variables/where_variables_can_be_used.md#persisted-variables)
   are not available in trigger jobs.
 - Environment variables [defined in the runner's `config.toml`](https://docs.gitlab.com/runner/configuration/advanced-configuration.html#the-runners-section) are not available to trigger jobs and are not passed to downstream pipelines.
 - You cannot use [`needs:pipeline:job`](#needspipelinejob) in a trigger job.
@@ -5303,7 +5301,7 @@ to specify a different branch.
 **Possible inputs**:
 
 - The path to the downstream project. CI/CD variables [are supported](../variables/where_variables_can_be_used.md#gitlab-ciyml-file)
-  in GitLab 15.3 and later, but not [job-only variables](../variables/predefined_variables.md#variable-availability).
+  in GitLab 15.3 and later, but not [job-level persisted variables](../variables/where_variables_can_be_used.md#persisted-variables).
 
 **Example of `trigger:project`**:
 

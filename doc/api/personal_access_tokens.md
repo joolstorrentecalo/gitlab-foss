@@ -465,8 +465,7 @@ Example response:
 
 ## Create a personal access token (administrator only)
 
-See the [User tokens API](user_tokens.md#create-a-personal-access-token) for information on creating a personal access
-token.
+See the [Users API documentation](users.md#create-a-personal-access-token) for information on creating a personal access token.
 
 ## Create a personal access token with limited scopes for the currently authenticated user
 
@@ -474,8 +473,8 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed, GitLab Dedicated
 
-See the [User tokens API](user_tokens.md#create-a-personal-access-token-with-limited-scopes-for-your-account) for
-information on creating a personal access token for the currently authenticated user.
+See the [Users API documentation](users.md#create-a-personal-access-token-with-limited-scopes-for-the-currently-authenticated-user)
+for information on creating a personal access token for the currently authenticated user.
 
 ## Troubleshooting access tokens
 
