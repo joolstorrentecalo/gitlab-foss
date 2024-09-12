@@ -182,6 +182,7 @@ rules:
         - '^gl-emoji$'
   local-rules/require-valid-help-page-path: 'error'
   local-rules/vue-require-valid-help-page-link-component: 'error'
+  local-rules/no-deprecated-classes: 'error'
 overrides:
   - files:
       - '{,ee/,jh/}spec/frontend*/**/*'
@@ -238,6 +239,7 @@ overrides:
       no-unsanitized/property: off
       local-rules/require-valid-help-page-path: off
       local-rules/vue-require-valid-help-page-link-component: off
+      local-rules/no-deprecated-classes: off
       no-restricted-imports:
         - error
         - paths:
