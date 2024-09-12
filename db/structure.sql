@@ -23406,9 +23406,6 @@ ALTER TABLE p_ci_pipeline_variables
 ALTER TABLE ci_runners
     ADD CONSTRAINT check_91230910ec CHECK ((char_length((name)::text) <= 256)) NOT VALID;
 
-ALTER TABLE ci_deleted_objects
-    ADD CONSTRAINT check_98f90d6c53 CHECK ((project_id IS NOT NULL)) NOT VALID;
-
 ALTER TABLE sprints
     ADD CONSTRAINT check_ccd8a1eae0 CHECK ((start_date IS NOT NULL)) NOT VALID;
 
@@ -30965,6 +30962,8 @@ CREATE INDEX index_zoekt_replicas_on_enabled_namespace_id ON zoekt_replicas USIN
 CREATE INDEX index_zoekt_replicas_on_namespace_id_enabled_namespace_id ON zoekt_replicas USING btree (namespace_id, zoekt_enabled_namespace_id);
 
 CREATE INDEX index_zoekt_replicas_on_state ON zoekt_replicas USING btree (state);
+
+CREATE INDEX index_zoekt_repos_with_missing_project_id ON zoekt_repositories USING btree (project_id) WHERE (project_id IS NULL);
 
 CREATE INDEX index_zoekt_repositories_on_project_id ON zoekt_repositories USING btree (project_id);
 
