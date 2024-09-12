@@ -28344,8 +28344,6 @@ CREATE UNIQUE INDEX index_feature_gates_on_feature_key_and_key_and_value ON feat
 
 CREATE UNIQUE INDEX index_features_on_key ON features USING btree (key);
 
-CREATE INDEX index_for_owasp_top_10_group_level_reports ON vulnerability_reads USING btree (owasp_top_10, state, report_type, severity, traversal_ids, vulnerability_id, resolved_on_default_branch) WHERE (archived = false);
-
 CREATE INDEX index_for_protected_environment_group_id_of_protected_environme ON protected_environment_deploy_access_levels USING btree (protected_environment_group_id);
 
 CREATE INDEX index_for_protected_environment_project_id_of_protected_environ ON protected_environment_deploy_access_levels USING btree (protected_environment_project_id);
@@ -30965,6 +30963,8 @@ CREATE INDEX index_zoekt_replicas_on_enabled_namespace_id ON zoekt_replicas USIN
 CREATE INDEX index_zoekt_replicas_on_namespace_id_enabled_namespace_id ON zoekt_replicas USING btree (namespace_id, zoekt_enabled_namespace_id);
 
 CREATE INDEX index_zoekt_replicas_on_state ON zoekt_replicas USING btree (state);
+
+CREATE INDEX index_zoekt_repos_with_missing_project_id ON zoekt_repositories USING btree (project_id) WHERE (project_id IS NULL);
 
 CREATE INDEX index_zoekt_repositories_on_project_id ON zoekt_repositories USING btree (project_id);
 
