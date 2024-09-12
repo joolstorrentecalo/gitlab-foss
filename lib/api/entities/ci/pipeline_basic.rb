@@ -9,6 +9,8 @@ module API
         expose :project_id, documentation: { type: 'integer', example: 3 }
         expose :sha, documentation: { type: 'string', example: '0ec9e58fdfca6cdd6652c083c9edb53abc0bad52' }
         expose :ref, documentation: { type: 'string', example: 'feature-branch' }
+        expose :ref, as: :pipeline_ref
+        expose :source_ref
         expose :status, documentation: { type: 'string', example: 'success' }
         expose :source, documentation: { type: 'string', example: 'push' }
         expose :created_at, documentation: { type: 'dateTime', example: '2022-10-21T16:49:48.000+02:00' }

@@ -28,6 +28,8 @@ RSpec.describe Gitlab::DataBuilder::Pipeline, feature_category: :continuous_inte
       expect(attributes).to be_a(Hash)
       expect(attributes[:name]).to be_nil
       expect(attributes[:ref]).to eq(pipeline.ref)
+      expect(attributes[:pipeline_ref]).to eq(pipeline.ref)
+      expect(attributes[:source_ref]).to eq(pipeline.ref)
       expect(attributes[:sha]).to eq(pipeline.sha)
       expect(attributes[:tag]).to eq(pipeline.tag)
       expect(attributes[:id]).to eq(pipeline.id)
@@ -98,8 +100,22 @@ RSpec.describe Gitlab::DataBuilder::Pipeline, feature_category: :continuous_inte
       let_it_be(:merge_request) { create(:merge_request, :with_detached_merge_request_pipeline) }
       let_it_be(:pipeline) { merge_request.all_pipelines.first }
 
-      it 'returns a source ref' do
-        expect(attributes[:ref]).to eq(merge_request.source_branch)
+      describe 'ref' do
+        it 'returns the merge request source branch' do
+          expect(attributes[:ref]).to eq(merge_request.source_branch)
+        end
+      end
+
+      describe 'source_ref' do
+        it 'returns the merge request source branch' do
+          expect(attributes[:source_ref]).to eq(merge_request.source_branch)
+        end
+      end
+
+      describe 'pipeline_ref' do
+        it 'returns the pipeline ref' do
+          expect(attributes[:pipeline_ref]).to eq(pipeline.ref)
+        end
       end
 
       it 'returns merge request' do
