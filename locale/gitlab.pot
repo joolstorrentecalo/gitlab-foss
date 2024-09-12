@@ -37000,10 +37000,10 @@ msgstr ""
 msgid "OKRs|An update is due on: %{update_due_date}"
 msgstr ""
 
-msgid "OWASP Top 10 2017"
+msgid "OWASP Top 10 2017 (deprecated)"
 msgstr ""
 
-msgid "OWASP Top 10 2021"
+msgid "OWASP Top 10 2021 (beta)"
 msgstr ""
 
 msgid "Object does not exist on the server or you don't have permissions to access it"
