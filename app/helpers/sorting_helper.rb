@@ -42,6 +42,7 @@ module SortingHelper
       sort_value_title => sort_title_title
     }
   end
+
   # rubocop: enable Metrics/AbcSize
 
   def projects_sort_options_hash
@@ -82,12 +83,6 @@ module SortingHelper
       sort_value_latest_activity => sort_title_recently_updated,
       sort_value_oldest_activity => sort_title_oldest_updated
     }
-  end
-
-  def admin_groups_sort_options_hash
-    groups_sort_options_hash.merge(
-      sort_value_largest_group => sort_title_largest_group
-    )
   end
 
   def milestones_sort_options_hash

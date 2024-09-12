@@ -45866,6 +45866,9 @@ msgstr ""
 msgid "Repository of Artifact Registry."
 msgstr ""
 
+msgid "Repository size"
+msgstr ""
+
 msgid "Repository size is above the limit."
 msgstr ""
 
@@ -48243,6 +48246,9 @@ msgid "Search iterations"
 msgstr ""
 
 msgid "Search labels"
+msgstr ""
+
+msgid "Search list..."
 msgstr ""
 
 msgid "Search merge requests"
