@@ -18,6 +18,10 @@ module API
         end
 
         helpers do
+          params :optional_name do
+            optional :name, types: String, desc: 'The build name. This feature is currently in an experimental state. \
+                      This feature is behind the `populate_and_use_build_names_table` feature flag.'
+          end
           params :optional_scope do
             optional :scope, type: Array[String], desc: 'The scope of builds to show',
               values: ::CommitStatus::AVAILABLE_STATUSES,
@@ -47,6 +51,7 @@ module API
           is_array true
         end
         params do
+          use :optional_name
           use :optional_scope
           use :pagination
         end
@@ -57,7 +62,8 @@ module API
           authorize_read_builds!
 
           builds = user_project.builds.order(id: :desc)
-          builds = filter_builds(builds, params[:scope])
+          builds = filter_builds_by_scope(builds, params[:scope])
+          builds = filter_builds_by_name(builds, params[:name])
           builds = builds.eager_load_for_api
 
           present paginate_with_strategies(builds, user_project, paginator_params: { without_count: true }), with: Entities::Ci::Job
@@ -293,7 +299,7 @@ module API
 
       helpers do
         # rubocop: disable CodeReuse/ActiveRecord
-        def filter_builds(builds, scope)
+        def filter_builds_by_scope(builds, scope)
           return builds if scope.nil? || scope.empty?
 
           available_statuses = ::CommitStatus::AVAILABLE_STATUSES
@@ -304,6 +310,13 @@ module API
           builds.where(status: available_statuses && scope)
         end
         # rubocop: enable CodeReuse/ActiveRecord
+
+        def filter_builds_by_name(builds, name)
+          return builds unless Feature.enabled?(:populate_and_use_build_names_table, user_project)
+          return builds if name.blank?
+
+          ::Ci::BuildNameFinder.new(relation: builds, name: name, project: user_project).execute
+        end
 
         def validate_current_authenticated_job
           # current_authenticated_job will be nil if user is using

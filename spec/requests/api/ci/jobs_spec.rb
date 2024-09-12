@@ -380,10 +380,11 @@ RSpec.describe API::Ci::Jobs, feature_category: :continuous_integration do
 
   describe 'GET /projects/:id/jobs' do
     let(:query) { {} }
+    let(:send_request) { get api("/projects/#{project.id}/jobs", api_user), params: query }
 
     before do |example|
       unless example.metadata[:skip_before_request]
-        get api("/projects/#{project.id}/jobs", api_user), params: query
+        send_request
       end
     end
 
@@ -451,6 +452,46 @@ RSpec.describe API::Ci::Jobs, feature_category: :continuous_integration do
         it do
           expect(response).to have_gitlab_http_status(:ok)
           expect(json_response).to be_an Array
+        end
+      end
+
+      describe '#filter_project_by_name' do
+        let_it_be(:build_test) { create(:ci_build, :with_build_name, pipeline: pipeline, name: "unique-name") }
+
+        context 'filter project by non existent name' do
+          let(:query) { { 'name' => 'This name will never be used anywhere.' } }
+
+          it 'does not return any jobs with a non existent name' do
+            expect(response).to have_gitlab_http_status(:ok)
+            expect(json_response).to be_an Array
+            expect(json_response.count).to eq(0)
+          end
+        end
+
+        context 'filter project by existent name' do
+          let(:query) { { 'name' => 'unique-name' } }
+
+          it 'returns any the job with the given name test' do
+            expect(response).to have_gitlab_http_status(:ok)
+            expect(json_response).to be_an Array
+            expect(json_response.count).to eq(1)
+          end
+        end
+
+        context 'when feature flag populate_and_use_build_names_table is disabled' do
+          let(:query) { { 'name' => 'test' } }
+
+          before do
+            stub_feature_flags(populate_and_use_build_names_table: false)
+            send_request
+          end
+
+          it 'ignores name parameter', :skip_before_request do
+            expect(response).to have_gitlab_http_status(:ok)
+            expect(json_response).to be_an Array
+            expect(json_response.count).to eq(2)
+            expect(json_response.pluck('name')).to contain_exactly('test', 'unique-name')
+          end
         end
       end
 

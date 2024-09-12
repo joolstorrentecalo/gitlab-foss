@@ -30,6 +30,7 @@ GET /projects/:id/jobs
 |-----------|--------------------------------|----------|-------------|
 | `id`      | integer/string                 | Yes      | ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `scope`   | string **or** array of strings | No       | Scope of jobs to show. Either one of or an array of the following: `created`, `pending`, `running`, `failed`, `success`, `canceled`, `skipped`, `waiting_for_resource`, or `manual`. All jobs are returned if `scope` is not provided. |
+| `name`    | string                         | No       | Name of the job. This feature is currently in an experimental state. This feature is behind the `populate_and_use_build_names_table` feature flag. |
 
 ```shell
 curl --globoff --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/1/jobs?scope[]=pending&scope[]=running"

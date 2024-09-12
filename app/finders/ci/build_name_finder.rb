@@ -62,11 +62,8 @@ module Ci
     end
 
     def apply_pagination_order(relation, column)
-      if params[:asc].present?
-        relation.reorder(column => :asc)
-      else
-        relation.reorder(column => :desc)
-      end
+      sort_order = params[:asc].present? ? :asc : :desc
+      relation.reorder(column => sort_order)
     end
     # rubocop: enable CodeReuse/ActiveRecord
   end
