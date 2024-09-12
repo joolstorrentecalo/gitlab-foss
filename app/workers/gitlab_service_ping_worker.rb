@@ -24,7 +24,7 @@ class GitlabServicePingWorker # rubocop:disable Scalability/IdempotentWorker
 
     # Disable service ping for GitLab.com unless called manually
     # See https://gitlab.com/gitlab-org/gitlab/-/issues/292929 for details
-    return if Gitlab.com? && triggered_from_cron
+    return
 
     # Multiple Sidekiq workers could run this. We should only do this at most once a day.
     in_lock(LEASE_KEY, ttl: LEASE_TIMEOUT) do
