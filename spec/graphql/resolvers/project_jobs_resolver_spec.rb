@@ -9,7 +9,7 @@ RSpec.describe Resolvers::ProjectJobsResolver, feature_category: :continuous_int
   let_it_be(:irrelevant_project) { create(:project, :repository) }
   let_it_be(:pipeline) { create(:ci_pipeline, project: project) }
   let_it_be(:irrelevant_pipeline) { create(:ci_pipeline, project: irrelevant_project) }
-  let_it_be(:successful_build) { create(:ci_build, :with_build_name, :success, name: 'Build One', pipeline: pipeline) }
+  let_it_be(:successful_build) { create(:ci_build, :with_build_name, :with_build_source, :success, name: 'Build One', pipeline: pipeline) }
   let_it_be(:successful_build_two) { create(:ci_build, :with_build_name, :success, name: 'Build Two', pipeline: pipeline) }
   let_it_be(:failed_build) { create(:ci_build, :failed, :with_build_name, name: 'Build Three', pipeline: pipeline) }
   let_it_be(:pending_build) { create(:ci_build, :pending, :with_build_name, name: 'Build Three', pipeline: pipeline) }
@@ -37,6 +37,12 @@ RSpec.describe Resolvers::ProjectJobsResolver, feature_category: :continuous_int
 
       context 'without statuses argument' do
         it { is_expected.to contain_exactly(successful_build, successful_build_two, failed_build, pending_build) }
+      end
+
+      context 'when filtering by source' do
+        let(:args) { { sources: %w[scan_execution_policy] } }
+
+        it { is_expected.to contain_exactly(successful_build) }
       end
 
       context 'when filtering by build name' do

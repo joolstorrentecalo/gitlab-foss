@@ -61,6 +61,7 @@ module Ci
     def filter_builds(builds)
       builds = filter_by_with_artifacts(builds)
       builds = filter_by_runner_types(builds)
+      builds = filter_by_source(builds)
       filter_by_scope(builds)
     end
 
@@ -83,6 +84,12 @@ module Ci
       return builds unless use_runner_type_filter?
 
       builds.with_runner_type(params[:runner_type])
+    end
+
+    def filter_by_source(builds)
+      return builds.with_sources(params[:sources]) if params[:sources]
+
+      builds
     end
 
     # Overriden in EE

@@ -431,6 +431,48 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
     end
   end
 
+  describe '.with_sources' do
+    subject { described_class.with_sources(source_names) }
+
+    let_it_be(:job1) { create(:ci_build, pipeline: pipeline) }
+    let_it_be(:job2) { create(:ci_build, :with_build_source, pipeline: pipeline) }
+
+    context 'when filtering by build source' do
+      let(:source_names) { ['scan_execution_policy'] }
+
+      it 'returns build sourced jobs' do
+        expect(subject).to contain_exactly(job2)
+      end
+    end
+
+    context 'when filtering by pipeline source' do
+      let(:source_names) { ['push'] }
+
+      it 'returns pipeline-sourced jobs without a build source' do
+        expect(subject).to contain_exactly(build, job1)
+      end
+    end
+
+    context 'when filtering by an unrecognized source' do
+      let(:source_names) { ['nonexistent_source'] }
+
+      it 'returns empty' do
+        expect(subject).to eq([])
+      end
+    end
+
+    context 'when filtering by job and pipeline source' do
+      let_it_be(:pipeline2) { create(:ci_pipeline, project: project, status: 'success', source: 'web') }
+      let_it_be(:job3) { create(:ci_build, pipeline: pipeline2) }
+
+      let(:source_names) { %w[push scan_execution_policy nonexistent_source] }
+
+      it 'returns build-sourced jobs and pipeline-sourced jobs without build source' do
+        expect(subject).to contain_exactly(build, job1, job2)
+      end
+    end
+  end
+
   describe '.with_artifacts' do
     subject(:builds) { described_class.with_artifacts(artifact_scope) }
 

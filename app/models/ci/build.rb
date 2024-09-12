@@ -185,6 +185,25 @@ module Ci
         .includes(:metadata, :job_artifacts_metadata)
     end
 
+    scope :with_sources, ->(source_names) do
+      pipeline_sources = []
+      build_sources = []
+      source_names.each do |source_name|
+        if Ci::Pipeline.sources.key?(source_name)
+          pipeline_sources << source_name
+        elsif Ci::BuildSource.sources.key?(source_name)
+          build_sources << source_name
+        end
+      end
+
+      return none if pipeline_sources.empty? && build_sources.empty?
+      return left_joins(:pipeline, :build_source).where(pipeline: { source: pipeline_sources }, build_source: { source: nil }) if build_sources.empty?
+      return joins(:build_source).where(build_source: { source: build_sources }) if pipeline_sources.empty?
+
+      left_joins(:pipeline, :build_source).where(pipeline: { source: pipeline_sources }, build_source: { source: nil })
+        .or(where(build_source: { source: build_sources }))
+    end
+
     scope :with_artifacts_not_expired, -> { with_downloadable_artifacts.where('artifacts_expire_at IS NULL OR artifacts_expire_at > ?', Time.current) }
     scope :with_pipeline_locked_artifacts, -> { joins(:pipeline).where('pipeline.locked': Ci::Pipeline.lockeds[:artifacts_locked]) }
     scope :last_month, -> { where('created_at > ?', Date.today - 1.month) }
