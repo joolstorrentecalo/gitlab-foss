@@ -189,9 +189,6 @@ dast_pre_scan_verifications:
   - table: ci_pipelines
     column: ci_pipeline_id
     on_delete: async_delete
-  - table: projects
-    column: project_id
-    on_delete: async_delete
 dast_profiles:
   - table: projects
     column: project_id
@@ -203,9 +200,6 @@ dast_profiles_pipelines:
 dast_profiles_tags:
   - table: tags
     column: tag_id
-    on_delete: async_delete
-  - table: projects
-    column: project_id
     on_delete: async_delete
 dast_scanner_profiles:
   - table: projects
@@ -244,10 +238,6 @@ dast_site_validations:
 dast_sites:
   - table: projects
     column: project_id
-    on_delete: async_delete
-dependency_list_exports:
-  - table: ci_pipelines
-    column: pipeline_id
     on_delete: async_delete
 deployment_clusters:
   - table: clusters
@@ -580,13 +570,6 @@ vulnerability_identifiers:
   - table: projects
     column: project_id
     on_delete: async_delete
-vulnerability_issue_links:
-  - table: projects
-    column: project_id
-    on_delete: async_delete
-  - table: issues
-    column: issue_id
-    on_delete: async_delete
 vulnerability_merge_request_links:
   - table: projects
     column: project_id
@@ -609,9 +592,6 @@ vulnerability_occurrences:
   - table: ci_pipelines
     column: latest_pipeline_id
     on_delete: async_nullify
-  - table: projects
-    column: project_id
-    on_delete: async_delete
 vulnerability_remediations:
   - table: projects
     column: project_id

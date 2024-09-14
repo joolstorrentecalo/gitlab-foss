@@ -145,7 +145,7 @@ The members of the invited group are not displayed on the **Members** tab unless
 
 ### View a group's shared projects
 
-In a group, a shared project is a project to which the group members gained access through the [**Invite a group**](#invite-a-group-to-a-project) action.
+In a group, a shared project is a project to which the group members gained access through the [**Invite a group**] action.
 
 To view a group's shared projects:
 
@@ -173,9 +173,6 @@ When this setting is enabled:
 
 - It applies to all subgroups, unless overridden by a group Owner.
 - Groups already added to a project lose access to it.
-
-NOTE:
-After you [specify a user cap for the group](../../group/manage.md#specify-a-user-cap-for-a-group), you cannot disable this setting.
 
 ## Sharing groups
 

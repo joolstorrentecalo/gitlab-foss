@@ -103,7 +103,6 @@ export default {
         :href="milestoneLink"
         :title="milestoneDate"
         class="gl-text-sm !gl-text-gray-500"
-        @click.stop
       >
         <gl-icon name="milestone" :size="12" />
         {{ milestone.title }}

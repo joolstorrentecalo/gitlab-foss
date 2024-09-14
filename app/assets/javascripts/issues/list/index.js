@@ -201,7 +201,6 @@ export async function mountIssuesListApp() {
       issuesListPath: wiIssuesListPath,
       labelsManagePath: wiLabelsManagePath,
       reportAbusePath: wiReportAbusePath,
-      hasSubepicsFeature: false,
     },
     render: (createComponent) => createComponent(IssuesListApp),
   });

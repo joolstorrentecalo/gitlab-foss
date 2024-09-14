@@ -15,7 +15,6 @@ export default () => {
   return new Vue({
     el,
     name: 'EmailVerificationRoot',
-    provide: { updateEmailPath },
     render(createElement) {
       return createElement(EmailVerification, {
         props: {
@@ -24,6 +23,7 @@ export default () => {
           verifyPath,
           resendPath,
           isOfferEmailReset: parseBoolean(offerEmailReset),
+          updateEmailPath,
         },
       });
     },

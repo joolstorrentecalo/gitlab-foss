@@ -5,9 +5,7 @@ import createMockApollo from 'helpers/mock_apollo_helper';
 import waitForPromises from 'helpers/wait_for_promises';
 import MergeRequestQuery from '~/merge_request_dashboard/components/merge_requests_query.vue';
 import reviewerQuery from '~/merge_request_dashboard/queries/reviewer.query.graphql';
-import reviewerCountQuery from '~/merge_request_dashboard/queries/reviewer_count.query.graphql';
 import assigneeQuery from '~/merge_request_dashboard/queries/assignee.query.graphql';
-import assigneeCountQuery from '~/merge_request_dashboard/queries/assignee_count.query.graphql';
 import { createMockMergeRequest } from '../mock_data';
 
 Vue.use(VueApollo);
@@ -25,6 +23,7 @@ describe('Merge requests query component', () => {
         currentUser: {
           id: 1,
           mergeRequests: {
+            count: 0,
             pageInfo: {
               __typename: 'PageInfo',
               hasNextPage: false,
@@ -42,6 +41,7 @@ describe('Merge requests query component', () => {
         currentUser: {
           id: 1,
           mergeRequests: {
+            count: 0,
             pageInfo: {
               hasNextPage: false,
               hasPreviousPage: false,
@@ -54,26 +54,10 @@ describe('Merge requests query component', () => {
         },
       },
     });
-    const apolloProvider = createMockApollo(
-      [
-        [reviewerQuery, reviewerQueryMock],
-        [assigneeQuery, assigneeQueryMock],
-        [
-          reviewerCountQuery,
-          jest
-            .fn()
-            .mockResolvedValue({ data: { currentUser: { id: 1, mergeRequests: { count: 1 } } } }),
-        ],
-        [
-          assigneeCountQuery,
-          jest
-            .fn()
-            .mockResolvedValue({ data: { currentUser: { id: 1, mergeRequests: { count: 1 } } } }),
-        ],
-      ],
-      {},
-      { typePolicies: { Query: { fields: { currentUser: { merge: false } } } } },
-    );
+    const apolloProvider = createMockApollo([
+      [reviewerQuery, reviewerQueryMock],
+      [assigneeQuery, assigneeQueryMock],
+    ]);
 
     slotSpy = jest.fn();
 

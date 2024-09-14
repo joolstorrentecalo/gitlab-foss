@@ -74,7 +74,6 @@ DETAILS:
 
 Run a health check to test if your instance meets the requirements to use GitLab Duo.
 When the health check completes, it displays a pass or fail result and the types of issues.
-If the health check fails any of the tests, users might not be able to use GitLab Duo features in your instance.
 
 This is a [beta](../../policy/experiment-beta-support.md) feature.
 
@@ -88,15 +87,21 @@ To run a health check:
 1. Select **GitLab Duo**.
 1. On the upper-right corner, select **Run health check**.
 
-### Health check tests
+### Health check probes
 
-The health check performs the following tests to verify if your instance meets the requirements to use GitLab Duo. 
+The health check executes the following probes to check if your instance meets the requirements
+to use GitLab Duo. If the health check fails any of these probes, users might not be able to use
+GitLab Duo features in your instance.
 
-| Test | Description |
-|-----------------|-------------|
-| Network | Tests whether your instance can connect to `customers.gitlab.com` and `cloud.gitlab.com`.<br><br>If your instance cannot connect to either destination, ensure that your firewall or proxy server settings [allow connection](#configure-gitlab-duo-on-a-self-managed-instance). |
-| Synchronization | Tests whether your subscription: <br>- Has been activated with an activation code and can be synchronized with `customers.gitlab.com`.<br>- Has correct access credentials.<br>- Has been synchronized recently. If it hasn't or the access credentials are missing or expired, you can [manually synchronize](../../subscriptions/self_managed/index.md#manually-synchronize-subscription-data) your subscription data. |
-| System exchange | Tests whether Code Suggestions can be used in your instance. If the system exchange assessment fails, users might not be able to use GitLab Duo features. |
+- **Network:** Checks that your instance can connect to `customers.gitlab.com` and `cloud.gitlab.com`. If your
+instance cannot connect to either destination, ensure that your firewall or proxy server settings [allow connection](#configure-gitlab-duo-on-a-self-managed-instance) to these destinations.
+- **Synchronization:** Checks if your subscription:
+  - Has been activated with an activation code and can be synchronized with `customers.gitlab.com`.
+  - Has correct access credentials.
+  - Has been synchronized recently. If it hasn't or the access credentials are missing or expired, you can
+[manually synchronize](../../subscriptions/self_managed/index.md#manually-synchronize-subscription-data) your subscription data.
+- **System exchange:** Checks if Code Suggestions can be used in your instance. If the system
+exchange probe fails, users might not be able to use GitLab Duo features.
 
 ## Turn off GitLab Duo features
 
@@ -119,31 +124,13 @@ However, GitLab Duo Chat works differently. When you turn off GitLab Duo:
 
 ### Turn off for a group
 
-::Tabs
-
-:::TabTitle In 17.4 and later
-
-In GitLab 17.4 and later, follow these instructions to turn off GitLab Duo
-for a group and its subgroups and projects.
+You can turn off GitLab Duo for a group.
 
 Prerequisites:
 
-- You must have the Owner role for the group.
+- You must have the Owner role for the group or project.
 
 To turn off GitLab Duo for a group:
-
-1. On the left sidebar, select **Search or go to** and find your group.
-1. Select **Settings > General**.
-1. Expand **GitLab Duo features**.
-1. Choose an option:
-   - To turn off GitLab Duo for the group, but let other groups or projects turn it on, select **Off by default**.
-   - To turn off GitLab Duo for the group, and to prevent other groups or projects from turning it on, select **Never on**.
-1. Select **Save changes**.
-
-:::TabTitle In 17.3 and earlier
-
-In GitLab 17.3 and earlier, follow these instructions to turn off GitLab Duo for a group
-and its subgroups and projects.
 
 1. On the left sidebar, select **Search or go to** and find your group.
 1. Select **Settings > General**.
@@ -154,31 +141,15 @@ and its subgroups and projects.
 
    ![Cascading setting](img/disable_duo_features_v17_1.png)
 
-::EndTabs
-
 ### Turn off for a project
 
-::Tabs
-
-:::TabTitle In 17.4 and later
-
-In GitLab 17.4 and later, follow these instructions to turn off GitLab Duo for a project.
+You can turn off GitLab Duo for a project.
 
 Prerequisites:
 
 - You must have the Owner role for the project.
 
 To turn off GitLab Duo for a project:
-
-1. On the left sidebar, select **Search or go to** and find your project.
-1. Select **Settings > General**.
-1. Expand **Visibility, project features, permissions**.
-1. Under **GitLab Duo**, turn the toggle off.
-1. Select **Save changes**.
-
-:::TabTitle In 17.3 and earlier
-
-In GitLab 17.3 and earlier, follow these instructions to turn off GitLab Duo for a project.
 
 1. Use the GitLab GraphQL API
    [`projectSettingsUpdate`](../../api/graphql/reference/index.md#mutationprojectsettingsupdate)
@@ -187,18 +158,12 @@ In GitLab 17.3 and earlier, follow these instructions to turn off GitLab Duo for
    [`duo_features_enabled`](../../api/graphql/getting_started.md#update-project-settings)
    setting to `false`. (The default is `true`.)
 
-::EndTabs
-
 ### Turn off for an instance
 
 DETAILS:
 **Offering:** Self-managed
 
-::Tabs
-
-:::TabTitle In 17.4 and later
-
-In GitLab 17.4 and later, follow these instructions to turn off GitLab Duo for the instance.
+You can turn off GitLab Duo for the instance.
 
 Prerequisites:
 
@@ -206,26 +171,12 @@ Prerequisites:
 
 To turn off GitLab Duo for an instance:
 
-1. On the left sidebar, at the bottom, select **Admin area**.
-1. Select **Settings > General**.
-1. Expand **GitLab Duo features**.
-1. Choose an option:
-   - To turn off GitLab Duo for the instance, but let groups and projects turn it on, select **Off by default**.
-   - To turn off GitLab Duo for the instance, and to prevent groups or projects from ever turning it on, select **Never on**.
-1. Select **Save changes**.
-
-:::TabTitle In 17.3 and earlier
-
-In GitLab 17.3 and earlier, follow these instructions to turn off GitLab Duo for an instance.
-
 1. On the left sidebar, at the bottom, select **Admin**.
 1. Select **Settings > General**
 1. Expand **AI-powered features**.
 1. Clear the **Use Duo features** checkbox.
 1. Optional. Select the **Enforce for all subgroups** checkbox to cascade
    the setting to all groups in the instance.
-
-::EndTabs
 
 NOTE:
 An [issue exists](https://gitlab.com/gitlab-org/gitlab/-/issues/441532) to allow administrators
@@ -242,12 +193,10 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed
 
-::Tabs
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/118222) in GitLab 16.0.
+> - [Added to GitLab.com](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/147833) in GitLab 16.11.
 
-:::TabTitle In 17.4 and later
-
-In GitLab 17.4 and later, follow these instructions to
-turn on GitLab Duo experimental and beta features for your group on GitLab.com.
+You can turn on GitLab Duo experiment and beta features for your group on GitLab.com.
 
 Prerequisites:
 
@@ -257,54 +206,18 @@ To turn on GitLab Duo experiment and beta features for a top-level group:
 
 1. On the left sidebar, select **Search or go to** and find your group.
 1. Select **Settings > General**.
-1. Expand **GitLab Duo features**.
-1. Under **GitLab Duo preview features**, select **Use experiment and beta GitLab Duo features**.
-1. Select **Save changes**.
-
-:::TabTitle In 17.3 and earlier
-
-In GitLab 17.3 and earlier, follow these instructions to
-turn on GitLab Duo experimental and beta features for your group on GitLab.com.
-
-1. On the left sidebar, select **Search or go to** and find your group.
-1. Select **Settings > General**.
 1. Expand **Permissions and group features**.
 1. Under **GitLab Duo experiment and beta features**, select the **Use experiment and beta GitLab Duo features** checkbox.
 1. Select **Save changes**.
-
-::EndTabs
 
 This setting [cascades to all projects](../../user/project/merge_requests/approvals/settings.md#cascade-settings-from-the-instance-or-top-level-group)
 that belong to the group.
 
 ### On self-managed
 
-::Tabs
-
-:::TabTitle In 17.4 and later
-
-In GitLab 17.4 and later, follow these instructions to turn on GitLab Duo
-experiment and beta features for your self-managed instance.
-
-Prerequisites:
-
-- You must be an administrator.
-
-To turn on GitLab Duo experiment and beta features for an instance:
-
-1. On the left sidebar, at the bottom, select **Admin area**.
-1. Select **Settings > General**.
-1. Expand **GitLab Duo features**.
-1. Under **GitLab Duo preview features**, select **Use experiment and beta GitLab Duo features**.
-1. Select **Save changes**.
-
-:::TabTitle In 17.3 and earlier
-
 To enable GitLab Duo beta and experimental features for GitLab versions
 where GitLab Duo Chat is not yet generally available, see the
 [GitLab Duo Chat documentation](../gitlab_duo_chat/turn_on_off.md#for-self-managed).
-
-::EndTabs
 
 ## Troubleshooting
 

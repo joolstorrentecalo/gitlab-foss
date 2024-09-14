@@ -61,6 +61,11 @@ export default {
       type: Object,
       required: true,
     },
+    variant: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
   data() {
     return {
@@ -150,6 +155,7 @@ export default {
     :class="{
       target: isTargetNote,
       'pr-0': shouldShowDescriptionVersion,
+      [`system-note-variant-${variant}`]: variant,
     }"
     class="system-note"
   >

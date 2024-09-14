@@ -12,6 +12,7 @@ describe('The Pipeline Tabs', () => {
 
   const $router = { push: jest.fn() };
 
+  const findDagTab = () => wrapper.findByTestId('dag-tab');
   const findFailedJobsTab = () => wrapper.findByTestId('failed-jobs-tab');
   const findJobsTab = () => wrapper.findByTestId('jobs-tab');
   const findPipelineTab = () => wrapper.findByTestId('pipeline-tab');
@@ -52,6 +53,7 @@ describe('The Pipeline Tabs', () => {
     it.each`
       tabName          | tabComponent
       ${'Pipeline'}    | ${findPipelineTab}
+      ${'Dag'}         | ${findDagTab}
       ${'Jobs'}        | ${findJobsTab}
       ${'Failed Jobs'} | ${findFailedJobsTab}
       ${'Tests'}       | ${findTestsTab}

@@ -52,7 +52,7 @@ In certain circumstances, GitLab might run in a
 
 ### PostgreSQL
 
-[PostgreSQL](https://www.postgresql.org/) is the only supported database and is bundled with the Linux package.
+PostgreSQL is the only supported database and is bundled with the Linux package.
 You can also use an [external PostgreSQL database](https://docs.gitlab.com/omnibus/settings/database.html#using-a-non-packaged-postgresql-database-management-server).
 
 Depending on the [number of users](../administration/reference_architectures/index.md),
@@ -82,45 +82,51 @@ For more information, see [managing PostgreSQL extensions](postgresql_extensions
 
 #### GitLab Geo
 
-For [GitLab Geo](../administration/geo/index.md), you should use the Linux package or
-[validated cloud providers](../administration/reference_architectures/index.md#recommended-cloud-providers-and-services)
-to install GitLab.
-Compatibility with other external databases is not guaranteed.
+If you're using [GitLab Geo](../administration/geo/index.md), we strongly recommend running instances installed by using the Linux package or using
+[validated cloud-managed instances](../administration/reference_architectures/index.md#recommended-cloud-providers-and-services),
+as we actively develop and test based on those.
+We cannot guarantee compatibility with other external databases.
 
 For more information, see [requirements for running Geo](../administration/geo/index.md#requirements-for-running-geo).
 
 #### Locale compatibility
 
-When you change locale data in `glibc`, PostgreSQL database files are
-no longer fully compatible between different operating systems.
-To avoid index corruption,
-[check for locale compatibility](../administration/geo/replication/troubleshooting/common.md#check-os-locale-data-compatibility)
-when you:
+Changes to locale data in `glibc` means that PostgreSQL database files are not fully compatible
+between different OS releases.
 
-- Move binary PostgreSQL data between servers.
-- Upgrade your Linux distribution.
-- Update or change third-party container images.
+To avoid index corruption, [check for locale compatibility](../administration/geo/replication/troubleshooting/common.md#check-os-locale-data-compatibility)
+when:
 
-For more information, see [upgrading operating systems for PostgreSQL](../administration/postgresql/upgrading_os.md).
+- Moving binary PostgreSQL data between servers.
+- Upgrading your Linux distribution.
+- Updating or changing third party container images.
+
+For more information, see how to [upgrade operating systems for PostgreSQL](../administration/postgresql/upgrading_os.md).
 
 #### GitLab schemas
 
-You should create or use databases exclusively for GitLab, [Geo](../administration/geo/index.md),
-[Gitaly Cluster](../administration/gitaly/praefect.md), or other components.
-Do not create or modify databases, schemas, users, or other properties except when you follow:
+Databases created or used for GitLab, Geo, [Gitaly Cluster](../administration/gitaly/praefect.md), or other components should be for the
+exclusive use of GitLab. Do not make direct changes to the database, schemas, users, or other
+properties except when following procedures in the GitLab documentation or following the directions
+of GitLab Support or other GitLab engineers.
 
-- Procedures in the GitLab documentation
-- The directions of GitLab Support or engineers
+- The main GitLab application uses three schemas:
 
-The main GitLab application uses three schemas:
+  - The default `public` schema
+  - `gitlab_partitions_static` (automatically created)
+  - `gitlab_partitions_dynamic` (automatically created)
 
-- The default `public` schema
-- `gitlab_partitions_static` (created automatically)
-- `gitlab_partitions_dynamic` (created automatically)
+  No other schemas should be manually created.
 
-During Rails database migrations, GitLab might create or modify schemas or tables.
-Database migrations are tested against the schema definition in the GitLab codebase.
-If you modify any schema, [GitLab upgrades](../update/index.md) might fail.
+- GitLab may create new schemas as part of Rails database migrations. This happens when performing
+  a GitLab upgrade. The GitLab database account requires access to do this.
+
+- GitLab creates and modifies tables during the upgrade process, and also as part of standard
+  operations to manage partitioned tables.
+
+- You should not modify the GitLab schema (for example, adding triggers or modifying tables).
+  Database migrations are tested against the schema definition in the GitLab codebase. GitLab
+  version upgrades may fail if the schema is modified.
 
 ## Puma
 
@@ -210,27 +216,21 @@ The recommended number of threads is dependent on several factors, including tot
 
 ## Redis
 
-[Redis](https://redis.io/) stores all user sessions and background tasks
-and requires about 25 kB per user on average.
+Redis stores all user sessions and the background task queue.
 
-In GitLab 16.0 and later, Redis 6.x or 7.x is required.
-For more information about end-of-life dates, see the
-[Redis documentation](https://redis.io/docs/latest/operate/rs/installing-upgrading/product-lifecycle/).
+The requirements for Redis are as follows:
 
-For Redis:
-
-- Use a standalone instance (with or without high availability).
-  Redis Cluster is not supported.
-- Set the [eviction policy](../administration/redis/replication_and_failover_external.md#setting-the-eviction-policy) as appropriate.
+- Redis 6.x or 7.x is required in GitLab 16.0 and later. However, you should upgrade to
+  Redis 6.2.14 or later as [Redis 6.0 is no longer supported](https://endoflife.date/redis).
+- Redis Cluster mode is not supported. Redis Standalone must be used, with or without HA.
+- Storage requirements for Redis are minimal, about 25 kB per user on average.
+- [Redis eviction mode](../administration/redis/replication_and_failover_external.md#setting-the-eviction-policy) set appropriately.
 
 ## Sidekiq
 
-[Sidekiq](https://sidekiq.org/) uses a multi-threaded process for background jobs.
-This process initially consumes more than 200 MB of memory
-and might grow over time due to memory leaks.
-
-On a very active server with more than 10,000 billable users,
-the Sidekiq process might consume more than 1 GB of memory.
+Sidekiq processes the background jobs with a multi-threaded process.
+This process starts with the entire Rails stack (200 MB+) but it can grow over time due to memory leaks.
+On a very active server (10,000 billable users) the Sidekiq process can use 1 GB+ of memory.
 
 ## Prometheus
 
@@ -239,6 +239,36 @@ These processes consume approximately 200 MB of memory.
 
 For more information, see
 [monitoring GitLab with Prometheus](../administration/monitoring/prometheus/index.md).
+
+## GitLab Runner
+
+We strongly advise against installing GitLab Runner on the same machine you plan
+to install GitLab on. Depending on how you decide to configure GitLab Runner and
+what tools you use to exercise your application in the CI environment, GitLab
+Runner can consume significant amount of available memory.
+
+Memory consumption calculations, that are available above, are not valid if
+you decide to run GitLab Runner and the GitLab Rails application on the same
+machine.
+
+It's also not safe to install everything on a single machine, because of the
+[security reasons](https://docs.gitlab.com/runner/security/), especially when you plan to use shell executor with GitLab
+Runner.
+
+To use CI/CD features, you should use a separate machine for each GitLab Runner.
+The GitLab Runner server requirements depend on:
+
+- The type of [executor](https://docs.gitlab.com/runner/executors/) you configured on GitLab Runner.
+- Resources required to run build jobs.
+- Job concurrency settings.
+
+Because the nature of the jobs varies for each use case, you must experiment by adjusting the job concurrency to get the optimum setting.
+
+For reference, the [SaaS runners on Linux](../ci/runners/hosted_runners/linux.md)
+are configured so that a **single job** runs in a **single instance** with:
+
+- 1 vCPU.
+- 3.75 GB of RAM.
 
 ## Supported web browsers
 
@@ -259,5 +289,4 @@ Running GitLab with JavaScript disabled in these browsers is not supported.
 
 ## Related topics
 
-- [Install GitLab Runner](https://docs.gitlab.com/runner/install/)
 - [Secure your installation](../security/index.md)

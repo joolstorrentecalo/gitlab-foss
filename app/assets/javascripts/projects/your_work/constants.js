@@ -23,18 +23,7 @@ export const MEMBER_TAB = {
   value: 'member',
 };
 
-export const INACTIVE_TAB = {
-  text: __('Inactive'),
-  value: 'inactive',
-};
-
-export const PROJECT_DASHBOARD_TABS = [
-  CONTRIBUTED_TAB,
-  STARRED_TAB,
-  PERSONAL_TAB,
-  MEMBER_TAB,
-  INACTIVE_TAB,
-];
+export const PROJECT_DASHBOARD_TABS = [CONTRIBUTED_TAB, STARRED_TAB, PERSONAL_TAB, MEMBER_TAB];
 
 export const BASE_ROUTE = '/dashboard/projects';
 

@@ -482,11 +482,6 @@ msgid_plural "%d tags per image name"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "%d template found"
-msgid_plural "%d templates found"
-msgstr[0] ""
-msgstr[1] ""
-
 msgid "%d unresolved thread"
 msgid_plural "%d unresolved threads"
 msgstr[0] ""
@@ -1189,9 +1184,6 @@ msgid "%{project_name} project members"
 msgstr ""
 
 msgid "%{project_path} is a project that you can use to add a README to your GitLab profile. Create a public project and initialize the repository with a README to get started. %{help_link_start}Learn more%{help_link_end}."
-msgstr ""
-
-msgid "%{redirect_link_start} Click here to redirect to %{redirect_uri_val} %{redirect_link_end}"
 msgstr ""
 
 msgid "%{reference} %{divider} created %{createdAt} by %{author} %{milestone}"
@@ -2287,6 +2279,9 @@ msgstr ""
 msgid "AI|Give feedback to improve this answer."
 msgstr ""
 
+msgid "AI|Helpful"
+msgstr ""
+
 msgid "AI|How could the content be improved?"
 msgstr ""
 
@@ -2338,7 +2333,13 @@ msgstr ""
 msgid "AI|The existing description will be replaced when you submit."
 msgstr ""
 
+msgid "AI|This is an experiment feature that uses AI to provide recommendations for resolving this vulnerability. Use this feature with caution."
+msgstr ""
+
 msgid "AI|To help improve the quality of the content, send your feedback to GitLab team members."
+msgstr ""
+
+msgid "AI|Unhelpful"
 msgstr ""
 
 msgid "AI|Use GitLab Duo to generate a merge request with a suggested solution."
@@ -2354,6 +2355,9 @@ msgid "AI|Write a brief description and have AI fill in the details."
 msgstr ""
 
 msgid "AI|Write a summary to fill out the selected issue template"
+msgstr ""
+
+msgid "AI|Wrong"
 msgstr ""
 
 msgid "AI|Your request does not seem to contain code to %{action}. To %{human_name} select the lines of code in your editor and then type the command %{command_name} in the chat. You may add additional instructions after this command. If you have no code to select, you can also simply add the code after the command."
@@ -2546,6 +2550,9 @@ msgid "AbuseReports|%{reportedUser} reported for %{category} by %{reporter}"
 msgstr ""
 
 msgid "AbuseReports|Deleted user"
+msgstr ""
+
+msgid "AbuseReports|No reports found"
 msgstr ""
 
 msgid "AbuseReport|%{reportLinkStart}Reported%{reportLinkEnd} for %{category} %{timeAgo}."
@@ -3909,9 +3916,6 @@ msgstr ""
 msgid "AdminSelfHostedModels|Edit self-hosted model"
 msgstr ""
 
-msgid "AdminSelfHostedModels|Edit the AI model that can be used for GitLab Duo features."
-msgstr ""
-
 msgid "AdminSelfHostedModels|Enable self-hosted models"
 msgstr ""
 
@@ -3963,7 +3967,7 @@ msgstr ""
 msgid "AdminSelfHostedModels|Self-hosted models are an experimental feature."
 msgstr ""
 
-msgid "AdminSelfHostedModels|There was an error saving the self-hosted model. Please try again."
+msgid "AdminSelfHostedModels|There was an error creating the self-hosted model. Please try again."
 msgstr ""
 
 msgid "AdminSettings|%{generate_manually_link_start}Generate%{generate_manually_link_end} Service Ping to preview and download service usage data payload."
@@ -4032,7 +4036,7 @@ msgstr ""
 msgid "AdminSettings|Cube API URL"
 msgstr ""
 
-msgid "AdminSettings|Default expiration time for parallel deployments (in seconds)"
+msgid "AdminSettings|Default expiration time for extra deployments (in seconds)"
 msgstr ""
 
 msgid "AdminSettings|Delete inactive projects"
@@ -4227,9 +4231,6 @@ msgstr ""
 msgid "AdminSettings|New CI/CD variables in projects and groups default to protected."
 msgstr ""
 
-msgid "AdminSettings|No required configuration"
-msgstr ""
-
 msgid "AdminSettings|Only enable search after installing the plugin, enabling indexing, and recreating the index."
 msgstr ""
 
@@ -4260,9 +4261,6 @@ msgstr ""
 msgid "AdminSettings|Require users to prove ownership of custom domains"
 msgstr ""
 
-msgid "AdminSettings|Required pipeline configuration"
-msgstr ""
-
 msgid "AdminSettings|Requires %{linkStart}email notifications%{linkEnd}"
 msgstr ""
 
@@ -4276,9 +4274,6 @@ msgid "AdminSettings|Search with Elasticsearch enabled"
 msgstr ""
 
 msgid "AdminSettings|Secret Push Protection"
-msgstr ""
-
-msgid "AdminSettings|Select a CI/CD template"
 msgstr ""
 
 msgid "AdminSettings|Select a group to use as a source of custom templates for new projects. %{link_start}Learn more%{link_end}."
@@ -4302,13 +4297,10 @@ msgstr ""
 msgid "AdminSettings|Session duration for Git operations when 2FA is enabled (minutes)"
 msgstr ""
 
-msgid "AdminSettings|Set a CI/CD template as the required pipeline configuration for all projects in the instance. Project CI/CD configuration merges into the required pipeline configuration when the pipeline runs. %{link_start}What is a required pipeline configuration?%{link_end}"
-msgstr ""
-
 msgid "AdminSettings|Set options for cost factors of forks"
 msgstr ""
 
-msgid "AdminSettings|Set the default time after which parallel deployments expire (0 for unlimited). %{link_start}What are parallel deployments%{link_end}?"
+msgid "AdminSettings|Set the default time after which extra deployments expire (0 for unlimited). %{link_start}What are extra deployments%{link_end}?"
 msgstr ""
 
 msgid "AdminSettings|Set the expiration time of authentication tokens of newly registered group runners."
@@ -4371,9 +4363,6 @@ msgstr ""
 msgid "AdminSettings|The selected level must be different from the selected default group and project visibility."
 msgstr ""
 
-msgid "AdminSettings|The template for the required pipeline configuration can be one of the GitLab-provided templates, or a custom template added to an instance template repository. %{link_start}How do I create an instance template repository?%{link_end}"
-msgstr ""
-
 msgid "AdminSettings|There are Advanced Search migrations pending that require indexing to pause. Indexing must remain paused until GitLab completes the migrations."
 msgstr ""
 
@@ -4417,9 +4406,6 @@ msgid "AdminSettings|You can enable Registration Features because optional data 
 msgstr ""
 
 msgid "AdminSettings|You can't delete projects before the warning email is sent."
-msgstr ""
-
-msgid "AdminSettings|templates found"
 msgstr ""
 
 msgid "AdminStatistics|Active Users"
@@ -5815,9 +5801,6 @@ msgstr ""
 msgid "An error occurred fetching the public deploy keys. Please try again."
 msgstr ""
 
-msgid "An error occurred loading the project counts."
-msgstr ""
-
 msgid "An error occurred loading the projects. Please refresh the page to try again."
 msgstr ""
 
@@ -6827,9 +6810,6 @@ msgid "ApplicationSettings|Send a confirmation email during sign up. New users c
 msgstr ""
 
 msgid "ApplicationSettings|Send a confirmation email during sign up. New users must confirm their email address before they can log in."
-msgstr ""
-
-msgid "ApplicationSettings|Setting locked. Resolve all %{linkStart}pending approvals%{linkEnd} to unlock."
 msgstr ""
 
 msgid "ApplicationSettings|Sign-up enabled"
@@ -10791,9 +10771,6 @@ msgstr ""
 msgid "Cannot merge"
 msgstr ""
 
-msgid "Cannot modify %{profile_name} referenced in scan"
-msgstr ""
-
 msgid "Cannot modify %{profile_name} referenced in security policy"
 msgstr ""
 
@@ -12057,9 +12034,6 @@ msgid "Clear this checkbox to use a personal access token or LDAP password inste
 msgstr ""
 
 msgid "Clear this checkbox to use an external authentication provider instead."
-msgstr ""
-
-msgid "Clear uploads"
 msgstr ""
 
 msgid "Clear weight"
@@ -13463,9 +13437,6 @@ msgstr ""
 msgid "Collapse %{section} merge requests"
 msgstr ""
 
-msgid "Collapse all files"
-msgstr ""
-
 msgid "Collapse eligible approvers"
 msgstr ""
 
@@ -13993,6 +13964,11 @@ msgstr ""
 msgid "ComplianceFrameworks|\"%{name}\" is a reserved word and cannot be used as a compliance framework name."
 msgstr ""
 
+msgid "ComplianceFrameworks|%{count} linked policy."
+msgid_plural "ComplianceFrameworks|%{count} linked policies."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "ComplianceFrameworks|A compliance frameworks CSV export for the group \"%{group_name}\" is attached to this email."
 msgstr ""
 
@@ -14000,9 +13976,6 @@ msgid "ComplianceFrameworks|A compliance frameworks CSV export for the group %{g
 msgstr ""
 
 msgid "ComplianceFrameworks|Add framework"
-msgstr ""
-
-msgid "ComplianceFrameworks|All selected projects will be covered by the framework’s selected requirements and the policies."
 msgstr ""
 
 msgid "ComplianceFrameworks|Background color"
@@ -14032,7 +14005,7 @@ msgstr ""
 msgid "ComplianceFrameworks|Configuration not found"
 msgstr ""
 
-msgid "ComplianceFrameworks|Create framework"
+msgid "ComplianceFrameworks|Create a compliance framework"
 msgstr ""
 
 msgid "ComplianceFrameworks|Default framework will be applied automatically to any new project created in the group or sub group."
@@ -14050,19 +14023,13 @@ msgstr ""
 msgid "ComplianceFrameworks|Description is required"
 msgstr ""
 
+msgid "ComplianceFrameworks|Edit a compliance framework"
+msgstr ""
+
 msgid "ComplianceFrameworks|Edit compliance framework"
 msgstr ""
 
-msgid "ComplianceFrameworks|Edit compliance framework: %{frameworkName}"
-msgstr ""
-
 msgid "ComplianceFrameworks|Error fetching compliance frameworks data. Please refresh the page or try a different framework"
-msgstr ""
-
-msgid "ComplianceFrameworks|Go to the %{linkStart}compliance center / project page%{linkEnd} to apply projects for this framework."
-msgstr ""
-
-msgid "ComplianceFrameworks|Go to the %{linkStart}policy management page%{linkEnd} to scope policies for this framework."
 msgstr ""
 
 msgid "ComplianceFrameworks|Invalid format"
@@ -14083,6 +14050,9 @@ msgstr ""
 msgid "ComplianceFrameworks|Name is required, and must be less than 255 characters"
 msgstr ""
 
+msgid "ComplianceFrameworks|Name, description"
+msgstr ""
+
 msgid "ComplianceFrameworks|New compliance framework"
 msgstr ""
 
@@ -14098,10 +14068,7 @@ msgstr ""
 msgid "ComplianceFrameworks|No frameworks found. Create a framework in top-level group %{linkStart}namespace%{linkEnd} to assign it to a project."
 msgstr ""
 
-msgid "ComplianceFrameworks|Optional"
-msgstr ""
-
-msgid "ComplianceFrameworks|Policies"
+msgid "ComplianceFrameworks|Policy"
 msgstr ""
 
 msgid "ComplianceFrameworks|Policy name"
@@ -14116,9 +14083,6 @@ msgstr ""
 msgid "ComplianceFrameworks|Projects"
 msgstr ""
 
-msgid "ComplianceFrameworks|Required"
-msgstr ""
-
 msgid "ComplianceFrameworks|Required format: %{codeStart}path/file.y[a]ml@group-name/project-name%{codeEnd}. %{linkStart}See some examples%{linkEnd}."
 msgstr ""
 
@@ -14128,13 +14092,7 @@ msgstr ""
 msgid "ComplianceFrameworks|Saved changes to compliance framework"
 msgstr ""
 
-msgid "ComplianceFrameworks|Select policies to enforce on all projects scoped to this framework."
-msgstr ""
-
 msgid "ComplianceFrameworks|Set as default"
-msgstr ""
-
-msgid "ComplianceFrameworks|Set basic information for the compliance framework."
 msgstr ""
 
 msgid "ComplianceFrameworks|Set compliance pipeline configuration for projects that use this framework. %{linkStart}How do I create the configuration?%{linkEnd}"
@@ -14156,6 +14114,12 @@ msgid "ComplianceFrameworks|To link this policy and framework,  edit  the policy
 msgstr ""
 
 msgid "ComplianceFrameworks|To unlink this policy and framework, edit the policy's scope."
+msgstr ""
+
+msgid "ComplianceFrameworks|Total policies in the group: %{count}"
+msgstr ""
+
+msgid "ComplianceFrameworks|Total projects linked to framework: %{count}"
 msgstr ""
 
 msgid "ComplianceFrameworks|Unable to save this compliance framework. Please try again"
@@ -14239,9 +14203,6 @@ msgstr ""
 msgid "ComplianceReport|Full target branch name"
 msgstr ""
 
-msgid "ComplianceReport|However, there is still a configured compliance pipeline that must be removed. Otherwise, the compliance pipeline will continue to take precedence over the new pipeline execution policy."
-msgstr ""
-
 msgid "ComplianceReport|Less than 2 approvers"
 msgstr ""
 
@@ -14266,9 +14227,6 @@ msgstr ""
 msgid "ComplianceReport|No violations found. Change search options and try again"
 msgstr ""
 
-msgid "ComplianceReport|Please remove the compliance pipeline configuration from the compliance framework so that the new pipeline execution policy can take precedence."
-msgstr ""
-
 msgid "ComplianceReport|Remove frameworks from selected projects"
 msgstr ""
 
@@ -14279,9 +14237,6 @@ msgid "ComplianceReport|Select at least one project to apply the bulk action"
 msgstr ""
 
 msgid "ComplianceReport|Select frameworks"
-msgstr ""
-
-msgid "ComplianceReport|This compliance framework's compliance pipeline has been migrated to a pipeline execution policy."
 msgstr ""
 
 msgid "ComplianceReport|Unable to load the compliance framework projects report. Refresh the page and try again."
@@ -20095,16 +20050,7 @@ msgstr ""
 msgid "DuoChat|How to use GitLab"
 msgstr ""
 
-msgid "DuoChat|Included references"
-msgstr ""
-
-msgid "DuoChat|No results found"
-msgstr ""
-
 msgid "DuoChat|Reset conversation and ignore the previous messages."
-msgstr ""
-
-msgid "DuoChat|Search %{categoryLabel}..."
 msgstr ""
 
 msgid "DuoChat|The issue, epic, or code you're viewing"
@@ -21754,9 +21700,6 @@ msgid "Error fetching the dependency list: %{errorDetails}"
 msgstr ""
 
 msgid "Error linking identity: %{errors}"
-msgstr ""
-
-msgid "Error linking identity: Provider and Extern UID must be in the session."
 msgstr ""
 
 msgid "Error loading branch data. Please try again."
@@ -23783,9 +23726,6 @@ msgstr ""
 msgid "Full log"
 msgstr ""
 
-msgid "Function `labels` can only take a maximum of 10 parameters."
-msgstr ""
-
 msgid "GCP region configured"
 msgstr ""
 
@@ -24498,7 +24438,7 @@ msgstr ""
 msgid "GitLab / Unsubscribe"
 msgstr ""
 
-msgid "GitLab 17.5 and later will require that all network connections use OpenSSL version 3. %{link_start}Learn more%{link_end}."
+msgid "GitLab 17.5 and later will require that incoming connections use OpenSSL version 3. %{link_start}Learn more%{link_end}."
 msgstr ""
 
 msgid "GitLab API"
@@ -24651,36 +24591,6 @@ msgstr ""
 msgid "GitLab.com import"
 msgstr ""
 
-msgid "GitLabDuo|Be specific and include any requirements."
-msgstr ""
-
-msgid "GitLabDuo|Cancel"
-msgstr ""
-
-msgid "GitLabDuo|Collapse"
-msgstr ""
-
-msgid "GitLabDuo|Expand"
-msgstr ""
-
-msgid "GitLabDuo|Generate plan"
-msgstr ""
-
-msgid "GitLabDuo|Goal"
-msgstr ""
-
-msgid "GitLabDuo|Image"
-msgstr ""
-
-msgid "GitLabDuo|It should have any tools necessary for the workflow installed."
-msgstr ""
-
-msgid "GitLabDuo|The container image to run the workflow in."
-msgstr ""
-
-msgid "GitLabDuo|What would you like to do and how."
-msgstr ""
-
 msgid "GitLabPagesDomains|Retry"
 msgstr ""
 
@@ -24712,9 +24622,6 @@ msgid "GitLabPages|Domains"
 msgstr ""
 
 msgid "GitLabPages|Edit"
-msgstr ""
-
-msgid "GitLabPages|Enable parallel deployments"
 msgstr ""
 
 msgid "GitLabPages|Expired"
@@ -24765,6 +24672,9 @@ msgstr ""
 msgid "GitLabPages|Updating your Pages configuration..."
 msgstr ""
 
+msgid "GitLabPages|Use multiple deployments"
+msgstr ""
+
 msgid "GitLabPages|Use unique domain"
 msgstr ""
 
@@ -24780,7 +24690,7 @@ msgstr ""
 msgid "GitLabPages|When enabled, all attempts to visit your website through HTTP are automatically redirected to HTTPS using a response with status code 301. Requires a valid certificate for all domains. %{docs_link_start}Learn more.%{link_end}"
 msgstr ""
 
-msgid "GitLabPages|When enabled, you can create parallel deployments of your pages site. %{docs_link_start}Learn more.%{link_end}"
+msgid "GitLabPages|When enabled, you can create multiple deployments of your pages site. %{docs_link_start}Learn More.%{link_end}"
 msgstr ""
 
 msgid "GitLabPages|When using Pages under the general domain of a GitLab instance (%{pages_host}), you cannot use HTTPS with subdomains of subdomains. If your namespace or groupname contains a dot, it does not work. This is a limitation of the HTTP Over TLS protocol. HTTP pages work if you don't redirect HTTP to HTTPS. %{docs_link_start}Learn more.%{link_end}"
@@ -34581,9 +34491,6 @@ msgstr ""
 msgid "MlModelRegistry|Add a model"
 msgstr ""
 
-msgid "MlModelRegistry|All artifact uploads failed or were canceled."
-msgstr ""
-
 msgid "MlModelRegistry|An error has occurred when saving the model."
 msgstr ""
 
@@ -34596,16 +34503,13 @@ msgstr ""
 msgid "MlModelRegistry|Artifact file is too large"
 msgstr ""
 
-msgid "MlModelRegistry|Artifact uploaded successfully."
-msgstr ""
-
-msgid "MlModelRegistry|Artifact uploads completed with errors."
-msgstr ""
-
 msgid "MlModelRegistry|Artifacts"
 msgstr ""
 
 msgid "MlModelRegistry|CI Info"
+msgstr ""
+
+msgid "MlModelRegistry|Cancel upload"
 msgstr ""
 
 msgid "MlModelRegistry|Candidate not linked to a CI build"
@@ -34665,7 +34569,7 @@ msgstr ""
 msgid "MlModelRegistry|Deleting this model version will delete the associated artifacts."
 msgstr ""
 
-msgid "MlModelRegistry|Drop or %{linkStart}select%{linkEnd} artifacts to attach"
+msgid "MlModelRegistry|Drop or %{linkStart}select%{linkEnd} artifact to attach"
 msgstr ""
 
 msgid "MlModelRegistry|Drop to start upload"
@@ -34846,6 +34750,9 @@ msgid "MlModelRegistry|This model has no candidates"
 msgstr ""
 
 msgid "MlModelRegistry|Triggered by"
+msgstr ""
+
+msgid "MlModelRegistry|Uploaded files successfully"
 msgstr ""
 
 msgid "MlModelRegistry|Use versions to track performance, parameters, and metadata"
@@ -35558,6 +35465,9 @@ msgid "Nav|Sign In / Register"
 msgstr ""
 
 msgid "Nav|Sign out and sign in with a different account"
+msgstr ""
+
+msgid "Needs"
 msgstr ""
 
 msgid "Needs attention"
@@ -37129,9 +37039,6 @@ msgstr ""
 msgid "ObservabilityLogs|value"
 msgstr ""
 
-msgid "ObservabilityMetrics|(Value: %{value})"
-msgstr ""
-
 msgid "ObservabilityMetrics|+%{count} more"
 msgstr ""
 
@@ -37180,15 +37087,6 @@ msgstr ""
 msgid "ObservabilityMetrics|No data found for the selected time range %{time}"
 msgstr ""
 
-msgid "ObservabilityMetrics|No related traces"
-msgstr ""
-
-msgid "ObservabilityMetrics|No related traces for the selected time. Select another data point and try again."
-msgstr ""
-
-msgid "ObservabilityMetrics|Related traces at %{time}"
-msgstr ""
-
 msgid "ObservabilityMetrics|Search"
 msgstr ""
 
@@ -37214,9 +37112,6 @@ msgid "ObservabilityMetrics|Type"
 msgstr ""
 
 msgid "ObservabilityMetrics|Value"
-msgstr ""
-
-msgid "ObservabilityMetrics|View traces"
 msgstr ""
 
 msgid "ObservabilityMetrics|is like"
@@ -38380,6 +38275,9 @@ msgstr ""
 msgid "PQL|Message for the Sales team (optional)"
 msgstr ""
 
+msgid "PQL|Please select a city or state"
+msgstr ""
+
 msgid "PQL|Submit information"
 msgstr ""
 
@@ -39084,10 +38982,10 @@ msgstr ""
 msgid "PagesDomain|Certificate Key is too long. (Max %d bytes)"
 msgstr ""
 
-msgid "PagesUsageQuota|Learn about limits for Pages deployments"
+msgid "PagesUsageQuota|Active extra deployments"
 msgstr ""
 
-msgid "PagesUsageQuota|Parallel deployments"
+msgid "PagesUsageQuota|Learn about Pages deployments limits"
 msgstr ""
 
 msgid "Pages|+ %{n} more deployments"
@@ -39123,10 +39021,19 @@ msgstr ""
 msgid "Pages|Deployments"
 msgstr ""
 
+msgid "Pages|Environment deployments"
+msgstr ""
+
 msgid "Pages|Expires at"
 msgstr ""
 
+msgid "Pages|Extra deployments: %{count}"
+msgstr ""
+
 msgid "Pages|Files"
+msgstr ""
+
+msgid "Pages|Include stopped deployments"
 msgstr ""
 
 msgid "Pages|Last updated"
@@ -39136,12 +39043,6 @@ msgid "Pages|No deployments yet"
 msgstr ""
 
 msgid "Pages|Pages deployments"
-msgstr ""
-
-msgid "Pages|Parallel deployments"
-msgstr ""
-
-msgid "Pages|Parallel deployments: %{count}"
 msgstr ""
 
 msgid "Pages|Path prefix"
@@ -39160,9 +39061,6 @@ msgid "Pages|Root directory"
 msgstr ""
 
 msgid "Pages|Scheduled for deletion at"
-msgstr ""
-
-msgid "Pages|Show stopped deployments"
 msgstr ""
 
 msgid "Pages|Size"
@@ -39186,7 +39084,7 @@ msgstr ""
 msgid "Pages|URL"
 msgstr ""
 
-msgid "Pages|We did not find any projects with parallel Pages deployments in this namespace."
+msgid "Pages|We did not find any Projects with Pages deployments in this namespace."
 msgstr ""
 
 msgid "Pagination|First"
@@ -39672,7 +39570,7 @@ msgstr ""
 msgid "Pipeline subscriptions"
 msgstr ""
 
-msgid "Pipeline subscriptions trigger a new pipeline on the default branch of this project when a pipeline completes for a new tag of the subscribed project."
+msgid "Pipeline subscriptions trigger a new pipeline on the default branch of this project when a pipeline successfully completes for a new tag on the %{default_branch_docs} of the subscribed project."
 msgstr ""
 
 msgid "Pipeline trigger tokens"
@@ -42816,9 +42714,6 @@ msgstr ""
 msgid "ProjectSettings|Allow skipping the merge train"
 msgstr ""
 
-msgid "ProjectSettings|Allow users and tokens read-only access to fetch security policy configurations within this project to enforce policies. %{linkStart}Learn more%{linkEnd}."
-msgstr ""
-
 msgid "ProjectSettings|Always show thumbs-up and thumbs-down emoji buttons on issues, merge requests, and snippets."
 msgstr ""
 
@@ -42981,9 +42876,6 @@ msgstr ""
 msgid "ProjectSettings|Global"
 msgstr ""
 
-msgid "ProjectSettings|Grant access to this repository for projects linked to it as the security policy project source for security policies."
-msgstr ""
-
 msgid "ProjectSettings|Highlight the usage of hidden unicode characters. These have innocent uses for right-to-left languages, but can also be used in potential exploits."
 msgstr ""
 
@@ -43102,9 +42994,6 @@ msgid "ProjectSettings|Pages"
 msgstr ""
 
 msgid "ProjectSettings|Pages for project documentation."
-msgstr ""
-
-msgid "ProjectSettings|Pipeline execution policies"
 msgstr ""
 
 msgid "ProjectSettings|Prevents direct linking to potentially sensitive media files"
@@ -43658,9 +43547,6 @@ msgstr ""
 msgid "ProjectsNew|Your project will be created at:"
 msgstr ""
 
-msgid "Projects|An error occurred deleting the project. Please refresh the page to try again."
-msgstr ""
-
 msgid "Project|already in use"
 msgstr ""
 
@@ -44054,7 +43940,7 @@ msgstr ""
 msgid "ProtectedBranch|Protect a branch"
 msgstr ""
 
-msgid "ProtectedBranch|Protected branch was successfully created"
+msgid "ProtectedBranch|Protected branch was sucessfully created"
 msgstr ""
 
 msgid "ProtectedBranch|Protected branches"
@@ -44194,9 +44080,6 @@ msgid "ProtectedEnvironments|Set which groups, access levels, or users can deplo
 msgstr ""
 
 msgid "ProtectedEnvironments|Set which groups, access levels, or users can deploy to this environment. Groups and users must be members of the project."
-msgstr ""
-
-msgid "ProtectedEnvironments|This rule already exists."
 msgstr ""
 
 msgid "ProtectedEnvironments|To configure unified approval rules, use the %{apiLinkStart}API%{apiLinkEnd}. Consider using %{docsLinkStart}multiple approval rules%{docsLinkEnd} instead."
@@ -44767,9 +44650,6 @@ msgid "Recovery Codes"
 msgstr ""
 
 msgid "Redirect to SAML provider to test configuration"
-msgstr ""
-
-msgid "Redirect url is an external url, it may contain user-generated content and malicious code. Do not continue unless you trust the author and source."
 msgstr ""
 
 msgid "Redirecting"
@@ -48917,9 +48797,6 @@ msgstr ""
 msgid "SecurityOrchestration|After dismissing the alert, the information will never be shown again."
 msgstr ""
 
-msgid "SecurityOrchestration|After this merge request is merged, go to [%{framework}](%{link}) and remove the compliance pipeline so that the new pipeline execution policy can take precedence."
-msgstr ""
-
 msgid "SecurityOrchestration|All projects in linked groups"
 msgstr ""
 
@@ -49020,9 +48897,6 @@ msgid "SecurityOrchestration|Clear all"
 msgstr ""
 
 msgid "SecurityOrchestration|Compliance framework has no projects"
-msgstr ""
-
-msgid "SecurityOrchestration|Compliance pipeline migration to pipeline execution policy"
 msgstr ""
 
 msgid "SecurityOrchestration|Configure your conditions in the pipeline execution file. %{linkStart}What can pipeline execution do?%{linkEnd}"
@@ -49477,9 +49351,6 @@ msgstr ""
 msgid "SecurityOrchestration|Summary of syntax changes:"
 msgstr ""
 
-msgid "SecurityOrchestration|The compliance pipeline will continue to override the new pipeline execution policy until it is removed from the compliance framework configuration."
-msgstr ""
-
 msgid "SecurityOrchestration|The following branches do not exist on this development project: %{branches}. Please review all protected branches to ensure the values are accurate before updating this policy."
 msgstr ""
 
@@ -49511,9 +49382,6 @@ msgid "SecurityOrchestration|This is a project-level policy"
 msgstr ""
 
 msgid "SecurityOrchestration|This merge request approval policy targets the default branch, but the default branch is not protected in this project. To set up this policy, the default branch must be protected."
-msgstr ""
-
-msgid "SecurityOrchestration|This merge request migrates compliance pipeline `%{path}` to a pipeline execution policy scoped to framework [%{framework}](%{link})."
 msgstr ""
 
 msgid "SecurityOrchestration|This policy doesn't contain any actions or override project approval settings. You cannot create an empty policy."
@@ -51330,9 +51198,6 @@ msgstr ""
 msgid "Show more"
 msgstr ""
 
-msgid "Show more breadcrumbs"
-msgstr ""
-
 msgid "Show one file at a time"
 msgstr ""
 
@@ -52634,6 +52499,9 @@ msgid "State"
 msgstr ""
 
 msgid "State your message to activate"
+msgstr ""
+
+msgid "State/Province/City"
 msgstr ""
 
 msgid "Static Application Security Testing (SAST)"
@@ -55713,9 +55581,6 @@ msgstr ""
 msgid "This issue is in a child epic of the filtered epic"
 msgstr ""
 
-msgid "This item is disabled"
-msgstr ""
-
 msgid "This job could not start because it could not retrieve the needed artifacts%{punctuation}%{invalid_dependencies}"
 msgstr ""
 
@@ -58236,9 +58101,6 @@ msgstr ""
 msgid "Update failed"
 msgstr ""
 
-msgid "Update framework"
-msgstr ""
-
 msgid "Update it"
 msgstr ""
 
@@ -59131,9 +58993,6 @@ msgstr ""
 msgid "UserMapping|Approve reassignments only from users that you trust. After approval, contributions will be assigned to you. The assignment is permanent."
 msgstr ""
 
-msgid "UserMapping|As part of the import, placeholder users were created on %{group_names} and these users were assigned group membership and contributions from %{source_hostname}. To reassign contributions from placeholder users to GitLab users, visit the Members page of %{group_links}."
-msgstr ""
-
 msgid "UserMapping|Awaiting reassignment"
 msgstr ""
 
@@ -59183,9 +59042,6 @@ msgid "UserMapping|Placeholder user"
 msgstr ""
 
 msgid "UserMapping|Placeholder user was made permanent."
-msgstr ""
-
-msgid "UserMapping|Placeholder users awaiting reassignment"
 msgstr ""
 
 msgid "UserMapping|Placeholders"
@@ -60657,9 +60513,6 @@ msgstr ""
 msgid "Vulnerability|Unmodified response:"
 msgstr ""
 
-msgid "Vulnerability|Use AI to understand a vulnerability and suggest a fix"
-msgstr ""
-
 msgid "Vulnerability|View code flow"
 msgstr ""
 
@@ -61672,11 +61525,6 @@ msgstr ""
 
 msgid "WorkItem|%{workItemType} deleted"
 msgstr ""
-
-msgid "WorkItem|%{workItemType} has 1 linked item"
-msgid_plural "WorkItem|%{workItemType} has %{itemCount} linked items"
-msgstr[0] ""
-msgstr[1] ""
 
 msgid "WorkItem|%{workItemType} is blocked by 1 item"
 msgid_plural "WorkItem|%{workItemType} is blocked by %{itemCount} items"
@@ -65257,9 +65105,6 @@ msgid "mrWidget|Your password"
 msgstr ""
 
 msgid "must be 254 characters or less."
-msgstr ""
-
-msgid "must be 3 months old at the most"
 msgstr ""
 
 msgid "must be a boolean value"

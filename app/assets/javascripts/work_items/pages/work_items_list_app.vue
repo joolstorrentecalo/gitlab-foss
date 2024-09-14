@@ -386,9 +386,6 @@ export default {
         page_before: this.pageParams.beforeCursor ?? undefined,
       };
     },
-    activeWorkItemType() {
-      return this.workItemType || this.activeItem?.workItemType;
-    },
   },
   watch: {
     eeWorkItemUpdateCount() {
@@ -562,14 +559,12 @@ export default {
       v-if="workItemDrawerEnabled"
       :active-item="activeItem"
       :open="isItemSelected"
-      :issuable-type="activeWorkItemType"
       @close="activeItem = null"
       @addChild="refetchItems"
       @workItemDeleted="deleteItem"
       @work-item-updated="handleStatusChange"
     />
     <issuable-list
-      :active-issuable="activeItem"
       :current-tab="state"
       :default-page-size="pageSize"
       :error="error"
@@ -581,7 +576,6 @@ export default {
       :issuables-loading="isLoading"
       :show-bulk-edit-sidebar="showBulkEditSidebar"
       namespace="work-items"
-      :full-path="fullPath"
       recent-searches-storage-key="issues"
       :search-tokens="searchTokens"
       show-filtered-search-friendly-text

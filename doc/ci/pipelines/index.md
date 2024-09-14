@@ -243,10 +243,10 @@ related objects, such as jobs, logs, artifacts, and triggers.
 ### Pipeline security on protected branches
 
 A strict security model is enforced when pipelines are executed on
-[protected branches](../../user/project/repository/branches/protected.md).
+[protected branches](../../user/project/protected_branches.md).
 
 The following actions are allowed on protected branches if the user is
-[allowed to merge or push](../../user/project/repository/branches/protected.md)
+[allowed to merge or push](../../user/project/protected_branches.md)
 to that specific branch:
 
 - Run manual pipelines (using the [Web UI](#run-a-pipeline-manually) or [pipelines API](#pipelines-api)).
