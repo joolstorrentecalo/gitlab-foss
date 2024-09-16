@@ -4,6 +4,7 @@ module Projects
   module MergeRequests
     class DiffsStreamController < Projects::MergeRequests::ApplicationController
       include ActionController::Live
+      include DiffHelper
 
       urgency :low, [:diffs]
 
@@ -12,13 +13,14 @@ module Projects
 
         stream_headers
 
-        offset = params[:offset].to_i
+        diff_options_hash = diff_options
+        diff_options_hash[:offset_index] = params[:offset].to_i
 
         # NOTE: This is a temporary flag to test out the new diff_blobs
         if !!ActiveModel::Type::Boolean.new.cast(params[:diff_blobs])
-          stream_diff_blobs(offset)
+          stream_diff_blobs(diff_options_hash)
         else
-          stream_diff_files(offset)
+          stream_diff_files(diff_options_hash)
         end
 
       rescue StandardError => e
@@ -34,16 +36,16 @@ module Projects
         helpers.diff_view
       end
 
-      def stream_diff_blobs(offset)
-        @merge_request.diffs_for_streaming(offset_index: offset) do |diff_files_batch|
+      def stream_diff_blobs(diff_options_hash)
+        @merge_request.diffs_for_streaming(diff_options_hash) do |diff_files_batch|
           diff_files_batch.each do |diff_file|
             response.stream.write(render_diff_file(diff_file))
           end
         end
       end
 
-      def stream_diff_files(offset)
-        @merge_request.diffs_for_streaming(offset_index: offset).diff_files.each do |diff_file|
+      def stream_diff_files(diff_options_hash)
+        @merge_request.diffs_for_streaming(diff_options_hash).diff_files.each do |diff_file|
           response.stream.write(render_diff_file(diff_file))
         end
       end
