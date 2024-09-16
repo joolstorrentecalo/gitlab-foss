@@ -21,6 +21,7 @@ class Projects::IssuesController < Projects::ApplicationController
   before_action :issue, unless: ->(c) { ISSUES_EXCEPT_ACTIONS.include?(c.action_name.to_sym) }
   before_action :redirect_if_work_item, unless: ->(c) { work_item_redirect_except_actions.include?(c.action_name.to_sym) }
   before_action :require_incident_for_incident_routes, only: :show
+  before_action :redirect_when_issue_moved, only: :show
 
   after_action :log_issue_show, only: :show
 
@@ -458,6 +459,10 @@ class Projects::IssuesController < Projects::ApplicationController
     # Redirect instead of 404 to gracefully handle
     # issue type changes
     redirect_to project_issue_path(project, issue)
+  end
+
+  def redirect_when_issue_moved
+    redirect_to project_issue_path(issue.moved_to&.project, issue.moved_to) if issue.moved_to.present?
   end
 end
 

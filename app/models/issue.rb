@@ -123,6 +123,11 @@ class Issue < ApplicationRecord
 
   pg_full_text_searchable columns: [{ name: 'title', weight: 'A' }, { name: 'description', weight: 'B' }]
 
+  # rubocop:disable Cop/DefaultScope -- POC: remove on actual implementation and set it as the init_collection in
+  # IssueFinder
+  default_scope { where(moved_to_id: nil) }
+  # rubocop:enable Cop/DefaultScope
+
   scope :project_level, -> { where.not(project_id: nil) }
   scope :group_level, -> { where(project_id: nil) }
 
