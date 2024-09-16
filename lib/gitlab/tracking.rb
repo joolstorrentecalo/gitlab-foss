@@ -8,6 +8,8 @@ module Gitlab
     class << self
       delegate :flush, to: :tracker
 
+      attr_accessor :global_feature_category
+
       def enabled?
         tracker.enabled?
       end
@@ -20,6 +22,8 @@ module Gitlab
         action = action.to_s
 
         project_id = project.is_a?(Integer) ? project : project&.id
+
+        puts "### Feature category\t#{global_feature_category}\taction:\t#{action}\tcategory:\t#{category}\tproperty:\t#{property}\tlabel:\t#{label}\taction:\t#{value}\tuser:\t#{user.present?}\tproject:\t#{project.present?}\tnamespace:\t#{namespace.present?}"
 
         contexts = [
           Tracking::StandardContext.new(

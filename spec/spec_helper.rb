@@ -620,4 +620,11 @@ module UsersInternalAllowExclusiveLease
   end
 end
 
+RSpec.configure do |config|
+  config.before(:all) do
+    feature_category = self.class.metadata[:feature_category]
+    Gitlab::Tracking.global_feature_category = feature_category
+  end
+end
+
 Users::Internal.prepend(UsersInternalAllowExclusiveLease)
