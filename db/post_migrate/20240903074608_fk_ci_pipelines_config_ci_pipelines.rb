@@ -24,6 +24,10 @@ class FkCiPipelinesConfigCiPipelines < Gitlab::Database::Migration[2.2]
     with_lock_retries do
       remove_foreign_key_if_exists :p_ci_pipelines_config, :p_ci_pipelines,
         name: FK_NAME, reverse_lock_order: true
+
+      next unless foreign_key_exists?(:ci_pipelines_config, name: FK_NAME)
+
+      rename_constraint(:ci_pipelines_config, FK_NAME, :"#{FK_NAME}_tmp")
     end
   end
 end

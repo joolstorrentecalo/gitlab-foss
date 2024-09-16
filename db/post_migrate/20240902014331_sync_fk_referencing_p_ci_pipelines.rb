@@ -98,40 +98,11 @@ class SyncFkReferencingPCiPipelines < Gitlab::Database::Migration[2.2]
   NEW_REFERENCING_TABLE = :p_ci_pipelines
 
   def up
-    FOREIGN_KEYS.each do |options|
-      with_lock_retries do
-        validate_foreign_key(options[:source_table], options[:column], name: options[:name]) # rubocop:disable Migration/WithLockRetriesDisallowedMethod -- this method should be added to the allowlist
-      end
-      replace_foreign_key_for_new_referencing_table(options)
-    end
-
-    P_FOREIGN_KEYS.each do |options|
-      add_concurrent_partitioned_foreign_key(
-        options[:source_table], NEW_REFERENCING_TABLE,
-        **with_defaults(options, validate: true)
-      )
-      replace_foreign_key_for_new_referencing_table(options, partitioned: true)
-    end
+    # No-op
   end
 
   def down
-    FOREIGN_KEYS.each do |options|
-      restore_foreign_key_for_old_source_table(options)
-
-      add_concurrent_foreign_key(
-        options[:source_table], NEW_REFERENCING_TABLE,
-        **with_defaults(options, validate: false)
-      )
-    end
-
-    P_FOREIGN_KEYS.each do |options|
-      restore_foreign_key_for_old_source_table(options, partitioned: true)
-
-      add_concurrent_partitioned_foreign_key(
-        options[:source_table], NEW_REFERENCING_TABLE,
-        **with_defaults(options, validate: false)
-      )
-    end
+    # No-op
   end
 
   private
