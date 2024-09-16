@@ -7144,7 +7144,7 @@ msgstr ""
 msgid "Approvals|Auto approved"
 msgstr ""
 
-msgid "Approvals|It looks like there was a conflict between the rules for approving this Merge Request and the users who were eligible to approve it. As a result, the system has automatically approved it to keep things moving."
+msgid "Approvals|It looks like there was a conflict between the rules for approving this merge request and the users who were eligible to approve it. As a result, the system has automatically approved it to keep things moving."
 msgstr ""
 
 msgid "Approvals|Rule automatically approved"
@@ -8080,7 +8080,7 @@ msgstr ""
 msgid "AutoDevopsAlert|Security testing tools enabled with %{linkStart}Auto DevOps%{linkEnd}"
 msgstr ""
 
-msgid "AutoRemediation| 1 Merge Request"
+msgid "AutoRemediation| 1 merge request"
 msgstr ""
 
 msgid "AutoRemediation|!%{mergeRequestIid}"
@@ -8551,7 +8551,7 @@ msgstr ""
 msgid "BillingPlans|Bring your own production environment"
 msgstr ""
 
-msgid "BillingPlans|Code Ownership and Protected Branches"
+msgid "BillingPlans|Code Owners and protected branches"
 msgstr ""
 
 msgid "BillingPlans|Company wide portfolio management"
@@ -8563,25 +8563,25 @@ msgstr ""
 msgid "BillingPlans|Congratulations, your free trial is activated."
 msgstr ""
 
-msgid "BillingPlans|Container Scanning"
+msgid "BillingPlans|Container scanning"
 msgstr ""
 
 msgid "BillingPlans|Cross-team project management"
 msgstr ""
 
-msgid "BillingPlans|Custom Roles"
+msgid "BillingPlans|Custom roles"
 msgstr ""
 
-msgid "BillingPlans|Dependency Scanning"
+msgid "BillingPlans|Dependency scanning"
 msgstr ""
 
 msgid "BillingPlans|Dynamic Application Security Testing"
 msgstr ""
 
-msgid "BillingPlans|Enterprise Agile Planning"
+msgid "BillingPlans|Enterprise Agile planning"
 msgstr ""
 
-msgid "BillingPlans|Enterprise User and Incident Management"
+msgid "BillingPlans|Enterprise user and incident management"
 msgstr ""
 
 msgid "BillingPlans|Everything from Free, plus:"
@@ -8635,10 +8635,10 @@ msgstr ""
 msgid "BillingPlans|Manage plan"
 msgstr ""
 
-msgid "BillingPlans|Merge Request Approval Rules"
+msgid "BillingPlans|Merge request approval rules"
 msgstr ""
 
-msgid "BillingPlans|Multi-Level Epics"
+msgid "BillingPlans|Multi-level epics"
 msgstr ""
 
 msgid "BillingPlans|Multi-region support"
@@ -8659,7 +8659,7 @@ msgstr ""
 msgid "BillingPlans|Per user/month"
 msgstr ""
 
-msgid "BillingPlans|Portfolio Management"
+msgid "BillingPlans|Portfolio management"
 msgstr ""
 
 msgid "BillingPlans|Premium"
@@ -8677,7 +8677,7 @@ msgstr ""
 msgid "BillingPlans|Recommended"
 msgstr ""
 
-msgid "BillingPlans|Security Dashboards"
+msgid "BillingPlans|Security dashboards"
 msgstr ""
 
 msgid "BillingPlans|See all %{plan_name} features"
@@ -8710,7 +8710,7 @@ msgstr ""
 msgid "BillingPlans|Static Application Security Testing"
 msgstr ""
 
-msgid "BillingPlans|Suggested Reviewers"
+msgid "BillingPlans|Suggested reviewers"
 msgstr ""
 
 msgid "BillingPlans|Support"
@@ -8755,7 +8755,7 @@ msgstr ""
 msgid "BillingPlans|Value Stream Management"
 msgstr ""
 
-msgid "BillingPlans|Vulnerability Management"
+msgid "BillingPlans|Vulnerability management"
 msgstr ""
 
 msgid "BillingPlans|You can retain access to the %{plan} features by upgrading below."
@@ -15275,6 +15275,9 @@ msgid "Continue with GitLab Duo"
 msgstr ""
 
 msgid "Continue with overages"
+msgstr ""
+
+msgid "Continue with:"
 msgstr ""
 
 msgid "Continue…"
@@ -33642,15 +33645,6 @@ msgstr ""
 msgid "Merge Requests"
 msgstr ""
 
-msgid "Merge Requests created"
-msgstr ""
-
-msgid "Merge Requests in Review"
-msgstr ""
-
-msgid "Merge Requests merged"
-msgstr ""
-
 msgid "Merge automatically (%{strategy})"
 msgstr ""
 
@@ -33756,6 +33750,15 @@ msgstr ""
 msgid "Merge requests can't be merged if the status checks did not succeed or are still running."
 msgstr ""
 
+msgid "Merge requests created"
+msgstr ""
+
+msgid "Merge requests in review"
+msgstr ""
+
+msgid "Merge requests merged"
+msgstr ""
+
 msgid "Merge train pipelines continue without the merged changes."
 msgstr ""
 
@@ -33831,13 +33834,13 @@ msgstr ""
 msgid "MergeRequestAnalytics|Assignees"
 msgstr ""
 
-msgid "MergeRequestAnalytics|Date Merged"
+msgid "MergeRequestAnalytics|Date merged"
 msgstr ""
 
 msgid "MergeRequestAnalytics|Line changes"
 msgstr ""
 
-msgid "MergeRequestAnalytics|Merge Request"
+msgid "MergeRequestAnalytics|Merge request"
 msgstr ""
 
 msgid "MergeRequestAnalytics|Milestone"
@@ -37966,9 +37969,6 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-msgid "Or create your own GitLab account"
-msgstr ""
-
 msgid "Ordered list"
 msgstr ""
 
@@ -41715,9 +41715,6 @@ msgstr ""
 msgid "ProductivityAnalytics|List"
 msgstr ""
 
-msgid "ProductivityAnalytics|Merge Requests"
-msgstr ""
-
 msgid "ProductivityAnalytics|Merge date"
 msgstr ""
 
@@ -44868,9 +44865,6 @@ msgid "Register now"
 msgstr ""
 
 msgid "Register with two-factor app"
-msgstr ""
-
-msgid "Register with:"
 msgstr ""
 
 msgid "RegistrationFeatures|Enable Service Ping and register for this feature."
@@ -50038,7 +50032,7 @@ msgstr ""
 msgid "SecurityReports|Maximum selected projects limit reached"
 msgstr ""
 
-msgid "SecurityReports|Merge Request"
+msgid "SecurityReports|Merge request"
 msgstr ""
 
 msgid "SecurityReports|Monitor vulnerabilities in all of your projects"
@@ -51465,9 +51459,6 @@ msgid "Sign out"
 msgstr ""
 
 msgid "Sign up"
-msgstr ""
-
-msgid "Sign up for your free trial with:"
 msgstr ""
 
 msgid "Sign-in count:"
@@ -64915,6 +64906,9 @@ msgid "merge request"
 msgid_plural "merge requests"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "merge requests"
+msgstr ""
 
 msgid "mergedCommitsAdded| (commits were squashed)"
 msgstr ""
