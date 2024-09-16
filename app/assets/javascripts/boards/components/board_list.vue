@@ -7,6 +7,7 @@ import { ESC_KEY_CODE } from '~/lib/utils/keycodes';
 import { defaultSortableOptions, DRAG_DELAY } from '~/sortable/constants';
 import { sortableStart, sortableEnd } from '~/sortable/utils';
 import Tracking from '~/tracking';
+import { getParameterByName } from '~/lib/utils/url_utility';
 import listQuery from 'ee_else_ce/boards/graphql/board_lists_deferred.query.graphql';
 import setActiveBoardItemMutation from 'ee_else_ce/boards/graphql/client/set_active_board_item.mutation.graphql';
 import BoardNewIssue from 'ee_else_ce/boards/components/board_new_issue.vue';
@@ -123,6 +124,22 @@ export default {
           error,
           message: s__('Boards|An error occurred while fetching a list. Please try again.'),
         });
+      },
+      result({ data }) {
+        const queryParam = getParameterByName('show');
+
+        if (!data || !queryParam) {
+          return;
+        }
+
+        const { iid, full_path: fullPath } = JSON.parse(atob(queryParam));
+        const boardItem = this.boardListItems.find(
+          (item) => item.iid === iid && item.referencePath.includes(fullPath),
+        );
+
+        if (boardItem) {
+          this.setActiveWorkItem(boardItem);
+        }
       },
     },
     toList: {
@@ -599,15 +616,18 @@ export default {
         });
       } finally {
         this.addItemToListInProgress = false;
-        this.$apollo.mutate({
-          mutation: setActiveBoardItemMutation,
-          variables: {
-            boardItem: issuable,
-            listId: this.list.id,
-            isIssue: this.isIssueBoard,
-          },
-        });
+        this.setActiveWorkItem(issuable);
       }
+    },
+    setActiveWorkItem(boardItem) {
+      this.$apollo.mutate({
+        mutation: setActiveBoardItemMutation,
+        variables: {
+          boardItem,
+          listId: this.list.id,
+          isIssue: this.isIssueBoard,
+        },
+      });
     },
   },
 };

@@ -546,6 +546,7 @@ export default {
         last_page_size: this.pageParams.lastPageSize,
         page_after: this.pageParams.afterCursor ?? undefined,
         page_before: this.pageParams.beforeCursor ?? undefined,
+        show: getParameterByName('show'),
       };
     },
     // due to the issues with cache-and-network, we need this hack to check if there is any data for the query in the cache.
@@ -585,6 +586,7 @@ export default {
   },
   mounted() {
     eventHub.$on('issuables:toggleBulkEdit', this.toggleBulkEditSidebar);
+    this.checkDrawerParams();
   },
   beforeDestroy() {
     eventHub.$off('issuables:toggleBulkEdit', this.toggleBulkEditSidebar);
@@ -819,8 +821,9 @@ export default {
     },
     handleSelectIssuable(issuable) {
       this.activeIssuable = {
-        ...issuable,
         fullPath: this.fullPath,
+        iid: issuable.iid,
+        id: issuable.id,
       };
     },
     updateIssuablesCache(workItem) {
@@ -830,9 +833,17 @@ export default {
         variables: this.queryVariables,
       });
 
+      if (!issuesList) {
+        return;
+      }
+
       const activeIssuable = issuesList[this.namespace].issues.nodes.find(
-        (issue) => issue.iid === workItem.iid,
+        (issue) => getIdFromGraphQLId(issue.id) === getIdFromGraphQLId(workItem.id),
       );
+
+      if (!activeIssuable) {
+        return;
+      }
 
       // when we change issuable state, it's moved to a different tab
       // to ensure that we show 20 items of the first page, we need to refetch issuables
@@ -879,9 +890,30 @@ export default {
         variables: this.queryVariables,
       });
 
+      if (!issuesList) {
+        return;
+      }
+
       const data = updateUpvotesCount({ list: issuesList, workItem, namespace: this.namespace });
 
       client.writeQuery({ query: getIssuesQuery, variables: this.queryVariables, data });
+    },
+    checkDrawerParams() {
+      const queryParam = getParameterByName('show');
+
+      if (this.activeIssuable || !queryParam) {
+        return;
+      }
+
+      const params = JSON.parse(atob(queryParam));
+      if (params.id) {
+        this.activeIssuable = {
+          iid: params.iid,
+          id: params.id,
+          // we need fullPath here to prevent cache invalidation
+          fullPath: params.full_path,
+        };
+      }
     },
   },
 };

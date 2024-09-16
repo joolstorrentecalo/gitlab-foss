@@ -440,7 +440,7 @@ export default {
       });
     },
     openInModal({ event, modalWorkItem, context }) {
-      if (!this.workItemsAlphaEnabled || context === LINKED_ITEMS_ANCHOR) {
+      if (!this.workItemsAlphaEnabled || context === LINKED_ITEMS_ANCHOR || this.isDrawer) {
         return;
       }
 
@@ -768,7 +768,7 @@ export default {
       </section>
     </section>
     <work-item-detail-modal
-      v-if="!isModal"
+      v-if="!isModal && !isDrawer"
       ref="modal"
       :parent-id="workItem.id"
       :work-item-id="modalWorkItemId"

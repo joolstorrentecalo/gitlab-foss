@@ -407,8 +407,26 @@ export default {
   created() {
     this.updateData(this.initialSort);
     this.autocompleteCache = new AutocompleteCache();
+    this.checkActiveItemParams();
   },
   methods: {
+    checkActiveItemParams() {
+      const queryParam = getParameterByName('show');
+
+      if (this.activeIssuable || !queryParam) {
+        return;
+      }
+
+      const params = JSON.parse(atob(queryParam));
+      if (params.id) {
+        this.activeItem = {
+          iid: params.iid,
+          id: params.id,
+          // we need fullPath here to prevent cache invalidation
+          fullPath: params.full_path,
+        };
+      }
+    },
     handleSelect(item) {
       this.activeItem = item;
     },

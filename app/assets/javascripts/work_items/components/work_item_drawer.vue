@@ -3,9 +3,11 @@ import { GlLink, GlDrawer, GlButton, GlTooltipDirective } from '@gitlab/ui';
 import { escapeRegExp } from 'lodash';
 import { __ } from '~/locale';
 import deleteWorkItemMutation from '~/work_items/graphql/delete_work_item.mutation.graphql';
+import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
 import { TYPE_EPIC, TYPE_ISSUE } from '~/issues/constants';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
-import { visitUrl } from '~/lib/utils/url_utility';
+import { visitUrl, setUrlParams, updateHistory, removeParams } from '~/lib/utils/url_utility';
+import { getIdFromGraphQLId } from '../../graphql_shared/utils';
 
 export default {
   name: 'WorkItemDrawer',
@@ -25,6 +27,9 @@ export default {
       type: Boolean,
       required: true,
     },
+    /**
+     * @type {{ iid?: string, fullPath?: string, id?: string }}
+     */
     activeItem: {
       type: Object,
       required: false,
@@ -39,18 +44,34 @@ export default {
   data() {
     return {
       copyTooltipText: this.$options.i18n.copyTooltipText,
+      workItem: {},
     };
+  },
+  apollo: {
+    workItem: {
+      query() {
+        return workItemByIidQuery;
+      },
+      variables() {
+        return {
+          fullPath: this.activeItemFullPath,
+          iid: this.activeItem.iid,
+        };
+      },
+      skip() {
+        return !this.activeItem?.iid || !this.activeItemFullPath || !this.open;
+      },
+      update(data) {
+        return data.workspace.workItem ?? {};
+      },
+    },
   },
   computed: {
     activeItemFullPath() {
       if (this.activeItem?.fullPath) {
         return this.activeItem.fullPath;
       }
-      const delimiter = this.issuableType === TYPE_EPIC ? '&' : '#';
-      if (!this.activeItem.referencePath) {
-        return undefined;
-      }
-      return this.activeItem.referencePath.split(delimiter)[0];
+      return this.fullPath;
     },
     modalIsGroup() {
       return this.issuableType.toLowerCase() === TYPE_EPIC;
@@ -58,6 +79,16 @@ export default {
     headerReference() {
       const path = this.activeItemFullPath.substring(this.activeItemFullPath.lastIndexOf('/') + 1);
       return `${path}#${this.activeItem.iid}`;
+    },
+  },
+  watch: {
+    activeItem: {
+      deep: true,
+      handler(newValue) {
+        if (newValue?.iid) {
+          this.setDrawerParams();
+        }
+      },
     },
   },
   methods: {
@@ -104,6 +135,22 @@ export default {
         this.copyTooltipText = this.$options.i18n.copyTooltipText;
       }, 2000);
     },
+    setDrawerParams() {
+      // since legacy epics don't have GID matching the work item ID, we need additional parameters
+      const params = {
+        iid: this.activeItem.iid,
+        full_path: this.activeItemFullPath,
+        id: getIdFromGraphQLId(this.activeItem.id),
+      };
+      updateHistory({
+        // we're using `show` to match the modal view parameter
+        url: setUrlParams({ show: btoa(JSON.stringify(params)) }),
+      });
+    },
+    handleClose() {
+      updateHistory({ url: removeParams(['show']) });
+      this.$emit('close');
+    },
   },
   i18n: {
     copyTooltipText: __('Copy item URL'),
@@ -120,7 +167,7 @@ export default {
     header-sticky
     header-height="calc(var(--top-bar-height) + var(--performance-bar-height))"
     class="gl-w-full gl-leading-reset lg:gl-w-[480px] xl:gl-w-[768px] min-[1440px]:gl-w-[912px]"
-    @close="$emit('close')"
+    @close="handleClose"
   >
     <template #title>
       <div class="gl-text gl-flex gl-w-full gl-items-center gl-gap-x-2 xl:gl-px-4">
@@ -159,8 +206,8 @@ export default {
     </template>
     <template #default>
       <work-item-detail
-        :key="activeItem.iid"
-        :work-item-iid="activeItem.iid"
+        :key="workItem.iid"
+        :work-item-iid="workItem.iid"
         :modal-work-item-full-path="activeItemFullPath"
         :modal-is-group="modalIsGroup"
         is-drawer
