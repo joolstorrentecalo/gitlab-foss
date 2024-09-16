@@ -539,12 +539,14 @@ describe('tags list row', () => {
       mountComponent();
 
       expect(findLabelsIcon().exists()).toBe(false);
+      expect(findSize().exists()).toBe(true);
     });
 
     it('with OCI index media type', () => {
       mountComponent({ ...defaultProps, tag: tagWithOCIMediaType });
 
       expect(findLabelsIcon().exists()).toBe(true);
+      expect(findSize().exists()).toBe(false);
       expect(getTooltipFor(findLabelsIcon()).value).toBe(OCI_INDEX_TOOLTIP);
     });
 
@@ -552,6 +554,7 @@ describe('tags list row', () => {
       mountComponent({ ...defaultProps, tag: tagWithListMediaType });
 
       expect(findLabelsIcon().exists()).toBe(true);
+      expect(findSize().exists()).toBe(false);
       expect(getTooltipFor(findLabelsIcon()).value).toBe(DOCKER_MANIFEST_LIST_TOOLTIP);
     });
   });

@@ -153,7 +153,7 @@ export default {
         ({ artifactType }) => artifactType === 'application/vnd.dev.cosign.artifact.sig.v1+json',
       );
     },
-    shouldDisplayLabelsIcon() {
+    isDockerOrOciMediaType() {
       return this.tag.mediaType === DOCKER_MEDIA_TYPE || this.tag.mediaType === OCI_MEDIA_TYPE;
     },
     labelsIconTooltipText() {
@@ -205,7 +205,7 @@ export default {
         />
 
         <gl-icon
-          v-if="shouldDisplayLabelsIcon"
+          v-if="isDockerOrOciMediaType"
           v-gl-tooltip.d0="labelsIconTooltipText"
           name="labels"
           class="gl-mr-2"
@@ -221,7 +221,7 @@ export default {
     </template>
 
     <template #left-secondary>
-      <span data-testid="size">
+      <span v-if="!isDockerOrOciMediaType" data-testid="size">
         {{ formattedSize }}
         <template v-if="formattedSize && layers">&middot;</template>
         {{ layers }}
