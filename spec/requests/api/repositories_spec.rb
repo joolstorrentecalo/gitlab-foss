@@ -39,11 +39,14 @@ RSpec.describe API::Repositories, feature_category: :source_code_management do
 
       context 'when path does not exist' do
         let(:path) { 'bogus' }
+        let(:handle_structured_gitaly_errors) { nil }
+
+        before do
+          stub_feature_flags(handle_structured_gitaly_errors: handle_structured_gitaly_errors)
+        end
 
         context 'when handle_structured_gitaly_errors feature is disabled' do
-          before do
-            stub_feature_flags(handle_structured_gitaly_errors: false)
-          end
+          let(:handle_structured_gitaly_errors) { false }
 
           it 'returns an empty array' do
             get api("#{route}?path=#{path}", current_user)
@@ -56,9 +59,7 @@ RSpec.describe API::Repositories, feature_category: :source_code_management do
         end
 
         context 'when handle_structured_gitaly_errors feature is enabled' do
-          before do
-            stub_feature_flags(handle_structured_gitaly_errors: true)
-          end
+          let(:handle_structured_gitaly_errors) { true }
 
           it_behaves_like '404 response' do
             let(:request) { get api("#{route}?path=#{path}", current_user) }
