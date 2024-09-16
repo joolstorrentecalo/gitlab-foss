@@ -9064,6 +9064,9 @@ msgstr ""
 msgid "Block user"
 msgstr ""
 
+msgid "BlockSeatOverages|No seat available"
+msgstr ""
+
 msgid "Blocked"
 msgstr ""
 
