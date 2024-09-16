@@ -1,0 +1,9 @@
+---
+name: move_auth_refresh_jobs_to_low_urgency
+feature_issue_url: https://gitlab.com/gitlab-org/gitlab/-/issues/484754
+introduced_by_url:
+rollout_issue_url:
+milestone: '17.4'
+group: group::authorization
+type: worker
+default_enabled: false

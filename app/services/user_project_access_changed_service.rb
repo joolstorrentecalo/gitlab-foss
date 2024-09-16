@@ -8,6 +8,10 @@ class UserProjectAccessChangedService
   MEDIUM_PRIORITY = :medium
   LOW_PRIORITY = :low
 
+  HIGH_PRIORITY_THRESHOLD = 1000
+
+  attr_reader :user_ids
+
   def initialize(user_ids)
     @user_ids = Array.wrap(user_ids)
   end
@@ -20,7 +24,7 @@ class UserProjectAccessChangedService
     result =
       case priority
       when HIGH_PRIORITY
-        AuthorizedProjectsWorker.bulk_perform_async(bulk_args) # rubocop:disable Scalability/BulkPerformWithContext
+        manage_high_priority_request(bulk_args)
       when MEDIUM_PRIORITY
         AuthorizedProjectUpdate::UserRefreshWithLowUrgencyWorker.bulk_perform_in(MEDIUM_DELAY, bulk_args, batch_size: 100, batch_delay: 30.seconds) # rubocop:disable Scalability/BulkPerformWithContext
       when LOW_PRIORITY
@@ -41,6 +45,43 @@ class UserProjectAccessChangedService
   end
 
   private
+
+  # if the number of project_authorizations exceeds the threshold for a user,
+  # move their request to medium priority
+  def manage_high_priority_request(bulk_args)
+    if Feature.disabled?(:move_auth_refresh_jobs_to_low_urgency, type: :worker)
+      return AuthorizedProjectsWorker.bulk_perform_async(bulk_args)
+    end
+
+    users_ids_over_threshold = users_over_threshold
+    user_ids_under_threshold = user_ids - users_over_threshold
+    
+    if users_ids_over_threshold
+      bulk_args = users_ids_over_threshold.map { |id| [id] }
+
+      AuthorizedProjectUpdate::UserRefreshWithLowUrgencyWorker.bulk_perform_in(
+        MEDIUM_DELAY, 
+        bulk_args,
+        batch_size: 100, 
+        batch_delay: 30.seconds
+      )
+    end
+
+    if user_ids_under_threshold
+      bulk_args = user_ids_under_threshold.map { |id| [id] }
+
+      AuthorizedProjectsWorker.bulk_perform_async(bulk_args)
+    end
+  end
+
+  def users_over_threshold
+    ProjectAuthorization
+      .select(:user_id)
+      .where(user_id: user_ids)
+      .group(:user_id)
+      .having('COUNT(project_id) > ?', HIGH_PRIORITY_THRESHOLD)
+      .pluck('user_id')
+  end
 
   def with_related_class_context(&block)
     current_caller_id = Gitlab::ApplicationContext.current_context_attribute('meta.caller_id').presence
