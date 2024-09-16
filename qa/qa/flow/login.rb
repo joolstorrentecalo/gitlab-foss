@@ -36,14 +36,38 @@ module QA
 
       def sign_in_unless_signed_in(user: nil, address: :gitlab)
         if user
-          sign_in(as: user, address: address) unless Page::Main::Menu.perform do |menu|
-            menu.signed_in_as_user?(user)
-          end
+          sign_in(as: user, address: address) unless signed_in_as?(user)
         else
-          sign_in(address: address) unless Page::Main::Menu.perform(&:signed_in?)
+          sign_in(address: address) unless signed_in?
         end
       end
+
+      private
+
+      def signed_in?
+        Page::Main::Menu.perform(&:signed_in?)
+      end
+
+      def signed_in_as?(user)
+        Page::Main::Menu.perform { |menu| menu.signed_in_as_user?(user) }
+      end
+
+      def verify_session
+        return if signed_in?
+
+        sign_in(address: :gitlab)
+      end
     end
+  end
+end
+
+# Wrap methods that require authentication with session verification
+[:while_signed_in, :while_signed_in_as_admin, :sign_in_unless_signed_in].each do |method|
+  original_method = QA::Flow::Login.method(method)
+  QA::Flow::Login.define_singleton_method(method) do |*args, &block|
+    result = original_method.call(*args, &block)
+    verify_session
+    result
   end
 end
 

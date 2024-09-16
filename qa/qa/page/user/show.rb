@@ -30,7 +30,7 @@ module QA
 
         def has_activity?(activity)
           within_element('user-activity-content') do
-            has_text?(activity)
+            has_text?(activity, wait: 1)
           end
         end
       end

@@ -25,7 +25,7 @@ module QA
       end
 
       def sandbox_name
-        @sandbox_name ||= Runtime::Env.sandbox_name || "gitlab-qa-sandbox-group-#{Time.now.wday + 1}"
+        @sandbox_name ||= Runtime::Env.sandbox_name || "gitlab-qa-sandbox-group-#{SecureRandom.hex(4)}-#{Time.now.wday + 1}" # rubocop:disable Layout/LineLength
       end
     end
   end

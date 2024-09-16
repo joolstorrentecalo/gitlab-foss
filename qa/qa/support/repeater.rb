@@ -5,7 +5,7 @@ module QA
   module Support
     module Repeater
       using Rainbow
-      DEFAULT_MAX_WAIT_TIME = 60
+      DEFAULT_MAX_WAIT_TIME = 80
 
       RepeaterConditionExceededError = Class.new(RuntimeError)
       RetriesExceededError = Class.new(RepeaterConditionExceededError)

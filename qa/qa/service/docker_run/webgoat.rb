@@ -18,8 +18,8 @@ module QA
             --network #{network}
             --name #{name}
             --hostname #{host_name}
-            --publish 8080:8080
-            --publish 9090:9090
+            --publish 0:8080
+            --publish 0:9090
             #{image}
           CMD
         end

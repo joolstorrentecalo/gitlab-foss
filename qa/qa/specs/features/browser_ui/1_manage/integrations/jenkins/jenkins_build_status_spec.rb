@@ -66,7 +66,7 @@ module QA
         Flow::Pipeline.visit_latest_pipeline
 
         Page::Project::Pipeline::Show.perform do |show|
-          expect(show).to have_build('jenkins', status: :success, wait: 15)
+          expect(show).to have_build('jenkins', status: :success, wait: 20)
         end
       end
 

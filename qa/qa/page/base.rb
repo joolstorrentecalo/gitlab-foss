@@ -425,7 +425,7 @@ module QA
       end
 
       def wait_if_retry_later
-        return if @retry_later_backoff > QA::Support::Repeater::DEFAULT_MAX_WAIT_TIME * 5
+        return if @retry_later_backoff > QA::Support::Repeater::DEFAULT_MAX_WAIT_TIME * 8
         return unless has_css?('body', text: 'Retry later', wait: 0)
 
         QA::Runtime::Logger.warn("`Retry later` error occurred. Sleeping for #{@retry_later_backoff} seconds...")

@@ -47,12 +47,14 @@ module QA
         end
 
         def register!
+          return if running?
+
           command = <<~CMD.tr("\n", ' ')
             docker run -d --rm
             --network #{network}
             --name #{name}
-            --publish #{public_port}:8080
-            --publish #{admin_port}:8081
+            --publish 0:8080
+            --publish 0:8081
             #{image}
           CMD
 

@@ -8,8 +8,8 @@ RSpec.describe QA::Support::Waiter do
       subject.wait_until(log: false)
     end
 
-    it 'sets max_duration to 60 by default' do
-      expect(subject).to receive(:repeat_until).with(hash_including(max_duration: 60))
+    it 'sets max_duration to 80 by default' do
+      expect(subject).to receive(:repeat_until).with(hash_including(max_duration: 80))
 
       subject.wait_until
     end
