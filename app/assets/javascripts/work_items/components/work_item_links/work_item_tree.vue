@@ -16,6 +16,7 @@ import {
   WORKITEM_TREE_SHOWLABELS_LOCALSTORAGEKEY,
   WORK_ITEM_TYPE_VALUE_EPIC,
   WIDGET_TYPE_HIERARCHY,
+  STATE_CLOSED,
 } from '../../constants';
 import {
   findHierarchyWidgets,
@@ -104,6 +105,7 @@ export default {
       widgetName: CHILD_ITEMS_ANCHOR,
       defaultShowLabels: true,
       showLabels: true,
+      showClosed: true,
       fetchNextPageInProgress: false,
       workItem: {},
       disableContent: false,
@@ -266,6 +268,15 @@ export default {
         }
       }
     },
+    displayableChildrenFunction() {
+      const { showClosed } = this;
+
+      return (children) => {
+        return children.filter(
+          (item) => item.state !== STATE_CLOSED || (item.state === STATE_CLOSED && showClosed),
+        );
+      };
+    },
   },
 };
 </script>
@@ -297,8 +308,10 @@ export default {
         :full-path="fullPath"
         :work-item-type="workItemType"
         :show-labels="showLabels"
+        :show-closed="showClosed"
         show-view-roadmap-action
         @toggle-show-labels="toggleShowLabels"
+        @toggle-show-closed="showClosed = !showClosed"
       />
     </template>
 
@@ -341,10 +354,12 @@ export default {
           :work-item-iid="workItemIid"
           :work-item-type="workItemType"
           :show-labels="showLabels"
+          :show-closed="showClosed"
           :disable-content="disableContent"
           :allowed-child-types="allowedChildTypes"
           :show-task-weight="showTaskWeight"
           :has-indirect-children="hasIndirectChildren"
+          :displayable-children-function="displayableChildrenFunction()"
           @error="error = $event"
           @show-modal="showModal"
         />

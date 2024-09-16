@@ -17,6 +17,7 @@ import {
   LINKED_CATEGORIES_MAP,
   LINKED_ITEMS_ANCHOR,
   WORKITEM_RELATIONSHIPS_SHOWLABELS_LOCALSTORAGEKEY,
+  STATE_CLOSED,
   sprintfWorkItem,
 } from '../../constants';
 
@@ -114,6 +115,7 @@ export default {
       widgetName: LINKED_ITEMS_ANCHOR,
       defaultShowLabels: true,
       showLabels: true,
+      showClosed: true,
       linkedWorkItems: [],
       showLabelsLocalStorageKey: WORKITEM_RELATIONSHIPS_SHOWLABELS_LOCALSTORAGEKEY,
     };
@@ -126,7 +128,7 @@ export default {
       return this.linkedWorkItems.map((item) => item.workItem.id);
     },
     linkedWorkItemsCount() {
-      return this.linkedWorkItems.length;
+      return this.displayableLinks(this.linkedWorkItems).length;
     },
     isEmptyRelatedWorkItems() {
       return !this.error && this.linkedWorkItems.length === 0;
@@ -214,6 +216,12 @@ export default {
         this.error = this.$options.i18n.removeLinkedItemErrorMessage;
       }
     },
+    displayableLinks(items) {
+      return items.filter((item) => {
+        const { state } = item.workItem;
+        return state !== STATE_CLOSED || (state === STATE_CLOSED && this.showClosed);
+      });
+    },
   },
   i18n: {
     title: s__('WorkItem|Linked items'),
@@ -265,8 +273,10 @@ export default {
         :full-path="workItemFullPath"
         :work-item-type="workItemType"
         :show-labels="showLabels"
+        :show-closed="showClosed"
         :show-view-roadmap-action="false"
         @toggle-show-labels="toggleShowLabels"
+        @toggle-show-closed="showClosed = !showClosed"
       />
     </template>
 
@@ -296,8 +306,8 @@ export default {
       </gl-alert>
 
       <work-item-relationship-list
-        v-if="linksBlocks.length"
-        :linked-items="linksBlocks"
+        v-if="displayableLinks(linksBlocks).length"
+        :linked-items="displayableLinks(linksBlocks)"
         :heading="$options.i18n.blockingTitle"
         :can-update="canAdminWorkItemLink"
         :show-labels="showLabels"
@@ -312,8 +322,8 @@ export default {
         @removeLinkedItem="removeLinkedItem"
       />
       <work-item-relationship-list
-        v-if="linksIsBlockedBy.length"
-        :linked-items="linksIsBlockedBy"
+        v-if="displayableLinks(linksIsBlockedBy).length"
+        :linked-items="displayableLinks(linksIsBlockedBy)"
         :heading="$options.i18n.blockedByTitle"
         :can-update="canAdminWorkItemLink"
         :show-labels="showLabels"
@@ -328,8 +338,8 @@ export default {
         @removeLinkedItem="removeLinkedItem"
       />
       <work-item-relationship-list
-        v-if="linksRelatesTo.length"
-        :linked-items="linksRelatesTo"
+        v-if="displayableLinks(linksRelatesTo).length"
+        :linked-items="displayableLinks(linksRelatesTo)"
         :heading="$options.i18n.relatedToTitle"
         :can-update="canAdminWorkItemLink"
         :show-labels="showLabels"

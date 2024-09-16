@@ -22,6 +22,7 @@ import {
 import {
   workItemTask,
   workItemObjectiveWithChild,
+  workItemObjectiveWithClosedChild,
   workItemEpic,
   workItemHierarchyTreeResponse,
   workItemHierarchyPaginatedTreeResponse,
@@ -60,6 +61,8 @@ describe('WorkItemLinkChild', () => {
     workItemTreeQueryHandler = getWorkItemTreeQueryHandler,
     isExpanded = false,
     showTaskWeight = false,
+    showClosed = true,
+    displayableChildrenFunction = (children) => children,
   } = {}) => {
     const mockApollo = createMockApollo([[getWorkItemTreeQuery, workItemTreeQueryHandler]], {
       Mutation: {
@@ -85,6 +88,8 @@ describe('WorkItemLinkChild', () => {
         workItemType,
         workItemFullPath,
         showTaskWeight,
+        showClosed,
+        displayableChildrenFunction,
       },
       stubs: {
         WorkItemChildrenWrapper,
@@ -168,6 +173,12 @@ describe('WorkItemLinkChild', () => {
       expect(findTreeChildren().exists()).toBe(false);
     });
 
+    it('do not displays expand button when children are all closed', () => {
+      createComponent({ showClosed: false, childItem: workItemObjectiveWithClosedChild });
+
+      expect(findExpandButton().exists()).toBe(false);
+    });
+
     it('calls createAlert when children fetch request fails on clicking expand button', async () => {
       const getWorkItemTreeQueryFailureHandler = jest
         .fn()
@@ -235,6 +246,21 @@ describe('WorkItemLinkChild', () => {
           expect(findWorkItemLinkChildContents().props('showWeight')).toEqual(showWeight);
         },
       );
+    });
+
+    it('filters children given the displayableChildrenFunction', async () => {
+      createComponent({
+        childItem: workItemObjectiveWithChild,
+        workItemType: WORK_ITEM_TYPE_VALUE_OBJECTIVE,
+        isExpanded: true,
+        displayableChildrenFunction: () => [],
+      });
+      await findExpandButton().vm.$emit('click');
+
+      await waitForPromises();
+
+      expect(findTreeChildren().exists()).toBe(true);
+      expect(findTreeChildren().props('children')).toHaveLength(0);
     });
 
     describe('pagination', () => {
