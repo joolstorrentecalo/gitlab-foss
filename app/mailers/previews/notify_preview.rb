@@ -160,10 +160,6 @@ class NotifyPreview < ActionMailer::Preview
     Notify.changed_milestone_merge_request_email(user.id, merge_request.id, milestone, user.id)
   end
 
-  def member_access_denied_email
-    Notify.member_access_denied_email('project', project.id, user.id).message
-  end
-
   def member_access_granted_email
     Notify.member_access_granted_email(member.source_type, member.id).message
   end

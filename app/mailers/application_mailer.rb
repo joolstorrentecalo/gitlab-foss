@@ -10,6 +10,8 @@ class ApplicationMailer < ActionMailer::Base
 
   helper_method :current_user, :can?
 
+  layout 'mailer'
+
   default from:     proc { default_sender_address.format }
   default reply_to: proc { default_reply_to_address.format }
 

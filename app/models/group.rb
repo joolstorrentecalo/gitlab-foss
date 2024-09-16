@@ -1007,6 +1007,10 @@ class Group < Namespace
   end
   strong_memoize_attr :readme_project
 
+  def notification_group
+    self
+  end
+
   def group_readme
     readme_project&.repository&.readme
   end
