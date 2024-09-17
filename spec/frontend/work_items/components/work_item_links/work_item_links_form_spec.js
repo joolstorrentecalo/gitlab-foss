@@ -93,7 +93,6 @@ describe('WorkItemLinksForm', () => {
       ]),
       propsData: {
         fullPath: 'group-a',
-        isGroup,
         issuableGid: 'gid://gitlab/WorkItem/1',
         parentConfidential,
         parentIteration,
@@ -106,6 +105,7 @@ describe('WorkItemLinksForm', () => {
       },
       provide: {
         hasIterationsFeature,
+        isGroup,
       },
       stubs: {
         GlFormGroup: stubComponent(GlFormGroup, {
@@ -481,7 +481,7 @@ describe('WorkItemLinksForm', () => {
       await selectAvailableWorkItemTokens(generateWorkItemsListWithId(MAX_WORK_ITEMS + 1));
 
       expect(findWorkItemTokenInput().props('areWorkItemsToAddValid')).toBe(false);
-      expect(findAddChildButton().attributes().disabled).toBe('true');
+      expect(findAddChildButton().attributes('disabled')).toBe('true');
       expect(findWorkItemLimitValidationMessage().exists()).toBe(true);
       expect(findWorkItemLimitValidationMessage().text()).toContain(
         I18N_MAX_WORK_ITEMS_ERROR_MESSAGE,

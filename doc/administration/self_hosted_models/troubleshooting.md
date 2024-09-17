@@ -27,28 +27,6 @@ Feature.enable(:expanded_ai_logging)
 
 Now, requests and responses from GitLab to the AI Gateway are logged to [`llm.log`](../logs/index.md#llmlog)
 
-### Use debugging scripts
-
-We provide two debugging scripts to help administrators verify their self-hosted setup.
-
-1. Debug the GitLab to AI Gateway connection. From your GitLab instance, run the [Rake task](../../raketasks/index.md):
-
-   ```shell
-   gitlab-rake gitlab:duo:verify_self_hosted_setup
-   ```
-
-1. Debug the AI Gateway setup. For your AI Gateway container, run:
-
-   ```shell
-   docker exec -it <ai-gateway-container> sh
-   poetry run python scripts/troubleshoot_selfhosted_installation.py --model-name "codegemma_7b" --model-endpoint
-   "http://localhost:4000"
-   ```
-
-Verify the output of the commands, and fix accordingly.
-
-If both commands are successful, but GitLab Duo Code Suggestions is still not working, raise an issue on the issue tracker.
-
 ### Check if GitLab make a request to the model
 
 From the GitLab Rails console, verify that the model is reachable by running:
@@ -108,6 +86,7 @@ To check if GitLab Duo was configured correctly:
 To check if the GitLab environmental variables are set up correctly, run the following on the GitLab Rails console:
 
 ```ruby
+ENV["CLOUD_CONNECTOR_SELF_SIGN_TOKENS"] == 1
 ENV["AI_GATEWAY_URL"] == "<your-ai-gateway-endpoint>"
 ```
 

@@ -70,6 +70,7 @@ export default {
       default: i18n.SELECT_A_NAMESPACE,
     },
   },
+  initialTransferLocationsLoaded: false,
   data() {
     return {
       searchTerm: '',
@@ -81,7 +82,6 @@ export default {
       hasError: false,
       page: 1,
       totalPages: 1,
-      initialTransferLocationsLoaded: false,
     };
   },
   computed: {
@@ -128,7 +128,7 @@ export default {
       this.$emit('input', item);
     },
     async handleShow() {
-      if (this.initialTransferLocationsLoaded) {
+      if (this.$options.initialTransferLocationsLoaded) {
         return;
       }
 
@@ -140,7 +140,7 @@ export default {
       ]);
 
       this.isLoading = false;
-      this.initialTransferLocationsLoaded = true;
+      this.$options.initialTransferLocationsLoaded = true;
     },
     async getGroupTransferLocations() {
       try {

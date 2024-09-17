@@ -7,7 +7,6 @@ import { convertToGraphQLId } from '~/graphql_shared/utils';
 import { getBaseURL } from '~/lib/utils/url_utility';
 import { convertEachWordToTitleCase } from '~/lib/utils/text_utility';
 import {
-  findHierarchyWidgets,
   findHierarchyWidgetChildren,
   isNotesWidget,
   newWorkItemFullPath,
@@ -156,7 +155,7 @@ export const updateCacheAfterRemovingAwardEmojiFromNote = (currentNotes, note) =
   });
 };
 
-export const addHierarchyChild = ({ cache, id, workItem, atIndex = null }) => {
+export const addHierarchyChild = ({ cache, id, workItem }) => {
   const queryArgs = {
     query: getWorkItemTreeQuery,
     variables: { id },
@@ -170,18 +169,11 @@ export const addHierarchyChild = ({ cache, id, workItem, atIndex = null }) => {
   cache.writeQuery({
     ...queryArgs,
     data: produce(sourceData, (draftState) => {
-      const widget = findHierarchyWidgets(draftState?.workItem.widgets);
-      widget.hasChildren = true;
-      const children = findHierarchyWidgetChildren(draftState?.workItem) || [];
-      const existingChild = children.find((child) => child.id === workItem?.id);
+      const existingChild = findHierarchyWidgetChildren(draftState?.workItem).find(
+        (child) => child.id === workItem?.id,
+      );
       if (!existingChild) {
-        if (atIndex !== null) {
-          children.splice(atIndex, 0, workItem);
-        } else {
-          children.unshift(workItem);
-        }
-        widget.hasChildren = children?.length > 0;
-        widget.count = children?.length || 0;
+        findHierarchyWidgetChildren(draftState?.workItem).unshift(workItem);
       }
     }),
   });
@@ -232,12 +224,9 @@ export const removeHierarchyChild = ({ cache, id, workItem }) => {
   cache.writeQuery({
     ...queryArgs,
     data: produce(sourceData, (draftState) => {
-      const widget = findHierarchyWidgets(draftState?.workItem.widgets);
       const children = findHierarchyWidgetChildren(draftState?.workItem);
       const index = children.findIndex((child) => child.id === workItem.id);
       if (index >= 0) children.splice(index, 1);
-      widget.hasChildren = children?.length > 0;
-      widget.count = children?.length || 0;
     }),
   });
 };
@@ -380,7 +369,6 @@ export const setNewWorkItemCache = async (
           type: 'WEIGHT',
           weight: null,
           rolledUpWeight: 0,
-          rolledUpCompletedWeight: 0,
           widgetDefinition: {
             editable: weightWidgetData?.editable,
             rollUp: weightWidgetData?.rollUp,
@@ -440,7 +428,6 @@ export const setNewWorkItemCache = async (
         widgets.push({
           type: 'HEALTH_STATUS',
           healthStatus: null,
-          rolledUpHealthStatus: [],
           __typename: 'WorkItemWidgetHealthStatus',
         });
       }
@@ -460,7 +447,6 @@ export const setNewWorkItemCache = async (
           hasChildren: false,
           hasParent: false,
           parent: null,
-          rolledUpCountsByType: [],
           children: {
             nodes: [],
             __typename: 'WorkItemConnection',
@@ -554,14 +540,4 @@ export const setNewWorkItemCache = async (
       },
     },
   });
-};
-
-export const optimisticUserPermissions = {
-  deleteWorkItem: false,
-  updateWorkItem: false,
-  adminParentLink: false,
-  setWorkItemMetadata: false,
-  createNote: false,
-  adminWorkItemLink: false,
-  __typename: 'WorkItemPermissions',
 };

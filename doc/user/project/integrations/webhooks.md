@@ -225,7 +225,6 @@ To inspect the request and response details of a webhook event:
 
 To send the request again with the same data and the same [`Idempotency-Key` header](#delivery-headers)), select **Resend Request**.
 If the webhook URL has changed, you cannot resend the request.
-For resending programmatically, refer to our [API documentation](../../../api/project_webhooks.md#resend-a-project-webhook-event).
 
 ## Webhook receiver requirements
 
@@ -546,8 +545,8 @@ when webhooks are sent synchronously from Rails nodes, including when:
 ## Related topics
 
 - [Webhook events and webhook JSON payloads](webhook_events.md)
-- [Project webhooks API](../../../api/project_webhooks.md)
-- [Group webhooks API](../../../api/group_webhooks.md)
+- [Project hooks API](../../../api/projects.md#hooks)
+- [Group hooks API](../../../api/groups.md#hooks)
 - [System hooks API](../../../api/system_hooks.md)
 
 ## Troubleshooting

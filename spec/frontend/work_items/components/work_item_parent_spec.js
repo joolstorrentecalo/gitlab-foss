@@ -62,6 +62,7 @@ describe('WorkItemParent component', () => {
     parent = null,
     searchQueryHandler = availableWorkItemsSuccessHandler,
     mutationHandler = successUpdateWorkItemMutationHandler,
+    isGroup = false,
     hasParent = true,
   } = {}) => {
     wrapper = mountExtended(WorkItemParent, {
@@ -73,6 +74,7 @@ describe('WorkItemParent component', () => {
       ]),
       provide: {
         fullPath: mockFullPath,
+        isGroup,
       },
       propsData: {
         canUpdate,

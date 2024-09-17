@@ -55,7 +55,6 @@ export default {
      * quickly than `fullGraphqlResponse`, which allows the page to show
      * meaningful content to the user much earlier.
      */
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     singleGraphqlResponse: {
       query: allReleasesQuery,
       // This trick only works when paginating _forward_.
@@ -77,7 +76,6 @@ export default {
         this.singleRequestError = true;
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     fullGraphqlResponse: {
       query: allReleasesQuery,
       variables() {
@@ -96,7 +94,6 @@ export default {
         });
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     isCatalogResource: {
       query: getCiCatalogSettingsQuery,
       variables() {
@@ -269,7 +266,7 @@ export default {
 };
 </script>
 <template>
-  <div class="gl-mt-3 gl-flex gl-flex-col">
+  <div class="gl-display-flex gl-flex-direction-column gl-mt-3">
     <gl-alert
       v-if="isCatalogResource"
       :title="$options.i18n.alertTitle"
@@ -282,7 +279,7 @@ export default {
           <gl-link
             :href="$options.links.alertInfoMessageLink"
             target="_blank"
-            class="gl-mr-2 !gl-no-underline"
+            class="gl-text-decoration-none! gl-mr-2"
           >
             <code class="gl-pr-0">
               {{ content }}
@@ -295,7 +292,7 @@ export default {
       </gl-link>
     </gl-alert>
     <releases-empty-state v-if="shouldRenderEmptyState" />
-    <div v-else class="gl-flex gl-gap-3 gl-self-end">
+    <div v-else class="gl-align-self-end gl-display-flex gl-gap-3">
       <releases-sort :value="sort" @input="onSortChanged" />
 
       <gl-button
@@ -331,7 +328,7 @@ export default {
       :key="getReleaseKey(release, index)"
       :release="release"
       :sort="sort"
-      :class="{ 'linked-card gl-relative': releases.length > 1 && index !== releases.length - 1 }"
+      :class="{ 'gl-relative linked-card': releases.length > 1 && index !== releases.length - 1 }"
     />
 
     <release-skeleton-loader v-if="shouldRenderLoadingIndicator" class="gl-mt-5" />

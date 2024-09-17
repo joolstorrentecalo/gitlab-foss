@@ -236,7 +236,7 @@ RSpec.describe Member, feature_category: :groups_and_projects do
       end
     end
 
-    describe 'hierarchy related scopes' do
+    describe '.in_hierarchy' do
       let(:root_ancestor) { create(:group) }
       let(:project) { create(:project, group: root_ancestor) }
       let(:subgroup) { create(:group, parent: root_ancestor) }
@@ -247,53 +247,29 @@ RSpec.describe Member, feature_category: :groups_and_projects do
       let!(:subgroup_member) { create(:group_member, group: subgroup) }
       let!(:subgroup_project_member) { create(:project_member, project: subgroup_project) }
 
-      describe '.in_hierarchy' do
-        let(:hierarchy_members) do
-          [
-            root_ancestor_member,
-            project_member,
-            subgroup_member,
-            subgroup_project_member
-          ]
-        end
-
-        context 'for a project' do
-          subject { described_class.in_hierarchy(project) }
-
-          it { is_expected.to contain_exactly(*hierarchy_members) }
-
-          context 'with scope prefix' do
-            subject { described_class.where.not(source: project).in_hierarchy(subgroup) }
-
-            it { is_expected.to contain_exactly(root_ancestor_member, subgroup_member, subgroup_project_member) }
-          end
-
-          context 'with scope suffix' do
-            subject { described_class.in_hierarchy(project).where.not(source: project) }
-
-            it { is_expected.to contain_exactly(root_ancestor_member, subgroup_member, subgroup_project_member) }
-          end
-        end
-
-        context 'for a group' do
-          subject(:group_related_members) { described_class.in_hierarchy(subgroup) }
-
-          it { is_expected.to contain_exactly(*hierarchy_members) }
-        end
+      let(:hierarchy_members) do
+        [
+          root_ancestor_member,
+          project_member,
+          subgroup_member,
+          subgroup_project_member
+        ]
       end
 
-      describe '.for_self_and_descendants' do
-        let(:expected_members) do
-          [
-            project_member,
-            subgroup_member,
-            subgroup_project_member
-          ]
-        end
+      subject { described_class.in_hierarchy(project) }
 
-        subject(:self_and_descendant_members) { described_class.for_self_and_descendants(subgroup) }
+      it { is_expected.to contain_exactly(*hierarchy_members) }
 
-        it { is_expected.to contain_exactly(*expected_members) }
+      context 'with scope prefix' do
+        subject { described_class.where.not(source: project).in_hierarchy(subgroup) }
+
+        it { is_expected.to contain_exactly(root_ancestor_member, subgroup_member, subgroup_project_member) }
+      end
+
+      context 'with scope suffix' do
+        subject { described_class.in_hierarchy(project).where.not(source: project) }
+
+        it { is_expected.to contain_exactly(root_ancestor_member, subgroup_member, subgroup_project_member) }
       end
     end
 
@@ -994,7 +970,7 @@ RSpec.describe Member, feature_category: :groups_and_projects do
         specify do
           members = invited_group
                          .members
-                         .with_group_group_sharing_access(shared_group, false)
+                         .with_group_group_sharing_access(shared_group)
                          .id_in(member.id)
                          .to_a
 
@@ -1322,8 +1298,7 @@ RSpec.describe Member, feature_category: :groups_and_projects do
   end
 
   context 'for updating organization_users' do
-    let_it_be(:organization) { create(:organization) }
-    let_it_be(:group) { create(:group, organization: organization) }
+    let_it_be(:group) { create(:group) }
     let_it_be(:user) { create(:user) }
     let(:member) { create(:group_member, source: group, user: user) }
 
@@ -1557,18 +1532,6 @@ RSpec.describe Member, feature_category: :groups_and_projects do
       end
 
       create_member
-    end
-
-    context 'when member is a requested member' do
-      let(:member) { create(:group_member, source: source, requested_at: Time.current.utc) }
-
-      it 'calls the system hook service' do
-        expect_next_instance_of(SystemHooksService) do |instance|
-          expect(instance).to receive(:execute_hooks_for).with(an_instance_of(GroupMember), :request)
-        end
-
-        create_member
-      end
     end
 
     context 'when source is a group' do

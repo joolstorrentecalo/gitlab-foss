@@ -47,11 +47,6 @@ domains:
       - insider_threat
       - instance_resiliency
 
-  AppConfig:
-    description: Top-level configuration at the GitLab instance level
-    feature_categories:
-      - settings
-
   AuditEvents:
     description:
     feature_categories:
@@ -116,6 +111,11 @@ domains:
     feature_categories:
       - container_registry
 
+  DependencyManagement:
+    description:
+    feature_categories:
+      - dependency_management
+
   DependencyProxy:
     description: Dependency Proxy for container images.
     feature_categories:
@@ -141,12 +141,11 @@ domains:
       - geo_replication
 
   GitlabSubscriptions:
-    description: Managing subscription related code for GitLab.com and Self-Managed
+    description:
     feature_categories:
       - seat_cost_management
       - plan_provisioning
       - subscription_management
-      - add-on_provisioning
 
   Import:
     description:
@@ -242,11 +241,6 @@ domains:
     feature_categories:
       - groups_and_projects
 
-  ResourceAccessTokens:
-    description: Managing groups and projects access tokens
-    feature_categories:
-      - system_access
-
   Releases:
     description:
     feature_categories:
@@ -256,7 +250,7 @@ domains:
   RemoteDevelopment:
     description:
     feature_categories:
-      - workspaces
+      - remote_development
 
   Repositories:
     description: Git repositories and workflow including Gitaly client
@@ -288,7 +282,6 @@ domains:
       - security_policy_management
       - software_composition_analysis
       - static_application_security_testing
-      - secret_detection
 
   ServiceDesk:
     description:

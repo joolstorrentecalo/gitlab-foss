@@ -26,7 +26,6 @@ describe('RelatedIssuesBlock', () => {
   const findAddForm = () => wrapper.findByTestId('crud-form');
   const findAllRelatedIssuesList = () => wrapper.findAllComponents(RelatedIssuesList);
   const findRelatedIssuesList = (index) => findAllRelatedIssuesList().at(index);
-  const findCrudComponent = () => wrapper.findComponent(CrudComponent);
 
   const createComponent = ({
     pathIdSeparator = PathIdSeparator.Issue,
@@ -39,8 +38,6 @@ describe('RelatedIssuesBlock', () => {
     showCategorizedIssues = false,
     autoCompleteEpics = true,
     slots = '',
-    headerText = '',
-    addButtonText = '',
   } = {}) => {
     wrapper = shallowMountExtended(RelatedIssuesBlock, {
       propsData: {
@@ -53,8 +50,6 @@ describe('RelatedIssuesBlock', () => {
         relatedIssues,
         showCategorizedIssues,
         autoCompleteEpics,
-        headerText,
-        addButtonText,
       },
       provide: {
         reportAbusePath: '/report/abuse/path',
@@ -242,7 +237,7 @@ describe('RelatedIssuesBlock', () => {
     it('is expanded by default', () => {
       const toggleButton = findToggleButton();
 
-      expect(toggleButton.props('icon')).toBe('chevron-up');
+      expect(toggleButton.props('icon')).toBe('chevron-lg-up');
       expect(toggleButton.props('disabled')).toBe(false);
       expect(toggleButton.attributes('aria-expanded')).toBe('true');
       expect(findRelatedIssuesBody().exists()).toBe(true);
@@ -254,7 +249,7 @@ describe('RelatedIssuesBlock', () => {
 
       const toggleButton = findToggleButton();
 
-      expect(toggleButton.props('icon')).toBe('chevron-down');
+      expect(toggleButton.props('icon')).toBe('chevron-lg-down');
       expect(toggleButton.attributes('aria-expanded')).toBe('false');
       expect(findRelatedIssuesBody().exists()).toBe(false);
     });
@@ -292,33 +287,5 @@ describe('RelatedIssuesBlock', () => {
         expect(wrapper.findByTestId('help-link').attributes('aria-label')).toBe(helpLinkText);
       },
     );
-  });
-
-  describe('headerText prop', () => {
-    it('renders the title with headerText when set', () => {
-      createComponent({ headerText: 'foo bar' });
-
-      expect(wrapper.findByTestId('crud-title').text()).toContain('foo bar');
-    });
-
-    it('renders the issuable type title when headerText is empty', () => {
-      createComponent({ headerText: '' });
-
-      expect(wrapper.findByTestId('crud-title').text()).toContain('Linked items');
-    });
-  });
-
-  describe('canAdmin=true and addButtonText prop', () => {
-    it('sets the button text to addButtonText when set', () => {
-      createComponent({ canAdmin: true, addButtonText: 'do foo' });
-
-      expect(findCrudComponent().props('toggleText')).toBe('do foo');
-    });
-
-    it('uses the default button text when addButtonText is empty', () => {
-      createComponent({ canAdmin: true, addButtonText: '' });
-
-      expect(findCrudComponent().props('toggleText')).toBe('Add');
-    });
   });
 });

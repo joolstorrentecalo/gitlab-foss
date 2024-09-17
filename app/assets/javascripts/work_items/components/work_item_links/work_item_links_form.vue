@@ -36,16 +36,11 @@ export default {
     WorkItemProjectsListbox,
   },
   mixins: [glFeatureFlagsMixin()],
-  inject: ['hasIterationsFeature'],
+  inject: ['hasIterationsFeature', 'isGroup'],
   props: {
     fullPath: {
       type: String,
       required: true,
-    },
-    isGroup: {
-      type: Boolean,
-      required: false,
-      default: false,
     },
     issuableGid: {
       type: String,
@@ -400,9 +395,13 @@ export default {
 </script>
 
 <template>
-  <gl-form data-testid="add-item-form" @submit.prevent="addOrCreateMethod">
+  <gl-form
+    class="gl-new-card-add-form"
+    data-testid="add-item-form"
+    @submit.prevent="addOrCreateMethod"
+  >
     <template v-if="isCreateForm">
-      <div class="gl-flex gl-gap-x-3">
+      <div class="gl-display-flex gl-gap-x-3">
         <gl-form-group
           class="gl-w-full"
           :label="$options.i18n.titleInputLabel"
@@ -440,7 +439,7 @@ export default {
         ref="confidentialityCheckbox"
         v-model="confidential"
         name="isConfidential"
-        class="gl-mb-5 md:!gl-mb-3"
+        class="gl-mb-5 gl-md-mb-3!"
         :disabled="parentConfidential"
         >{{ confidentialityCheckboxLabel }}</gl-form-checkbox
       >
@@ -455,7 +454,6 @@ export default {
       <work-item-token-input
         v-model="workItemsToAdd"
         :is-create-form="isCreateForm"
-        :is-group="isGroup"
         :parent-work-item-id="issuableGid"
         :children-type="childrenType"
         :children-ids="childrenIds"
@@ -464,12 +462,12 @@ export default {
       />
       <div
         v-if="showWorkItemsToAddInvalidMessage"
-        class="gl-text-danger"
+        class="gl-text-red-500"
         data-testid="work-items-invalid"
       >
         {{ workItemsToAddInvalidMessage }}
       </div>
-      <div v-if="error" class="gl-mt-3 gl-text-danger" data-testid="work-items-error">
+      <div v-if="error" class="gl-text-red-500 gl-mt-3" data-testid="work-items-error">
         {{ error }}
       </div>
       <div
@@ -480,21 +478,20 @@ export default {
         {{ $options.i18n.maxItemsErrorMessage }}
       </div>
     </div>
-    <div class="gl-flex gl-gap-3">
-      <gl-button
-        category="primary"
-        variant="confirm"
-        size="small"
-        type="submit"
-        :disabled="!canSubmitForm"
-        :loading="submitInProgress"
-        data-testid="add-child-button"
-      >
-        {{ addOrCreateButtonLabel }}
-      </gl-button>
-      <gl-button category="secondary" size="small" @click="closeForm">
-        {{ s__('WorkItem|Cancel') }}
-      </gl-button>
-    </div>
+    <gl-button
+      category="primary"
+      variant="confirm"
+      size="small"
+      type="submit"
+      :disabled="!canSubmitForm"
+      :loading="submitInProgress"
+      data-testid="add-child-button"
+      class="gl-mr-2"
+    >
+      {{ addOrCreateButtonLabel }}
+    </gl-button>
+    <gl-button category="secondary" size="small" @click="closeForm">
+      {{ s__('WorkItem|Cancel') }}
+    </gl-button>
   </gl-form>
 </template>

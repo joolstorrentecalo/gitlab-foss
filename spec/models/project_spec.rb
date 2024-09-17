@@ -155,6 +155,7 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
     it { is_expected.to have_many(:external_pull_requests) }
     it { is_expected.to have_many(:sourced_pipelines) }
     it { is_expected.to have_many(:source_pipelines) }
+    it { is_expected.to have_many(:prometheus_alert_events) }
     it { is_expected.to have_many(:alert_management_alerts) }
     it { is_expected.to have_many(:alert_management_http_integrations) }
     it { is_expected.to have_many(:jira_imports) }
@@ -2792,7 +2793,7 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
     end
   end
 
-  describe '#any_online_runners?', :freeze_time do
+  describe '#any_online_runners?' do
     subject { project.any_online_runners? }
 
     context 'shared runners' do
@@ -7488,7 +7489,7 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
     end
   end
 
-  describe '#changing_shared_runners_enabled_is_allowed' do
+  describe 'validation #changing_shared_runners_enabled_is_allowed' do
     where(:shared_runners_setting, :project_shared_runners_enabled, :valid_record) do
       :shared_runners_enabled     | true  | true
       :shared_runners_enabled     | false | true
@@ -7508,27 +7509,6 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
         unless valid_record
           expect(project.errors[:shared_runners_enabled]).to contain_exactly('cannot be enabled because parent group does not allow it')
         end
-      end
-    end
-  end
-
-  describe '#parent_organization_match' do
-    let_it_be(:group) { create(:group, :with_organization) }
-
-    subject(:project) { build(:project, namespace: group, organization: organization) }
-
-    context "when project belongs to parent's organization" do
-      let(:organization) { group.organization }
-
-      it { is_expected.to be_valid }
-    end
-
-    context "when project does not belong to parent's organization" do
-      let(:organization) { build(:organization) }
-
-      it 'is not valid and adds an error message' do
-        expect(project).not_to be_valid
-        expect(project.errors[:organization_id]).to include("must match the parent organization's ID")
       end
     end
   end
@@ -7919,53 +7899,77 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
     let_it_be(:user) { create(:user) }
     let_it_be_with_reload(:project) { create(:project) }
 
-    it 'enqueues CreateionProjectExportWorker' do
-      expect(Projects::ImportExport::CreateRelationExportsWorker)
-        .to receive(:perform_async)
-        .with(user.id, project.id, nil, { exported_by_admin: false })
-
-      project.add_export_job(current_user: user)
-    end
-
-    context 'when user is admin', :enable_admin_mode do
-      let_it_be(:user) { create(:admin) }
-
-      it 'passes `exported_by_admin` correctly in the `params` hash' do
+    context 'when parallel_project_export feature flag is enabled' do
+      it 'enqueues CreateionProjectExportWorker' do
         expect(Projects::ImportExport::CreateRelationExportsWorker)
-        .to receive(:perform_async)
-        .with(user.id, project.id, nil, { exported_by_admin: true })
+          .to receive(:perform_async)
+          .with(user.id, project.id, nil, { exported_by_admin: false })
 
         project.add_export_job(current_user: user)
       end
-    end
 
-    context 'when project storage_size does not exceed the application setting max_export_size' do
-      it 'starts project export worker' do
-        stub_application_setting(max_export_size: 1)
-        allow(project.statistics).to receive(:storage_size).and_return(0.megabytes)
+      context 'when user is admin', :enable_admin_mode do
+        let_it_be(:user) { create(:admin) }
 
-        expect(Projects::ImportExport::CreateRelationExportsWorker).to receive(:perform_async).with(user.id, project.id, nil, { exported_by_admin: false })
+        it 'passes `exported_by_admin` correctly in the `params` hash' do
+          expect(Projects::ImportExport::CreateRelationExportsWorker)
+          .to receive(:perform_async)
+          .with(user.id, project.id, nil, { exported_by_admin: true })
 
-        project.add_export_job(current_user: user)
+          project.add_export_job(current_user: user)
+        end
       end
     end
 
-    context 'when project storage_size exceeds the application setting max_export_size' do
-      it 'raises Project::ExportLimitExceeded' do
-        stub_application_setting(max_export_size: 1)
-        allow(project.statistics).to receive(:storage_size).and_return(2.megabytes)
-
-        expect(Projects::ImportExport::CreateRelationExportsWorker).not_to receive(:perform_async)
-        expect { project.add_export_job(current_user: user) }.to raise_error(Project::ExportLimitExceeded)
+    context 'when parallel_project_export feature flag is disabled' do
+      before do
+        stub_feature_flags(parallel_project_export: false)
       end
-    end
 
-    context 'when application setting max_export_size is not set' do
-      it 'starts project export worker' do
-        allow(project.statistics).to receive(:storage_size).and_return(2.megabytes)
-        expect(Projects::ImportExport::CreateRelationExportsWorker).to receive(:perform_async).with(user.id, project.id, nil, { exported_by_admin: false })
+      it 'enqueues ProjectExportWorker' do
+        expect(ProjectExportWorker).to receive(:perform_async).with(user.id, project.id, nil, { exported_by_admin: false })
 
         project.add_export_job(current_user: user)
+      end
+
+      context 'when user is admin', :enable_admin_mode do
+        let_it_be(:user) { create(:admin) }
+
+        it 'passes `exported_by_admin` correctly in the `params` hash' do
+          expect(ProjectExportWorker).to receive(:perform_async).with(user.id, project.id, nil, { exported_by_admin: true })
+
+          project.add_export_job(current_user: user)
+        end
+      end
+
+      context 'when project storage_size does not exceed the application setting max_export_size' do
+        it 'starts project export worker' do
+          stub_application_setting(max_export_size: 1)
+          allow(project.statistics).to receive(:storage_size).and_return(0.megabytes)
+
+          expect(ProjectExportWorker).to receive(:perform_async).with(user.id, project.id, nil, { exported_by_admin: false })
+
+          project.add_export_job(current_user: user)
+        end
+      end
+
+      context 'when project storage_size exceeds the application setting max_export_size' do
+        it 'raises Project::ExportLimitExceeded' do
+          stub_application_setting(max_export_size: 1)
+          allow(project.statistics).to receive(:storage_size).and_return(2.megabytes)
+
+          expect(ProjectExportWorker).not_to receive(:perform_async)
+          expect { project.add_export_job(current_user: user) }.to raise_error(Project::ExportLimitExceeded)
+        end
+      end
+
+      context 'when application setting max_export_size is not set' do
+        it 'starts project export worker' do
+          allow(project.statistics).to receive(:storage_size).and_return(2.megabytes)
+          expect(ProjectExportWorker).to receive(:perform_async).with(user.id, project.id, nil, { exported_by_admin: false })
+
+          project.add_export_job(current_user: user)
+        end
       end
     end
   end
@@ -8451,7 +8455,7 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
       end
 
       it 'assigns slug value for new topics' do
-        topic = create(:topic, name: 'old topic', title: 'old topic', slug: nil, organization: project.organization)
+        topic = create(:topic, name: 'old topic', title: 'old topic', slug: nil)
         project.topic_list = topic.name
         project.save!
 
@@ -8470,9 +8474,9 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
     end
 
     context 'public topics counter' do
-      let_it_be(:topic_1) { create(:topic, name: 't1', organization: project.organization) }
-      let_it_be(:topic_2) { create(:topic, name: 't2', organization: project.organization) }
-      let_it_be(:topic_3) { create(:topic, name: 't3', organization: project.organization) }
+      let_it_be(:topic_1) { create(:topic, name: 't1') }
+      let_it_be(:topic_2) { create(:topic, name: 't2') }
+      let_it_be(:topic_3) { create(:topic, name: 't3') }
 
       let(:private) { Gitlab::VisibilityLevel::PRIVATE }
       let(:internal) { Gitlab::VisibilityLevel::INTERNAL }
@@ -8522,33 +8526,6 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
             .to change { topic_1.reload.non_private_projects_count }.by(expected_count_changes[0])
             .and change { topic_2.reload.non_private_projects_count }.by(expected_count_changes[1])
             .and change { topic_3.reload.non_private_projects_count }.by(expected_count_changes[2])
-        end
-      end
-    end
-
-    context 'having the same topics for different organizations' do
-      let_it_be(:namespace_one) { create(:namespace, organization: create(:organization)) }
-      let_it_be(:namespace_two) { create(:namespace, organization: create(:organization)) }
-
-      let_it_be(:project_one) do
-        create(:project, name: 'project-1', topic_list: 'topic-1, topic-2', namespace: namespace_one)
-      end
-
-      let_it_be(:project_two) do
-        create(:project, name: 'project-2', topic_list: 'topic-1, topic-2', namespace: namespace_two)
-      end
-
-      let_it_be(:project_three) do
-        create(:project, name: 'project-3', topic_list: 'topic-1, topic-2', namespace: namespace_two)
-      end
-
-      let(:project_list) { [project_one, project_two, project_three] }
-
-      it 'associate topics to the same organization as the project' do
-        project_list.each do |project_from_list|
-          project_from_list.topics.each do |topic|
-            expect(topic.organization_id).to eq(project_from_list.organization_id)
-          end
         end
       end
     end
@@ -9653,16 +9630,6 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
       expect(control.by_command('set').count).to eq 1
 
       expect(project.lfs_file_locks_changed_epoch).to eq(refreshed_epoch)
-    end
-  end
-
-  describe '.by_any_traversal_id_overlap' do
-    let_it_be(:project_1) { create(:project, :in_group) }
-    let_it_be(:sub_group) { create(:group, parent: project_1.namespace) }
-    let_it_be(:project_2) { create(:project, group: sub_group) }
-
-    it 'returns projects that contain any overlap with the provided traversal_ids array' do
-      expect(described_class.by_any_overlap_with_traversal_ids(project_1.namespace_id)).to contain_exactly(project_1, project_2)
     end
   end
 end

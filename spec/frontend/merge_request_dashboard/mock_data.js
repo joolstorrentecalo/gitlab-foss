@@ -25,7 +25,7 @@ export function createMockMergeRequest(mergeRequest = {}) {
       nodes: [],
     },
     headPipeline: null,
-    userNotesCount: 0,
+    userDiscussionsCount: 0,
     createdAt: '',
     updatedAt: '',
     approved: false,

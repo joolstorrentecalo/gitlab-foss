@@ -5,6 +5,8 @@ describe('Pipelines Store', () => {
 
   beforeEach(() => {
     store = new PipelineStore();
+
+    window.gon.features = { asyncMergeRequestPipelineCreation: false };
   });
 
   it('should be initialized with an empty state', () => {
@@ -30,7 +32,11 @@ describe('Pipelines Store', () => {
       expect(store.state.pipelines).toEqual(array);
     });
 
-    describe('when pipeline creation is async', () => {
+    describe('when asyncMergeRequestPipelineCreation is enabled', () => {
+      beforeEach(() => {
+        window.gon.features.asyncMergeRequestPipelineCreation = true;
+      });
+
       describe('when a new pipeline is added to the store', () => {
         it('sets the value of `isRunningMergeRequestPipeline` to false', () => {
           const existingPipelines = [{ created_at: '2023' }];
@@ -47,11 +53,11 @@ describe('Pipelines Store', () => {
       describe('when no new pipelines are added to the store', () => {
         it('does not change the value of `isRunningMergeRequestPipeline`', () => {
           const existingPipelines = [{ created_at: '2023' }];
-          store.storePipelines(existingPipelines, true);
+          store.storePipelines(existingPipelines);
           store.state.isRunningMergeRequestPipeline = true;
 
           const updatedPipelines = [{ created_at: '2023' }];
-          store.storePipelines(updatedPipelines, true);
+          store.storePipelines(updatedPipelines);
 
           expect(store.state.isRunningMergeRequestPipeline).toBe(true);
         });

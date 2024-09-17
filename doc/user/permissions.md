@@ -94,10 +94,7 @@ The following table lists project permissions available for each role:
 | [Projects](project/index.md):<br>View [Insights](project/insights/index.md)                                                                                                                  | ✓     | ✓        | ✓         | ✓          | ✓     |       |
 | [Projects](project/index.md):<br>View [Requirements](project/requirements/index.md)                                                                                                          | ✓     | ✓        | ✓         | ✓          | ✓     |       |
 | [Projects](project/index.md):<br>View [time tracking](project/time_tracking.md) reports                                                                                                      | ✓     | ✓        | ✓         | ✓          | ✓     | On self-managed GitLab instances, users with the Guest role are able to perform this action only on public and internal projects (not on private projects). [External users](../administration/external_users.md) must be given explicit access (at least the **Reporter** role) even if the project is internal. Users with the Guest role on GitLab.com are only able to perform this action on public projects because internal visibility is not available. |
-| [Projects](project/index.md):<br>View [snippets](snippets.md)                                                                                                                                | ✓     | ✓        | ✓         | ✓          | ✓     |       |
 | [Projects](project/index.md):<br>Create [snippets](snippets.md)                                                                                                                              |       | ✓        | ✓         | ✓          | ✓     |       |
-| [Projects](project/index.md):<br>Globally delete [snippets](snippets.md)                                                                                                                     |       |          |           |  ✓         | ✓     |       |
-| [Projects](project/index.md):<br>Globally edit [snippets](snippets.md)                                                                                                                       |       |          |           |  ✓         | ✓     |       |
 | [Projects](project/index.md):<br>View [project traffic statistics](../api/project_statistics.md)                                                                                             |       | ✓        | ✓         | ✓          | ✓     |       |
 | [Projects](project/index.md):<br>Add [deploy keys](project/deploy_keys/index.md)                                                                                                             |       |          |           | ✓          | ✓     |       |
 | [Projects](project/index.md):<br>Manage [Project Operations](../operations/index.md)                                                                                                         |       |          |           | ✓          | ✓     |       |
@@ -163,7 +160,6 @@ Project Owners can do any listed action, and also can delete pipelines:
 | Run CI/CD job                                                                                                                  |            |       |          |     ✓     |     ✓      |       |
 | Run CI/CD pipeline for a protected branch                                                                                      |            |       |          |     ✓     |     ✓      | Developers and maintainers: Only if the user is [allowed to merge or push to the protected branch](../ci/pipelines/index.md#pipeline-security-on-protected-branches). |
 | Stop [environments](../ci/environments/index.md)                                                                               |            |       |          |     ✓     |     ✓      |       |
-| Delete [environments](../ci/environments/index.md)                                                                             |            |       |          |     ✓     |     ✓      |       |
 | View a job with [debug logging](../ci/variables/index.md#enable-debug-logging)                                                 |            |       |          |     ✓     |     ✓      |       |
 | Use pipeline editor                                                                                                            |            |       |          |     ✓     |     ✓      |       |
 | Run [interactive web terminals](../ci/interactive_web_terminal/index.md)                                                       |            |       |          |     ✓     |     ✓      |       |
@@ -201,6 +197,7 @@ Project permissions for [compliance](compliance/index.md) features including com
 | View [allowed and denied licenses in MR](compliance/license_scanning_of_cyclonedx_files/index.md) |   ✓   |    ✓     |     ✓     |     ✓      |   ✓   | On self-managed GitLab instances, users with the Guest role are able to perform this action only on public and internal projects (not on private projects). [External users](../administration/external_users.md) must be have at least the Reporter role, even if the project is internal. Users with the Guest role on GitLab.com are able to perform this action only on public projects because internal visibility is not available. |
 | View [audit events](../administration/audit_event_reports.md)                                     |       |          |     ✓     |     ✓      |   ✓   | Users can only view events based on their individual actions. |
 | View licenses in [dependency list](application_security/dependency_list/index.md)                 |       |          |     ✓     |     ✓      |   ✓   |       |
+| Create, edit, and delete license approval policies                                                |       |          |     ✓     |     ✓      |   ✓   |       |
 | Manage [audit streams](compliance/audit_event_streaming.md)                                       |       |          |           |            |   ✓   |       |
 
 ### Machine learning model registry and experiments
@@ -313,19 +310,19 @@ Project permissions for [repository](project/repository/index.md) features inclu
 | View project code                                              |   ✓   |    ✓     |     ✓     |     ✓      |   ✓   | On self-managed GitLab instances, users with the Guest role are able to perform this action only on public and internal projects (not on private projects). [External users](../administration/external_users.md) must be given explicit access (at least the **Reporter** role) even if the project is internal. Users with the Guest role on GitLab.com are only able to perform this action on public projects because internal visibility is not available. In GitLab 15.9 and later, users with the Guest role and an Ultimate license can view private repository content if an administrator (on self-managed or GitLab Dedicated) or group owner (on GitLab.com) gives those users permission. The administrator or group owner can create a [custom role](custom_roles.md) through the API or UI and assign that role to the users. |
 | Pull project code                                              |   ✓   |    ✓     |     ✓     |     ✓      |   ✓   | On self-managed GitLab instances, users with the Guest role are able to perform this action only on public and internal projects (not on private projects). [External users](../administration/external_users.md) must be given explicit access (at least the **Reporter** role) even if the project is internal. Users with the Guest role on GitLab.com are only able to perform this action on public projects because internal visibility is not available. |
 | View a commit status                                           |       |    ✓     |     ✓     |     ✓      |   ✓   |       |
-| Create or update commit status                                 |       |          |     ✓     |     ✓      |   ✓   | If the [branch is protected](project/repository/branches/protected.md), this depends on the access given to Developers and Maintainers. |
+| Create or update commit status                                 |       |          |     ✓     |     ✓      |   ✓   | If the [branch is protected](project/protected_branches.md), this depends on the access given to Developers and Maintainers. |
 | Create and delete [Git tags](project/repository/tags/index.md) |       |          |     ✓     |     ✓      |   ✓   |       |
 | Create new [branches](project/repository/branches/index.md)    |       |          |     ✓     |     ✓      |   ✓   |       |
 | Force push to non-protected branches                           |       |          |     ✓     |     ✓      |   ✓   |       |
 | Push to non-protected branches                                 |       |          |     ✓     |     ✓      |   ✓   |       |
 | Delete non-protected branches                                  |       |          |     ✓     |     ✓      |   ✓   |       |
-| Manage [protected branches](project/repository/branches/protected.md)     |       |          |           |     ✓      |   ✓   |       |
+| Manage [protected branches](project/protected_branches.md)     |       |          |           |     ✓      |   ✓   |       |
 | Delete protected branches                                      |       |          |           |     ✓      |   ✓   |       |
 | Manage [protected tags](project/protected_tags.md)             |       |          |           |     ✓      |   ✓   |       |
 | Manage [push rules](project/repository/push_rules.md)          |       |          |           |     ✓      |   ✓   |       |
-| Push to protected branches                                     |       |          |           |     ✓      |   ✓   | If the [branch is protected](project/repository/branches/protected.md), this depends on the access given to Developers and Maintainers. |
+| Push to protected branches                                     |       |          |           |     ✓      |   ✓   | If the [branch is protected](project/protected_branches.md), this depends on the access given to Developers and Maintainers. |
 | Remove fork relationship                                       |       |          |           |            |   ✓   |       |
-| Force push to protected branches                               |       |          |           |            |       | Not allowed for Guest, Reporter, Developer, Maintainer, or Owner. See [protected branches](project/repository/branches/protected.md#allow-force-push-on-a-protected-branch). |
+| Force push to protected branches                               |       |          |           |            |       | Not allowed for Guest, Reporter, Developer, Maintainer, or Owner. See [protected branches](project/protected_branches.md#allow-force-push-on-a-protected-branch). |
 
 Project permissions for [merge requests](project/merge_requests/index.md):
 
@@ -333,7 +330,7 @@ Project permissions for [merge requests](project/merge_requests/index.md):
 |--------------------------------------------------------------------------------------------------------------|:-----:|:--------:|:---------:|:----------:|:-----:|-------|
 | [View](project/merge_requests/index.md#view-merge-requests) a merge request                                  |   ✓   |    ✓     |     ✓     |     ✓      |   ✓   | On self-managed GitLab instances, users with the Guest role are able to perform this action only on public and internal projects (not on private projects). [External users](../administration/external_users.md) must be given explicit access (at least the **Reporter** role) even if the project is internal. Users with the Guest role on GitLab.com are only able to perform this action on public projects because internal visibility is not available. |
 | [Create](project/merge_requests/creating_merge_requests.md) a merge request                                  |       |          |     ✓     |     ✓      |   ✓   | In projects that accept contributions from external members, users can create, edit, and close their own merge requests. For **private** projects, this excludes the Guest role as those users [cannot clone private projects](public_access.md#private-projects-and-groups). For **internal** projects, includes users with read-only access to the project, as [they can clone internal projects](public_access.md#internal-projects-and-groups). |
-| Update a merge request including assign, review, Code Suggestions, approve, labels, lock and resolve threads |       |          |     ✓     |     ✓      |   ✓   | For information on eligible approvers for merge requests, see [Eligible approvers](project/merge_requests/approvals/rules.md#eligible-approvers). |
+| Update a merge request including assign, review, code suggestions, approve, labels, lock and resolve threads |       |          |     ✓     |     ✓      |   ✓   | For information on eligible approvers for merge requests, see [Eligible approvers](project/merge_requests/approvals/rules.md#eligible-approvers). |
 | Manage [merge request settings](project/merge_requests/approvals/settings.md)                                |       |          |           |     ✓      |   ✓   |       |
 | Manage [merge request approval rules](project/merge_requests/approvals/rules.md)                             |       |          |           |     ✓      |   ✓   |       |
 | Delete merge request                                                                                         |       |          |           |            |   ✓   |       |
@@ -345,7 +342,7 @@ Project permissions for [user management](project/members/index.md).
 | Action                                          | Guest | Reporter | Developer | Maintainer | Owner | Notes |
 |-------------------------------------------------|:-----:|:--------:|:---------:|:----------:|:-----:|-------|
 | Manage [team members](project/members/index.md) |       |          |           |     ✓      |   ✓   | Maintainers cannot create, demote, or remove Owners, and they cannot promote users to the Owner role. They also cannot approve Owner role access requests. |
-| Share (invite) projects with groups             |       |          |           |     ✓      |   ✓   | When [Share Group Lock](project/members/sharing_projects_groups.md#prevent-a-project-from-being-shared-with-groups) is enabled the project can't be shared with other groups. It does not affect group with group sharing. |
+| Share (invite) projects with groups             |       |          |           |     ✓      |   ✓   | When [Share Group Lock](group/access_and_permissions.md#prevent-a-project-from-being-shared-with-groups) is enabled the project can't be shared with other groups. It does not affect group with group sharing. |
 | View 2FA status of members                      |       |          |           |     ✓      |   ✓   |       |
 
 ### GitLab Duo
@@ -355,7 +352,7 @@ Project permissions for [GitLab Duo](gitlab_duo/index.md):
 | Action                                                                                                      | Non-member | Guest | Reporter | Developer | Maintainer | Owner | Notes |
 |-------------------------------------------------------------------------------------------------------------|------------|-------|----------|-----------|------------|-------|-------|
 | <br>Configure [Duo feature availability](gitlab_duo/turn_on_off.md#turn-off-for-a-project)                        |            |       |          |           | ✓           | ✓     |      |
-| <br>Use Duo features                                                                                        |            | ✓     | ✓        | ✓         | ✓          | ✓     | Code Suggestions requires a [user being assigned a seat to gain access to a Duo add-on](../subscriptions/subscription-add-ons.md#assign-gitlab-duo-seats).     |
+| <br>Use Duo features                                                                                        |            | ✓     | ✓        | ✓         | ✓          | ✓     | Code Suggestions requires a [user being assigned a seat to gain access to a Duo add-on](../subscriptions/subscription-add-ons.md#assign-gitlab-duo-pro-seats).     |
 
 ## Group members permissions
 
@@ -530,11 +527,11 @@ Group permissions for [GitLab Duo](../user/gitlab_duo/index.md):
 
 | Action                                                                                                      | Non-member | Guest | Reporter | Developer | Maintainer | Owner | Notes |
 |-------------------------------------------------------------------------------------------------------------|------------|-------|----------|-----------|------------|-------|-------|
-| <br>Purchase [Duo seats](../subscriptions/subscription-add-ons.md#purchase-additional-gitlab-duo-seats) |            |       |          |           |            | ✓     |       |
+| <br>Purchase [Duo seats](../subscriptions/subscription-add-ons.md#purchase-additional-gitlab-duo-pro-seats) |            |       |          |           |            | ✓     |       |
 | <br>Configure [Duo feature availability](gitlab_duo/turn_on_off.md#turn-off-for-a-group)                          |            |       |          |           | ✓         | ✓     |       |
 | <br>Configure [self-hosted models](../administration/self_hosted_models/configure_duo_features.md)          |            |       |          |           |            | ✓     |       |
 | <br>Enable [beta and experimental features](gitlab_duo/turn_on_off.md#turn-on-beta-and-experimental-features)   |            |       |          |           |            | ✓     |       |
-| <br>Use Duo features                                                                                        |            |       | ✓        | ✓         | ✓          | ✓     | Requires [user being assigned a seat to gain access to a Duo add-on](../subscriptions/subscription-add-ons.md#assign-gitlab-duo-seats).     |
+| <br>Use Duo features                                                                                        |            |       | ✓        | ✓         | ✓          | ✓     | Requires [user being assigned a seat to gain access to a Duo add-on](../subscriptions/subscription-add-ons.md#assign-gitlab-duo-pro-seats).     |
 
 ## Users with Minimal Access
 
@@ -553,7 +550,7 @@ Owners must explicitly add these users to the specific subgroups and
 projects.
 
 You can use the Minimal Access role with [SAML SSO for GitLab.com groups](group/saml_sso/index.md)
-to control access to groups and projects in the group hierarchy. You can set the default role to
+to control access to groups and projects in the group hierarchy. You can set the default role to 
 Minimal Access for members automatically added to the root group through SSO.
 
 1. On the left sidebar, select **Search or go to** and find your group.
@@ -575,7 +572,7 @@ To work around the issue, give these users the Guest role or higher to any proje
 - [Custom roles](custom_roles.md)
 - [The GitLab principles behind permissions](https://handbook.gitlab.com/handbook/product/gitlab-the-product/#permissions-in-gitlab)
 - [Members](project/members/index.md)
-- Customize permissions on [protected branches](project/repository/branches/protected.md)
+- Customize permissions on [protected branches](project/protected_branches.md)
 - [LDAP user permissions](group/access_and_permissions.md#manage-group-memberships-via-ldap)
 - [Value stream analytics permissions](group/value_stream_analytics/index.md#access-permissions-for-value-stream-analytics)
 - [Project aliases](../user/project/working_with_projects.md#project-aliases)

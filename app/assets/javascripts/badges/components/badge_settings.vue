@@ -28,11 +28,11 @@ export default {
     ),
   },
   computed: {
-    ...mapState(['badges', 'badgeInModal', 'isEditing', 'isSaving']),
+    ...mapState(['badges', 'badgeInModal', 'isEditing']),
     saveProps() {
       return {
         text: __('Save changes'),
-        attributes: { category: 'primary', variant: 'confirm', loading: this.isSaving },
+        attributes: { category: 'primary', variant: 'confirm' },
       };
     },
     deleteProps() {
@@ -48,12 +48,12 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['deleteBadge', 'stopEditing']),
+    ...mapActions(['deleteBadge']),
     closeAddForm() {
       this.$refs.badgesCrud.hideForm();
     },
     onSubmitEditModal() {
-      this.$refs.editForm.$el.dispatchEvent(new CustomEvent('submit', { cancelable: true }));
+      this.$refs.editForm.onSubmit();
     },
     onSubmitDeleteModal() {
       this.deleteBadge(this.badgeInModal)
@@ -92,14 +92,12 @@ export default {
 
     <gl-modal
       modal-id="edit-badge-modal"
-      :visible="isEditing"
       :title="s__('Badges|Edit badge')"
       :action-primary="saveProps"
       :action-cancel="cancelProps"
-      @primary.prevent="onSubmitEditModal"
-      @hidden="stopEditing"
+      @primary="onSubmitEditModal"
     >
-      <badge-form ref="editForm" :is-editing="true" data-testid="edit-badge" />
+      <badge-form ref="editForm" :is-editing="true" :in-modal="true" data-testid="edit-badge" />
     </gl-modal>
 
     <gl-modal

@@ -1,3 +1,25 @@
+@mixin btn-comment-icon {
+  border-radius: 50%;
+  background: $white;
+  padding: 1px;
+  font-size: 12px;
+  color: $blue-500;
+  border: 1px solid $blue-500;
+  width: 24px;
+  height: 24px;
+
+  &:hover,
+  &.inverted {
+    background: $blue-500;
+    border-color: $blue-600;
+    color: $white;
+  }
+
+  &:active {
+    outline: 0;
+  }
+}
+
 @mixin btn-default {
   border-radius: $gl-border-radius-base;
   font-size: $gl-font-size;
@@ -19,6 +41,10 @@
   background-color: $background;
   color: $text;
   border-color: $border;
+
+  &.btn-border-color {
+    border-color: $border-color;
+  }
 
   > .icon {
     color: $text;
@@ -154,6 +180,15 @@
   }
 }
 
+.btn-block {
+  width: 100%;
+  margin: 0;
+
+  &.btn {
+    padding: 6px 0;
+  }
+}
+
 .btn-group {
   &.btn-grouped {
     @include btn-with-margin;
@@ -179,6 +214,14 @@
 
     border: 1px solid $gray-100 !important;
     background-color: $btn-active-gray-light !important;
+  }
+}
+
+.btn-loading {
+  &:not(.disabled) {
+    .gl-spinner {
+      display: none;
+    }
   }
 }
 
@@ -233,5 +276,28 @@ fieldset[disabled] .btn,
     i {
       color: $gl-text-color-disabled;
     }
+  }
+
+  &.btn-link {
+    background-color: transparent;
+  }
+}
+
+.btn-link {
+  padding: 0;
+  background-color: transparent;
+  color: $blue-600;
+  font-weight: normal;
+  border-radius: 0;
+  border-color: transparent;
+  border-width: 0;
+
+  &:hover,
+  &:active,
+  &:focus {
+    color: $blue-800;
+    text-decoration: underline;
+    background-color: transparent;
+    border-color: transparent;
   }
 }

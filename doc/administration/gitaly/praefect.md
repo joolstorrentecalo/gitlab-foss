@@ -601,8 +601,8 @@ Updates to example must be made at:
    }
    ```
 
-   By default, Praefect uses opportunistic TLS to connect to PostgreSQL. This means that Praefect attempts to connect to PostgreSQL using `sslmode` set to
-   `prefer`. You can override this by uncommenting the following line:
+   By default, Praefect refuses to make an unencrypted connection to
+   PostgreSQL. You can override this by uncommenting the following line:
 
    ```ruby
    praefect['configuration'] = {
@@ -1484,8 +1484,8 @@ sudo -u git -- /opt/gitlab/embedded/bin/praefect -config /var/opt/gitlab/praefec
 - `-virtual-storage` is the virtual storage the repository is located in.
 - `-repository` is the repository's relative path in the storage.
 - `-replication-factor` is the desired replication factor of the repository. The minimum value is
-  `1`, as the primary needs a copy of the repository. The maximum replication factor is the number of
-  storages in the virtual storage.
+ `1`, as the primary needs a copy of the repository. The maximum replication factor is the number of
+ storages in the virtual storage.
 
 On success, the assigned host storages are printed. For example:
 

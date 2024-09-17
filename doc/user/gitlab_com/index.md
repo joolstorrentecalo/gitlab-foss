@@ -277,12 +277,6 @@ which GitLab you use:
 - GitLab self-managed: No import sources are enabled by default and must be
   [enabled](../../administration/settings/import_and_export_settings.md#configure-allowed-import-sources).
 
-## Import placeholder user limits
-
-The number of [placeholder users](../../user/project/import/index.md#placeholder-users) created during an import on GitLab.com is limited per top-level namespace. The limits
-differ depending on your plan and seat count.
-For more information, see the [table of placeholder user limits for GitLab.com](../../user/project/import/index.md#placeholder-user-limits).
-
 ## IP range
 
 GitLab.com uses the IP ranges `34.74.90.64/28` and `34.74.226.0/24` for traffic from its Web/API
@@ -293,10 +287,8 @@ GitLab.com is fronted by Cloudflare. For incoming connections to GitLab.com, you
 
 For outgoing connections from CI/CD runners, we are not providing static IP addresses.
 Most GitLab.com instance runners are deployed into Google Cloud Platform (GCP) in `us-east1`, except _Linux GPU-enabled_ and _Linux Arm64_, hosted in `us-central1`.
-You can configure any IP-based firewall by looking up
+Any IP-based firewall can be configured by looking up
 [IP address ranges or CIDR blocks for GCP](https://cloud.google.com/compute/docs/faq#find_ip_range).
-MacOS runners are hosted on AWS and have a different IP range.
-For more information, see [AWS IP address ranges](https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-ranges.html).
 
 ## Hostname list
 
@@ -342,7 +334,7 @@ For self-managed instance limits, see:
 - [Webhook rate limit](../../administration/instance_limits.md#webhook-rate-limit).
 - [Number of webhooks](../../administration/instance_limits.md#number-of-webhooks).
 - [Webhook timeout](../../administration/instance_limits.md#webhook-timeout).
-- [Parallel Pages deployments](../../administration/instance_limits.md#number-of-parallel-pages-deployments).
+- [Multiple Pages deployments](../../administration/instance_limits.md#number-of-extra-pages-deployments-when-using-multiple-deployments).
 
 ## GitLab-hosted runners
 
@@ -406,7 +398,7 @@ GitLab can rate-limit requests at several layers. The rate limits listed here
 are configured in the application. These limits are the most
 restrictive per IP address. For more information about the rate limits
 for GitLab.com, see
-[the documentation in the handbook](https://handbook.gitlab.com/handbook/engineering/infrastructure/rate-limiting).
+[an overview](https://gitlab.com/gitlab-com/runbooks/-/tree/master/docs/rate-limiting).
 
 ### Rate limiting responses
 

@@ -177,6 +177,18 @@
     }
   }
 
+  &.user-authored {
+    cursor: default;
+    background-color: $gray-10;
+    border-color: $gray-100;
+    color: $gl-text-color-disabled;
+
+    gl-emoji {
+      opacity: 0.4;
+      filter: grayscale(100%);
+    }
+  }
+
   &.btn {
     &:focus {
       outline: 0;
@@ -184,6 +196,7 @@
   }
 
   &.is-loading {
+    .award-control-icon-normal,
     .emoji-icon {
       display: none;
     }

@@ -55,7 +55,6 @@ export default {
   },
 
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     users: {
       query: searchUsersQuery,
       variables() {
@@ -254,7 +253,7 @@ export default {
               id: this.sourceUser.id,
               ...(hasSelectedUser ? { userId: this.selectedUser.id } : {}),
             },
-            // importSourceUsersQuery used in placeholders_table.vue
+            // importSourceUsersQuery used in app.vue
             refetchQueries: [hasSelectedUser ? {} : importSourceUsersQuery],
           })
           .then(({ data }) => {
@@ -314,11 +313,11 @@ export default {
 
         <template #footer>
           <div
-            class="gl-flex gl-flex-col gl-border-t-1 gl-border-t-gray-200 !gl-p-2 !gl-pt-0 gl-border-t-solid"
+            class="gl-border-t-solid gl-border-t-1 gl-border-t-gray-200 gl-flex gl-flex-col !gl-p-2 !gl-pt-0"
           >
             <gl-button
               category="tertiary"
-              class="gl-mt-2 !gl-justify-start"
+              class="!gl-justify-start gl-mt-2"
               data-testid="dont-reassign-button"
               @click="onSelect('')"
             >

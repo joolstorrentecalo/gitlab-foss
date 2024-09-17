@@ -65,6 +65,6 @@ describe('AssigneeAvatar', () => {
       },
     });
 
-    expect(findImg().element.src).toEqual(expected);
+    expect(findImg().attributes('src')).toEqual(expected);
   });
 });

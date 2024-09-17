@@ -123,11 +123,14 @@ export default {
       />
     </template>
     <template #left-primary>
-      <div class="gl-mr-5 gl-flex gl-min-w-0 gl-items-center gl-gap-3" data-testid="package-name">
+      <div
+        class="gl-display-flex gl-align-items-center gl-gap-3 gl-mr-5 gl-min-w-0"
+        data-testid="package-name"
+      >
         <router-link
           v-if="containsWebPathLink"
           :class="errorPackageStyle"
-          class="gl-min-w-0 gl-break-all gl-text-primary"
+          class="gl-text-body gl-min-w-0 gl-break-all"
           data-testid="details-link"
           :to="{ name: 'details', params: { id: packageId } }"
         >
@@ -137,9 +140,10 @@ export default {
           {{ packageEntity.name }}
         </span>
 
-        <div v-if="showTags || showBadgeProtected" class="gl-flex gl-gap-3">
+        <div v-if="showTags || showBadgeProtected" class="gl-display-flex gl-gap-2">
           <package-tags
             v-if="showTags"
+            class="gl-ml-2"
             :tags="packageEntity.tags.nodes"
             hide-label
             :tag-display-limit="1"
@@ -148,6 +152,7 @@ export default {
           <gl-badge
             v-if="showBadgeProtected"
             v-gl-tooltip="{ title: $options.i18n.badgeProtectedTooltipText }"
+            class="gl-ml-2"
             icon-size="sm"
             variant="neutral"
           >
@@ -159,11 +164,11 @@ export default {
     <template #left-secondary>
       <div
         v-if="!errorStatusRow"
-        class="gl-flex gl-items-center"
+        class="gl-display-flex gl-align-items-center"
         data-testid="left-secondary-infos"
       >
         <gl-truncate
-          class="gl-max-w-15 md:gl-max-w-26"
+          class="gl-max-w-15 gl-md-max-w-26"
           :text="packageEntity.version"
           :with-tooltip="true"
         />

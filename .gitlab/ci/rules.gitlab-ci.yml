@@ -102,14 +102,11 @@
 .if-merge-request-labels-run-all-e2e: &if-merge-request-labels-run-all-e2e
   if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_MERGE_REQUEST_LABELS =~ /pipeline:run-all-e2e/'
 
-.if-merge-request-labels-run-observability-e2e-tests-main-branch: &if-merge-request-labels-run-observability-e2e-tests-main-branch
-  if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_MERGE_REQUEST_LABELS =~ /pipeline:run-observability-e2e-tests-main-branch/'
-
-.if-merge-request-labels-run-observability-e2e-tests-current-branch: &if-merge-request-labels-run-observability-e2e-tests-current-branch
-  if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_MERGE_REQUEST_LABELS =~ /pipeline:run-observability-e2e-tests-current-branch/'
-
 .if-merge-request-labels-run-single-db: &if-merge-request-labels-run-single-db
   if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_MERGE_REQUEST_LABELS =~ /pipeline:run-single-db/'
+
+.if-merge-request-labels-run-clusterwide-db: &if-merge-request-labels-run-clusterwide-db
+  if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_MERGE_REQUEST_LABELS =~ /pipeline:run-clusterwide-db/'
 
 .if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
   if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_MERGE_REQUEST_LABELS =~ /pipeline:run-review-app/'
@@ -195,9 +192,6 @@
 .if-dot-com-gitlab-org-default-branch: &if-dot-com-gitlab-org-default-branch
   if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PROJECT_NAMESPACE == "gitlab-org" && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
 
-.if-not-dot-com-gitlab-org-default-branch: &if-not-dot-com-gitlab-org-default-branch
-  if: '$CI_SERVER_HOST != "gitlab.com" || $CI_PROJECT_NAMESPACE != "gitlab-org" || $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"'
-
 .if-dot-com-gitlab-org-merge-request: &if-dot-com-gitlab-org-merge-request
   if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_SERVER_HOST == "gitlab.com" && $CI_PROJECT_NAMESPACE == "gitlab-org"'
 
@@ -239,7 +233,7 @@
   - ".gitlab/ci/frontend.gitlab-ci.yml"
   - ".gitlab/ci/build-images.gitlab-ci.yml"
   - ".gitlab/ci/qa.gitlab-ci.yml"
-  - ".gitlab/ci/test-on-omnibus/*.yml"
+  - ".gitlab/ci/package-and-test/*.yml"
   - ".gitlab/ci/review-apps/qa.gitlab-ci.yml"
   - ".gitlab/ci/review-apps/rules.gitlab-ci.yml"
   - ".gitlab/ci/test-on-gdk/*.yml"
@@ -452,7 +446,7 @@
 .qa-patterns: &qa-patterns
   - ".dockerignore"
   - "{,jh/}qa/**/*"
-  - ".gitlab/ci/{test-on-omnibus,qa-common,test-on-cng,test-on-gdk}/*"
+  - ".gitlab/ci/{package-and-test,qa-common,test-on-cng,test-on-gdk}/*"
 
 # See https://gitlab.com/gitlab-org/quality/engineering-productivity/team/-/issues/470
 # for the reasons why we only match those patterns.
@@ -708,23 +702,6 @@
   - "qa/gems/gitlab-cng/**/*.rb"
   - "qa/gems/gitlab-cng/{Gemfile,Gemfile.lock}"
 
-.observability-code-patterns: &observability-code-patterns
-  # backend
-  - "ee/app/helpers/observability/**/*"
-  - "ee/app/helpers/projects/observability_helper.rb"
-  - "lib/gitlab/observability.rb"
-  - "ee/lib/ee/gitlab/observability.rb"
-  - "ee/lib/api/internal/observability.rb"
-  - "ee/app/controllers/projects/tracing_controller.rb"
-  - "ee/app/controllers/projects/metrics_controller.rb"
-  - "ee/app/controllers/projects/logs_controller.rb"
-  - "ee/app/services/observability/**/*"
-  # frontend
-  - "app/assets/javascripts/observability/**/*"
-  - "ee/app/assets/javascripts/logs/**/*"
-  - "ee/app/assets/javascripts/metrics/**/*"
-  - "ee/app/assets/javascripts/tracing/**/*"
-
 ##################
 # Conditions set #
 ##################
@@ -948,19 +925,15 @@
     - <<: *if-merge-request-labels-run-all-e2e
     - <<: *if-merge-request-labels-run-review-app
     - <<: *if-merge-request
-      changes: *ruby-version-patterns
-    - <<: *if-merge-request
       changes: *qa-patterns
-    - <<: *if-merge-request
-      changes: *gitaly-patterns
     - <<: *if-merge-request-targeting-stable-branch
       changes: *setup-test-env-patterns
     - <<: *if-merge-request
       changes: *ci-build-images-patterns
-    - !reference [".prevent-tier-1", rules]
+    - !reference [".prevent-tier-2-and-below", rules]
     - <<: *if-merge-request
       changes: *code-qa-patterns
-    # Rules to support .qa:rules:test-on-omnibus-ee
+    # Rules to support .qa:rules:package-and-test-ee
     - <<: *if-merge-request
       changes: *dependency-patterns
     - <<: *if-merge-request
@@ -969,12 +942,7 @@
       changes: *nodejs-patterns
     - <<: *if-merge-request
       changes: *ci-qa-patterns
-    - <<: *if-merge-request
-      changes: *gdk-component-patterns
 
-# These rules have to include rules from ".qa:rules:e2e:test-on-gdk" which are also used
-# for "e2e:test-product-analytics" job in "qa.gitkab-ci.yml".
-# "e2e:test-product-analytics" job requires QA image to be built.
 .build-images:rules:build-qa-image:
   rules:
     - <<: *if-not-canonical-namespace
@@ -1016,7 +984,7 @@
 # It's better to fail early and avoid wasting resources running test jobs that would just fail anyway.
 .build-images:rules:build-gdk-image:
   rules:
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-default-branch-schedule-nightly  # already executed in the 2-hourly schedule
       when: never
     - <<: *if-default-branch-refs
@@ -1146,10 +1114,8 @@
 ######################
 # Dev fixtures rules #
 ######################
-.dev-fixtures:rules:foss-only:
+.dev-fixtures:rules:ee-and-foss:
   rules:
-    - <<: *if-not-foss
-      when: never
     - <<: *if-merge-request-labels-pipeline-expedite
       when: never
     - <<: *if-default-refs
@@ -1256,7 +1222,7 @@
     - <<: *if-default-refs
       changes: *workhorse-patterns
     - !reference [".prevent-tier-2-and-below", rules]
-    # Rules to support .qa:rules:test-on-omnibus
+    # Rules to support .qa:rules:package-and-test
     - <<: *if-merge-request
       changes: *dependency-patterns
     - <<: *if-default-refs
@@ -1305,13 +1271,6 @@
     - !reference [.frontend:rules:default-frontend-jobs, rules]
     - <<: *if-default-refs
       changes: *docs-patterns
-
-
-.frontend:rules:upload-graphql-schema-dump:
-  rules:
-    - <<: *if-not-dot-com-gitlab-org-default-branch
-      when: never
-    - !reference [.frontend:rules:default-frontend-jobs, rules]
 
 # .frontend:rules:default-frontend-jobs, with a additional rules when MR is not approved
 .frontend:rules:frontend_fixture:
@@ -1508,7 +1467,7 @@
 ##########
 # Notify #
 ##########
-.notify:rules:notify-test-on-omnibus-failure:
+.notify:rules:notify-package-and-test-failure:
   rules:
     - <<: *if-not-canonical-namespace
       when: never
@@ -1617,7 +1576,7 @@
       allow_failure: true
     - <<: *if-dot-com-gitlab-org-schedule
       allow_failure: true
-    # Rules to support .qa:rules:test-on-omnibus-ee
+    # Rules to support .qa:rules:package-and-test-ee
     - <<: *if-merge-request
       changes: *dependency-patterns
       allow_failure: true
@@ -1633,7 +1592,7 @@
     - <<: *if-force-ci
       allow_failure: true
 
-.qa:rules:e2e-test-never-run:
+.qa:rules:package-and-test-never-run:
   rules:
     - <<: *if-not-canonical-namespace
       when: never
@@ -1642,9 +1601,9 @@
     - <<: *if-merge-request-labels-pipeline-expedite
       when: never
 
-.qa:rules:test-on-omnibus-common:
+.qa:rules:package-and-test-common:
   rules:
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-merge-request-labels-run-all-e2e
     # Run tests automatically for MRs that touch QA files
     - <<: *if-merge-request
@@ -1673,10 +1632,11 @@
       changes: *code-patterns
     - <<: *if-ruby-branch
 
-# .qa:rules:e2e-blocking-base-* are similar to .qa:rules:test-on-omnibus-common, but not allowed to fail.
+# .qa:rules:e2e-blocking-base-* are similar to .qa:rules:package-and-test-common, but not allowed to fail.
+# It's named `e2e` instead of `package-and-test` because it's used for e2e tests on GDK/CNG
 .qa:rules:e2e-blocking-base-before:
   rules:
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-merge-request-labels-run-all-e2e
     # Run tests automatically for MRs that touch Ruby version files
     - <<: *if-merge-request
@@ -1714,7 +1674,7 @@
 .qa:rules:code-suggestions-eval-base:
   rules:
     - !reference [".strict-ee-only-rules", rules]
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-fork-merge-request
       when: never
     - <<: *if-merge-request-targeting-stable-branch
@@ -1738,15 +1698,15 @@
       changes: *code-patterns
 
 # Note: If any changes are made to this rule, the following should also be updated - .qa:rules:post-run-e2e-message
-.qa:rules:test-on-omnibus-ee:
+.qa:rules:package-and-test-ee:
   rules:
-    - !reference [".qa:rules:test-on-omnibus-common", rules]
+    - !reference [".qa:rules:package-and-test-common", rules]
     - !reference [".qa:rules:e2e-schedule-blocking", rules]
 
-# Note: If any changes are made to this rule, the following should also be updated - .qa:rules:test-on-omnibus-ce:follow-up
-.qa:rules:test-on-omnibus-ce:start:
+# Note: If any changes are made to this rule, the following should also be updated - .qa:rules:package-and-test-ce:follow-up
+.qa:rules:package-and-test-ce:start:
   rules:
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-security-merge-request
       changes: *qa-patterns
       when: manual
@@ -1764,9 +1724,9 @@
         PROCESS_TEST_RESULTS: "true"
         QA_SAVE_TEST_METRICS: "true"
 
-.qa:rules:test-on-omnibus-ce:follow-up:
+.qa:rules:package-and-test-ce:follow-up:
   rules:
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-security-merge-request
       changes: *qa-patterns
       allow_failure: true
@@ -1807,7 +1767,7 @@
     # Until https://gitlab.com/gitlab-org/quality/quality-engineering/CNG-mirror is stable enough,
     # test-on-cng should not be part of development flow.
     # Once it's ready, delete the two following rules, and uncomment the commented lines below.
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-dot-com-gitlab-org-schedule
       variables:
         KNAPSACK_GENERATE_REPORT: "true"
@@ -1827,9 +1787,10 @@
     # - <<: *if-merge-request
     #   changes: *cng-orchestrator-patterns
 
-.qa:rules:test-on-omnibus-nightly:
+
+.qa:rules:package-and-test-nightly:
   rules:
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-default-branch-schedule-nightly
       allow_failure: true
       variables:
@@ -1838,7 +1799,7 @@
         CREATE_TEST_FAILURE_ISSUES: "true"
         QA_SAVE_TEST_METRICS: "true"
 
-# These provide a manual way to trigger follow-up:e2e:test-on-omnibus-ee
+# These provide a manual way to trigger follow-up:e2e:package-and-test-ee
 # It is fine if they're overlapping with the automatic ones.
 # It'll not hurt and it can simplify the rules, decoupling them.
 # If any changes are made to this rule, the following should also be updated:
@@ -1846,7 +1807,7 @@
 # 2) .qa:rules:post-run-e2e-message
 .qa:rules:manual-e2e:
   rules:
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - !reference [".qa:rules:code-merge-request-manual", rules]
 
 # These are based on `.qa:rules:manual-e2e` but with manual jobs changed to automatic.
@@ -1854,14 +1815,14 @@
 # 1) .qa:rules:manual-e2e
 .qa:rules:follow-up-e2e:
   rules:
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - !reference [".qa:rules:code-merge-request-allowed-to-fail", rules]
 
-# These are based on `qa:rules:test-on-omnibus-ee` but with when:never in all except for code-patterns in merge requests
+# These are based on `qa:rules:package-and-test-ee` but with when:never in all except for code-patterns in merge requests
 .qa:rules:post-run-e2e-message:
   rules:
-    # From .qa:rules:test-on-omnibus-common
-    - !reference [".qa:rules:e2e-test-never-run", rules]
+    # From .qa:rules:package-and-test-common
+    - !reference [".qa:rules:package-and-test-never-run", rules]
     - <<: *if-merge-request-not-labels-pipeline-run-e2e-omnibus-once
       when: never
     - <<: *if-ruby-branch
@@ -1895,6 +1856,7 @@
       when: never
     - <<: *if-merge-request-and-specific-devops-stage
       when: never
+    # From .qa:rules:package-and-test-schedule
     - <<: *if-dot-com-gitlab-org-schedule
       when: never
     # From .qa:rules:manual-e2e
@@ -1917,6 +1879,10 @@
     - <<: *if-default-refs
       changes: *setup-test-env-patterns
     - <<: *if-merge-request-labels-run-all-rspec
+
+.rails:rules:clusterwide-db:
+  rules:
+    - <<: *if-merge-request-labels-run-clusterwide-db
 
 .rails:rules:single-redis:
   rules:
@@ -3086,6 +3052,7 @@
     - <<: *if-merge-request-labels-as-if-foss
     - <<: *if-merge-request-labels-run-all-rspec
     - <<: *if-merge-request-labels-run-all-jest
+    - <<: *if-merge-request-labels-run-clusterwide-db
     - <<: *if-merge-request-labels-run-single-db
     - <<: *if-merge-request-labels-run-review-app
     - <<: *if-merge-request-labels-run-all-e2e
@@ -3139,6 +3106,9 @@
       allow_failure: true
       when: manual
     - <<: *if-merge-request-labels-run-all-jest
+      allow_failure: true
+      when: manual
+    - <<: *if-merge-request-labels-run-clusterwide-db
       allow_failure: true
       when: manual
     - <<: *if-merge-request-labels-run-single-db
@@ -3230,6 +3200,8 @@
     - <<: *if-merge-request-labels-run-all-rspec
       allow_failure: true
     - <<: *if-merge-request-labels-run-all-jest
+      allow_failure: true
+    - <<: *if-merge-request-labels-run-clusterwide-db
       allow_failure: true
     - <<: *if-merge-request-labels-run-single-db
       allow_failure: true
@@ -3359,28 +3331,14 @@
 ###############################
 # Observability Backend rules #
 ###############################
-.observability-backend-main-branch:rules:
+.observability-backend:rules:
   rules:
-    - <<: *if-merge-request-labels-run-observability-e2e-tests-current-branch
-      when: never
-    - <<: *if-merge-request-labels-run-observability-e2e-tests-main-branch
-      allow_failure: true
-    - <<: *if-merge-request
-      changes: *observability-code-patterns
-      allow_failure: true
     - <<: *if-merge-request
       changes: *code-patterns
       when: manual
       allow_failure: true
-
-.observability-backend-current-branch:rules:
-  rules:
-    - <<: *if-merge-request-labels-run-observability-e2e-tests-main-branch
-      when: never
-    - <<: *if-merge-request-labels-run-observability-e2e-tests-current-branch
-      allow_failure: true
     - <<: *if-merge-request
-      changes: *code-patterns
+      changes: *ci-patterns
       when: manual
       allow_failure: true
 

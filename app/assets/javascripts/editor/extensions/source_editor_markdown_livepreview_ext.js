@@ -134,8 +134,8 @@ export class EditorMarkdownPreviewExtension {
     fetchPreview(instance.getValue(), this.preview.path)
       .then((data) => {
         previewEl.innerHTML = sanitize(data);
-        previewEl.style.display = 'block';
         renderGFM(previewEl);
+        previewEl.style.display = 'block';
       })
       .catch(() => createAlert(BLOB_PREVIEW_ERROR));
   }

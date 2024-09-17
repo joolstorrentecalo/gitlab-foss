@@ -86,8 +86,7 @@ export const I18N_AGENT_TABLE = {
   viewDocsText: s__('ClusterAgents|How do I update an agent?'),
   defaultConfigText: s__('ClusterAgents|Default configuration'),
   defaultConfigTooltip: s__('ClusterAgents|What is default configuration?'),
-  sharedBadgeText: s__('ClusterAgents|Shared'),
-  receptiveBadgeText: s__('ClusterAgents|Receptive'),
+  sharedBadgeText: s__('ClusterAgents|shared'),
   externalConfigText: s__('ClusterAgents|External project'),
 };
 

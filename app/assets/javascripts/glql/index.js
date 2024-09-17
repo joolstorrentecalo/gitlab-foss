@@ -1,14 +1,14 @@
-import Vue from 'vue';
-import Facade from './components/common/facade.vue';
+import Executor from './core/executor';
+import Presenter from './core/presenter';
 
 const renderGlqlNode = async (el) => {
-  const container = document.createElement('div');
-  el.parentNode.replaceChild(container, el);
+  el.style.display = 'none';
 
-  return new Vue({
-    el: container,
-    render: (h) => h(Facade, { props: { query: el.textContent } }),
-  });
+  const query = el.textContent;
+  const executor = await new Executor().init();
+  const { data, config } = await executor.compile(query).execute();
+
+  return new Presenter().init({ data: (data.project || data.group).issues, config }).mount(el);
 };
 
 const renderGlqlNodes = (els) => {

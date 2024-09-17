@@ -67,7 +67,6 @@ class Projects::IssuesController < Projects::ApplicationController
     push_force_frontend_feature_flag(:work_items_alpha, project&.work_items_alpha_feature_flag_enabled?)
     push_frontend_feature_flag(:epic_widget_edit_confirmation, project)
     push_frontend_feature_flag(:namespace_level_work_items, project&.group)
-    push_frontend_feature_flag(:work_items_view_preference, current_user)
   end
 
   around_action :allow_gitaly_ref_name_caching, only: [:discussions]
@@ -122,7 +121,7 @@ class Projects::IssuesController < Projects::ApplicationController
     build_params = issue_params.merge(
       merge_request_to_resolve_discussions_of: params[:merge_request_to_resolve_discussions_of],
       discussion_to_resolve: params[:discussion_to_resolve],
-      observability_links: { metrics: params[:observability_metric_details], logs: params[:observability_log_details], tracing: params[:observability_trace_details] },
+      observability_links: params[:observability_metric_details],
       confidential: !!Gitlab::Utils.to_boolean(issue_params[:confidential])
     )
     service = ::Issues::BuildService.new(container: project, current_user: current_user, params: build_params)
@@ -141,15 +140,6 @@ class Projects::IssuesController < Projects::ApplicationController
     respond_with(@issue)
   end
 
-  def show
-    return super unless show_work_item? && request.format.html?
-
-    @right_sidebar = false
-    @work_item = issue.becomes(::WorkItem) # rubocop:disable Cop/AvoidBecomes -- We need the instance to be a work item
-
-    render 'projects/work_items/show'
-  end
-
   def edit
     respond_with(@issue)
   end
@@ -158,7 +148,6 @@ class Projects::IssuesController < Projects::ApplicationController
     create_params = issue_params.merge(
       add_related_issue: add_related_issue,
       merge_request_to_resolve_discussions_of: params[:merge_request_to_resolve_discussions_of],
-      observability_links: params[:observability_links],
       discussion_to_resolve: params[:discussion_to_resolve]
     )
 
@@ -399,10 +388,6 @@ class Projects::IssuesController < Projects::ApplicationController
   end
 
   private
-
-  def show_work_item?
-    Feature.enabled?(:work_items_view_preference, current_user) && current_user&.user_preference&.use_work_items_view
-  end
 
   def work_item_redirect_except_actions
     ISSUES_EXCEPT_ACTIONS

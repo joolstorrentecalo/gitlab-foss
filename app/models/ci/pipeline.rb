@@ -19,9 +19,6 @@ module Ci
     include EachBatch
     include FastDestroyAll::Helpers
 
-    self.primary_key = :id
-    self.sequence_name = :ci_pipelines_id_seq
-
     MAX_OPEN_MERGE_REQUESTS_REFS = 4
 
     PROJECT_ROUTE_AND_NAMESPACE_ROUTE = {
@@ -169,7 +166,7 @@ module Ci
     validates :status, presence: { unless: :importing? }
     validate :valid_commit_sha, unless: :importing?
     validates :source, exclusion: { in: %w[unknown], unless: :importing? }, on: :create
-    validates :project, presence: true
+    validates :project, presence: true, on: :create
 
     after_create :keep_around_commits, unless: :importing?
     after_commit :track_ci_pipeline_created_event, on: :create, if: :internal_pipeline?
@@ -469,7 +466,6 @@ module Ci
       )
     end
 
-    scope :order_id_asc, -> { order(id: :asc) }
     scope :order_id_desc, -> { order(id: :desc) }
 
     # Returns the pipelines in descending order (= newest first), optionally
@@ -1506,15 +1502,7 @@ module Ci
     end
 
     def track_ci_pipeline_created_event
-      Gitlab::InternalEvents.track_event(
-        'create_ci_internal_pipeline',
-        project: project,
-        user: user,
-        additional_properties: {
-          label: source,
-          property: config_source
-        }
-      )
+      Gitlab::InternalEvents.track_event('create_ci_internal_pipeline', project: project, user: user)
     end
   end
 end

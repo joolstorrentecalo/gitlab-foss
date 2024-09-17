@@ -198,7 +198,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="loading" class="gl-pt-13 gl-text-center">
+    <div v-if="loading" class="gl-text-center gl-pt-13">
       <gl-loading-icon :inline="true" size="xl" data-testid="loading-app-icon" />
     </div>
 

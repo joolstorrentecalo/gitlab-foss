@@ -66,8 +66,6 @@ class MergeRequest < ApplicationRecord
   has_one :predictions, inverse_of: :merge_request
   delegate :suggested_reviewers, to: :predictions
 
-  has_one :merge_schedule, class_name: 'MergeRequests::MergeSchedule', inverse_of: :merge_request
-
   belongs_to :latest_merge_request_diff, class_name: 'MergeRequestDiff'
   manual_inverse_association :latest_merge_request_diff, :merge_request
 
@@ -380,7 +378,6 @@ class MergeRequest < ApplicationRecord
     preload_routables.preload(
       :assignees, :author, :unresolved_notes, :labels, :milestone,
       :timelogs, :latest_merge_request_diff, :reviewers,
-      :merge_schedule,
       target_project: :project_feature,
       metrics: [:latest_closed_by, :merged_by]
     )
@@ -465,16 +462,6 @@ class MergeRequest < ApplicationRecord
       reviewers_subquery
         .where(Arel::Table.new("#{to_ability_name}_reviewers")[:state].in(states))
         .exists
-    )
-  end
-
-  scope :assignee_or_reviewer, ->(user, assigned_review_states, reviewer_state) do
-    assigned_to_scope = assigned_to(user)
-    assigned_to_scope = assigned_to_scope.review_states(assigned_review_states) if assigned_review_states
-
-    from_union(
-      assigned_to_scope,
-      review_requested_to(user, reviewer_state)
     )
   end
 
@@ -852,16 +839,10 @@ class MergeRequest < ApplicationRecord
     compare.present? ? compare.raw_diffs(*args) : merge_request_diff.raw_diffs(*args)
   end
 
-  def diffs_for_streaming(diff_options = {}, &)
+  def diffs_for_streaming(diff_options = {})
     diff = diffable_merge_ref? ? merge_head_diff : merge_request_diff
 
-    offset = diff_options[:offset_index].to_i || 0
-
-    if block_given?
-      source_project.repository.diffs_by_changed_paths(diff.diff_refs, offset, &)
-    else
-      diff.diffs(diff_options)
-    end
+    diff.diffs(diff_options)
   end
 
   def diffs(diff_options = {})
@@ -1482,6 +1463,9 @@ class MergeRequest < ApplicationRecord
   def cache_merge_request_closes_issues!(current_user = self.author)
     return if closed? || merged?
 
+    issue_ids_existing = merge_requests_closing_issues
+      .from_mr_description
+      .pluck(:issue_id)
     issues_to_close_ids = closes_issues(current_user).reject { |issue| issue.is_a?(ExternalIssue) }.map(&:id)
 
     transaction do
@@ -1497,23 +1481,29 @@ class MergeRequest < ApplicationRecord
       end
 
       issue_ids_to_create = issues_to_close_ids - issue_ids_to_update
-      next unless issue_ids_to_create.any?
 
-      now = Time.zone.now
-      new_associations = issue_ids_to_create.map do |issue_id|
-        MergeRequestsClosingIssues.new(
-          issue_id: issue_id,
-          merge_request_id: id,
-          from_mr_description: true,
-          created_at: now,
-          updated_at: now
-        )
+      if issue_ids_to_create.any?
+        now = Time.zone.now
+        new_associations = issue_ids_to_create.map do |issue_id|
+          MergeRequestsClosingIssues.new(
+            issue_id: issue_id,
+            merge_request_id: id,
+            from_mr_description: true,
+            created_at: now,
+            updated_at: now
+          )
+        end
+
+        # We can't skip validations here in bulk insert as we don't have a unique constraint on the DB.
+        # We can skip validations once we have validated the unique constraint
+        # TODO: https://gitlab.com/gitlab-org/gitlab/-/issues/456965
+        MergeRequestsClosingIssues.bulk_insert!(new_associations, batch_size: 100)
       end
+    end
 
-      # We can't skip validations here in bulk insert as we don't have a unique constraint on the DB.
-      # We can skip validations once we have validated the unique constraint
-      # TODO: https://gitlab.com/gitlab-org/gitlab/-/issues/456965
-      MergeRequestsClosingIssues.bulk_insert!(new_associations, batch_size: 100)
+    ids_for_trigger = (issue_ids_existing + issues_to_close_ids).uniq
+    WorkItem.id_in(ids_for_trigger).find_each(batch_size: 100) do |work_item|
+      GraphqlTriggers.work_item_updated(work_item)
     end
   end
 
@@ -2416,12 +2406,6 @@ class MergeRequest < ApplicationRecord
     return unless self.class.use_locked_set?
 
     Gitlab::MergeRequests::LockedSet.remove(self.id)
-  end
-
-  def first_diffs_slice(limit)
-    diff = diffable_merge_ref? ? merge_head_diff : merge_request_diff
-
-    diff.paginated_diffs(1, limit).diff_files
   end
 
   private

@@ -19,6 +19,7 @@ class Group < Namespace
   include BulkUsersByEmailLoad
   include ChronicDurationAttribute
   include RunnerTokenExpirationInterval
+  include Todoable
   include Importable
 
   extend ::Gitlab::Utils::Override
@@ -223,9 +224,7 @@ class Group < Namespace
   scope :excluding_restricted_visibility_levels_for_user, ->(user) do
     return all if user.can_admin_all_resources?
 
-    levels = Array.wrap(Gitlab::CurrentSettings.restricted_visibility_levels).sort
-
-    case levels
+    case Gitlab::CurrentSettings.restricted_visibility_levels.sort
     when [Gitlab::VisibilityLevel::PRIVATE, Gitlab::VisibilityLevel::PUBLIC],
          [Gitlab::VisibilityLevel::PRIVATE]
       where.not(visibility_level: Gitlab::VisibilityLevel::PRIVATE)
@@ -456,6 +455,10 @@ class Group < Namespace
     # Finds the closest notification_setting with a `notification_email`
     notification_settings = notification_settings_for(user, hierarchy_order: :asc)
     notification_settings.find { |n| n.notification_email.present? }&.notification_email
+  end
+
+  def web_url(only_path: nil)
+    Gitlab::UrlBuilder.build(self, only_path: only_path)
   end
 
   def dependency_proxy_image_prefix
@@ -1011,15 +1014,6 @@ class Group < Namespace
     readme_project&.repository&.readme
   end
   strong_memoize_attr :group_readme
-
-  def hook_attrs
-    {
-      group_name: name,
-      group_path: path,
-      group_id: id,
-      full_path: full_path
-    }
-  end
 
   private
 

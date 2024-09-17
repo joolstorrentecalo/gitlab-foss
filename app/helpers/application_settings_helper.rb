@@ -348,7 +348,6 @@ module ApplicationSettingsHelper
       :plantuml_url,
       :diagramsnet_enabled,
       :diagramsnet_url,
-      :pages_extra_deployments_default_expiry_seconds,
       :polling_interval_multiplier,
       :project_export_enabled,
       :prometheus_metrics_enabled,
@@ -513,7 +512,6 @@ module ApplicationSettingsHelper
       :group_projects_api_limit,
       :groups_api_limit,
       :project_api_limit,
-      :project_invited_groups_api_limit,
       :projects_api_limit,
       :user_contributed_projects_api_limit,
       :user_projects_api_limit,
@@ -532,8 +530,7 @@ module ApplicationSettingsHelper
       :asciidoc_max_includes,
       :ai_action_api_rate_limit,
       :code_suggestions_api_rate_limit,
-      :require_personal_access_token_expiry,
-      :observability_backend_ssl_verification_enabled
+      :require_personal_access_token_expiry
     ].tap do |settings|
       unless Gitlab.com?
         settings << :deactivate_dormant_users

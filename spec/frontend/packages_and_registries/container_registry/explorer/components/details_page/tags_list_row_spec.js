@@ -95,7 +95,7 @@ describe('tags list row', () => {
       ({ digest, disabled, isDisabled }) => {
         mountComponent({ tag: { ...tag, digest }, disabled });
 
-        expect(findCheckbox().attributes().disabled).toBe(isDisabled);
+        expect(findCheckbox().attributes('disabled')).toBe(isDisabled);
       },
     );
 
@@ -133,10 +133,10 @@ describe('tags list row', () => {
       expect(getTooltipFor(findName()).value).toBe(tag.name);
     });
 
-    it('on mobile has gl-max-w-20 class', () => {
+    it('on mobile has mw-s class', () => {
       mountComponent({ ...defaultProps, isMobile: true });
 
-      expect(findName().classes('gl-max-w-20')).toBe(true);
+      expect(findName().classes('mw-s')).toBe(true);
     });
   });
 
@@ -333,7 +333,7 @@ describe('tags list row', () => {
 
         expect(findDeleteButton().exists()).toBe(true);
         expect(findDeleteButton().props('item').extraAttrs).toMatchObject({
-          class: '!gl-text-red-500',
+          class: 'gl-text-red-500!',
           'data-testid': 'single-delete-button',
         });
 
@@ -398,7 +398,7 @@ describe('tags list row', () => {
             mountComponent({ ...defaultProps, disabled: true });
             await nextTick();
 
-            expect(finderFunction().findComponent(ClipboardButton).attributes().disabled).toBe(
+            expect(finderFunction().findComponent(ClipboardButton).attributes('disabled')).toBe(
               'true',
             );
           });

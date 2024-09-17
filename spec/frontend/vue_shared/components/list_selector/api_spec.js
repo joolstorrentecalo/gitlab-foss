@@ -10,9 +10,7 @@ import {
   fetchGroupsWithProjectAccess,
   fetchProjects,
   fetchUsers,
-  fetchAvailableDeployKeys,
 } from '~/vue_shared/components/list_selector/api';
-import { HTTP_STATUS_OK } from '~/lib/utils/http_status';
 
 jest.mock('~/api');
 jest.mock('~/rest_api');
@@ -116,7 +114,7 @@ describe('List Selector Utils', () => {
         { id: 2, avatar_url: null, name: 'group2' },
       ];
       axiosMock = new MockAdapter(axios);
-      axiosMock.onGet(mockUrl).replyOnce(HTTP_STATUS_OK, mockAxiosResponse);
+      axiosMock.onGet(mockUrl).replyOnce(200, mockAxiosResponse);
     });
 
     afterEach(() => {
@@ -205,65 +203,6 @@ describe('List Selector Utils', () => {
           username: 'jane_smith',
           text: 'Jane Smith',
           value: 'jane_smith',
-        },
-      ]);
-    });
-  });
-
-  describe('fetchAvailableDeployKeys', () => {
-    const mockDeployKeySearch = 'key';
-    const mockApolloForDeployKeys = {
-      query: jest.fn(),
-    };
-    const mockDeployKeysGraphQLResponse = {
-      data: {
-        project: {
-          availableDeployKeys: {
-            nodes: [
-              { id: 'gid://gitlab/DeployKey/1', title: 'Key 1', user: { name: 'Jenny Smith' } },
-              { id: 'gid://gitlab/DeployKey/2', title: 'Key 2', user: { name: 'Jenny Smith' } },
-            ],
-          },
-        },
-      },
-    };
-
-    beforeEach(() => {
-      mockApolloForDeployKeys.query.mockResolvedValue(mockDeployKeysGraphQLResponse);
-    });
-
-    it('calls apollo.query with correct parameters', async () => {
-      await fetchAvailableDeployKeys(mockApolloForDeployKeys, mockProjectPath, mockDeployKeySearch);
-
-      expect(mockApolloForDeployKeys.query).toHaveBeenCalledWith({
-        query: expect.any(Object),
-        variables: { projectPath: mockProjectPath, titleQuery: mockDeployKeySearch },
-      });
-    });
-
-    it('returns formatted group data', async () => {
-      const result = await fetchAvailableDeployKeys(
-        mockApolloForDeployKeys,
-        mockProjectPath,
-        mockDeployKeySearch,
-      );
-
-      expect(result).toEqual([
-        {
-          text: 'Key 1',
-          value: 1,
-          id: 1,
-          title: 'Key 1',
-          type: 'deployKeys',
-          user: { name: 'Jenny Smith' },
-        },
-        {
-          text: 'Key 2',
-          value: 2,
-          id: 2,
-          title: 'Key 2',
-          type: 'deployKeys',
-          user: { name: 'Jenny Smith' },
         },
       ]);
     });

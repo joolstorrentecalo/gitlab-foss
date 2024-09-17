@@ -98,7 +98,7 @@ export default {
         {
           text: this.$options.i18n.REMOVE_TAG_BUTTON_TITLE,
           extraAttrs: {
-            class: '!gl-text-red-500',
+            class: 'gl-text-red-500!',
             'data-testid': 'single-delete-button',
           },
           action: () => {
@@ -116,7 +116,7 @@ export default {
       return this.tag.layers ? n__('%d layer', '%d layers', this.tag.layers) : '';
     },
     mobileClasses() {
-      return this.isMobile ? 'gl-max-w-20' : '';
+      return this.isMobile ? 'mw-s' : '';
     },
     shortDigest() {
       // remove sha256: from the string, and show only the first 7 char
@@ -177,11 +177,11 @@ export default {
       />
     </template>
     <template #left-primary>
-      <div class="gl-flex gl-items-center">
+      <div class="gl-display-flex gl-align-items-center">
         <div
           v-gl-tooltip="tag.name"
           data-testid="name"
-          class="gl-overflow-hidden gl-text-ellipsis gl-whitespace-nowrap"
+          class="gl-text-overflow-ellipsis gl-overflow-hidden gl-whitespace-nowrap"
           :class="mobileClasses"
         >
           {{ tag.name }}
@@ -201,7 +201,7 @@ export default {
           v-if="isInvalidTag"
           v-gl-tooltip.d0="$options.i18n.MISSING_MANIFEST_WARNING_TOOLTIP"
           name="warning"
-          class="gl-mr-2 gl-text-orange-500"
+          class="gl-text-orange-500 gl-mr-2"
         />
 
         <gl-icon
@@ -252,7 +252,7 @@ export default {
         category="tertiary"
         no-caret
         placement="bottom-end"
-        :class="{ 'gl-pointer-events-none gl-opacity-0': disabled }"
+        :class="{ 'gl-opacity-0 gl-pointer-events-none': disabled }"
         data-testid="additional-actions"
         :items="items"
       />
@@ -312,8 +312,8 @@ export default {
         icon="pencil"
         data-testid="signatures-detail"
       >
-        <div class="gl-flex">
-          <span class="gl-mr-3 gl-grow gl-basis-0 gl-truncate">
+        <div class="gl-display-flex">
+          <span class="gl-text-truncate gl-mr-3 gl-flex-basis-0 gl-flex-grow-1">
             <gl-sprintf :message="s__('ContainerRegistry|Signature digest: %{digest}')">
               <template #digest>{{ digest }}</template>
             </gl-sprintf>

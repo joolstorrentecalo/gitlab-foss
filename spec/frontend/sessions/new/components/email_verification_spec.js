@@ -27,17 +27,16 @@ describe('EmailVerification', () => {
   let axiosMock;
 
   const defaultPropsData = {
-    username: 'al12',
     obfuscatedEmail: 'al**@g*****.com',
     verifyPath: '/users/sign_in',
     resendPath: '/users/resend_verification_code',
     isOfferEmailReset: true,
+    updateEmailPath: '/users/update_email',
   };
 
   const createComponent = (props = {}) => {
     wrapper = mountExtended(EmailVerification, {
       propsData: { ...defaultPropsData, ...props },
-      provide: { updateEmailPath: '/users/update_email' },
     });
   };
 
@@ -63,10 +62,6 @@ describe('EmailVerification', () => {
   describe('rendering the form', () => {
     it('contains the obfuscated email address', () => {
       expect(wrapper.text()).toContain(defaultPropsData.obfuscatedEmail);
-    });
-
-    it("contains the user's username", () => {
-      expect(wrapper.text()).toContain(`You are signed in as ${defaultPropsData.username}`);
     });
   });
 

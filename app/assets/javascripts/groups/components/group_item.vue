@@ -134,7 +134,13 @@ export default {
     popoverBody: __('Project visibility level is less restrictive than the group settings.'),
     learnMore: __('Learn more'),
   },
-  shareProjectsWithGroupsHelpPagePath: helpPagePath('user/project/members/sharing_projects_groups'),
+  // eslint-disable-next-line local-rules/require-valid-help-page-path
+  shareProjectsWithGroupsHelpPagePath: helpPagePath(
+    'user/project/members/share_project_with_groups',
+    {
+      anchor: 'sharing-projects-with-groups-of-a-higher-restrictive-visibility-level',
+    },
+  ),
   safeHtmlConfig: { ADD_TAGS: ['gl-emoji'] },
 };
 </script>

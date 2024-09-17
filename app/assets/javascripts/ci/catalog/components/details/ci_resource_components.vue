@@ -1,5 +1,5 @@
 <script>
-import { GlEmptyState, GlIcon, GlLink, GlLoadingIcon, GlTableLite, GlTruncate } from '@gitlab/ui';
+import { GlEmptyState, GlIcon, GlLink, GlLoadingIcon, GlTableLite } from '@gitlab/ui';
 import { createAlert } from '~/alert';
 import { __, s__ } from '~/locale';
 import { helpPagePath } from '~/helpers/help_page_helper';
@@ -12,7 +12,6 @@ export default {
     GlLink,
     GlLoadingIcon,
     GlTableLite,
-    GlTruncate,
   },
   inputHelpLink: helpPagePath('ci/yaml/inputs', {
     anchor: 'define-input-parameters-with-specinputs',
@@ -109,7 +108,7 @@ export default {
         class="gl-mb-8"
         data-testid="component-section"
       >
-        <h3 class="gl-mt-0 gl-text-size-h2" data-testid="component-name">
+        <h3 class="gl-font-size-h2 gl-mt-0" data-testid="component-name">
           {{ component.name }}
         </h3>
         <pre
@@ -120,7 +119,7 @@ export default {
           generateSnippet(component.includePath)
         }}</code></pre>
         <div class="gl-mt-5">
-          <div class="gl-mb-4 gl-flex gl-gap-2">
+          <div class="gl-flex gl-gap-2 gl-mb-4">
             <b> {{ $options.i18n.inputTitle }}</b>
             <gl-link
               :title="$options.i18n.learnMore"
@@ -138,9 +137,7 @@ export default {
               {{ item.type.toLowerCase() }}
             </template>
             <template #cell(default)="{ item }">
-              <code v-if="item.default">
-                <gl-truncate :text="item.default" position="end" class="gl-max-w-34" with-tooltip />
-              </code>
+              <code v-if="item.default">{{ item.default }}</code>
             </template>
           </gl-table-lite>
         </div>

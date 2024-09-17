@@ -36,11 +36,6 @@ export default {
   mixins: [Tracking.mixin()],
   inject: ['isGroup'],
   props: {
-    description: {
-      type: String,
-      required: false,
-      default: '',
-    },
     fullPath: {
       type: String,
       required: true,
@@ -89,8 +84,7 @@ export default {
       isEditing: this.editMode,
       isSubmitting: false,
       isSubmittingWithKeydown: false,
-      descriptionText: this.description,
-      initialDescriptionText: this.description,
+      descriptionText: '',
       conflictedDescription: '',
       formFieldProps: {
         'aria-label': __('Description'),
@@ -116,7 +110,7 @@ export default {
         return data?.workspace?.workItem || {};
       },
       result() {
-        if (this.isEditing && !this.createFlow) {
+        if (this.isEditing) {
           this.checkForConflicts();
         }
       },
@@ -222,7 +216,7 @@ export default {
   },
   methods: {
     checkForConflicts() {
-      if (this.initialDescriptionText.trim() !== this.workItemDescription?.description) {
+      if (this.descriptionText !== this.workItemDescription?.description) {
         this.conflictedDescription = this.workItemDescription?.description;
       }
     },
@@ -231,7 +225,6 @@ export default {
       this.disableTruncation = true;
 
       this.descriptionText = getDraft(this.autosaveKey) || this.workItemDescription?.description;
-      this.initialDescriptionText = this.descriptionText;
 
       await this.$nextTick();
 
@@ -256,8 +249,6 @@ export default {
       this.isEditing = false;
       this.$emit('cancelEditing');
       clearDraft(this.autosaveKey);
-      this.conflictedDescription = '';
-      this.initialDescriptionText = this.descriptionText;
     },
     onInput() {
       if (this.isSubmittingWithKeydown) {
@@ -274,9 +265,6 @@ export default {
       }
 
       this.$emit('updateWorkItem');
-
-      this.conflictedDescription = '';
-      this.initialDescriptionText = this.descriptionText;
     },
     setDescriptionText(newText) {
       this.descriptionText = newText;
@@ -317,7 +305,7 @@ export default {
           @keydown.meta.enter="updateWorkItem"
           @keydown.ctrl.enter="updateWorkItem"
         />
-        <div class="gl-flex">
+        <div class="gl-display-flex">
           <gl-alert v-if="hasConflicts" :dismissible="false" variant="danger" class="gl-w-full">
             <p>
               {{
@@ -377,7 +365,6 @@ export default {
       :work-item-type="workItemType"
       :can-edit="canEdit"
       :disable-truncation="disableTruncation"
-      :is-group="isGroup"
       :is-updating="isSubmitting"
       @startEditing="startEditing"
       @descriptionUpdated="handleDescriptionTextUpdated"

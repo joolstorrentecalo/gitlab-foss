@@ -87,7 +87,7 @@ To set a compute quota for a namespace:
 1. Select **Save changes**.
 
 You can also use the [update group API](../../api/groups.md#update-group) or the
-[update user API](../../api/users.md#modify-a-user) instead.
+[update user API](../../api/users.md#user-modification) instead.
 
 NOTE:
 You can set a compute quota for only top-level groups or user namespaces.
@@ -98,7 +98,7 @@ If you set a quota for a subgroup, it is not used.
 Prerequisites:
 
 - You must have access to the build to view the total usage and quota summary for a namespace associated with a build.
-- Access to **Usage Quotas** page is based on your role for the associated namespace or group.
+- Access to **Usage Quotas** page is based on your role in the associated namespace or group.
 
 ### View Usage Quota Reports for a group
 

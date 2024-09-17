@@ -254,52 +254,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
     end
   end
 
-  describe '#branch_or_tag?' do
-    using RSpec::Parameterized::TableSyntax
-
-    where(:ref, :result) do
-      'markdown'                   | true
-      'v1.1.1'                     | true
-      'xyz-invalid'                | false
-      'refs/heads/master'          | true
-      'refs/heads/invalid-xyz'     | false
-      'refs/tags/v1.0.0'           | true
-      'refs/tags/v9.8.7'           | false
-    end
-
-    subject(:branch_or_tag?) { repository.branch_or_tag?(ref) }
-
-    with_them do
-      it { is_expected.to eq(result) }
-    end
-
-    context 'when a refs/remotes ref is passed' do
-      let(:ref) { 'refs/remotes/origin/master' }
-
-      it { is_expected.to be_falsey }
-
-      context 'when the ref is a branch' do
-        let_it_be(:project) { create(:project, :repository) }
-
-        before do
-          repository.add_branch(user, 'refs/remotes/origin/master', 'master')
-        end
-
-        it { is_expected.to be_truthy }
-      end
-
-      context 'when the naked ref is a branch' do
-        let_it_be(:project) { create(:project, :repository) }
-
-        before do
-          repository.add_branch(user, 'origin/master', 'master')
-        end
-
-        it { is_expected.to be_falsey }
-      end
-    end
-  end
-
   describe '#search_branch_names' do
     subject(:search_branch_names) { repository.search_branch_names('conflict-*') }
 
@@ -759,33 +713,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
       subject { repository.blob_at(repository.find_branch('feature').target, 'README.md') }
 
       it { is_expected.to be_an_instance_of(::Blob) }
-    end
-  end
-
-  describe '#has_gitattributes?' do
-    let(:project) { create(:project, :repository) }
-
-    subject { repository.has_gitattributes? }
-
-    context 'when there is a .gitattributes file' do
-      before do
-        create_file_in_repo(project, 'master', 'master', '.gitattributes', 'some contents')
-      end
-
-      it { is_expected.to be_truthy }
-    end
-
-    context 'when there is not a .gitattributes file' do
-      before do
-        repository.delete_file(
-          project.creator,
-          '.gitattributes',
-          message: "Remove .gitattributes",
-          branch_name: project.default_branch_or_main
-        )
-      end
-
-      it { is_expected.to be_falsey }
     end
   end
 
@@ -2715,6 +2642,34 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
       repository.after_create
     end
+
+    context 'when repository is attached to a personal snippet' do
+      let(:repository) { create(:personal_snippet).repository }
+
+      it 'does not raise an error for onboarding considerations' do
+        expect { repository.after_create }.not_to raise_error
+      end
+    end
+
+    context 'when namespace is onboarded', :sidekiq_inline do
+      before do
+        ::Onboarding::Progress.onboard(project.namespace)
+      end
+
+      it 'records the onboarding progress' do
+        repository.after_create
+
+        expect(::Onboarding::Progress.completed?(project.namespace, :git_write)).to eq(true)
+      end
+    end
+
+    context 'when namespace is not onboarded', :sidekiq_inline do
+      it 'does not record the onboarding progress' do
+        repository.after_create
+
+        expect(::Onboarding::Progress.completed?(project.namespace, :git_write)).to eq(false)
+      end
+    end
   end
 
   describe '#expire_status_cache' do
@@ -3480,13 +3435,12 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
     let(:order_by) { nil }
     let(:sort) { nil }
-    let(:ref) { nil }
 
     before do
-      allow(repository).to receive(:commits).with(ref, limit: 2000, offset: 0, skip_merges: true).and_return(stubbed_commits)
+      allow(repository).to receive(:commits).with(nil, limit: 2000, offset: 0, skip_merges: true).and_return(stubbed_commits)
     end
 
-    subject { repository.contributors(ref: ref, order_by: order_by, sort: sort) }
+    subject { repository.contributors(order_by: order_by, sort: sort) }
 
     def expect_contributors(*contributors)
       expect(subject.map(&:email)).to eq(contributors.map(&:email))
@@ -3570,24 +3524,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
 
       it 'returns the contributors unsorted' do
         expect_contributors(author_a, author_b, author_c)
-      end
-    end
-
-    context 'when passing a ref param' do
-      let(:ref) { 'ref' }
-      let(:author_d) { build(:author, email: 'johndoe@gitlab.com', name: 'John Doe') }
-      let(:stubbed_commits) do
-        [build(:commit, author: author_a),
-         build(:commit, author: author_a),
-         build(:commit, author: author_b),
-         build(:commit, author: author_c),
-         build(:commit, author: author_c),
-         build(:commit, author: author_c),
-         build(:commit, author: author_d)]
-      end
-
-      it 'returns the contributors for ref' do
-        expect_contributors(author_a, author_b, author_c, author_d)
       end
     end
   end
@@ -4344,16 +4280,19 @@ RSpec.describe Repository, feature_category: :source_code_management do
   end
 
   describe '#commit_files' do
-    let_it_be(:project) { create(:project, :repository) }
-    let(:target_sha) { repository.commit('master').sha }
-    let(:expected_params) do
-      [user, 'master', 'commit message', [], 'author email', 'author name', nil, nil, true, nil, false, target_sha]
-    end
+    let(:project) { create(:project, :empty_repo) }
 
-    subject do
+    it 'calls UserCommitFiles RPC' do
+      expect_next_instance_of(Gitlab::GitalyClient::OperationService) do |client|
+        expect(client).to receive(:user_commit_files).with(
+          user, 'extra-branch', 'commit message', [],
+          'author email', 'author name', nil, nil, true, nil, false
+        )
+      end
+
       repository.commit_files(
         user,
-        branch_name: 'master',
+        branch_name: 'extra-branch',
         message: 'commit message',
         author_name: 'author name',
         author_email: 'author email',
@@ -4361,45 +4300,6 @@ RSpec.describe Repository, feature_category: :source_code_management do
         force: true,
         sign: false
       )
-    end
-
-    it 'finds and passes the branches target_sha' do
-      expect_next_instance_of(Gitlab::GitalyClient::OperationService) do |client|
-        expect(client).to receive(:user_commit_files).with(*expected_params)
-      end
-
-      subject
-    end
-
-    context 'when validate_target_sha_in_user_commit_files feature flag is disabled' do
-      let_it_be(:project) { create(:project, :repository) }
-      let(:target_sha) { nil }
-
-      before do
-        stub_feature_flags(validate_target_sha_in_user_commit_files: false)
-      end
-
-      it 'does not find or pass the branches target_sha' do
-        expect_next_instance_of(Gitlab::GitalyClient::OperationService) do |client|
-          expect(client).to receive(:user_commit_files).with(*expected_params)
-        end
-        expect(repository).not_to receive(:commit)
-
-        subject
-      end
-    end
-
-    context 'with an empty branch' do
-      let_it_be(:project) { create(:project, :empty_repo) }
-      let(:target_sha) { nil }
-
-      it 'calls UserCommitFiles RPC' do
-        expect_next_instance_of(Gitlab::GitalyClient::OperationService) do |client|
-          expect(client).to receive(:user_commit_files).with(*expected_params)
-        end
-
-        subject
-      end
     end
   end
 end

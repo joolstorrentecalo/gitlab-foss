@@ -212,7 +212,7 @@ export default {
     <gl-loading-icon v-if="$apollo.loading" size="md" class="gl-mt-5" />
     <template v-else>
       <gl-alert
-        class="gl-mb-3 gl-mt-5"
+        class="gl-mt-5 gl-mb-3"
         variant="warning"
         :dismissible="false"
         :show-icon="false"

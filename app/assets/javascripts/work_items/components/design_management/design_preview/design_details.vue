@@ -7,13 +7,12 @@ import { Mousetrap } from '~/lib/mousetrap';
 import { keysFor, ISSUE_CLOSE_DESIGN } from '~/behaviors/shortcuts/keybindings';
 import { ROUTES } from '../../../constants';
 import getDesignQuery from '../graphql/design_details.query.graphql';
-import { extractDesign, extractDiscussions, getPageLayoutElement } from '../utils';
+import { extractDesign, getPageLayoutElement } from '../utils';
 import { DESIGN_DETAIL_LAYOUT_CLASSLIST } from '../constants';
 import { DESIGN_NOT_FOUND_ERROR, DESIGN_VERSION_NOT_EXIST_ERROR } from '../error_messages';
 import DesignPresentation from './design_presentation.vue';
 import DesignToolbar from './design_toolbar.vue';
 import DesignSidebar from './design_sidebar.vue';
-import DesignScaler from './design_scaler.vue';
 
 const DEFAULT_SCALE = 1;
 const DEFAULT_MAX_SCALE = 2;
@@ -23,7 +22,6 @@ export default {
     DesignPresentation,
     DesignSidebar,
     DesignToolbar,
-    DesignScaler,
     GlAlert,
   },
   inject: ['fullPath'],
@@ -68,6 +66,7 @@ export default {
       resolvedDiscussionsExpanded: false,
       prevCurrentUserTodos: null,
       maxScale: DEFAULT_MAX_SCALE,
+      discussions: [],
       workItemId: '',
       workItemTitle: '',
       isSidebarOpen: true,
@@ -111,22 +110,6 @@ export default {
       return this.hasValidVersion
         ? `gid://gitlab/DesignManagement::Version/${this.$route.query.version}`
         : null;
-    },
-    discussions() {
-      if (!this.design.discussions) {
-        return [];
-      }
-      return extractDiscussions(this.design.discussions);
-    },
-    resolvedDiscussions() {
-      return this.discussions.filter((discussion) => discussion.resolved);
-    },
-  },
-  watch: {
-    resolvedDiscussions(val) {
-      if (!val.length) {
-        this.resolvedDiscussionsExpanded = false;
-      }
     },
   },
   mounted() {
@@ -172,18 +155,15 @@ export default {
     toggleSidebar() {
       this.isSidebarOpen = !this.isSidebarOpen;
     },
-    toggleResolvedComments(newValue) {
-      this.resolvedDiscussionsExpanded = newValue;
-    },
   },
 };
 </script>
 
 <template>
   <div
-    class="design-detail js-design-detail fixed-top gl-flex gl-w-full gl-flex-col gl-justify-center gl-bg-gray-10 lg:gl-flex-row"
+    class="design-detail js-design-detail fixed-top gl-w-full gl-flex gl-justify-content-center gl-flex-col gl-lg-flex-direction-row gl-bg-gray-10"
   >
-    <div class="gl-relative gl-flex gl-grow gl-flex-col gl-overflow-hidden">
+    <div class="gl-flex gl-overflow-hidden gl-grow gl-flex-col gl-relative">
       <design-toolbar
         :work-item-title="workItemTitle"
         :design="design"
@@ -193,8 +173,10 @@ export default {
         :all-designs="allDesigns"
         @toggle-sidebar="toggleSidebar"
       />
-      <div class="gl-relative gl-flex gl-grow gl-flex-col gl-overflow-hidden lg:gl-flex-row">
-        <div class="gl-relative gl-flex gl-grow-2 gl-flex-col gl-overflow-hidden">
+      <div
+        class="gl-flex gl-overflow-hidden gl-flex-col gl-lg-flex-direction-row gl-grow gl-relative"
+      >
+        <div class="gl-flex gl-overflow-hidden gl-flex-grow-2 gl-flex-col gl-relative">
           <div v-if="errorMessage" class="gl-p-5">
             <gl-alert variant="danger" @dismiss="errorMessage = null">
               {{ errorMessage }}
@@ -211,18 +193,7 @@ export default {
             @setMaxScale="setMaxScale"
           />
         </div>
-        <div
-          class="design-scaler-wrapper gl-absolute gl-mb-6 gl-flex gl-items-center gl-justify-center"
-        >
-          <design-scaler :max-scale="maxScale" @scale="scale = $event" />
-        </div>
-        <design-sidebar
-          :design="design"
-          :is-loading="isLoading"
-          :is-open="isSidebarOpen"
-          :resolved-discussions-expanded="resolvedDiscussionsExpanded"
-          @toggleResolvedComments="toggleResolvedComments"
-        />
+        <design-sidebar :design="design" :is-loading="isLoading" :is-open="isSidebarOpen" />
       </div>
     </div>
   </div>

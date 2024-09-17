@@ -149,7 +149,6 @@ module.exports = function storybookWebpackConfig({ config }) {
       loaders: [
         'style-loader',
         'css-loader',
-        'postcss-loader',
         {
           loader: 'sass-loader',
           options: sassLoaderOptions,

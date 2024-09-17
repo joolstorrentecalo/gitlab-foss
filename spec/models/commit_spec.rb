@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Commit, feature_category: :source_code_management do
+RSpec.describe Commit do
   let_it_be(:project) { create(:project, :public, :repository) }
   let_it_be(:personal_snippet) { create(:personal_snippet, :repository) }
   let_it_be(:project_snippet) { create(:project_snippet, :repository) }
@@ -17,7 +17,6 @@ RSpec.describe Commit, feature_category: :source_code_management do
     it { is_expected.to include_module(Referable) }
     it { is_expected.to include_module(StaticModel) }
     it { is_expected.to include_module(Presentable) }
-    it { is_expected.to include_module(GlobalID::Identification) }
   end
 
   describe '.lazy' do

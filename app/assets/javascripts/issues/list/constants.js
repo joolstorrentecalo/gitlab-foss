@@ -11,7 +11,6 @@ import {
   OPERATOR_OR,
   OPERATOR_AFTER,
   OPERATOR_BEFORE,
-  TOKEN_TYPE_APPROVED_BY,
   TOKEN_TYPE_ASSIGNEE,
   TOKEN_TYPE_REVIEWER,
   TOKEN_TYPE_AUTHOR,
@@ -23,7 +22,6 @@ import {
   TOKEN_TYPE_HEALTH,
   TOKEN_TYPE_ITERATION,
   TOKEN_TYPE_LABEL,
-  TOKEN_TYPE_MERGE_USER,
   TOKEN_TYPE_MILESTONE,
   TOKEN_TYPE_MY_REACTION,
   TOKEN_TYPE_ORGANIZATION,
@@ -151,19 +149,6 @@ export const filtersMap = {
       },
     },
   },
-  [TOKEN_TYPE_APPROVED_BY]: {
-    [API_PARAM]: {
-      [NORMAL_FILTER]: 'approvedBy',
-    },
-    [URL_PARAM]: {
-      [OPERATOR_IS]: {
-        [NORMAL_FILTER]: 'approved_by_usernames[]',
-      },
-      [OPERATOR_NOT]: {
-        [NORMAL_FILTER]: 'not[approved_by_usernames][]',
-      },
-    },
-  },
   [TOKEN_TYPE_AUTHOR]: {
     [API_PARAM]: {
       [NORMAL_FILTER]: 'authorUsername',
@@ -236,16 +221,6 @@ export const filtersMap = {
       },
       [OPERATOR_NOT]: {
         [NORMAL_FILTER]: 'not[reviewer_username]',
-      },
-    },
-  },
-  [TOKEN_TYPE_MERGE_USER]: {
-    [API_PARAM]: {
-      [NORMAL_FILTER]: 'mergeUser',
-    },
-    [URL_PARAM]: {
-      [OPERATOR_IS]: {
-        [NORMAL_FILTER]: 'merge_user',
       },
     },
   },

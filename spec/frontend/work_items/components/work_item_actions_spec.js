@@ -1,4 +1,10 @@
-import { GlDisclosureDropdown, GlModal, GlToggle, GlDisclosureDropdownItem } from '@gitlab/ui';
+import {
+  GlDisclosureDropdown,
+  GlDropdownDivider,
+  GlModal,
+  GlToggle,
+  GlDisclosureDropdownItem,
+} from '@gitlab/ui';
 import Vue, { nextTick } from 'vue';
 import VueApollo from 'vue-apollo';
 
@@ -67,7 +73,7 @@ describe('WorkItemActions component', () => {
   const findDropdownItems = () => wrapper.findAll('[data-testid="work-item-actions-dropdown"] > *');
   const findDropdownItemsActual = () =>
     findDropdownItems().wrappers.map((x) => {
-      if (x.element.tagName === 'GL-DROPDOWN-DIVIDER-STUB') {
+      if (x.is(GlDropdownDivider)) {
         return { divider: true };
       }
 
@@ -147,6 +153,10 @@ describe('WorkItemActions component', () => {
         workItemCreateNoteEmail,
         hideSubscribe,
         hasChildren,
+      },
+      provide: {
+        isGroup: false,
+        glFeatures: { workItemsBeta: true, workItemsAlpha: true },
       },
       mocks: {
         $toast,

@@ -2,8 +2,6 @@ import { GlModal } from '@gitlab/ui';
 import { shallowMount } from '@vue/test-utils';
 import Vue, { nextTick } from 'vue';
 import VueApollo from 'vue-apollo';
-import setWindowLocation from 'helpers/set_window_location_helper';
-import { setHTMLFixture } from 'helpers/fixtures';
 import createMockApollo from 'helpers/mock_apollo_helper';
 import { stubComponent } from 'helpers/stub_component';
 import waitForPromises from 'helpers/wait_for_promises';
@@ -44,7 +42,7 @@ const mockMoreNotesWidgetResponse =
   );
 
 const mockWorkItemNotesWidgetResponseWithComments =
-  mockWorkItemNotesResponseWithComments().data.workspace.workItem.widgets.find(
+  mockWorkItemNotesResponseWithComments.data.workspace.workItem.widgets.find(
     (widget) => widget.type === WIDGET_TYPE_NOTES,
   );
 
@@ -73,7 +71,7 @@ describe('WorkItemNotes component', () => {
   const workItemMoreNotesQueryHandler = jest.fn().mockResolvedValue(mockMoreWorkItemNotesResponse);
   const workItemNotesWithCommentsQueryHandler = jest
     .fn()
-    .mockResolvedValue(mockWorkItemNotesResponseWithComments());
+    .mockResolvedValue(mockWorkItemNotesResponseWithComments);
   const deleteWorkItemNoteMutationSuccessHandler = jest.fn().mockResolvedValue({
     data: { destroyNote: { note: null, __typename: 'DestroyNote' } },
   });
@@ -124,7 +122,6 @@ describe('WorkItemNotes component', () => {
   };
 
   beforeEach(() => {
-    setHTMLFixture('<div id="content-body"></div>');
     createComponent();
   });
 
@@ -153,7 +150,7 @@ describe('WorkItemNotes component', () => {
         after: undefined,
         fullPath: 'test-path',
         iid: '1',
-        pageSize: 20,
+        pageSize: 30,
       });
       expect(findAllSystemNotes()).toHaveLength(mockNotesWidgetResponse.discussions.nodes.length);
     });
@@ -208,18 +205,15 @@ describe('WorkItemNotes component', () => {
     });
 
     it('puts form at start of list in when sorting by newest first', async () => {
-      findActivityHeader().vm.$emit('changeSort', DESC);
-      await nextTick();
+      await findActivityHeader().vm.$emit('changeSort', DESC);
 
-      expect(findAllListItems().at(0).element.tagName).toBe('WORK-ITEM-ADD-NOTE-STUB');
+      expect(findAllListItems().at(0).is(WorkItemAddNote)).toEqual(true);
     });
 
     it('puts form at end of list in when sorting by oldest first', async () => {
-      findActivityHeader().vm.$emit('changeSort', ASC);
-      await nextTick();
+      await findActivityHeader().vm.$emit('changeSort', ASC);
 
-      const lastIndex = findAllListItems().length - 1;
-      expect(findAllListItems().at(lastIndex).element.tagName).toBe('WORK-ITEM-ADD-NOTE-STUB');
+      expect(findAllListItems().at(-1).is(WorkItemAddNote)).toEqual(true);
     });
   });
 
@@ -384,41 +378,6 @@ describe('WorkItemNotes component', () => {
     });
   });
 
-  describe('discussions expanded status', () => {
-    it('should be expanded when the discussion is not resolved', async () => {
-      createComponent({
-        defaultWorkItemNotesQueryHandler: workItemNotesWithCommentsQueryHandler,
-      });
-      await waitForPromises();
-      expect(findAllWorkItemCommentNotes().at(0).props('isExpandedOnLoad')).toBe(true);
-    });
-
-    it('should be collapsed when the discussion is resolved', async () => {
-      createComponent({
-        defaultWorkItemNotesQueryHandler: jest
-          .fn()
-          .mockResolvedValue(mockWorkItemNotesResponseWithComments(true)),
-      });
-
-      await waitForPromises();
-      expect(findAllWorkItemCommentNotes().at(0).props('isExpandedOnLoad')).toBe(false);
-    });
-
-    it('should be expanded when the notes are resolved but the target note hash has note id', async () => {
-      setWindowLocation('#note_174');
-
-      createComponent({
-        defaultWorkItemNotesQueryHandler: jest
-          .fn()
-          .mockResolvedValue(mockWorkItemNotesResponseWithComments(true)),
-      });
-
-      await waitForPromises();
-      await nextTick();
-      expect(findAllWorkItemCommentNotes().at(0).props('isExpandedOnLoad')).toBe(true);
-    });
-  });
-
   describe('when group context', () => {
     it('should pass the correct `autoCompleteDataSources` to group work item comment note', async () => {
       const groupWorkItemNotes = {
@@ -426,7 +385,7 @@ describe('WorkItemNotes component', () => {
           workspace: {
             id: 'gid://gitlab/Group/24',
             workItem: {
-              ...mockWorkItemNotesResponseWithComments().data.workspace.workItem,
+              ...mockWorkItemNotesResponseWithComments.data.workspace.workItem,
               namespace: {
                 id: 'gid://gitlab/Group/24',
                 __typename: 'Namespace',

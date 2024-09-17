@@ -53,7 +53,7 @@ Get started:
 - [Run multiple Agile teams](https://www.youtube.com/watch?v=VR2r1TJCDew).
 - [Sync group memberships by using LDAP](../administration/auth/ldap/ldap_synchronization.md#group-sync).
 - Manage user access with inherited permissions. Use up to 20 levels of subgroups to organize both teams and projects.
-  - [Inherited membership](../user/project/members/index.md#membership-types).
+  - [Inherited membership](../user/project/members/index.md#inherited-membership).
   - [Example](../user/group/subgroups/index.md).
 
 ## Import projects

@@ -1,4 +1,4 @@
-import { extractGroupOrProject, toSentenceCase } from '~/glql/utils/common';
+import { extractGroupOrProject, parseQueryText, parseFrontmatter } from '~/glql/utils/common';
 import { useMockLocationHelper } from 'helpers/mock_window_location_helper';
 
 describe('extractGroupOrProject', () => {
@@ -29,15 +29,46 @@ describe('extractGroupOrProject', () => {
   });
 });
 
-describe('toSentenceCase', () => {
-  it.each`
-    str                     | expected
-    ${'title'}              | ${'Title'}
-    ${'camelCasedExample'}  | ${'Camel cased example'}
-    ${'snake_case_example'} | ${'Snake case example'}
-    ${'id'}                 | ${'ID'}
-    ${'iid'}                | ${'IID'}
-  `('returns $expected for $str', ({ str, expected }) => {
-    expect(toSentenceCase(str)).toBe(expected);
+describe('parseQueryText', () => {
+  it('separates the presentation layer from the query and returns an object', () => {
+    const text = `---
+fields: title, assignees, dueDate
+display: list
+---
+assignee = currentUser()`;
+
+    expect(parseQueryText(text)).toEqual({
+      frontmatter: 'fields: title, assignees, dueDate\ndisplay: list',
+      query: 'assignee = currentUser()',
+    });
+  });
+
+  it('returns empty frontmatter if no frontmatter is present', () => {
+    const text = 'assignee = currentUser()';
+
+    expect(parseQueryText(text)).toEqual({
+      frontmatter: '',
+      query: 'assignee = currentUser()',
+    });
+  });
+});
+
+describe('parseFrontmatter', () => {
+  it('parses the frontmatter and returns an object', () => {
+    const frontmatter = 'fields: title, assignees, dueDate\ndisplay: list';
+
+    expect(parseFrontmatter(frontmatter)).toEqual({
+      fields: ['title', 'assignees', 'dueDate'],
+      display: 'list',
+    });
+  });
+
+  it('returns default fields if none are provided', () => {
+    const frontmatter = 'display: list';
+
+    expect(parseFrontmatter(frontmatter, { fields: ['title', 'assignees', 'dueDate'] })).toEqual({
+      fields: ['title', 'assignees', 'dueDate'],
+      display: 'list',
+    });
   });
 });

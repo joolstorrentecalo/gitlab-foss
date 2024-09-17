@@ -82,7 +82,7 @@ export default {
       return !(hasContent && this.isCollapsible && this.collapsed);
     },
     toggleIcon() {
-      return this.collapsed ? 'chevron-down' : 'chevron-up';
+      return this.collapsed ? 'chevron-lg-down' : 'chevron-lg-up';
     },
     toggleLabel() {
       return this.collapsed ? __('Expand') : __('Collapse');
@@ -108,11 +108,9 @@ export default {
     showForm() {
       this.isFormVisible = true;
       this.collapsed = false;
-      this.$emit('showForm');
     },
     hideForm() {
       this.isFormVisible = false;
-      this.$emit('hideForm');
     },
     toggleForm() {
       if (this.isFormVisible) {
@@ -133,18 +131,12 @@ export default {
     :class="{ 'gl-mt-5': isCollapsible }"
   >
     <header
-      class="crud-header gl-border-b gl-flex gl-flex-wrap gl-justify-between gl-gap-x-5 gl-gap-y-2 gl-rounded-t-base gl-border-default gl-bg-default gl-px-5 gl-py-4"
-      :class="[
-        headerClass,
-        {
-          'gl-rounded-base gl-border-b-0': !isContentVisible,
-          'gl-relative gl-pr-10': isCollapsible,
-        },
-      ]"
+      class="gl-border-b gl-flex gl-flex-wrap gl-justify-between gl-gap-x-5 gl-gap-y-2 gl-rounded-t-base gl-border-default gl-bg-default gl-px-5 gl-py-4 gl-leading-24"
+      :class="[headerClass, { 'gl-border-b-0 gl-rounded-base': !isContentVisible }]"
     >
       <div class="gl-flex gl-flex-col gl-self-center">
         <h2
-          class="gl-m-0 gl-inline-flex gl-items-start gl-gap-3 gl-text-base gl-font-bold gl-leading-normal"
+          class="gl-m-0 gl-inline-flex gl-gap-3 gl-text-base gl-font-bold gl-leading-24"
           data-testid="crud-title"
         >
           <gl-link
@@ -161,16 +153,16 @@ export default {
             class="gl-inline-flex gl-items-center gl-gap-2 gl-text-sm gl-text-subtle"
             data-testid="crud-count"
           >
-            <template v-if="displayedCount">
+            <slot v-if="$scopedSlots.count" name="count"></slot>
+            <template v-else>
               <gl-icon v-if="icon" :name="icon" data-testid="crud-icon" />
               {{ displayedCount }}
             </template>
-            <slot v-if="$scopedSlots.count" name="count"></slot>
           </span>
         </h2>
         <p
           v-if="description || $scopedSlots.description"
-          class="gl-mb-0 gl-mt-2 gl-text-sm gl-leading-normal gl-text-subtle"
+          class="gl-mb-0 gl-mt-1 gl-text-sm gl-text-subtle"
           data-testid="crud-description"
         >
           <slot v-if="$scopedSlots.description" name="description"></slot>
@@ -189,7 +181,7 @@ export default {
         >
         <div
           v-if="isCollapsible"
-          class="gl-border-l gl-absolute gl-right-5 gl-top-4 gl-h-6 gl-pl-3"
+          class="gl-border-l-1 gl-border-l-solid gl-border-default gl-pl-3 gl-h-6"
         >
           <gl-button
             v-gl-tooltip
@@ -200,7 +192,7 @@ export default {
             :aria-label="toggleLabel"
             :aria-expanded="ariaExpandedAttr"
             :aria-controls="anchorId"
-            class="-gl-mr-2 gl-self-start"
+            class="gl-self-start -gl-mr-2"
             data-testid="crud-collapse-toggle"
             @click="toggleCollapse"
           />
@@ -230,7 +222,7 @@ export default {
 
       <div
         v-if="$scopedSlots.pagination"
-        class="crud-pagination gl-border-t gl-flex gl-justify-center gl-p-5"
+        class="crud-pagination gl-flex gl-justify-center gl-p-5 gl-border-t"
         data-testid="crud-pagination"
       >
         <slot name="pagination"></slot>

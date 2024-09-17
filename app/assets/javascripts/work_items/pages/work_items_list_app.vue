@@ -1,6 +1,5 @@
 <script>
 import { GlFilteredSearchToken, GlLoadingIcon } from '@gitlab/ui';
-import { isEmpty } from 'lodash';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import IssueCardStatistics from 'ee_else_ce/issues/list/components/issue_card_statistics.vue';
 import IssueCardTimeInfo from 'ee_else_ce/issues/list/components/issue_card_time_info.vue';
@@ -11,11 +10,10 @@ import {
   getDefaultWorkItemTypes,
   getInitialPageParams,
   getTypeTokenOptions,
-  getFilterTokens,
-  convertToUrlParams,
 } from 'ee_else_ce/issues/list/utils';
 import { TYPENAME_USER } from '~/graphql_shared/constants';
 import { convertToGraphQLId } from '~/graphql_shared/utils';
+import { visitUrl } from '~/lib/utils/url_utility';
 import {
   STATUS_ALL,
   STATUS_CLOSED,
@@ -24,20 +22,10 @@ import {
   WORKSPACE_PROJECT,
 } from '~/issues/constants';
 import { AutocompleteCache } from '~/issues/dashboard/utils';
-import {
-  CREATED_DESC,
-  PARAM_FIRST_PAGE_SIZE,
-  PARAM_LAST_PAGE_SIZE,
-  PARAM_PAGE_AFTER,
-  PARAM_PAGE_BEFORE,
-  PARAM_STATE,
-  PARAM_SORT,
-} from '~/issues/list/constants';
 import searchLabelsQuery from '~/issues/list/queries/search_labels.query.graphql';
 import setSortPreferenceMutation from '~/issues/list/queries/set_sort_preference.mutation.graphql';
 import { fetchPolicies } from '~/lib/graphql';
 import { scrollUp } from '~/lib/utils/scroll_utils';
-import { isPositiveInteger } from '~/lib/utils/number_utils';
 import { __, s__ } from '~/locale';
 import {
   OPERATORS_IS,
@@ -62,13 +50,10 @@ import {
   TOKEN_TYPE_TYPE,
 } from '~/vue_shared/components/filtered_search_bar/constants';
 import IssuableList from '~/vue_shared/issuable/list/components/issuable_list_root.vue';
-import WorkItemDrawer from '~/work_items/components/work_item_drawer.vue';
 import { DEFAULT_PAGE_SIZE, issuableListTabs } from '~/vue_shared/issuable/list/constants';
 import glFeatureFlagMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
-import { getParameterByName } from '~/lib/utils/url_utility';
-import { STATE_CLOSED, STATE_OPEN, WORK_ITEM_TYPE_ENUM_EPIC } from '../constants';
+import { STATE_CLOSED, WORK_ITEM_TYPE_ENUM_EPIC } from '../constants';
 import getWorkItemsQuery from '../graphql/list/get_work_items.query.graphql';
-import getWorkItemStateCountsQuery from '../graphql/list/get_work_item_state_counts.query.graphql';
 import { sortOptions, urlSortParams } from './list/constants';
 
 const EmojiToken = () =>
@@ -81,11 +66,6 @@ const MilestoneToken = () =>
   import('~/vue_shared/components/filtered_search_bar/tokens/milestone_token.vue');
 const UserToken = () => import('~/vue_shared/components/filtered_search_bar/tokens/user_token.vue');
 
-const statusMap = {
-  [STATUS_OPEN]: STATE_OPEN,
-  [STATUS_CLOSED]: STATE_CLOSED,
-};
-
 export default {
   issuableListTabs,
   sortOptions,
@@ -94,7 +74,6 @@ export default {
     IssuableList,
     IssueCardStatistics,
     IssueCardTimeInfo,
-    WorkItemDrawer,
   },
   mixins: [glFeatureFlagMixin()],
   inject: [
@@ -125,30 +104,48 @@ export default {
       error: undefined,
       filterTokens: [],
       hasAnyIssues: false,
-      isInitialLoadComplete: false,
+      isInitialAllCountSet: false,
       pageInfo: {},
-      pageParams: {},
+      pageParams: getInitialPageParams(),
       pageSize: DEFAULT_PAGE_SIZE,
-      sortKey: CREATED_DESC,
+      sortKey: deriveSortKey({ sort: this.initialSort, sortMap: urlSortParams }),
       state: STATUS_OPEN,
+      tabCounts: {},
       workItems: [],
-      workItemStateCounts: {},
-      activeItem: null,
-      isRefetching: false,
     };
   },
   apollo: {
     workItems: {
       query: getWorkItemsQuery,
       variables() {
-        return this.queryVariables;
+        return {
+          fullPath: this.fullPath,
+          sort: this.sortKey,
+          state: this.state,
+          search: this.searchQuery,
+          ...this.apiFilterParams,
+          ...this.pageParams,
+          includeDescendants: !this.apiFilterParams.fullPath,
+          types: this.apiFilterParams.types || this.workItemType || this.defaultWorkItemTypes,
+        };
       },
       update(data) {
-        return data?.group.workItems.nodes ?? [];
+        return data.group.workItems.nodes ?? [];
       },
       result({ data }) {
-        this.pageInfo = data?.group.workItems.pageInfo ?? {};
+        const { all, closed, opened } = data?.group.workItemStateCounts ?? {};
 
+        this.pageInfo = data?.group.workItems.pageInfo ?? {};
+        this.tabCounts = {
+          [STATUS_OPEN]: opened,
+          [STATUS_CLOSED]: closed,
+          [STATUS_ALL]: all,
+        };
+
+        if (!this.isInitialAllCountSet) {
+          this.hasAnyIssues = Boolean(all);
+          this.isInitialAllCountSet = true;
+        }
         if (data?.group) {
           const rootBreadcrumbName =
             this.workItemType === WORK_ITEM_TYPE_ENUM_EPIC
@@ -164,32 +161,8 @@ export default {
         Sentry.captureException(error);
       },
     },
-    workItemStateCounts: {
-      query: getWorkItemStateCountsQuery,
-      variables() {
-        return this.queryVariables;
-      },
-      update(data) {
-        return data?.group.workItemStateCounts ?? {};
-      },
-      result({ data }) {
-        const { all } = data?.group.workItemStateCounts ?? {};
-
-        if (!this.isInitialLoadComplete) {
-          this.hasAnyIssues = Boolean(all);
-          this.isInitialLoadComplete = true;
-        }
-      },
-      error(error) {
-        this.error = s__('WorkItem|An error occurred while getting work item counts.');
-        Sentry.captureException(error);
-      },
-    },
   },
   computed: {
-    isItemSelected() {
-      return !isEmpty(this.activeItem);
-    },
     apiFilterParams() {
       return convertToApiParams(this.filterTokens);
     },
@@ -200,32 +173,17 @@ export default {
         hasQualityManagementFeature: this.hasQualityManagementFeature,
       });
     },
-    workItemDrawerEnabled() {
-      return this.glFeatures?.issuesListDrawer;
-    },
     hasSearch() {
       return Boolean(this.searchQuery);
     },
     isLoading() {
-      return this.$apollo.queries.workItems.loading && !this.isRefetching;
+      return this.$apollo.queries.workItems.loading;
     },
     isOpenTab() {
       return this.state === STATUS_OPEN;
     },
     namespace() {
       return this.isGroup ? WORKSPACE_GROUP : WORKSPACE_PROJECT;
-    },
-    queryVariables() {
-      return {
-        fullPath: this.fullPath,
-        sort: this.sortKey,
-        state: this.state,
-        search: this.searchQuery,
-        ...this.apiFilterParams,
-        ...this.pageParams,
-        includeDescendants: !this.apiFilterParams.fullPath,
-        types: this.apiFilterParams.types || this.workItemType || this.defaultWorkItemTypes,
-      };
     },
     searchQuery() {
       return convertToSearchQuery(this.filterTokens);
@@ -254,6 +212,7 @@ export default {
           isProject: !this.isGroup,
           recentSuggestionsStorageKey: `${this.fullPath}-issues-recent-tokens-assignee`,
           preloadedUsers,
+          multiSelect: this.glFeatures.groupMultiSelectTokens,
         },
         {
           type: TOKEN_TYPE_AUTHOR,
@@ -267,6 +226,7 @@ export default {
           isProject: !this.isGroup,
           recentSuggestionsStorageKey: `${this.fullPath}-issues-recent-tokens-author`,
           preloadedUsers,
+          multiSelect: this.glFeatures.groupMultiSelectTokens,
         },
         {
           type: TOKEN_TYPE_GROUP,
@@ -286,6 +246,7 @@ export default {
           fetchLabels: this.fetchLabels,
           fetchLatestLabels: this.glFeatures.frontendCaching ? this.fetchLatestLabels : null,
           recentSuggestionsStorageKey: `${this.fullPath}-issues-recent-tokens-label`,
+          multiSelect: this.glFeatures.groupMultiSelectTokens,
         },
         {
           type: TOKEN_TYPE_MILESTONE,
@@ -357,14 +318,6 @@ export default {
     showPageSizeSelector() {
       return this.workItems.length > 0;
     },
-    tabCounts() {
-      const { all, closed, opened } = this.workItemStateCounts;
-      return {
-        [STATUS_OPEN]: opened,
-        [STATUS_CLOSED]: closed,
-        [STATUS_ALL]: all,
-      };
-    },
     typeTokenOptions() {
       return getTypeTokenOptions({
         hasEpicsFeature: this.hasEpicsFeature,
@@ -372,46 +325,20 @@ export default {
         hasQualityManagementFeature: this.hasQualityManagementFeature,
       });
     },
-    urlFilterParams() {
-      return convertToUrlParams(this.filterTokens);
-    },
-    urlParams() {
-      return {
-        sort: urlSortParams[this.sortKey],
-        state: this.state,
-        ...this.urlFilterParams,
-        first_page_size: this.pageParams.firstPageSize,
-        last_page_size: this.pageParams.lastPageSize,
-        page_after: this.pageParams.afterCursor ?? undefined,
-        page_before: this.pageParams.beforeCursor ?? undefined,
-      };
-    },
-    activeWorkItemType() {
-      return this.workItemType || this.activeItem?.workItemType;
-    },
   },
   watch: {
     eeWorkItemUpdateCount() {
-      // Only reset isInitialLoadComplete when there's no issues to minimize unmounting IssuableList
+      // Only reset isInitialAllCountSet when there's no issues to minimize unmounting IssuableList
       if (!this.hasAnyIssues) {
-        this.isInitialLoadComplete = false;
+        this.isInitialAllCountSet = false;
       }
       this.$apollo.queries.workItems.refetch();
     },
-    $route(newValue, oldValue) {
-      if (newValue.fullPath !== oldValue.fullPath) {
-        this.updateData(getParameterByName(PARAM_SORT));
-      }
-    },
   },
   created() {
-    this.updateData(this.initialSort);
     this.autocompleteCache = new AutocompleteCache();
   },
   methods: {
-    handleSelect(item) {
-      this.activeItem = item;
-    },
     fetchEmojis(search) {
       return this.autocompleteCache.fetch({
         url: this.autocompleteAwardEmojisPath,
@@ -450,14 +377,10 @@ export default {
 
       this.state = state;
       this.pageParams = getInitialPageParams(this.pageSize);
-
-      this.$router.push({ query: this.urlParams });
     },
     handleFilter(tokens) {
       this.filterTokens = tokens;
       this.pageParams = getInitialPageParams(this.pageSize);
-
-      this.$router.push({ query: this.urlParams });
     },
     handleNextPage() {
       this.pageParams = {
@@ -465,15 +388,11 @@ export default {
         firstPageSize: this.pageSize,
       };
       scrollUp();
-
-      this.$router.push({ query: this.urlParams });
     },
     handlePageSizeChange(pageSize) {
       this.pageSize = pageSize;
       this.pageParams = getInitialPageParams(pageSize);
       scrollUp();
-
-      this.$router.push({ query: this.urlParams });
     },
     handlePreviousPage() {
       this.pageParams = {
@@ -481,8 +400,6 @@ export default {
         lastPageSize: this.pageSize,
       };
       scrollUp();
-
-      this.$router.push({ query: this.urlParams });
     },
     handleSort(sortKey) {
       if (this.sortKey === sortKey) {
@@ -495,8 +412,6 @@ export default {
       if (this.isSignedIn) {
         this.saveSortPreference(sortKey);
       }
-
-      this.$router.push({ query: this.urlParams });
     },
     saveSortPreference(sortKey) {
       this.$apollo
@@ -513,129 +428,92 @@ export default {
           Sentry.captureException(error);
         });
     },
-    deleteItem() {
-      this.activeItem = null;
-      this.refetchItems();
-    },
-    handleStatusChange(workItem) {
-      if (this.state === STATUS_ALL) {
-        return;
+    redirectToWorkItem(workItem) {
+      const regex = /groups\/.+?\/-\/work_items\/\d+/;
+      const isWorkItemPath = regex.test(workItem.webUrl);
+
+      if (isWorkItemPath) {
+        this.$router.push({
+          name: 'workItem',
+          params: {
+            iid: workItem.iid,
+          },
+        });
+      } else {
+        visitUrl(workItem.webUrl);
       }
-      if (statusMap[this.state] !== workItem.state) {
-        this.refetchItems();
-      }
-    },
-    async refetchItems() {
-      this.isRefetching = true;
-      await this.$apollo.queries.workItems.refetch();
-      this.isRefetching = false;
-    },
-    updateData(sort) {
-      const firstPageSize = getParameterByName(PARAM_FIRST_PAGE_SIZE);
-      const lastPageSize = getParameterByName(PARAM_LAST_PAGE_SIZE);
-      const state = getParameterByName(PARAM_STATE);
-
-      this.filterTokens = getFilterTokens(window.location.search);
-
-      this.pageParams = getInitialPageParams(
-        this.pageSize,
-        isPositiveInteger(firstPageSize) ? parseInt(firstPageSize, 10) : undefined,
-        isPositiveInteger(lastPageSize) ? parseInt(lastPageSize, 10) : undefined,
-        getParameterByName(PARAM_PAGE_AFTER) ?? undefined,
-        getParameterByName(PARAM_PAGE_BEFORE) ?? undefined,
-      );
-
-      // Trigger pageSize UI component update based on URL changes
-      this.pageSize = this.pageParams.firstPageSize;
-      this.sortKey = deriveSortKey({ sort, sortMap: urlSortParams });
-      this.state = state || STATUS_OPEN;
     },
   },
 };
 </script>
 
 <template>
-  <gl-loading-icon v-if="!isInitialLoadComplete && !error" class="gl-mt-5" size="lg" />
+  <gl-loading-icon v-if="!isInitialAllCountSet && !error" class="gl-mt-5" size="lg" />
 
-  <div v-else-if="hasAnyIssues || error">
-    <work-item-drawer
-      v-if="workItemDrawerEnabled"
-      :active-item="activeItem"
-      :open="isItemSelected"
-      :issuable-type="activeWorkItemType"
-      @close="activeItem = null"
-      @addChild="refetchItems"
-      @workItemDeleted="deleteItem"
-      @work-item-updated="handleStatusChange"
-    />
-    <issuable-list
-      :active-issuable="activeItem"
-      :current-tab="state"
-      :default-page-size="pageSize"
-      :error="error"
-      :has-next-page="pageInfo.hasNextPage"
-      :has-previous-page="pageInfo.hasPreviousPage"
-      :initial-filter-value="filterTokens"
-      :initial-sort-by="sortKey"
-      :issuables="workItems"
-      :issuables-loading="isLoading"
-      :show-bulk-edit-sidebar="showBulkEditSidebar"
-      namespace="work-items"
-      :full-path="fullPath"
-      recent-searches-storage-key="issues"
-      :search-tokens="searchTokens"
-      show-filtered-search-friendly-text
-      :show-page-size-selector="showPageSizeSelector"
-      :show-pagination-controls="showPaginationControls"
-      show-work-item-type-icon
-      :sort-options="$options.sortOptions"
-      sync-filter-and-sort
-      :tab-counts="tabCounts"
-      :tabs="$options.issuableListTabs"
-      use-keyset-pagination
-      :prevent-redirect="workItemDrawerEnabled"
-      @click-tab="handleClickTab"
-      @dismiss-alert="error = undefined"
-      @filter="handleFilter"
-      @next-page="handleNextPage"
-      @page-size-change="handlePageSizeChange"
-      @previous-page="handlePreviousPage"
-      @sort="handleSort"
-      @select-issuable="handleSelect"
-    >
-      <template #nav-actions>
-        <slot name="nav-actions"></slot>
-      </template>
+  <issuable-list
+    v-else-if="hasAnyIssues || error"
+    :current-tab="state"
+    :default-page-size="pageSize"
+    :error="error"
+    :has-next-page="pageInfo.hasNextPage"
+    :has-previous-page="pageInfo.hasPreviousPage"
+    :initial-sort-by="sortKey"
+    :issuables="workItems"
+    :issuables-loading="isLoading"
+    :show-bulk-edit-sidebar="showBulkEditSidebar"
+    namespace="work-items"
+    recent-searches-storage-key="issues"
+    :search-tokens="searchTokens"
+    show-filtered-search-friendly-text
+    :show-page-size-selector="showPageSizeSelector"
+    :show-pagination-controls="showPaginationControls"
+    show-work-item-type-icon
+    :sort-options="$options.sortOptions"
+    :tab-counts="tabCounts"
+    :tabs="$options.issuableListTabs"
+    use-keyset-pagination
+    prevent-redirect
+    @click-tab="handleClickTab"
+    @dismiss-alert="error = undefined"
+    @filter="handleFilter"
+    @next-page="handleNextPage"
+    @page-size-change="handlePageSizeChange"
+    @previous-page="handlePreviousPage"
+    @sort="handleSort"
+    @select-issuable="redirectToWorkItem"
+  >
+    <template #nav-actions>
+      <slot name="nav-actions"></slot>
+    </template>
 
-      <template #timeframe="{ issuable = {} }">
-        <issue-card-time-info :issue="issuable" />
-      </template>
+    <template #timeframe="{ issuable = {} }">
+      <issue-card-time-info :issue="issuable" />
+    </template>
 
-      <template #status="{ issuable }">
-        {{ getStatus(issuable) }}
-      </template>
+    <template #status="{ issuable }">
+      {{ getStatus(issuable) }}
+    </template>
 
-      <template #statistics="{ issuable = {} }">
-        <issue-card-statistics :issue="issuable" />
-      </template>
+    <template #statistics="{ issuable = {} }">
+      <issue-card-statistics :issue="issuable" />
+    </template>
 
-      <template #empty-state>
-        <slot name="list-empty-state" :has-search="hasSearch" :is-open-tab="isOpenTab"></slot>
-      </template>
+    <template #empty-state>
+      <slot name="list-empty-state" :has-search="hasSearch" :is-open-tab="isOpenTab"></slot>
+    </template>
 
-      <template #list-body>
-        <slot name="list-body"></slot>
-      </template>
+    <template #list-body>
+      <slot name="list-body"></slot>
+    </template>
 
-      <template #bulk-edit-actions="{ checkedIssuables }">
-        <slot name="bulk-edit-actions" :checked-issuables="checkedIssuables"></slot>
-      </template>
+    <template #bulk-edit-actions="{ checkedIssuables }">
+      <slot name="bulk-edit-actions" :checked-issuables="checkedIssuables"></slot>
+    </template>
 
-      <template #sidebar-items="{ checkedIssuables }">
-        <slot name="sidebar-items" :checked-issuables="checkedIssuables"></slot>
-      </template>
-    </issuable-list>
-  </div>
+    <template #sidebar-items="{ checkedIssuables }">
+      <slot name="sidebar-items" :checked-issuables="checkedIssuables"></slot>
+    </template>
+  </issuable-list>
 
   <div v-else>
     <slot name="page-empty-state"></slot>

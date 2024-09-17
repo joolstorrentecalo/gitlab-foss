@@ -24,7 +24,6 @@ const defaultProps = {
   projectPath: 'path/to/project',
   canWriteModelRegistry: false,
   maxAllowedFileSize: 99999,
-  markdownPreviewPath: '/markdown-preview',
 };
 
 const skipReason = new SkipReason({

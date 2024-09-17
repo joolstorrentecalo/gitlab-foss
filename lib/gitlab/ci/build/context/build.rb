@@ -20,11 +20,7 @@ module Gitlab
               pipeline
                 .variables_builder
                 .scoped_variables_for_pipeline_seed(
-                  attributes,
-                  user: pipeline.user,
-                  trigger_request: pipeline.legacy_trigger,
-                  environment: seed_environment,
-                  kubernetes_namespace: seed_kubernetes_namespace
+                  attributes, environment: seed_environment, kubernetes_namespace: seed_kubernetes_namespace
                 )
             else
               stub_build.scoped_variables
@@ -43,7 +39,7 @@ module Gitlab
             # The `expanded_environment_name` method uses `metadata&.expanded_environment_name` first to check
             # but we don't need it here because `metadata.expanded_environment_name` is only set in
             # `app/services/environments/create_for_job_service.rb` which is after the pipeline creation.
-            ExpandVariables.expand(attributes[:environment], -> { simple_variables.sort_and_expand_all })
+            ExpandVariables.expand(attributes[:environment], -> { simple_variables })
           end
 
           # Copied from `app/models/concerns/ci/deployable.rb#expanded_kubernetes_namespace`
@@ -60,8 +56,7 @@ module Gitlab
 
           def simple_variables
             pipeline.variables_builder.scoped_variables_for_pipeline_seed(
-              attributes,
-              environment: nil, kubernetes_namespace: nil, user: pipeline.user, trigger_request: pipeline.legacy_trigger
+              attributes, environment: nil, kubernetes_namespace: nil
             )
           end
           strong_memoize_attr :simple_variables

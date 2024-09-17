@@ -504,10 +504,10 @@ describe('calculateRemainingMilliseconds', () => {
   });
 });
 
-describe('cloneDate', () => {
+describe('newDate', () => {
   it('returns new date instance from existing date instance', () => {
     const initialDate = new Date(2019, 0, 1);
-    const copiedDate = datetimeUtility.cloneDate(initialDate);
+    const copiedDate = datetimeUtility.newDate(initialDate);
 
     expect(copiedDate.getTime()).toBe(initialDate.getTime());
 
@@ -517,7 +517,7 @@ describe('cloneDate', () => {
   });
 
   it('returns date instance when provided date param is not of type date or is undefined', () => {
-    const initialDate = datetimeUtility.cloneDate();
+    const initialDate = datetimeUtility.newDate();
 
     expect(initialDate instanceof Date).toBe(true);
   });

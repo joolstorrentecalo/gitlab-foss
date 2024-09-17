@@ -8,7 +8,6 @@ import Tracking from '~/tracking';
 import { BV_SHOW_MODAL, BV_HIDE_MODAL } from '~/lib/utils/constants';
 import { n__, sprintf } from '~/locale';
 import { memberName, triggerExternalAlert } from 'ee_else_ce/invite_members/utils/member_utils';
-import { responseFromSuccess } from 'ee_else_ce/invite_members/utils/response_message_parser';
 import { captureException } from '~/ci/runner/sentry_utils';
 import {
   BLOCKED_SEAT_OVERAGES_ERROR_REASON,
@@ -19,6 +18,7 @@ import {
   INVITE_MEMBER_MODAL_TRACKING_CATEGORY,
 } from '../constants';
 import eventHub from '../event_hub';
+import { responseFromSuccess } from '../utils/response_message_parser';
 import { getInvalidFeedbackMessage } from '../utils/get_invalid_feedback_message';
 import {
   displaySuccessfulInvitationAlert,
@@ -122,8 +122,6 @@ export default {
       isLoading: false,
       modalId: uniqueId('invite-members-modal-'),
       newUsersToInvite: [],
-      usersWithWarning: {},
-      warningTitle: '',
       invalidMembers: {},
       source: 'unknown',
       mode: 'default',
@@ -147,9 +145,6 @@ export default {
     },
     isEmptyInvites() {
       return Boolean(this.newUsersToInvite.length);
-    },
-    hasUsersWithWarning() {
-      return !isEmpty(this.usersWithWarning);
     },
     hasInvalidMembers() {
       return !isEmpty(this.invalidMembers);
@@ -284,17 +279,12 @@ export default {
         const payload = this.getInvitePayload({ accessLevel, expiresAt, memberRoleId });
         const response = await apiAddByInvite(this.id, payload);
 
-        const { error, message, usersWithWarning, warningTitle } = responseFromSuccess(response);
-
-        this.usersWithWarning = usersWithWarning;
-        this.warningTitle = warningTitle;
+        const { error, message } = responseFromSuccess(response);
 
         if (error) {
           this.errorReason = response.data.reason;
           this.showErrors(message);
-        }
-
-        if (!this.hasInvalidMembers && !this.hasUsersWithWarning) {
+        } else {
           this.onInviteSuccess();
         }
       } catch (error) {
@@ -347,8 +337,6 @@ export default {
     clearValidation() {
       this.errorReason = '';
       this.invalidFeedbackMessage = '';
-      this.usersWithWarning = {};
-      this.warningTitle = '';
       this.invalidMembers = {};
     },
     clearEmptyInviteError() {
@@ -395,7 +383,7 @@ export default {
     @submit="sendInvite"
   >
     <template #intro-text-before>
-      <div v-if="isCelebration" class="gl-p-4 gl-text-size-h1">
+      <div v-if="isCelebration" class="gl-p-4 gl-font-size-h1">
         <gl-emoji data-name="tada" />
       </div>
     </template>
@@ -426,7 +414,7 @@ export default {
           data-testid="alert-member-error"
         >
           {{ $options.labels.memberErrorListText }}
-          <ul class="gl-mb-0 gl-pl-5">
+          <ul class="gl-pl-5 gl-mb-0">
             <li
               v-for="error in errorsLimited"
               :key="error.member"
@@ -438,7 +426,7 @@ export default {
           </ul>
           <template v-if="shouldErrorsSectionExpand">
             <gl-collapse v-model="isErrorsSectionExpanded">
-              <ul class="gl-mb-0 gl-pl-5">
+              <ul class="gl-pl-5 gl-mb-0">
                 <li
                   v-for="error in errorsExpanded"
                   :key="error.member"
@@ -450,7 +438,7 @@ export default {
               </ul>
             </gl-collapse>
             <gl-button
-              class="gl-mt-3 !gl-no-underline !gl-shadow-none"
+              class="gl-text-decoration-none! !gl-shadow-none gl-mt-3"
               data-testid="accordion-button"
               variant="link"
               @click="toggleErrorExpansion"
@@ -463,20 +451,6 @@ export default {
               />
             </gl-button>
           </template>
-        </gl-alert>
-        <gl-alert
-          v-if="hasUsersWithWarning"
-          class="gl-mb-4"
-          variant="warning"
-          :dismissible="false"
-          :title="warningTitle"
-          data-testid="alert-member-warning"
-        >
-          <ul class="gl-mb-0 gl-pl-5">
-            <li v-for="(warningMessage, user) in usersWithWarning" :key="user">
-              <strong>{{ tokenName(user) }}:</strong> {{ warningMessage }}
-            </li>
-          </ul>
         </gl-alert>
         <user-limit-notification
           v-else-if="showUserLimitNotification"
@@ -500,7 +474,6 @@ export default {
         :exception-state="exceptionState"
         :users-filter="usersFilter"
         :filter-id="filterId"
-        :users-with-warning="usersWithWarning"
         :invalid-members="invalidMembers"
         @clear="clearValidation"
         @token-remove="removeToken"

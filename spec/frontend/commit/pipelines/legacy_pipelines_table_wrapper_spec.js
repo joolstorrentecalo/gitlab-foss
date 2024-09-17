@@ -42,13 +42,22 @@ describe('Pipelines table in Commits and Merge requests', () => {
   const findUserPermissionsDocsLink = () => wrapper.findByTestId('user-permissions-docs-link');
   const findPipelinesTable = () => wrapper.findComponent(PipelinesTable);
 
-  const createComponent = ({ props = {}, mountFn = mountExtended } = {}) => {
+  const createComponent = ({
+    props = {},
+    mountFn = mountExtended,
+    asyncMergeRequestPipelineCreation = true,
+  } = {}) => {
     wrapper = mountFn(LegacyPipelinesTableWrapper, {
       propsData: {
         endpoint: 'endpoint.json',
         emptyStateSvgPath: 'foo',
         errorStateSvgPath: 'foo',
         ...props,
+      },
+      provide: {
+        glFeatures: {
+          asyncMergeRequestPipelineCreation,
+        },
       },
       mocks: {
         $toast,
@@ -227,20 +236,7 @@ describe('Pipelines table in Commits and Merge requests', () => {
           jest.spyOn(Api, 'postMergeRequestPipeline').mockResolvedValue();
         });
 
-        describe('when the table is a merge request table', () => {
-          beforeEach(async () => {
-            createComponent({
-              props: {
-                canRunPipeline: true,
-                isMergeRequestTable: true,
-                mergeRequestId: 3,
-                projectId: '5',
-              },
-            });
-
-            await waitForPromises();
-          });
-
+        describe('when asyncMergeRequestPipelineCreation is enabled', () => {
           it('on desktop, shows a loading button', async () => {
             await findRunPipelineBtn().trigger('click');
 
@@ -256,17 +252,22 @@ describe('Pipelines table in Commits and Merge requests', () => {
 
             expect(findRunPipelineBtn().props('disabled')).toBe(false);
           });
-
-          it('sets isCreatingPipeline to true in pipelines table', async () => {
-            expect(findPipelinesTable().props('isCreatingPipeline')).toBe(false);
-
-            await findRunPipelineBtn().trigger('click');
-
-            expect(findPipelinesTable().props('isCreatingPipeline')).toBe(true);
-          });
         });
 
-        describe('when the table is not a merge request table', () => {
+        describe('when asyncMergeRequestPipelineCreation is disabled', () => {
+          beforeEach(async () => {
+            createComponent({
+              props: {
+                canRunPipeline: true,
+                projectId: '5',
+                mergeRequestId: 3,
+              },
+              asyncMergeRequestPipelineCreation: false,
+            });
+
+            await waitForPromises();
+          });
+
           it('displays a toast message during pipeline creation', async () => {
             await findRunPipelineBtn().trigger('click');
 
@@ -390,7 +391,7 @@ describe('Pipelines table in Commits and Merge requests', () => {
     });
   });
 
-  describe('unsuccessful request', () => {
+  describe('unsuccessfull request', () => {
     beforeEach(async () => {
       mock.onGet('endpoint.json').reply(HTTP_STATUS_INTERNAL_SERVER_ERROR, []);
 

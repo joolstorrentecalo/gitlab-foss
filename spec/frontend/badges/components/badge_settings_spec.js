@@ -1,4 +1,4 @@
-import { GlTable, GlModal } from '@gitlab/ui';
+import { GlTable } from '@gitlab/ui';
 import Vue from 'vue';
 // eslint-disable-next-line no-restricted-imports
 import Vuex from 'vuex';
@@ -36,8 +36,6 @@ describe('BadgeSettings component', () => {
     createComponent();
   });
 
-  const findModal = () => wrapper.findComponent(GlModal);
-
   it('renders a header with the badge count', () => {
     createComponent();
     const cardTitle = wrapper.findByTestId('crud-title');
@@ -61,29 +59,11 @@ describe('BadgeSettings component', () => {
 
   describe('when editing', () => {
     beforeEach(() => {
-      createComponent(true);
+      createComponent({ isEditing: true });
     });
 
-    it('sets `GlModal` `visible` prop to `true`', () => {
-      expect(wrapper.findComponent(GlModal).props('visible')).toBe(true);
-    });
-
-    it('renders `BadgeForm` in modal', () => {
-      expect(findModal().findComponent(BadgeForm).props('isEditing')).toBe(true);
-    });
-
-    describe('when modal primary event is fired', () => {
-      it('emits submit event on form', () => {
-        const dispatchEventSpy = jest.spyOn(
-          findModal().findComponent(BadgeForm).element,
-          'dispatchEvent',
-        );
-        findModal().vm.$emit('primary', { preventDefault: jest.fn() });
-
-        expect(dispatchEventSpy).toHaveBeenCalledWith(
-          new CustomEvent('submit', { cancelable: true }),
-        );
-      });
+    it('displays a form to edit a badge', () => {
+      expect(wrapper.find('[data-testid="edit-badge"]').isVisible()).toBe(true);
     });
   });
 });

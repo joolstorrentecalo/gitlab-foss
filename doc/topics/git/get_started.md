@@ -98,7 +98,7 @@ Some of the most commonly used commands include:
 
 For more information, see:
 
-- [Command line Git](commands.md)
+- [Command line Git](../../gitlab-basics/start-using-git.md)
 
 ## Step 5: Practice using Git
 

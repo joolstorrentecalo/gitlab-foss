@@ -168,11 +168,11 @@ you can use the `internal_event_tracking` shared example.
 
 ```ruby
 it_behaves_like 'internal event tracking' do
-  let(:event) { 'update_issue_severity' }
+  let(:event) { 'create_new_issue' }
   let(:project) { issue.project }
   let(:user) { issue.author }
-  let(:additional_properties) { { label: issue.issueable_severity } }
-  subject(:service_action) { described_class.new(issue).execute }
+  let(:namespace) { group }
+  subject(:service_action) { described_class.new(issue).save }
 end
 ```
 
@@ -187,7 +187,9 @@ Optionally, the context can contain:
 - `project`
 - `namespace`. If not provided, `project.namespace` will be used (if `project` is available).
 - `category`
-- `additional_properties`
+- `label`
+- `property`
+- `value`
 - `event_attribute_overrides` - is used when its necessary to override the attributes available in parent context. For example:
 
 ```ruby
@@ -199,14 +201,6 @@ it_behaves_like 'internal event tracking' do
   subject(:service_action) { described_class.new(issue).save }
 end
 ```
-
-These legacy options are now deprecated:
-
-- `label`
-- `property`
-- `value`
-
-Prefer using `additional_properties` instead.
 
 #### Composable matchers
 
@@ -546,9 +540,3 @@ describe('DeleteApplication', () => {
   });
 });
 ```
-
-### Internal Events on other systems
-
-Apart from the GitLab codebase, we are using Internal Events for the systems listed below.
-
-1. [AI Gateway](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/docs/internal_events.md?ref_type=heads)

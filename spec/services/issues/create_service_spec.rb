@@ -472,7 +472,8 @@ RSpec.describe Issues::CreateService, feature_category: :team_planning do
               iid: { current: kind_of(Integer), previous: nil },
               project_id: { current: project.id, previous: nil },
               title: { current: opts[:title], previous: nil },
-              updated_at: { current: kind_of(Time), previous: nil }
+              updated_at: { current: kind_of(Time), previous: nil },
+              time_estimate: { current: 0, previous: nil }
             },
             object_attributes: include(
               opts.merge(
@@ -538,6 +539,12 @@ RSpec.describe Issues::CreateService, feature_category: :team_planning do
             expect(issue.user_mentions.count).to eq 0
           end
         end
+      end
+
+      it 'schedules a namespace onboarding create action worker' do
+        expect(Onboarding::IssueCreatedWorker).to receive(:perform_async).with(project.project_namespace_id)
+
+        issue
       end
     end
 

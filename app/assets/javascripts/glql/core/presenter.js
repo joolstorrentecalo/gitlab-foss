@@ -1,36 +1,12 @@
-import BoolPresenter from '../components/presenters/bool.vue';
-import CollectionPresenter from '../components/presenters/collection.vue';
-import HealthPresenter from '../components/presenters/health.vue';
-import IssuablePresenter from '../components/presenters/issuable.vue';
-import LabelPresenter from '../components/presenters/label.vue';
+import Vue from 'vue';
 import LinkPresenter from '../components/presenters/link.vue';
-import ListPresenter from '../components/presenters/list.vue';
-import MilestonePresenter from '../components/presenters/milestone.vue';
-import NullPresenter from '../components/presenters/null.vue';
-import StatePresenter from '../components/presenters/state.vue';
-import TablePresenter from '../components/presenters/table.vue';
 import TextPresenter from '../components/presenters/text.vue';
-import TimePresenter from '../components/presenters/time.vue';
-import UserPresenter from '../components/presenters/user.vue';
-
-const presentersByObjectType = {
-  Issue: IssuablePresenter,
-  Epic: IssuablePresenter,
-  Milestone: MilestonePresenter,
-  UserCore: UserPresenter,
-  Label: LabelPresenter,
-};
-
-const presentersByFieldName = {
-  healthStatus: HealthPresenter,
-  state: StatePresenter,
-};
+import ListPresenter from '../components/presenters/list.vue';
+import NullPresenter from '../components/presenters/null.vue';
 
 const presentersByDisplayType = {
   list: ListPresenter,
   orderedList: ListPresenter,
-
-  table: TablePresenter,
 };
 
 const olProps = { listType: 'ol' };
@@ -41,19 +17,9 @@ const additionalPropsByDisplayType = {
   orderedList: olProps,
 };
 
-export function componentForField(field, fieldName) {
+export function componentForField(field) {
   if (typeof field === 'undefined' || field === null) return NullPresenter;
-
-  // eslint-disable-next-line no-underscore-dangle
-  const presenter = presentersByObjectType[field.__typename] || presentersByFieldName[fieldName];
-  if (presenter) return presenter;
-
-  if (typeof field === 'boolean') return BoolPresenter;
-  if (typeof field === 'object')
-    return Array.isArray(field.nodes) ? CollectionPresenter : LinkPresenter;
-
-  if (typeof field === 'string' && field.match(/^\d{4}-\d{2}-\d{2}/) /* date YYYY-MM-DD */)
-    return TimePresenter;
+  if (typeof field === 'object') return LinkPresenter;
 
   return TextPresenter;
 }
@@ -64,8 +30,8 @@ export default class Presenter {
   // NOTE: This method will eventually start using `this.#config`
   // eslint-disable-next-line class-methods-use-this
   forField(item, fieldName) {
-    const field = fieldName === 'title' || !fieldName ? item : item[fieldName];
-    const component = componentForField(field, fieldName);
+    const field = fieldName === 'title' ? item : item[fieldName];
+    const component = componentForField(field);
 
     return {
       render(h) {
@@ -99,12 +65,22 @@ export default class Presenter {
     return this;
   }
 
+  /**
+   * Mount the initialized component to the given element
+   *
+   * @param {Element} element
+   * @returns {Vue}
+   */
+  mount(element) {
+    const container = document.createElement('div');
+    element.parentNode.replaceChild(container, element);
+
+    const ComponentInstance = Vue.extend(this.#component);
+
+    return new ComponentInstance().$mount(container);
+  }
+
   get component() {
     return this.#component;
   }
 }
-
-export const present = (data, config, ...props) => {
-  const presenter = new Presenter().init({ data, config, ...props });
-  return presenter.component;
-};

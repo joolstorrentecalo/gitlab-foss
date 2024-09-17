@@ -40,5 +40,5 @@ export function renderGFM(element) {
   highlightCurrentUser(userEls);
   initPopovers(popoverEls);
 
-  if (gon?.features?.glqlIntegration) renderGlql(glqlEls.map((e) => e.parentNode));
+  if (gon?.features?.glqlIntegration) renderGlql(glqlEls);
 }

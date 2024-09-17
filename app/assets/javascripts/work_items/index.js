@@ -11,7 +11,6 @@ import { injectVueAppBreadcrumbs } from '~/lib/utils/breadcrumbs';
 import { apolloProvider } from '~/graphql_shared/issuable_client';
 import App from './components/app.vue';
 import WorkItemBreadcrumb from './components/work_item_breadcrumb.vue';
-import activeDiscussionQuery from './components/design_management/graphql/client/active_design_discussion.query.graphql';
 import { createRouter } from './router';
 
 Vue.use(VueApollo);
@@ -33,7 +32,6 @@ export const initWorkItemsRoot = ({ workItemType, workspaceType } = {}) => {
     hasIssueWeightsFeature,
     iid,
     issuesListPath,
-    epicsListPath,
     labelsManagePath,
     registerPath,
     signInPath,
@@ -60,34 +58,11 @@ export const initWorkItemsRoot = ({ workItemType, workspaceType } = {}) => {
 
   const isGroup = workspaceType === WORKSPACE_GROUP;
   const router = createRouter({ fullPath, workItemType, workspaceType, defaultBranch, isGroup });
-  let listPath = issuesListPath;
 
-  if (isGroup) {
-    listPath = epicsListPath;
+  if (isGroup)
     injectVueAppBreadcrumbs(router, WorkItemBreadcrumb, apolloProvider, {
       workItemType: listWorkItemType,
-      epicsListPath,
     });
-  }
-
-  apolloProvider.clients.defaultClient.cache.writeQuery({
-    query: activeDiscussionQuery,
-    data: {
-      activeDesignDiscussion: {
-        __typename: 'ActiveDesignDiscussion',
-        id: null,
-        source: null,
-      },
-    },
-  });
-
-  if (gon.features.workItemsViewPreference) {
-    import(/* webpackChunkName: 'work_items_feedback' */ '~/work_items_feedback')
-      .then(({ initWorkItemsFeedback }) => {
-        initWorkItemsFeedback();
-      })
-      .catch({});
-  }
 
   return new Vue({
     el,
@@ -102,7 +77,7 @@ export const initWorkItemsRoot = ({ workItemType, workspaceType } = {}) => {
       hasOkrsFeature: parseBoolean(hasOkrsFeature),
       hasSubepicsFeature: parseBoolean(hasSubepicsFeature),
       hasScopedLabelsFeature: parseBoolean(hasScopedLabelsFeature),
-      issuesListPath: listPath,
+      issuesListPath,
       labelsManagePath,
       registerPath,
       signInPath,

@@ -47,17 +47,10 @@ describe('WorkItemDetailModal component', () => {
       },
       provide: {
         fullPath: 'group/project',
-        reportAbusePath: 'report/abuse',
-        groupPath: '',
-        hasSubepicsFeature: false,
       },
       stubs: {
         GlModal,
-        WorkItemDetail: stubComponent(WorkItemDetail, {
-          methods: {
-            openInModal: jest.fn(),
-          },
-        }),
+        WorkItemDetail: stubComponent(WorkItemDetail),
       },
     });
   };
@@ -67,11 +60,9 @@ describe('WorkItemDetailModal component', () => {
 
     expect(findWorkItemDetail().props()).toEqual({
       isModal: true,
-      workItemId,
       workItemIid: '1',
       modalWorkItemFullPath: '',
       isDrawer: false,
-      modalIsGroup: null,
     });
   });
 
@@ -124,14 +115,10 @@ describe('WorkItemDetailModal component', () => {
   it('updates the work item when WorkItemDetail emits `update-modal` event', async () => {
     createComponent();
 
-    findWorkItemDetail().vm.$emit('update-modal', undefined, {
-      iid: '2',
-      id: 'gid://gitlab/WorkItem/2',
-    });
+    findWorkItemDetail().vm.$emit('update-modal', undefined, { iid: 'updatedIid' });
     await nextTick();
 
-    expect(findWorkItemDetail().props('workItemIid')).toBe('2');
-    expect(findWorkItemDetail().props('workItemId')).toBe('gid://gitlab/WorkItem/2');
+    expect(findWorkItemDetail().props('workItemIid')).toBe('updatedIid');
   });
 
   describe('delete work item', () => {

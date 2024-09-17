@@ -12,7 +12,11 @@ import {
 } from '~/behaviors/shortcuts/keybindings';
 import { shouldDisableShortcuts } from '~/behaviors/shortcuts/shortcuts_toggle';
 import { sanitize } from '~/lib/dompurify';
+import { EVT_EXPAND_ALL_FILES } from '../constants';
+import eventHub from '../event_hub';
 import CompareDropdownLayout from './compare_dropdown_layout.vue';
+import DiffStats from './diff_stats.vue';
+import SettingsDropdown from './settings_dropdown.vue';
 
 export default {
   components: {
@@ -22,23 +26,34 @@ export default {
     GlButtonGroup,
     GlButton,
     GlSprintf,
+    SettingsDropdown,
+    DiffStats,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
   },
   props: {
-    toggleFileTreeVisible: {
-      type: Boolean,
+    diffFilesCountText: {
+      type: String,
       required: false,
-      default: false,
+      default: null,
     },
   },
   computed: {
     ...mapGetters('diffs', [
+      'whichCollapsedTypes',
       'diffCompareDropdownTargetVersions',
       'diffCompareDropdownSourceVersions',
     ]),
-    ...mapState('diffs', ['commit', 'showTreeList', 'startVersion', 'latestVersionPath']),
+    ...mapState('diffs', [
+      'diffFiles',
+      'commit',
+      'showTreeList',
+      'startVersion',
+      'latestVersionPath',
+      'addedLines',
+      'removedLines',
+    ]),
     toggleFileBrowserShortcutKey() {
       return shouldDisableShortcuts() ? null : keysFor(MR_TOGGLE_FILE_BROWSER)[0];
     },
@@ -51,6 +66,9 @@ export default {
       return shouldDisableShortcuts()
         ? description
         : sanitize(`${description} <kbd class="flat gl-ml-1" aria-hidden=true>${key}</kbd>`);
+    },
+    hasChanges() {
+      return this.diffFiles.length > 0;
     },
     hasSourceVersions() {
       return this.diffCompareDropdownSourceVersions.length > 0;
@@ -105,6 +123,9 @@ export default {
   },
   methods: {
     ...mapActions('diffs', ['setShowTreeList']),
+    expandAllFiles() {
+      eventHub.$emit(EVT_EXPAND_ALL_FILES);
+    },
     ...mapActions('diffs', ['moveToNeighboringCommit']),
   },
 };
@@ -112,13 +133,13 @@ export default {
 
 <template>
   <div class="mr-version-controls">
-    <div class="mr-version-menus-container gl-px-5 gl-pb-2 gl-pt-3">
+    <div class="mr-version-menus-container gl-px-5 gl-pt-3 gl-pb-2">
       <gl-button
-        v-if="toggleFileTreeVisible"
+        v-if="hasChanges"
         v-gl-tooltip.html="toggleFileBrowserTooltip"
         variant="default"
         icon="sidebar"
-        class="js-toggle-tree-list btn-icon gl-mr-3"
+        class="gl-mr-3 js-toggle-tree-list btn-icon"
         data-testid="file-tree-button"
         :aria-label="toggleFileBrowserTitle"
         :aria-keyshortcuts="toggleFileBrowserShortcutKey"
@@ -142,7 +163,7 @@ export default {
             <span
               v-if="!commit.prev_commit_id"
               v-gl-tooltip
-              class="position-absolute position-top-0 position-left-0 gl-h-full gl-w-full"
+              class="gl-h-full gl-w-full position-absolute position-top-0 position-left-0"
               :title="__('You\'re at the first commit')"
             ></span>
             <gl-icon name="chevron-left" />
@@ -159,7 +180,7 @@ export default {
             <span
               v-if="!commit.next_commit_id"
               v-gl-tooltip
-              class="position-absolute position-top-0 position-left-0 gl-h-full gl-w-full"
+              class="gl-h-full gl-w-full position-absolute position-top-0 position-left-0"
               :title="__('You\'re at the last commit')"
             ></span>
             {{ __('Next') }}
@@ -169,7 +190,7 @@ export default {
       </div>
       <gl-sprintf
         v-else-if="!commit && hasSourceVersions"
-        class="compare-versions-container gl-flex gl-items-center"
+        class="gl-flex gl-items-center compare-versions-container"
         :message="s__('MergeRequest|Compare %{target} and %{source}')"
       >
         <template #target>
@@ -195,6 +216,22 @@ export default {
       >
         {{ __('Show latest version') }}
       </gl-button>
+      <div v-if="hasChanges" class="inline-parallel-buttons gl-hidden md:gl-flex ml-auto">
+        <diff-stats
+          :diff-files-count-text="diffFilesCountText"
+          :added-lines="addedLines"
+          :removed-lines="removedLines"
+        />
+        <gl-button
+          v-show="whichCollapsedTypes.any"
+          variant="default"
+          class="gl-mr-3"
+          @click="expandAllFiles"
+        >
+          {{ __('Expand all files') }}
+        </gl-button>
+        <settings-dropdown />
+      </div>
     </div>
   </div>
 </template>

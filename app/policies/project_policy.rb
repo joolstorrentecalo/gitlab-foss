@@ -362,6 +362,7 @@ class ProjectPolicy < BasePolicy
     enable :read_wiki
     enable :read_issue
     enable :read_label
+    enable :read_planning_hierarchy
     enable :read_milestone
     enable :read_snippet
     enable :read_project_member
@@ -376,7 +377,6 @@ class ProjectPolicy < BasePolicy
     enable :read_release
     enable :read_analytics
     enable :read_insights
-    enable :read_upload
   end
 
   rule { can?(:reporter_access) & can?(:create_issue) }.enable :create_incident
@@ -419,6 +419,7 @@ class ProjectPolicy < BasePolicy
     enable :read_merge_request
     enable :read_sentry_issue
     enable :read_prometheus
+    enable :read_metrics_dashboard_annotation
     enable :metrics_dashboard
     enable :read_confidential_issues
     enable :read_package
@@ -496,6 +497,11 @@ class ProjectPolicy < BasePolicy
     enable :read_deployment
   end
 
+  rule { ~anonymous & can?(:metrics_dashboard) }.policy do
+    enable :create_metrics_user_starred_dashboard
+    enable :read_metrics_user_starred_dashboard
+  end
+
   rule { packages_disabled }.policy do
     prevent(*create_read_update_admin_destroy(:package))
   end
@@ -537,6 +543,7 @@ class ProjectPolicy < BasePolicy
     enable :create_release
     enable :update_release
     enable :destroy_release
+    enable :admin_metrics_dashboard_annotation
     enable :read_alert_management_alert
     enable :update_alert_management_alert
     enable :read_terraform_state
@@ -595,6 +602,7 @@ class ProjectPolicy < BasePolicy
     enable :read_deploy_token
     enable :create_deploy_token
     enable :destroy_deploy_token
+    enable :read_prometheus_alerts
     enable :admin_terraform_state
     enable :create_freeze_period
     enable :read_freeze_period
@@ -609,6 +617,7 @@ class ProjectPolicy < BasePolicy
     enable :admin_project_google_cloud
     enable :admin_project_aws
     enable :admin_secure_files
+    enable :read_upload
     enable :admin_upload
     enable :destroy_upload
     enable :admin_incident_management_timeline_event_tag
@@ -790,6 +799,7 @@ class ProjectPolicy < BasePolicy
     enable :read_issue_board_list
     enable :read_wiki
     enable :read_label
+    enable :read_planning_hierarchy
     enable :read_milestone
     enable :read_snippet
     enable :read_project_member
@@ -807,7 +817,6 @@ class ProjectPolicy < BasePolicy
     enable :read_pages_content
     enable :read_analytics
     enable :read_insights
-    enable :read_upload
 
     # NOTE: may be overridden by IssuePolicy
     enable :read_issue

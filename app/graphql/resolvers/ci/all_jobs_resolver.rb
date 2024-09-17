@@ -43,6 +43,7 @@ module Resolvers
           play_path: [{ project: { namespace: [:route] } }],
           web_path: [{ project: { namespace: [:route] } }],
           tags: [:tags],
+          ai_failure_analysis: [{ project: [:project_feature, :namespace] }],
           trace: [{ project: [:namespace] }, :job_artifacts_trace],
           source: [:build_source]
         }

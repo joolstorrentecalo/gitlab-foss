@@ -7,17 +7,7 @@ import App from './components/app.vue';
 export function initMergeRequestDashboard(el) {
   Vue.use(VueApollo);
 
-  const { lists, switch_dashboard_path: switchDashboardPath } = JSON.parse(el.dataset.initialData);
-
-  const keyArgs = [
-    'state',
-    'reviewState',
-    'reviewStates',
-    'reviewerWildcardId',
-    'mergedAfter',
-    'assignedReviewStates',
-    'reviewerReviewStates',
-  ];
+  const { lists } = JSON.parse(el.dataset.initialData);
 
   return new Vue({
     el,
@@ -28,18 +18,19 @@ export function initMergeRequestDashboard(el) {
           cacheConfig: {
             typePolicies: {
               CurrentUser: {
+                merge: true,
                 fields: {
-                  assignedMergeRequests: {
-                    keyArgs,
-                    merge: true,
-                  },
                   reviewRequestedMergeRequests: {
-                    keyArgs,
-                    merge: true,
+                    keyArgs: ['state', 'reviewState', 'reviewStates', 'mergedAfter'],
                   },
-                  assigneeOrReviewerMergeRequests: {
-                    keyArgs,
-                    merge: true,
+                  assignedMergeRequests: {
+                    keyArgs: [
+                      'state',
+                      'reviewState',
+                      'reviewStates',
+                      'reviewerWildcardId',
+                      'mergedAfter',
+                    ],
                   },
                 },
               },
@@ -48,15 +39,16 @@ export function initMergeRequestDashboard(el) {
                   nodes: concatPagination(),
                 },
               },
-              MergeRequestReviewer: {
-                keyFields: false,
+              UserMergeRequestInteraction: {
+                merge(a) {
+                  return a;
+                },
               },
             },
           },
         },
       ),
     }),
-    provide: { switchDashboardPath },
     render(createElement) {
       return createElement(App, {
         props: {

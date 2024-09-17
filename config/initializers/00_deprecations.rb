@@ -19,7 +19,6 @@ deprecators.silenced = silenced
 
 ignored_warnings = [
   /`Rails.application.secrets` is deprecated in favor of `Rails.application.credentials`/,
-  /Your `secret_key_base` is configured in `Rails.application.secrets`, which is deprecated in favor of/,
   /Please pass the (coder|class) as a keyword argument/
 ]
 
@@ -45,15 +44,13 @@ else
   deprecators.disallowed_warnings = rails7_deprecation_warnings + view_component_3_warnings
 
   if ::Gitlab.next_rails?
-    deprecators.behavior = ->(message, callstack, deprecator) do
+    Rails.application.deprecators.behavior = ->(message, callstack, deprecator) do
       if ignored_warnings.none? { |warning| warning.match?(message) }
         ActiveSupport::Deprecation::DEFAULT_BEHAVIORS.slice(:stderr, :notify).each_value do |behavior|
           behavior.call(message, callstack, deprecator)
         end
       end
     end
-  else
-    deprecators.behavior = [:stderr, :notify]
   end
 end
 

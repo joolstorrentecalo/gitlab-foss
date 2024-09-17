@@ -1,37 +1,33 @@
 import Vue, { nextTick } from 'vue';
 import VueApollo from 'vue-apollo';
-import { GlAlert, GlLoadingIcon } from '@gitlab/ui';
+import { GlLoadingIcon } from '@gitlab/ui';
 
 import createMockApollo from 'helpers/mock_apollo_helper';
 import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
 import waitForPromises from 'helpers/wait_for_promises';
 
-import CrudComponent from '~/vue_shared/components/crud_component.vue';
+import WidgetWrapper from '~/work_items/components/widget_wrapper.vue';
 import WorkItemRelationships from '~/work_items/components/work_item_relationships/work_item_relationships.vue';
 import WorkItemRelationshipList from '~/work_items/components/work_item_relationships/work_item_relationship_list.vue';
 import WorkItemAddRelationshipForm from '~/work_items/components/work_item_relationships/work_item_add_relationship_form.vue';
-import workItemLinkedItemsQuery from '~/work_items/graphql/work_item_linked_items.query.graphql';
 import WorkItemMoreActions from '~/work_items/components/shared/work_item_more_actions.vue';
+import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
 import removeLinkedItemsMutation from '~/work_items/graphql/remove_linked_items.mutation.graphql';
 
-import { useLocalStorageSpy } from 'helpers/local_storage_helper';
-import * as utils from '~/work_items/utils';
 import {
-  removeLinkedWorkItemResponse,
-  workItemLinkedItemsResponse,
-  workItemEmptyLinkedItemsResponse,
-  workItemSingleLinkedItemResponse,
+  workItemByIidResponseFactory,
   mockLinkedItems,
+  mockBlockingLinkedItem,
+  removeLinkedWorkItemResponse,
 } from '../../mock_data';
 
 describe('WorkItemRelationships', () => {
   Vue.use(VueApollo);
 
   let wrapper;
-
-  const workItemLinkedItemsSuccessHandler = jest
+  const emptyLinkedWorkItemsQueryHandler = jest
     .fn()
-    .mockResolvedValue(workItemLinkedItemsResponse);
+    .mockResolvedValue(workItemByIidResponseFactory());
   const removeLinkedWorkItemSuccessMutationHandler = jest
     .fn()
     .mockResolvedValue(removeLinkedWorkItemResponse('Successfully unlinked IDs: 2.'));
@@ -43,13 +39,13 @@ describe('WorkItemRelationships', () => {
   };
 
   const createComponent = async ({
+    workItemQueryHandler = emptyLinkedWorkItemsQueryHandler,
     workItemType = 'Task',
-    workItemLinkedItemsHandler = workItemLinkedItemsSuccessHandler,
+    isGroup = false,
     removeLinkedWorkItemMutationHandler = removeLinkedWorkItemSuccessMutationHandler,
-    canAdminWorkItemLink = true,
   } = {}) => {
     const mockApollo = createMockApollo([
-      [workItemLinkedItemsQuery, workItemLinkedItemsHandler],
+      [workItemByIidQuery, workItemQueryHandler],
       [removeLinkedItemsMutation, removeLinkedWorkItemMutationHandler],
     ]);
 
@@ -58,15 +54,14 @@ describe('WorkItemRelationships', () => {
       propsData: {
         workItemId: 'gid://gitlab/WorkItem/1',
         workItemIid: '1',
-        workItemFullPath: 'gitlab-org/gitlab-test',
-        canAdminWorkItemLink,
+        workItemFullPath: 'test-project-path',
         workItemType,
+      },
+      provide: {
+        isGroup,
       },
       mocks: {
         $toast,
-      },
-      stubs: {
-        CrudComponent,
       },
     });
 
@@ -74,9 +69,9 @@ describe('WorkItemRelationships', () => {
   };
 
   const findLoadingIcon = () => wrapper.findComponent(GlLoadingIcon);
-  const findErrorMessage = () => wrapper.findComponent(GlAlert);
-  const findEmptyRelatedMessageContainer = () => wrapper.findByTestId('crud-empty');
-  const findLinkedItemsCountBadge = () => wrapper.findByTestId('linked-items-count-bage');
+  const findWidgetWrapper = () => wrapper.findComponent(WidgetWrapper);
+  const findEmptyRelatedMessageContainer = () => wrapper.findByTestId('links-empty');
+  const findLinkedItemsCountContainer = () => wrapper.findByTestId('linked-items-count');
   const findLinkedItemsHelpLink = () => wrapper.findByTestId('help-link');
   const findAllWorkItemRelationshipListComponents = () =>
     wrapper.findAllComponents(WorkItemRelationshipList);
@@ -84,24 +79,16 @@ describe('WorkItemRelationships', () => {
   const findWorkItemRelationshipForm = () => wrapper.findComponent(WorkItemAddRelationshipForm);
   const findMoreActions = () => wrapper.findComponent(WorkItemMoreActions);
 
-  it('calls workItemLinkedItemsQuery query', () => {
-    createComponent();
-
-    expect(workItemLinkedItemsSuccessHandler).toHaveBeenCalled();
-  });
-
   it('shows loading icon when query is not processed', () => {
     createComponent();
 
     expect(findLoadingIcon().exists()).toBe(true);
   });
 
-  it('renders the component with defaults if no linked items exist', async () => {
-    await createComponent({
-      workItemLinkedItemsHandler: jest.fn().mockResolvedValue(workItemEmptyLinkedItemsResponse),
-    });
+  it('renders the component with with defaults', async () => {
+    await createComponent();
 
-    expect(wrapper.findByTestId('work-item-relationships').exists()).toBe(true);
+    expect(wrapper.find('.work-item-relationships').exists()).toBe(true);
     expect(findEmptyRelatedMessageContainer().exists()).toBe(true);
     expect(findAddButton().exists()).toBe(true);
     expect(findWorkItemRelationshipForm().exists()).toBe(false);
@@ -110,27 +97,44 @@ describe('WorkItemRelationships', () => {
     );
   });
 
-  it('renders blocking, blocked by and related to linked item lists with proper count', async () => {
-    await createComponent();
+  it('renders blocking linked item lists', async () => {
+    await createComponent({
+      workItemQueryHandler: jest
+        .fn()
+        .mockResolvedValue(workItemByIidResponseFactory({ linkedItems: mockBlockingLinkedItem })),
+    });
 
-    await waitForPromises();
+    expect(findAllWorkItemRelationshipListComponents().length).toBe(1);
+    expect(findLinkedItemsCountContainer().text()).toBe('1');
+  });
+
+  it('renders blocking, blocked by and related to linked item lists with proper count', async () => {
+    await createComponent({
+      workItemQueryHandler: jest
+        .fn()
+        .mockResolvedValue(workItemByIidResponseFactory({ linkedItems: mockLinkedItems })),
+    });
 
     // renders all 3 lists: blocking, blocked by and related to
     expect(findAllWorkItemRelationshipListComponents().length).toBe(3);
-    expect(findLinkedItemsCountBadge().text()).toBe('3');
+    expect(findLinkedItemsCountContainer().text()).toBe('3');
   });
 
   it('shows an alert when list loading fails', async () => {
     const errorMessage = 'Some error';
     await createComponent({
-      workItemLinkedItemsHandler: jest.fn().mockRejectedValue(new Error(errorMessage)),
+      workItemQueryHandler: jest.fn().mockRejectedValue(new Error(errorMessage)),
     });
 
-    expect(findErrorMessage().text()).toBe(errorMessage);
+    expect(findWidgetWrapper().props('error')).toBe(errorMessage);
   });
 
   it('does not render add button when there is no permission', async () => {
-    await createComponent({ canAdminWorkItemLink: false });
+    await createComponent({
+      workItemQueryHandler: jest
+        .fn()
+        .mockResolvedValue(workItemByIidResponseFactory({ canAdminWorkItemLink: false })),
+    });
 
     expect(findAddButton().exists()).toBe(false);
   });
@@ -145,10 +149,20 @@ describe('WorkItemRelationships', () => {
     expect(findWorkItemRelationshipForm().exists()).toBe(false);
   });
 
-  it('removes linked item and shows toast message when removeLinkedItem event is emitted', async () => {
-    await createComponent();
+  it('calls the work item query', () => {
+    createComponent();
 
-    expect(findLinkedItemsCountBadge().text()).toBe('3');
+    expect(emptyLinkedWorkItemsQueryHandler).toHaveBeenCalled();
+  });
+
+  it('removes linked item and shows toast message when removeLinkedItem event is emitted', async () => {
+    await createComponent({
+      workItemQueryHandler: jest
+        .fn()
+        .mockResolvedValue(workItemByIidResponseFactory({ linkedItems: mockLinkedItems })),
+    });
+
+    expect(findLinkedItemsCountContainer().text()).toBe('3');
 
     await findAllWorkItemRelationshipListComponents()
       .at(0)
@@ -165,7 +179,7 @@ describe('WorkItemRelationships', () => {
 
     expect($toast.show).toHaveBeenCalledWith('Linked item removed');
 
-    expect(findLinkedItemsCountBadge().text()).toBe('2');
+    expect(findLinkedItemsCountContainer().text()).toBe('2');
   });
 
   it.each`
@@ -176,6 +190,9 @@ describe('WorkItemRelationships', () => {
     'shows an error message when there is $errorType while removing items',
     async ({ mutationMock, errorMessage }) => {
       await createComponent({
+        workItemQueryHandler: jest
+          .fn()
+          .mockResolvedValue(workItemByIidResponseFactory({ linkedItems: mockLinkedItems })),
         removeLinkedWorkItemMutationHandler: mutationMock,
       });
 
@@ -185,23 +202,11 @@ describe('WorkItemRelationships', () => {
 
       await waitForPromises();
 
-      expect(findErrorMessage().text()).toBe(errorMessage);
+      expect(findWidgetWrapper().props('error')).toBe(errorMessage);
     },
   );
 
   describe('more actions', () => {
-    useLocalStorageSpy();
-
-    beforeEach(async () => {
-      jest.spyOn(utils, 'getShowLabelsFromLocalStorage');
-      jest.spyOn(utils, 'saveShowLabelsToLocalStorage');
-      await createComponent();
-    });
-
-    afterEach(() => {
-      localStorage.clear();
-    });
-
     it('renders the `WorkItemMoreActions` component', async () => {
       await createComponent();
 
@@ -215,7 +220,11 @@ describe('WorkItemRelationships', () => {
     });
 
     it('toggles `showLabels` when `toggle-show-labels` is emitted', async () => {
-      await createComponent();
+      await createComponent({
+        workItemQueryHandler: jest
+          .fn()
+          .mockResolvedValue(workItemByIidResponseFactory({ linkedItems: mockLinkedItems })),
+      });
 
       expect(findAllWorkItemRelationshipListComponents().at(0).props('showLabels')).toBe(true);
 
@@ -231,29 +240,5 @@ describe('WorkItemRelationships', () => {
 
       expect(findAllWorkItemRelationshipListComponents().at(0).props('showLabels')).toBe(true);
     });
-
-    it('calls saveShowLabelsToLocalStorage on toggle', () => {
-      findMoreActions().vm.$emit('toggle-show-labels');
-      expect(utils.saveShowLabelsToLocalStorage).toHaveBeenCalled();
-    });
-
-    it('calls getShowLabelsFromLocalStorage on mount', () => {
-      expect(utils.getShowLabelsFromLocalStorage).toHaveBeenCalled();
-    });
-
-    it.each`
-      ariaLabel                                                              | linkedItemsResponse
-      ${`Task has ${mockLinkedItems.linkedItems.nodes.length} linked items`} | ${workItemLinkedItemsResponse}
-      ${'Task has 1 linked item'}                                            | ${workItemSingleLinkedItemResponse}
-    `(
-      'renders the correct aria labels for the badge count',
-      async ({ ariaLabel, linkedItemsResponse }) => {
-        await createComponent({
-          workItemLinkedItemsHandler: jest.fn().mockResolvedValue(linkedItemsResponse),
-        });
-
-        expect(findLinkedItemsCountBadge().attributes('aria-label')).toBe(ariaLabel);
-      },
-    );
   });
 });

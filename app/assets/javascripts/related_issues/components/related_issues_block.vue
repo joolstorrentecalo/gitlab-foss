@@ -105,16 +105,11 @@ export default {
       required: false,
       default: '',
     },
-    headerText: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    addButtonText: {
-      type: String,
-      required: false,
-      default: '',
-    },
+  },
+  data() {
+    return {
+      showForm: this.isFormVisible || this.hasError,
+    };
   },
   computed: {
     hasRelatedIssues() {
@@ -139,16 +134,8 @@ export default {
     shouldShowTokenBody() {
       return this.hasRelatedIssues || this.isFetching;
     },
-    headerTextDisplay() {
-      return this.headerText ? this.headerText : issuablesBlockHeaderTextMap[this.issuableType];
-    },
-    addButtonTextDisplay() {
-      if (!this.canAdmin) {
-        return;
-      }
-
-      // eslint-disable-next-line consistent-return
-      return this.addButtonText ? this.addButtonText : __('Add');
+    headerText() {
+      return issuablesBlockHeaderTextMap[this.issuableType];
     },
     helpLinkText() {
       return issuablesBlockHelpTextMap[this.issuableType];
@@ -171,25 +158,29 @@ export default {
         : sprintf(this.$options.i18n.emptyItemsFree, { issuableType: this.issuableType });
     },
   },
-  watch: {
-    isFormVisible(newVal) {
-      if (newVal === true) {
+  mounted() {
+    this.$nextTick(() => {
+      if (this.showForm) {
+        this.$refs.relatedIssuesWidget.showForm();
+      }
+    });
+  },
+  updated() {
+    this.$nextTick(() => {
+      if (this.hasError) {
         this.$refs.relatedIssuesWidget.showForm();
       } else {
         this.$refs.relatedIssuesWidget.hideForm();
       }
-    },
-  },
-  mounted() {
-    if (this.isFormVisible) {
-      this.$refs.relatedIssuesWidget.showForm();
-    }
+    });
   },
   methods: {
     handleFormSubmit(event) {
+      this.showForm = false;
       this.$emit('addIssuableFormSubmit', event);
     },
     handleFormCancel(event) {
+      this.showForm = false;
       this.$emit('addIssuableFormCancel', event);
       this.$refs.relatedIssuesWidget.hideForm();
     },
@@ -209,17 +200,15 @@ export default {
     ref="relatedIssuesWidget"
     is-collapsible
     :is-loading="isFetching"
-    :title="headerTextDisplay"
+    :title="headerText"
     :icon="issuableTypeIcon"
     :count="badgeLabel"
-    :toggle-text="addButtonTextDisplay"
+    :toggle-text="canAdmin ? __('Add') : ''"
     :toggle-aria-label="addIssuableButtonText"
     :help-path="helpPath"
     :help-link-text="helpLinkText"
     anchor-id="related-issues"
     data-testid="related-issues-block"
-    @showForm="$emit('showForm')"
-    @hideForm="$emit('hideForm')"
   >
     <template #actions>
       <slot name="header-actions"></slot>
@@ -246,7 +235,7 @@ export default {
       />
     </template>
 
-    <template v-if="!shouldShowTokenBody" #empty>
+    <template v-if="!shouldShowTokenBody && !isFormVisible" #empty>
       <slot name="empty-state-message">{{ emptyStateMessage }}</slot>
       <gl-link
         v-if="hasHelpPath"
@@ -271,7 +260,7 @@ export default {
         :path-id-separator="pathIdSeparator"
         :related-issues="category.issues"
         :class="{
-          'gl-mb-5 gl-border-b-1 gl-border-b-default gl-border-b-solid':
+          'gl-mb-5 gl-border-b-1 gl-border-b-solid gl-border-b-default':
             index !== categorisedIssues.length - 1,
         }"
         @relatedIssueRemoveRequest="$emit('relatedIssueRemoveRequest', $event)"

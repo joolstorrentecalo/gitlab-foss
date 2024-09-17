@@ -6,7 +6,6 @@ import {
   GlToggle,
 } from '@gitlab/ui';
 import { s__ } from '~/locale';
-import { InternalEvents } from '~/tracking';
 import { workItemRoadmapPath } from '../../utils';
 import { WORK_ITEM_TYPE_ENUM_EPIC } from '../../constants';
 
@@ -23,7 +22,6 @@ export default {
   directives: {
     GlTooltip: GlTooltipDirective,
   },
-  mixins: [InternalEvents.mixin()],
   props: {
     workItemIid: {
       type: String,
@@ -106,20 +104,11 @@ export default {
         @action="$emit('toggle-show-labels')"
       >
         <template #list-item>
-          <gl-toggle
-            :value="showLabels"
-            :label="$options.i18n.showLabels"
-            class="gl-justify-between"
-            label-position="left"
-          />
+          <gl-toggle :value="showLabels" :label="$options.i18n.showLabels" label-position="left" />
         </template>
       </gl-disclosure-dropdown-item>
 
-      <gl-disclosure-dropdown-item
-        v-if="shouldShowViewRoadmapAction"
-        :item="viewOnARoadmap"
-        @action="trackEvent('view_epic_on_roadmap')"
-      />
+      <gl-disclosure-dropdown-item v-if="shouldShowViewRoadmapAction" :item="viewOnARoadmap" />
     </gl-disclosure-dropdown>
   </div>
 </template>

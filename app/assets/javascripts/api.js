@@ -727,9 +727,11 @@ const Api = {
       .replace(':id', encodeURIComponent(id))
       .replace(':merge_request_iid', mergeRequestId);
 
-    const params = {
-      async: true,
-    };
+    const params = {};
+
+    if (gon.features.asyncMergeRequestPipelineCreation) {
+      params.async = true;
+    }
 
     return axios.post(url, params);
   },

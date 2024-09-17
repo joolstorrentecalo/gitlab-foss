@@ -38,7 +38,7 @@ export default {
     GlPopover,
     WorkItemSidebarDropdownWidget,
   },
-  inject: ['fullPath'],
+  inject: ['fullPath', 'isGroup'],
   props: {
     workItemId: {
       type: String,
@@ -65,11 +65,6 @@ export default {
       default: '',
     },
     hasParent: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    isGroup: {
       type: Boolean,
       required: false,
       default: false,
@@ -128,7 +123,6 @@ export default {
     },
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     workspaceWorkItems: {
       query() {
         // TODO: Remove the this.isIssue check once issues are migrated to work items
@@ -156,7 +150,6 @@ export default {
         this.$emit('error', this.$options.i18n.workItemsFetchError);
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     workItemsByReference: {
       query: workItemsByReferencesQuery,
       variables() {
@@ -268,7 +261,7 @@ export default {
       <gl-link
         v-if="localSelectedItem"
         data-testid="work-item-parent-link"
-        class="gl-inline-block gl-max-w-full gl-overflow-hidden gl-text-ellipsis gl-whitespace-nowrap gl-align-top gl-text-gray-900"
+        class="gl-inline-block gl-align-top gl-text-gray-900 gl-max-w-full gl-whitespace-nowrap gl-text-overflow-ellipsis gl-overflow-hidden"
         :href="parentWebUrl"
         >{{ listboxText }}</gl-link
       >

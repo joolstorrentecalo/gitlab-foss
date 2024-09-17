@@ -29,7 +29,7 @@ export default {
 </script>
 
 <template>
-  <ul class="gl-contents">
+  <ul class="gl-display-contents">
     <li
       v-if="upvotes"
       v-gl-tooltip

@@ -81,7 +81,10 @@ DETAILS:
 **Offering:** GitLab.com
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/387246) in GitLab 16.9 [with a flag](../../../administration/feature_flags.md) named `pinned_file`. Disabled by default.
-> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/162503) in GitLab 17.4. Feature flag `pinned_file` removed.
+
+FLAG:
+The availability of this feature is controlled by a feature flag.
+For more information, see the history.
 
 When you share a merge request link with a team member, you might want to show a specific file
 first in the list of changed files. To copy a merge request link that shows your desired file first:
@@ -219,11 +222,11 @@ To change how a merge request shows changed lines:
 ## Explain code in a merge request
 
 DETAILS:
-**Tier: GitLab.com and Self-managed:** For a limited time, Premium or Ultimate. In the future, Premium with GitLab Duo Pro or Ultimate with [GitLab Duo Pro or Enterprise](../../../subscriptions/subscription-add-ons.md). **GitLab Dedicated:** GitLab Duo Pro or Enterprise.
-**Offering:** GitLab.com, Self-managed, GitLab Dedicated
+**Tier:** Premium or Ultimate for a limited time. In the future, Premium with GitLab Duo Pro or Ultimate [GitLab Duo Pro or Enterprise](../../../subscriptions/subscription-add-ons.md).
+**Offering:** GitLab.com
+**Status:** Experiment
 
 > - Introduced in GitLab 15.11 as an [experiment](../../../policy/experiment-beta-support.md#experiment) on GitLab.com.
-> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/429915) in GitLab 16.8.
 
 If you spend a lot of time trying to understand code that others have created, or
 you struggle to understand code written in a language you are not familiar with,
@@ -258,7 +261,7 @@ We cannot guarantee that the large language model produces results that are corr
 You can also explain code in:
 
 - A [file](../../../user/project/repository/code_explain.md).
-- The [IDE](../../../user/gitlab_duo_chat/examples.md#explain-selected-code).
+- The [IDE](../../../user/gitlab_duo_chat/examples.md#explain-code-in-the-ide).
 
 ## Expand or collapse comments
 

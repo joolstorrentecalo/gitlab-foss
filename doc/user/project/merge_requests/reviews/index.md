@@ -14,7 +14,7 @@ DETAILS:
 Merge requests are the primary method of making changes to files in a
 GitLab project. [Create and submit](../creating_merge_requests.md) a merge request
 to propose changes. Your team leaves [comments](../../../discussions/index.md) on
-your merge request, and makes [suggestions](suggestions.md) you can accept
+your merge request, and makes [Code Suggestions](suggestions.md) you can accept
 from the user interface. When a teammate reviews your work, they can choose
 to accept or reject it.
 
@@ -318,7 +318,7 @@ after a few hours.
 
 Prerequisites:
 
-- You have the Owner or Maintainer role for the project.
+- You have the Owner or Maintainer role in the project.
 
 To do this:
 

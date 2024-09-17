@@ -3,21 +3,7 @@
 require "spec_helper"
 
 RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :importers do
-  describe ".aliases" do
-    def missing_attribute_message(model, attribute)
-      <<-MSG
-        #{model}##{attribute} references a user and it is not defined in #{described_class}::ALIASES.
-        Please add the attribute in the columns key in the #{described_class}::ALIASES['#{model}'] hash.
-      MSG
-    end
-
-    def missing_alias_message(model)
-      <<-MSG
-        #{model} models references a user and it is not defined in #{described_class}::ALIASES.
-        Please define the mapping in #{described_class}::ALIASES.
-      MSG
-    end
-
+  describe "ALIASES" do
     it "points to real columns" do
       def failure_message(model, column)
         <<-MSG
@@ -27,7 +13,7 @@ RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :
         MSG
       end
 
-      described_class.aliases.each_value.flat_map(&:values).each do |model_alias|
+      described_class::ALIASES.each_value do |model_alias|
         model = model_alias[:model]
         column_names = model.columns.map(&:name)
 
@@ -36,150 +22,16 @@ RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :
         end
       end
     end
-
-    shared_examples 'define aliases' do
-      def relation_class(relation_key)
-        relation_key.to_s.classify.constantize
-      rescue NameError
-        relation_key.to_s.constantize
-      end
-
-      def extract_relation_names(hash, keys = [])
-        keys += hash.keys
-        hash.each_value do |value|
-          keys += extract_relation_names(value, keys)
-        end
-        keys.uniq
-      end
-
-      it "defines aliases for imported resources that references users", :eager_load do
-        relation_names = extract_relation_names(config_tree).reject { |name| ignore_relations.include?(name) }
-        relation_names.each do |relation_name|
-          relation_name = overrides[relation_name] || relation_name
-          model_class = relation_class(relation_name)
-          table_columns = model_class.columns.collect(&:name)
-          user_associations = model_class.reflect_on_all_associations(:belongs_to)
-            .reject(&:polymorphic?)
-            .filter { |association| association.klass == User }
-            .reject { |association| table_columns.exclude?(association.foreign_key) }
-
-          next unless user_associations.any?
-
-          expect(described_class.aliases[model_class.to_s]).to be_present, missing_alias_message(model_class)
-
-          user_associations.each do |association|
-            foreign_key = association.foreign_key
-            last_version = described_class.aliases[model_class.to_s].keys.max
-            alias_definition = described_class.aliases[model_class.to_s][last_version]
-            expect(alias_definition[:columns]).to include(foreign_key),
-              missing_attribute_message(model_class, foreign_key)
-          end
-        end
-      end
-    end
-
-    describe 'group aliases' do
-      let(:overrides) { Gitlab::ImportExport::Group::RelationFactory.overrides }
-      let(:ignore_relations) { %i[members user_contributions author user] }
-      let(:config_tree) do
-        Gitlab::ImportExport::Config.new(config: Gitlab::ImportExport.group_config_file).to_h[:tree][:group]
-      end
-
-      it_behaves_like 'define aliases'
-    end
-
-    describe 'project aliases' do
-      let(:overrides) { Gitlab::ImportExport::Project::RelationFactory.overrides }
-      let(:ignore_relations) { %i[project_members user_contributions author user] }
-      let(:config_tree) do
-        Gitlab::ImportExport::Config.new(config: Gitlab::ImportExport.config_file).to_h[:tree][:project]
-      end
-
-      it_behaves_like 'define aliases'
-    end
-
-    it "defines aliases for all note descendants apart from synthetic notes" do
-      user_associations = Note.reflect_on_all_associations(:belongs_to)
-        .reject(&:polymorphic?)
-        .filter { |association| association.klass == User }
-        .reject { |association| Note.columns.collect(&:name).exclude?(association.foreign_key) }
-
-      (Note.descendants - SyntheticNote.descendants - [SyntheticNote]).each do |descendant|
-        expect(described_class.aliases[descendant.to_s]).to be_present, missing_alias_message(descendant)
-
-        user_associations.each do |association|
-          foreign_key = association.foreign_key
-          last_version = described_class.aliases[descendant.to_s].keys.max
-          alias_definition = described_class.aliases[descendant.to_s][last_version]
-          expect(alias_definition[:columns]).to include(foreign_key),
-            missing_attribute_message(descendant, foreign_key)
-        end
-      end
-    end
-  end
-
-  describe ".version_for_model" do
-    let(:aliases) do
-      {
-        "Note" => {
-          1 => {
-            model: Note,
-            columns: { "author_id" => "author_id" }
-          },
-          2 => {
-            model: Note,
-            columns: { "author_id" => "user_id" }
-          }
-        }
-      }
-    end
-
-    before do
-      allow(described_class).to receive(:aliases).and_return(aliases)
-    end
-
-    it "returns the max version available for the model" do
-      expect(described_class.version_for_model("Note")).to eq(2)
-    end
-
-    context "when the model does not exist" do
-      it "returns version 1 after reporting a missing alias" do
-        expect(Gitlab::ErrorTracking).to receive(:track_and_raise_for_dev_exception)
-          .with(described_class::MissingAlias.new("ALIASES must be extended to include Issue"))
-
-        expect(described_class.version_for_model("Issue")).to eq(1)
-      end
-    end
   end
 
   describe ".aliased_model" do
-    subject(:aliased_model) { described_class.aliased_model(model, version: 1) }
-
-    let(:model) { "Note" }
+    subject(:aliased_model) { described_class.aliased_model(model) }
 
     context "when model exists" do
+      let(:model) { "Note" }
+
       it "returns the model" do
         expect(aliased_model).to eq(Note)
-      end
-    end
-
-    context "when there are multiple versions" do
-      let(:aliases) do
-        {
-          "Note" => {
-            1 => { model: Note, columns: { "author_id" => "author_id" } },
-            2 => { model: Issue, columns: { "author_id" => "author_id" } }
-          }
-        }
-      end
-
-      before do
-        allow(described_class).to receive(:aliases).and_return(aliases)
-      end
-
-      it "returns the value for the right version" do
-        expect(described_class.aliased_model(model, version: 1)).to eq(Note)
-        expect(described_class.aliased_model(model, version: 2)).to eq(Issue)
       end
     end
 
@@ -189,18 +41,16 @@ RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :
       let(:aliases) do
         {
           "Description" => {
-            1 => {
-              model: Note,
-              columns: {
-                "author_id" => "author_id"
-              }
+            model: Note,
+            columns: {
+              "author_id" => "author_id"
             }
           }
         }
       end
 
       before do
-        allow(described_class).to receive(:aliases).and_return(aliases)
+        stub_const("#{described_class}::ALIASES", aliases)
       end
 
       it "returns the new model name" do
@@ -212,9 +62,8 @@ RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :
       let(:model) { "Blob" }
 
       it "returns a constantized version of the passed string after reporting a missing alias" do
-        expect(Gitlab::ErrorTracking).to receive(:track_and_raise_for_dev_exception).with(
-          described_class::MissingAlias.new("ALIASES must be extended to include Blob for version 1")
-        )
+        expect(Gitlab::ErrorTracking).to receive(:track_and_raise_for_dev_exception)
+          .with(described_class::MissingAlias)
 
         expect(aliased_model).to eq(Blob)
       end
@@ -224,9 +73,8 @@ RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :
       let(:model) { "NotARealModel" }
 
       it "returns nil after reporting a missing alias" do
-        expect(Gitlab::ErrorTracking).to receive(:track_and_raise_for_dev_exception).with(
-          described_class::MissingAlias.new("ALIASES must be extended to include NotARealModel for version 1")
-        )
+        expect(Gitlab::ErrorTracking).to receive(:track_and_raise_for_dev_exception)
+          .with(described_class::MissingAlias)
 
         expect(aliased_model).to be_nil
       end
@@ -234,7 +82,7 @@ RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :
   end
 
   describe ".aliased_column" do
-    subject(:aliased_column) { described_class.aliased_column(model, column, version: 1) }
+    subject(:aliased_column) { described_class.aliased_column(model, column) }
 
     let(:model) { "Note" }
     let(:column) { "author_id" }
@@ -243,42 +91,20 @@ RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :
       expect(aliased_column).to eq("author_id")
     end
 
-    context "when there are multiple versions" do
-      let(:aliases) do
-        {
-          "Note" => {
-            1 => { model: Note, columns: { "author_id" => "author_id" } },
-            2 => { model: Issue, columns: { "author_id" => "user_id" } }
-          }
-        }
-      end
-
-      before do
-        allow(described_class).to receive(:aliases).and_return(aliases)
-      end
-
-      it "returns the value for the right version" do
-        expect(described_class.aliased_column(model, column, version: 1)).to eq("author_id")
-        expect(described_class.aliased_column(model, column, version: 2)).to eq("user_id")
-      end
-    end
-
     context "when the column has changed" do
       let(:aliases) do
         {
           "Note" => {
-            1 => {
-              model: Note,
-              columns: {
-                "author_id" => "user_id"
-              }
+            model: Note,
+            columns: {
+              "author_id" => "user_id"
             }
           }
         }
       end
 
       before do
-        allow(described_class).to receive(:aliases).and_return(aliases)
+        stub_const("#{described_class}::ALIASES", aliases)
       end
 
       it "returns the new column name" do
@@ -290,45 +116,10 @@ RSpec.describe Import::PlaceholderReferences::AliasResolver, feature_category: :
       let(:column) { "test123_id" }
 
       it "returns the same column after reporting a missing alias" do
-        expect(Gitlab::ErrorTracking).to receive(:track_and_raise_for_dev_exception).with(
-          described_class::MissingAlias.new("ALIASES must be extended to include Note.test123_id for version 1")
-        )
+        expect(Gitlab::ErrorTracking).to receive(:track_and_raise_for_dev_exception)
+          .with(described_class::MissingAlias)
 
         expect(aliased_column).to eq("test123_id")
-      end
-    end
-  end
-
-  describe ".models_with_columns" do
-    subject(:models_with_columns) { described_class.models_with_columns }
-
-    it "returns models with all their columns" do
-      expect(models_with_columns).to include([Approval, ["user_id"]])
-    end
-
-    context "when there are multiple versions for a key" do
-      let(:aliases) do
-        {
-          "Note" => {
-            1 => {
-              model: Note,
-              columns: { "author_id" => "author_id" }
-            },
-            2 => {
-              model: Note,
-              columns: { "author_id" => "user_id" }
-            }
-          }
-        }
-      end
-
-      before do
-        allow(described_class).to receive(:aliases).and_return(aliases)
-      end
-
-      it "only includes the last version" do
-        expect(models_with_columns).to include([Note, ["user_id"]])
-        expect(models_with_columns).not_to include([Note, ["author_id"]])
       end
     end
   end

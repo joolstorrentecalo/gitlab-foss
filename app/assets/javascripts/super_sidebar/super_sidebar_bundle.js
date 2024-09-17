@@ -87,7 +87,7 @@ export const initSuperSidebar = () => {
 
   if (!el) return false;
 
-  const { rootPath, sidebar, forceDesktopExpandedSidebar, commandPalette, isSaas } = el.dataset;
+  const { rootPath, sidebar, forceDesktopExpandedSidebar, commandPalette } = el.dataset;
 
   bindSuperSidebarCollapsedEvents(forceDesktopExpandedSidebar);
   initSuperSidebarCollapsedState(parseBoolean(forceDesktopExpandedSidebar));
@@ -135,7 +135,6 @@ export const initSuperSidebar = () => {
       canAdminLabel: parseBoolean(sidebarData.work_items?.can_admin_label),
       labelsManagePath: sidebarData.work_items?.labels_manage_path,
       isGroup,
-      isSaas: parseBoolean(isSaas),
     },
     store: createStore({
       searchPath,

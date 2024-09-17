@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Robots.txt Requests', :aggregate_failures, feature_category: :shared do
+RSpec.describe 'Robots.txt Requests', :aggregate_failures, feature_category: :build do
   before do
     Gitlab::Testing::RobotsBlockerMiddleware.block_requests!
   end
