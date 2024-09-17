@@ -257,7 +257,7 @@ By default, sign-in is enabled for all the OAuth providers configured in `config
 
 To enable or disable an OmniAuth provider:
 
-1. On the left sidebar, at the bottom, select **Admin**.
+1. On the left sidebar, at the bottom, select **Admin area**.
 1. Select **Settings > General**.
 1. Expand **Sign-in restrictions**.
 1. In the **Enabled OAuth authentication sources** section, select or clear the checkbox for each provider you want to enable or disable.
@@ -545,7 +545,7 @@ your current provider for the same user.
 
 There are two methods to update the `extern_uid`:
 
-- Using the [Users API](../api/users.md#modify-a-user). Pass the provider name and the new `extern_uid`.
+- Using the [Users API](../api/users.md#user-modification). Pass the provider name and the new `extern_uid`.
 - Using the [Rails console](../administration/operations/rails_console.md):
 
   ```ruby

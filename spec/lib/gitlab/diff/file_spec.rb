@@ -227,68 +227,6 @@ RSpec.describe Gitlab::Diff::File do
     end
   end
 
-  describe '#diff_hunks' do
-    let(:diff_lines) do
-      [
-        instance_double(Gitlab::Diff::Line, type: 'match', added?: false, removed?: false, meta?: true),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 1, new_pos: 1, added?: false, removed?: false, meta?: false, text: 'First Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 2, new_pos: 2, added?: false, removed?: false, meta?: false, text: 'First Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 3, new_pos: 3, added?: false, removed?: false, meta?: false, text: 'First Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: 'old', old_pos: 4, new_pos: 4, added?: false, removed?: true, text: 'First Hunk Removed 1', meta?: false),
-        instance_double(Gitlab::Diff::Line, type: 'old', old_pos: 5, new_pos: 4, added?: false, removed?: true, text: 'First Hunk Removed 2', meta?: false),
-        instance_double(Gitlab::Diff::Line, type: 'new', old_pos: 5, new_pos: 4, added?: true, removed?: false, text: 'First Hunk Added 1', meta?: false),
-        instance_double(Gitlab::Diff::Line, type: 'new', old_pos: 5, new_pos: 5, added?: true, removed?: false, text: 'First Hunk Added 2', meta?: false),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 5, new_pos: 6, added?: false, removed?: false, meta?: false, text: 'First Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 6, new_pos: 7, added?: false, removed?: false, meta?: false, text: 'First Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 7, new_pos: 8, added?: false, removed?: false, meta?: false, text: 'First Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: 'match', old_pos: 8, new_pos: 9, added?: false, removed?: false, meta?: true),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 9, new_pos: 10, added?: false, removed?: false, meta?: false, text: 'Second Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 10, new_pos: 11, added?: false, removed?: false, meta?: false, text: 'Second Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: nil, old_pos: 11, new_pos: 12, added?: false, removed?: false, meta?: false, text: 'Second Hunk Unchanged'),
-        instance_double(Gitlab::Diff::Line, type: 'old', old_pos: 12, new_pos: 13, added?: false, removed?: true, text: 'Second Hunk Removed', meta?: false),
-        instance_double(Gitlab::Diff::Line, type: 'new-nonewline', old_pos: 13, new_pos: 13, added?: true, removed?: false, meta?: true)
-      ]
-    end
-
-    before do
-      allow(diff_file).to receive(:diff_lines).and_return(diff_lines)
-    end
-
-    subject(:diff_hunks) { diff_file.diff_hunks }
-
-    it 'returns lines per hunk' do
-      expect(diff_hunks.size).to eq(2)
-
-      expect(diff_hunks.first[:last_removed_line_pos]).to eq(5)
-      expect(diff_hunks.first[:last_added_line_pos]).to eq(5)
-      expect(diff_hunks.first[:text]).to eq(
-        <<~HUNK.chomp
-          First Hunk Unchanged
-          First Hunk Unchanged
-          First Hunk Unchanged
-          First Hunk Removed 1
-          First Hunk Removed 2
-          First Hunk Added 1
-          First Hunk Added 2
-          First Hunk Unchanged
-          First Hunk Unchanged
-          First Hunk Unchanged
-        HUNK
-      )
-
-      expect(diff_hunks.last[:last_removed_line_pos]).to eq(12)
-      expect(diff_hunks.last[:last_added_line_pos]).to be_nil
-      expect(diff_hunks.last[:text]).to eq(
-        <<~HUNK.chomp
-          Second Hunk Unchanged
-          Second Hunk Unchanged
-          Second Hunk Unchanged
-          Second Hunk Removed
-        HUNK
-      )
-    end
-  end
-
   describe '#highlighted_diff_lines' do
     it 'highlights the diff and memoises the result' do
       expect(Gitlab::Diff::Highlight).to receive(:new)
@@ -1301,47 +1239,5 @@ RSpec.describe Gitlab::Diff::File do
 
       it { is_expected.to eq(false) }
     end
-  end
-
-  describe '#line_side_code' do
-    let(:line) { instance_double(Gitlab::Diff::Line, type: 'old', old_pos: 4, new_pos: 4, added?: false, removed?: true, text: 'First Hunk Removed 1', meta?: false) }
-
-    it 'returns the correct left side ID' do
-      expect(diff_file.line_side_code(line, :old)).to eq("line_#{diff_file.file_hash}_L#{line.old_pos}")
-    end
-
-    it 'returns the correct right side ID' do
-      expect(diff_file.line_side_code(line, :new)).to eq("line_#{diff_file.file_hash}_R#{line.new_pos}")
-    end
-  end
-
-  describe '#text_diff' do
-    subject(:text_diff) { diff_file.text_diff? }
-
-    it 'returns true for text diffs' do
-      expect(text_diff).to eq(true)
-    end
-
-    it 'returns false for unchanged files' do
-      allow(diff_file).to receive(:modified_file?).and_return(false)
-      expect(text_diff).to eq(false)
-    end
-
-    it 'returns false for non text files' do
-      allow(diff_file).to receive(:text?).and_return(false)
-      expect(text_diff).to eq(false)
-    end
-  end
-
-  describe '#diff_lines_with_match_tail' do
-    subject(:lines) { diff_file.diff_lines_with_match_tail }
-
-    it { expect(lines.last.type).to eq('match') }
-  end
-
-  describe '#parallel_diff_lines_with_match_tail' do
-    subject(:lines) { diff_file.parallel_diff_lines_with_match_tail }
-
-    it { expect(lines.last[:left].type).to eq('match') }
   end
 end

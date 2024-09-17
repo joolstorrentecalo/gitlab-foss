@@ -5,7 +5,6 @@ RSpec.shared_examples 'WikiPages::DestroyService#execute' do |container_type|
 
   let(:user) { create(:user) }
   let(:page) { create(:wiki_page) }
-  let!(:wiki_page_meta) { create(:wiki_page_meta, container: container) }
 
   subject(:service) { described_class.new(container: container, current_user: user) }
 
@@ -23,27 +22,10 @@ RSpec.shared_examples 'WikiPages::DestroyService#execute' do |container_type|
     subject(:track_event) { service.execute(page) }
   end
 
-  context 'when the deleted page is a template' do
-    let(:page) { create(:wiki_page, title: "#{Wiki::TEMPLATES_DIR}/foobar") }
-
-    it_behaves_like 'internal event tracking' do
-      let(:event) { 'delete_wiki_page' }
-      let(:project) { container if container.is_a?(Project) }
-      let(:namespace) { container.is_a?(Group) ? container : container.namespace }
-      let(:label) { 'template' }
-      let(:property) { 'markdown' }
-
-      subject(:track_event) { service.execute(page) }
-    end
-  end
-
-  # This test fails, because deleting a page seems to orphan WikiPage;:Meta and WikiPage::Slug records,
-  # but it's included for completeness for now.
-  pending 'deletes a WikiPage::Meta record' do
-    expect { service.execute(page) }.to change { WikiPage::Meta.count }.by(-1)
-  end
-
   it 'creates a new wiki page deletion event' do
+    # TODO: https://gitlab.com/gitlab-org/gitlab/-/issues/216904
+    pending('group wiki support') if container_type == :group
+
     expect { service.execute(page) }.to change { Event.count }.by 1
 
     expect(Event.recent.first).to have_attributes(

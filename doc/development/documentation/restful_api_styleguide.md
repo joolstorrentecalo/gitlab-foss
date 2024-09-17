@@ -97,7 +97,7 @@ Example response:
 
 ## History
 
-Add [history](../documentation/styleguide/availability_details.md#history)
+Add [history](versions.md#documenting-version-specific-features)
 to describe new or updated API calls.
 
 To add history for an individual attribute, include it in the history
@@ -115,7 +115,7 @@ If the API or attribute is deployed behind a feature flag,
 ## Deprecations
 
 To document the deprecation of an API endpoint, follow the steps to
-[deprecate a page or topic](../documentation/styleguide/deprecations_and_removals.md).
+[deprecate a page or topic](versions.md#deprecate-a-page-or-topic).
 
 To deprecate an attribute:
 
@@ -160,26 +160,6 @@ Rendered example:
 | `confidential`               | boolean       | No       | Sets the issue to confidential. Default is `false`. |
 
 For information about writing attribute descriptions, see the [GraphQL API description style guide](../api_graphql_styleguide.md#description-style-guide).
-
-### Conditionally required attributes
-
-If there are attributes where either one or both are required to make an API
-request:
-
-1. Add `Conditionally` in the `Required` column.
-1. Clearly describe the related attributes in the description.
-   You can use the following template:
-
-   ```markdown
-   At least one of `attribute1` or `attribute2` must be included in the API call. Both may be used if needed.
-   ```
-
-For example:
-
-| Attribute                  | Type           | Required       | Description                                                                                         |
-|:---------------------------|:---------------|:---------------|:--------------------------------------------------------------------------------------------------- |
-| `include_saml_users`       | boolean        | Conditionally  | Include users with a SAML identity. At least one of `include_saml_users` or `include_service_accounts` must be `true`. Both may be used if needed. |
-| `include_service_accounts` | boolean        | Conditionally  | Include service account users. At least one of `include_saml_users` or `include_service_accounts` must be `true`. Both may be used if needed. |
 
 ## Response body description
 

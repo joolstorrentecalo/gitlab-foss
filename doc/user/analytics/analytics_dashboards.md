@@ -90,7 +90,7 @@ You can use the visualization designer to:
 
 Prerequisites:
 
-- You must have at least the Reporter role for the project.
+- You must have at least the Developer role for the project.
 
 To view a list of dashboards (both built-in and custom) for a project:
 
@@ -269,7 +269,7 @@ After you save a visualization, you can add it to a new or existing custom dashb
 ### Generate a custom visualization with GitLab Duo
 
 DETAILS:
-**Tier:** For a limited time, Ultimate. In the future, Ultimate with [GitLab Duo Enterprise](../../subscriptions/subscription-add-ons.md).
+**Tier:** For a limited time, Ultimate. In the future, [GitLab Duo Enterprise](../../subscriptions/subscription-add-ons.md).
 **Offering:** GitLab.com
 **Status:** Experiment
 

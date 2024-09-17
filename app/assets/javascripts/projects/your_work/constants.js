@@ -1,11 +1,8 @@
 import { __ } from '~/locale';
-import contributedProjectsQuery from './graphql/queries/contributed_projects.query.graphql';
 
 export const CONTRIBUTED_TAB = {
   text: __('Contributed'),
   value: 'contributed',
-  query: contributedProjectsQuery,
-  queryPath: 'currentUser.contributedProjects',
 };
 
 export const STARRED_TAB = {
@@ -23,18 +20,7 @@ export const MEMBER_TAB = {
   value: 'member',
 };
 
-export const INACTIVE_TAB = {
-  text: __('Inactive'),
-  value: 'inactive',
-};
-
-export const PROJECT_DASHBOARD_TABS = [
-  CONTRIBUTED_TAB,
-  STARRED_TAB,
-  PERSONAL_TAB,
-  MEMBER_TAB,
-  INACTIVE_TAB,
-];
+export const PROJECT_DASHBOARD_TABS = [CONTRIBUTED_TAB, STARRED_TAB, PERSONAL_TAB, MEMBER_TAB];
 
 export const BASE_ROUTE = '/dashboard/projects';
 

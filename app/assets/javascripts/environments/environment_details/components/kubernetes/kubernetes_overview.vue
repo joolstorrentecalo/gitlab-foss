@@ -1,18 +1,9 @@
 <script>
-import {
-  GlEmptyState,
-  GlSprintf,
-  GlLink,
-  GlAlert,
-  GlDisclosureDropdown,
-  GlDisclosureDropdownItem,
-  GlModalDirective,
-} from '@gitlab/ui';
+import { GlEmptyState, GlSprintf, GlLink, GlAlert, GlDrawer } from '@gitlab/ui';
 import CLUSTER_EMPTY_SVG from '@gitlab/svgs/dist/illustrations/empty-state/empty-state-clusters.svg?url';
-import { isEmpty } from 'lodash';
-import { s__, __ } from '~/locale';
-import { createAlert } from '~/alert';
-import { InternalEvents } from '~/tracking';
+import { DRAWER_Z_INDEX } from '~/lib/utils/constants';
+import { getContentWrapperHeight } from '~/lib/utils/dom_utils';
+import { s__ } from '~/locale';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { helpPagePath } from '~/helpers/help_page_helper';
 import { getIdFromGraphQLId } from '~/graphql_shared/utils';
@@ -20,7 +11,6 @@ import { k8sResourceType } from '~/environments/graphql/resolvers/kubernetes/con
 import {
   createK8sAccessConfiguration,
   fluxSyncStatus,
-  updateFluxRequested,
 } from '~/environments/helpers/k8s_integration_helper';
 import fluxKustomizationQuery from '~/environments/graphql/queries/flux_kustomization.query.graphql';
 import fluxHelmReleaseQueryStatus from '~/environments/graphql/queries/flux_helm_release.query.graphql';
@@ -30,16 +20,10 @@ import {
   HELM_RELEASES_RESOURCE_TYPE,
   KUSTOMIZATIONS_RESOURCE_TYPE,
 } from '~/environments/constants';
-import { CONNECT_MODAL_ID } from '~/clusters_list/constants';
-import WorkloadDetailsDrawer from '~/kubernetes_dashboard/components/workload_details_drawer.vue';
-import ConnectToAgentModal from '~/clusters_list/components/connect_to_agent_modal.vue';
-import updateFluxResourceMutation from '~/environments/graphql/mutations/update_flux_resource.mutation.graphql';
+import WorkloadDetails from '~/kubernetes_dashboard/components/workload_details.vue';
 import KubernetesStatusBar from './kubernetes_status_bar.vue';
 import KubernetesAgentInfo from './kubernetes_agent_info.vue';
 import KubernetesTabs from './kubernetes_tabs.vue';
-import DeletePodModal from './delete_pod_modal.vue';
-
-const trackingMixin = InternalEvents.mixin();
 
 export default {
   components: {
@@ -47,26 +31,15 @@ export default {
     KubernetesStatusBar,
     KubernetesAgentInfo,
     KubernetesTabs,
-    WorkloadDetailsDrawer,
+    WorkloadDetails,
     GlSprintf,
     GlLink,
     GlAlert,
-    GlDisclosureDropdown,
-    GlDisclosureDropdownItem,
-    DeletePodModal,
-    ConnectToAgentModal,
+    GlDrawer,
   },
-  directives: {
-    GlModalDirective,
-  },
-  mixins: [trackingMixin],
   inject: ['kasTunnelUrl'],
   props: {
     environmentName: {
-      type: String,
-      required: true,
-    },
-    environmentId: {
       type: String,
       required: true,
     },
@@ -129,10 +102,8 @@ export default {
       podsLoading: false,
       activeTab: k8sResourceType.k8sPods,
       fluxApiError: '',
-      focusedElement: null,
-      podToDelete: {},
-      fluxHelmRelease: {},
-      fluxKustomization: {},
+      selectedItem: {},
+      showDetailsDrawer: false,
     };
   },
   computed: {
@@ -155,7 +126,13 @@ export default {
       return Object.values(this.failedState).some((item) => item);
     },
     fluxResourceStatus() {
-      return this.fluxKustomization.conditions || this.fluxHelmRelease.conditions;
+      return this.fluxKustomization?.conditions || this.fluxHelmRelease?.conditions;
+    },
+    drawerHeaderHeight() {
+      return getContentWrapperHeight();
+    },
+    hasSelectedItem() {
+      return Object.keys(this.selectedItem).length;
     },
   },
   methods: {
@@ -176,69 +153,33 @@ export default {
     transformFluxResourceData(item) {
       return {
         name: item.metadata.name,
-        namespace: item.metadata.namespace,
         status: fluxSyncStatus(item.status.conditions).status,
         labels: item.metadata.labels,
         annotations: item.metadata.annotations,
         kind: item.kind,
         spec: item.spec,
         fullStatus: item.status.conditions,
-        actions: [
-          {
-            name: 'flux-reconcile',
-            text: s__('KubernetesDashboard|Trigger reconciliation'),
-            icon: 'retry',
-          },
-        ],
       };
     },
     showFluxResourceDetails() {
-      const fluxResource = !isEmpty(this.fluxKustomization)
-        ? this.fluxKustomization
-        : this.fluxHelmRelease;
+      const fluxResource = this.fluxKustomization || this.fluxHelmRelease;
       const fluxResourceTransformed = this.transformFluxResourceData(fluxResource);
 
-      this.toggleDetailsDrawer(fluxResourceTransformed);
+      this.openDetailsDrawer(fluxResourceTransformed);
     },
-    toggleDetailsDrawer(item) {
-      this.$refs.detailsDrawer?.toggle(item);
+    openDetailsDrawer(item) {
+      this.selectedItem = item;
+      this.showDetailsDrawer = true;
+      this.$nextTick(() => {
+        this.$refs.drawer?.$el?.querySelector('button')?.focus();
+      });
     },
     closeDetailsDrawer() {
-      this.$refs.detailsDrawer?.close();
-    },
-    onDeletePod(pod) {
-      this.podToDelete = pod;
-    },
-    onCloseModal() {
-      this.podToDelete = {};
-    },
-    onPodDeleted() {
-      this.closeDetailsDrawer();
-    },
-    onFluxReconcile() {
-      this.trackEvent('click_trigger_flux_reconciliation');
-
-      this.$apollo
-        .mutate({
-          mutation: updateFluxResourceMutation,
-          variables: {
-            configuration: this.k8sAccessConfiguration,
-            fluxResourcePath: this.fluxResourcePath,
-            data: updateFluxRequested(),
-          },
-        })
-        .then(({ data }) => {
-          const { errors } = data.updateFluxResource;
-
-          if (errors?.length) {
-            throw new Error(errors[0]);
-          } else {
-            this.closeDetailsDrawer();
-          }
-        })
-        .catch((error) => {
-          createAlert({ message: this.$options.i18n.error + error.message, variant: 'danger' });
-        });
+      this.showDetailsDrawer = false;
+      this.selectedItem = {};
+      this.$nextTick(() => {
+        this.$refs.status_bar?.$refs?.flux_status_badge?.$el?.focus();
+      });
     },
   },
   i18n: {
@@ -247,20 +188,19 @@ export default {
       'Environment|There are no Kubernetes cluster connections configured for this environment. Connect a cluster to add the status of your workloads, resources, and the Flux reconciliation state to the dashboard. %{linkStart}Learn more about Kubernetes integration.%{linkEnd}',
     ),
     emptyButton: s__('Environment|Get started'),
-    connectButtonText: s__('ClusterAgents|Connect to agent'),
-    actions: __('Actions'),
-    error: __('Error: '),
   },
   learnMoreLink: helpPagePath('user/clusters/agent/index'),
   getStartedLink: helpPagePath('ci/environments/kubernetes_dashboard'),
   CLUSTER_EMPTY_SVG,
-  CONNECT_MODAL_ID,
+  DRAWER_Z_INDEX,
 };
 </script>
 <template>
-  <div v-if="clusterAgent" class="-gl-mt-3 gl-bg-gray-10 gl-p-5">
-    <div class="gl-flex gl-flex-wrap gl-items-center gl-justify-between">
-      <kubernetes-agent-info :cluster-agent="clusterAgent" class="gl-mb-2 gl-mr-5 gl-grow" />
+  <div v-if="clusterAgent" class="gl-p-5 gl-bg-gray-10 -gl-mt-3">
+    <div
+      class="gl-display-flex gl-flex-wrap gl-justify-content-space-between gl-align-items-center"
+    >
+      <kubernetes-agent-info :cluster-agent="clusterAgent" class="gl-mb-2 gl-mr-5" />
       <kubernetes-status-bar
         ref="status_bar"
         :cluster-health-status="clusterHealthStatus"
@@ -273,26 +213,6 @@ export default {
         :flux-api-error="fluxApiError"
         @error="handleError"
         @show-flux-resource-details="showFluxResourceDetails"
-      />
-
-      <gl-disclosure-dropdown
-        :title="$options.i18n.actions"
-        category="tertiary"
-        icon="ellipsis_v"
-        text-sr-only
-        no-caret
-      >
-        <gl-disclosure-dropdown-item v-gl-modal-directive="$options.CONNECT_MODAL_ID">
-          <template #list-item>
-            {{ $options.i18n.connectButtonText }}
-          </template>
-        </gl-disclosure-dropdown-item>
-      </gl-disclosure-dropdown>
-
-      <connect-to-agent-modal
-        :agent-id="clusterAgent.id"
-        :project-path="clusterAgent.project.fullPath"
-        :is-configured="true"
       />
     </div>
 
@@ -308,25 +228,26 @@ export default {
       @cluster-error="handleError"
       @loading="podsLoading = $event"
       @update-failed-state="handleFailedState"
-      @select-item="toggleDetailsDrawer"
+      @show-resource-details="openDetailsDrawer"
       @remove-selection="closeDetailsDrawer"
-      @delete-pod="onDeletePod"
     />
 
-    <delete-pod-modal
-      :pod="podToDelete"
-      :configuration="k8sAccessConfiguration"
-      :agent-id="gitlabAgentId"
-      :environment-id="environmentId"
-      @pod-deleted="onPodDeleted"
-      @close="onCloseModal"
-    />
-    <workload-details-drawer
-      ref="detailsDrawer"
-      :configuration="k8sAccessConfiguration"
-      @delete-pod="onDeletePod"
-      @flux-reconcile="onFluxReconcile"
-    />
+    <gl-drawer
+      ref="drawer"
+      :open="showDetailsDrawer"
+      :header-height="drawerHeaderHeight"
+      :z-index="$options.DRAWER_Z_INDEX"
+      @close="closeDetailsDrawer"
+    >
+      <template #title>
+        <h2 class="gl-font-bold gl-m-0 gl-break-anywhere">
+          {{ selectedItem.name }}
+        </h2>
+      </template>
+      <template #default>
+        <workload-details v-if="hasSelectedItem" :item="selectedItem" />
+      </template>
+    </gl-drawer>
   </div>
   <gl-empty-state
     v-else

@@ -86,7 +86,7 @@
           "additionalProperties": false
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "iglu_schema_url": {
       "type": [
@@ -109,7 +109,7 @@
         "string",
         "null"
       ],
-      "pattern": "^<?[0-9]+\\.[0-9]+$"
+      "pattern": "^[0-9]+\\.[0-9]+$"
     },
     "distributions": {
       "type": "array",

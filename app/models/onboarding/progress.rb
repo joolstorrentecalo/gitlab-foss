@@ -9,16 +9,28 @@ module Onboarding
     validate :namespace_is_root_namespace
 
     ACTIONS = [
+      :git_pull,
       :git_write,
       :merge_request_created,
       :pipeline_created,
       :user_added,
       :trial_started,
+      :subscription_created,
       :required_mr_approvals_enabled,
       :code_owners_enabled,
+      :scoped_label_created,
+      :security_scan_enabled,
       :issue_created,
+      :issue_auto_closed,
+      :repository_imported,
+      :repository_mirrored,
       :secure_dependency_scanning_run,
+      :secure_container_scanning_run,
       :secure_dast_run,
+      :secure_secret_detection_run,
+      :secure_coverage_fuzzing_run,
+      :secure_api_fuzzing_run,
+      :secure_cluster_image_scanning_run,
       :license_scanning_run,
       :code_added
     ].freeze
@@ -49,7 +61,7 @@ module Onboarding
       end
 
       def onboarding?(namespace)
-        where(namespace: namespace, ended_at: nil).any?
+        where(namespace: namespace).any?
       end
 
       def register(namespace, actions)
@@ -64,7 +76,7 @@ module Onboarding
         return if nil_actions.empty?
 
         updates = nil_actions.inject({}) { |sum, action| sum.merge!({ column_name(action) => now }) }
-        onboarding_progress.update(updates)
+        onboarding_progress.update!(updates)
       end
 
       def completed?(namespace, action)

@@ -26,6 +26,7 @@ class Environment < ApplicationRecord
   has_many :deployments, -> { visible }
   has_many :successful_deployments, -> { success }, class_name: 'Deployment'
   has_many :active_deployments, -> { active }, class_name: 'Deployment'
+  has_many :prometheus_alerts, inverse_of: :environment
   has_many :alert_management_alerts, class_name: 'AlertManagement::Alert', inverse_of: :environment
 
   # NOTE: If you preload multiple last deployments of environments, use Preloaders::Environments::DeploymentPreloader.
@@ -44,7 +45,7 @@ class Environment < ApplicationRecord
       class_name: 'Deployment', inverse_of: :environment
   end
 
-  has_one :latest_opened_most_severe_alert, -> { open_order_by_severity }, class_name: 'AlertManagement::Alert', inverse_of: :environment
+  has_one :latest_opened_most_severe_alert, -> { order_severity_with_open_prometheus_alert }, class_name: 'AlertManagement::Alert', inverse_of: :environment
 
   before_validation :generate_slug, if: ->(env) { env.slug.blank? }
   before_validation :ensure_environment_tier
@@ -76,15 +77,11 @@ class Environment < ApplicationRecord
     format: {
       with: Gitlab::Regex.kubernetes_namespace_regex,
       message: Gitlab::Regex.kubernetes_namespace_regex_message
-    },
-    absence: { unless: :cluster_agent, message: 'cannot be set without a cluster agent' },
-    if: -> { cluster_agent_changed? || kubernetes_namespace_changed? }
+    }
 
   validates :flux_resource_path,
     length: { maximum: 255 },
-    allow_nil: true,
-    absence: { unless: :kubernetes_namespace, message: 'cannot be set without a kubernetes namespace' },
-    if: -> { kubernetes_namespace_changed? || flux_resource_path_changed? }
+    allow_nil: true
 
   validates :tier, presence: true
 
@@ -356,7 +353,7 @@ class Environment < ApplicationRecord
     stop_actions.present?
   end
 
-  def stop_with_actions!
+  def stop_with_actions!(current_user)
     return unless available?
 
     stop!
@@ -368,7 +365,7 @@ class Environment < ApplicationRecord
         stop_action,
         name: 'environment_stop_with_actions'
       ) do |job|
-        actions << job.play(job.user)
+        actions << job.play(current_user)
       rescue StateMachines::InvalidTransition
         # Ci::PlayBuildService rescues an error of StateMachines::InvalidTransition and fall back to retry. However,
         # Ci::PlayBridgeService doesn't rescue it, so we're ignoring the error if it's not playable.

@@ -137,7 +137,7 @@ module LoginHelpers
   def register_via(provider, uid, email, additional_info: {})
     mock_auth_hash(provider, uid, email, additional_info: additional_info)
     visit new_user_registration_path
-    expect(page).to have_content('Create an account using').or(have_content('Continue with'))
+    expect(page).to have_content('Create an account using').or(have_content('Register with'))
 
     click_button Gitlab::Auth::OAuth::Provider.label_for(provider)
   end
@@ -214,8 +214,8 @@ module LoginHelpers
   def mock_saml_config_with_upstream_two_factor_authn_contexts
     config = mock_saml_config
     config.args[:upstream_two_factor_authn_contexts] = %w[urn:oasis:names:tc:SAML:2.0:ac:classes:CertificateProtectedTransport
-      urn:oasis:names:tc:SAML:2.0:ac:classes:SecondFactorOTPSMS
-      urn:oasis:names:tc:SAML:2.0:ac:classes:SecondFactorIGTOKEN]
+                                                          urn:oasis:names:tc:SAML:2.0:ac:classes:SecondFactorOTPSMS
+                                                          urn:oasis:names:tc:SAML:2.0:ac:classes:SecondFactorIGTOKEN]
     config
   end
 

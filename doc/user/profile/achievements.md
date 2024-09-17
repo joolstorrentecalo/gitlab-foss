@@ -8,7 +8,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 DETAILS:
 **Tier:** Free, Premium, Ultimate
-**Offering:** GitLab.com, Self-managed
+**Offering:** GitLab.com, Self-managed, GitLab Dedicated
 **Status:** Experiment
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/113156) in GitLab 15.10 [with a flag](../../administration/feature_flags.md) named `achievements`. Disabled by default.
@@ -302,31 +302,6 @@ If you don't want to display achievements on your profile, you can opt out. To d
 1. Select **Edit profile**.
 1. In the **Main settings** section, clear the **Display achievements on your profile** checkbox.
 1. Select **Update profile settings**.
-
-## Change visibility of specific achievements
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/161225) in GitLab 17.3.
-
-If you don't want to display all achievements on your profile, you can change the visibility of specific achievements.
-
-To hide one of your achievements, call the [`userAchievementsUpdate` GraphQL mutation](../../api/graphql/reference/index.md#mutationuserachievementsupdate).
-
-```graphql
-mutation {
-  userAchievementsUpdate(input: {
-    userAchievementId: "gid://gitlab/Achievements::UserAchievement/<user achievement id>"
-    showOnProfile: false
-  }) {
-    userAchievement {
-      id
-      showOnProfile
-    }
-    errors
-  }
-}
-```
-
-To show one of your achievements again, call the same mutation with the value `true` for the `showOnProfile` argument.
 
 ## Reorder achievements
 

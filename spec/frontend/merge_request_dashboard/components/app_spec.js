@@ -5,10 +5,9 @@ import createMockApollo from 'helpers/mock_apollo_helper';
 import waitForPromises from 'helpers/wait_for_promises';
 import App from '~/merge_request_dashboard/components/app.vue';
 import MergeRequestsQuery from '~/merge_request_dashboard/components/merge_requests_query.vue';
-import CollapsibleSection from '~/merge_request_dashboard/components/collapsible_section.vue';
 import MergeRequest from '~/merge_request_dashboard/components/merge_request.vue';
+import CollapsibleSection from '~/merge_request_dashboard/components/collapsible_section.vue';
 import assigneeQuery from '~/merge_request_dashboard/queries/assignee.query.graphql';
-import assigneeCountQuery from '~/merge_request_dashboard/queries/assignee_count.query.graphql';
 import { createMockMergeRequest } from '../mock_data';
 
 Vue.use(VueApollo);
@@ -27,7 +26,8 @@ describe('Merge requests app component', () => {
       data: {
         currentUser: {
           id: 1,
-          mergeRequests: {
+          assignedMergeRequests: {
+            count: 1,
             pageInfo: {
               hasNextPage: true,
               hasPreviousPage: false,
@@ -41,22 +41,7 @@ describe('Merge requests app component', () => {
       },
     });
     const apolloProvider = createMockApollo(
-      [
-        [assigneeQuery, assigneeQueryMock],
-        [
-          assigneeCountQuery,
-          jest.fn().mockResolvedValue({
-            data: {
-              currentUser: {
-                id: 1,
-                mergeRequests: {
-                  count: 1,
-                },
-              },
-            },
-          }),
-        ],
-      ],
+      [[assigneeQuery, assigneeQueryMock]],
       {},
       { typePolicies: { Query: { fields: { currentUser: { merge: false } } } } },
     );

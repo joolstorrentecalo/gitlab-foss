@@ -74,15 +74,16 @@ export default {
         @loading="$emit('loading', $event)"
         @update-failed-state="$emit('update-failed-state', $event)"
         @cluster-error="$emit('cluster-error', $event)"
-        @select-item="$emit('select-item', $event)"
-        @delete-pod="$emit('delete-pod', $event)"
+        @show-resource-details="$emit('show-resource-details', $event)"
+        @remove-selection="$emit('remove-selection')"
       />
 
       <kubernetes-services
         :namespace="namespace"
         :configuration="configuration"
         @cluster-error="$emit('cluster-error', $event)"
-        @select-item="$emit('select-item', $event)"
+        @show-resource-details="$emit('show-resource-details', $event)"
+        @remove-selection="$emit('remove-selection')"
       />
     </gl-tabs>
   </div>

@@ -4,7 +4,6 @@ RSpec.shared_examples 'WikiPages::CreateService#execute' do |container_type|
   let(:container) { create(container_type, :wiki_repo) }
   let(:user) { create(:user) }
   let(:page_title) { 'Title' }
-  let(:container_key) { container.is_a?(Group) ? :namespace_id : :project_id }
 
   let(:opts) do
     {
@@ -28,15 +27,6 @@ RSpec.shared_examples 'WikiPages::CreateService#execute' do |container_type|
     expect(page.format).to eq(opts[:format].to_sym)
   end
 
-  it 'creates a WikiPage::Meta record' do
-    expect { service.execute }.to change { WikiPage::Meta.count }.by 1
-
-    expect(WikiPage::Meta.all.last).to have_attributes(
-      title: page_title,
-      container_key => container.id
-    )
-  end
-
   it 'executes webhooks' do
     expect(service).to receive(:execute_hooks).once.with(WikiPage)
 
@@ -51,22 +41,11 @@ RSpec.shared_examples 'WikiPages::CreateService#execute' do |container_type|
     subject(:track_event) { service.execute }
   end
 
-  context 'when the new page is a template' do
-    let(:page_title) { "#{Wiki::TEMPLATES_DIR}/foobar" }
-
-    it_behaves_like 'internal event tracking' do
-      let(:event) { 'create_wiki_page' }
-      let(:project) { container if container.is_a?(Project) }
-      let(:namespace) { container.is_a?(Group) ? container : container.namespace }
-      let(:label) { 'template' }
-      let(:property) { 'markdown' }
-
-      subject(:track_event) { service.execute }
-    end
-  end
-
   shared_examples 'correct event created' do
     it 'creates appropriate events' do
+      # TODO: https://gitlab.com/gitlab-org/gitlab/-/issues/216904
+      pending('group wiki support') if container_type == :group
+
       expect { service.execute }.to change { Event.count }.by 1
 
       expect(Event.recent.first).to have_attributes(

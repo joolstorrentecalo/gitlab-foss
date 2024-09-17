@@ -57,7 +57,7 @@ more information about this offering, see [subscriptions](../../subscriptions/se
 To deploy a self-hosted large language model:
 
 1. [Set up your self-hosted model deployment infrastructure](../../administration/self_hosted_models/install_infrastructure.md) and connect it to your GitLab instance.
-1. [Configure your GitLab instance to access self-hosted models](../../administration/self_hosted_models/configure_duo_features.md) using instance and group settings.
+1. [Configure your GitLab instance to access self-hosted models](../../administration/self_hosted_models/configure_duo_features.md) using instance and group level settings.
 
 ## Self-hosted models compared to the default GitLab AI vendor architecture
 
@@ -68,7 +68,6 @@ sequenceDiagram
     participant GitLab
     participant AIGateway as AI Gateway
     participant SelfHostedModel as Self Hosted Model
-    participant CloudConnector as Cloud Connector
     participant GitLabAIVendor as GitLab AI Vendor
 
     User ->> GitLab: Send request
@@ -79,10 +78,10 @@ sequenceDiagram
         SelfHostedModel -->> AIGateway: Respond to the prompt
         AIGateway -->> GitLab: Forward AI response
     else
-        GitLab ->> CloudConnector: Create prompt and send request
-        CloudConnector ->> GitLabAIVendor: Perform API request to AI model
-        GitLabAIVendor -->> CloudConnector: Respond to the prompt
-        CloudConnector -->> GitLab: Forward AI response
+        GitLab ->> AIGateway: Create prompt and send request
+        AIGateway ->> GitLabAIVendor: Perform API request to AI model
+        GitLabAIVendor -->> AIGateway: Respond to the prompt
+        AIGateway -->> GitLab: Forward AI response
     end
     GitLab -->> User: Forward AI response
 ```

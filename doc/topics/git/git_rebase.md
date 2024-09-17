@@ -5,7 +5,7 @@ info: "To determine the technical writer assigned to the Stage/Group associated 
 description: "Introduction to Git rebase and force push, methods to resolve merge conflicts through the command line."
 ---
 
-# Rebase to address merge conflicts
+# Git rebase and force push
 
 In Git, a rebase updates your branch with the contents of another branch.
 A rebase confirms that changes in your branch don't conflict with
@@ -225,11 +225,11 @@ these more destructive changes from happening accidentally.
 Force pushing is not recommended on shared branches, because you risk destroying
 others' changes.
 
-If the branch you want to force push is [protected](../../user/project/repository/branches/protected.md),
+If the branch you want to force push is [protected](../../user/project/protected_branches.md),
 you can't force push to it unless you either:
 
 - Unprotect it.
-- [Allow force pushes](../../user/project/repository/branches/protected.md#allow-force-push-on-a-protected-branch)
+- [Allow force pushes](../../user/project/protected_branches.md#allow-force-push-on-a-protected-branch)
   to it.
 
 Then you can force push and protect it again.

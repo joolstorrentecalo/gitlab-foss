@@ -78,6 +78,9 @@ describe('WorkItemAssignees component', () => {
     ]);
 
     wrapper = mountFn(WorkItemAssignees, {
+      provide: {
+        isGroup: false,
+      },
       propsData: {
         assignees,
         fullPath: 'test-project-path',
@@ -86,7 +89,6 @@ describe('WorkItemAssignees component', () => {
         workItemType: 'Task',
         canUpdate,
         canInviteMembers,
-        isGroup: false,
       },
       apolloProvider,
     });

@@ -49,7 +49,7 @@ module QA
           'using docker:24.0.1 and a personal access token' => {
             docker_client_version: 'docker:24.0.1',
             authentication_token_type: :personal_access_token,
-            token_name: 'Personal access token',
+            token_name: 'Personal Access Token',
             testcase: 'https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/412820'
           },
           'using docker:24.0.1 and a group deploy token' => {
@@ -94,7 +94,7 @@ module QA
           end
         end
 
-        it "pulls an image using the dependency proxy", :blocking, testcase: params[:testcase] do
+        it "pulls an image using the dependency proxy", testcase: params[:testcase] do
           Support::Retrier.retry_on_exception(max_attempts: 3, sleep_interval: 2) do
             create(:commit, project: project, commit_message: 'Add .gitlab-ci.yml', actions: [
               {

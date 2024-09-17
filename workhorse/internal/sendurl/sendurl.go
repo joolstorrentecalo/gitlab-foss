@@ -27,16 +27,12 @@ type entry struct{ senddata.Prefix }
 type entryParams struct {
 	URL                   string
 	AllowRedirects        bool
-	AllowLocalhost        bool
-	AllowedURIs           []string
-	SSRFFilter            bool
 	DialTimeout           config.TomlDuration
 	ResponseHeaderTimeout config.TomlDuration
 	ErrorResponseStatus   int
 	TimeoutResponseStatus int
 	Body                  string
 	Header                http.Header
-	ResponseHeaders       http.Header
 	Method                string
 }
 
@@ -44,9 +40,6 @@ type cacheKey struct {
 	requestTimeout  time.Duration
 	responseTimeout time.Duration
 	allowRedirects  bool
-	allowLocalhost  bool
-	ssrfFilter      bool
-	allowedURIs     string
 }
 
 var httpClients sync.Map
@@ -172,15 +165,6 @@ func (e *entry) Inject(w http.ResponseWriter, r *http.Request, sendData string) 
 			w.Header()[key] = value
 		}
 	}
-
-	// set response headers sent by rails
-	for key, values := range params.ResponseHeaders {
-		w.Header().Del(key)
-		for _, value := range values {
-			w.Header().Add(key, value)
-		}
-	}
-
 	w.WriteHeader(resp.StatusCode)
 
 	defer func() {
@@ -209,9 +193,6 @@ func cachedClient(params entryParams) *http.Client {
 		requestTimeout:  params.DialTimeout.Duration,
 		responseTimeout: params.ResponseHeaderTimeout.Duration,
 		allowRedirects:  params.AllowRedirects,
-		allowLocalhost:  params.AllowLocalhost,
-		ssrfFilter:      params.SSRFFilter,
-		allowedURIs:     strings.Join(params.AllowedURIs, ","),
 	}
 	cachedClient, found := httpClients.Load(key)
 	if found {
@@ -225,9 +206,6 @@ func cachedClient(params entryParams) *http.Client {
 	}
 	if params.ResponseHeaderTimeout.Duration != 0 {
 		options = append(options, transport.WithResponseHeaderTimeout(params.ResponseHeaderTimeout.Duration))
-	}
-	if params.SSRFFilter {
-		options = append(options, transport.WithSSRFFilter(params.AllowLocalhost, params.AllowedURIs))
 	}
 
 	client := &http.Client{

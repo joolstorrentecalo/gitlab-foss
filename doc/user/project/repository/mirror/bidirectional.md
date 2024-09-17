@@ -27,7 +27,7 @@ conflicts. Configure them to reduce conflicts, and how to settle them when they 
 
 - [Mirror only protected branches](index.md#mirror-only-protected-branches). Rewriting
   any mirrored commit on either remote causes conflicts and mirroring to fail.
-- [Protect the branches](../branches/protected.md) you want to mirror on both
+- [Protect the branches](../../protected_branches.md) you want to mirror on both
   remotes to prevent conflicts caused by rewriting history.
 - Reduce mirroring delay with a [push event webhook](../../integrations/webhook_events.md#push-events).
   Bidirectional mirroring creates a race condition where commits made close together
@@ -164,8 +164,8 @@ If you mirror with Perforce Helix, mirror only protected branches. Perforce Heli
 rejects any pushes that rewrite history. Only the fewest number of branches should be mirrored
 due to the performance limitations of Git Fusion.
 
-When you configure mirroring with Perforce Helix by using Git Fusion, you should use
-these Git Fusion settings:
+When you configure mirroring with Perforce Helix by using Git Fusion, we recommend these Git Fusion
+settings:
 
 - Disable `change-pusher`. Otherwise, every commit is rewritten as being committed
   by the mirroring account, rather than mapping to existing Perforce Helix users or the `unknown_git` user.

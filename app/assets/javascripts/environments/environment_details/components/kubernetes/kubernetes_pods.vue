@@ -45,15 +45,6 @@ export default {
               spec: pod.spec,
               fullStatus: pod.status,
               containers: pod.spec.containers,
-              actions: [
-                {
-                  name: 'delete-pod',
-                  text: s__('KubernetesDashboard|Delete pod'),
-                  icon: 'remove',
-                  variant: 'danger',
-                  class: '!gl-text-red-500',
-                },
-              ],
             };
           }) || []
         );
@@ -81,7 +72,6 @@ export default {
     return {
       error: '',
       filterOption: '',
-      k8sPods: [],
     };
   },
   computed: {
@@ -130,13 +120,13 @@ export default {
       return filteredPods.length;
     },
     onItemSelect(item) {
-      this.$emit('select-item', item);
+      this.$emit('show-resource-details', item);
+    },
+    onRemoveSelection() {
+      this.$emit('remove-selection');
     },
     filterPods(status) {
       this.filterOption = status;
-    },
-    onDeletePod(pod) {
-      this.$emit('delete-pod', pod);
     },
   },
   i18n: {
@@ -164,7 +154,7 @@ export default {
         :fields="$options.PODS_TABLE_FIELDS"
         class="gl-mt-8"
         @select-item="onItemSelect"
-        @delete-pod="onDeletePod"
+        @remove-selection="onRemoveSelection"
       />
     </template>
   </gl-tab>

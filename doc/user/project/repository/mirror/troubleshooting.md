@@ -39,7 +39,7 @@ One of these issues might be occurring:
 
 ## Deadline Exceeded
 
-When you upgrade GitLab, a change in how usernames are represented means that you
+When upgrading GitLab, a change in how usernames are represented means that you
 must update your mirroring username and password to ensure that `%40` characters are replaced with `@`.
 
 ## Connection blocked: server only allows public key authentication
@@ -118,7 +118,7 @@ Pipelines might not run for multiple reasons:
   being added to the pipeline.
 - Pipelines are triggered using [the account that set up the pull mirror](https://gitlab.com/gitlab-org/gitlab/-/issues/13697).
   If the account is no longer valid, pipelines do not run.
-- [Branch protection](../../repository/branches/protected.md#run-pipelines-on-protected-branches)
+- [Branch protection](../../protected_branches.md#run-pipelines-on-protected-branches)
   might prevent the account that set up mirroring from running pipelines.
 
 ## `The repository is being updated`, but neither fails nor succeeds visibly

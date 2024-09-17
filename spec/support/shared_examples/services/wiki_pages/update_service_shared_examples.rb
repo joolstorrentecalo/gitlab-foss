@@ -4,9 +4,8 @@ RSpec.shared_examples 'WikiPages::UpdateService#execute' do |container_type|
   let(:container) { create(container_type, :wiki_repo) }
 
   let(:user) { create(:user) }
-  let(:page) { create(:wiki_page, container: container) }
+  let(:page) { create(:wiki_page) }
   let(:page_title) { 'New Title' }
-  let(:container_key) { container.is_a?(Group) ? :namespace_id : :project_id }
 
   let(:opts) do
     {
@@ -31,27 +30,6 @@ RSpec.shared_examples 'WikiPages::UpdateService#execute' do |container_type|
     expect(updated_page.title).to eq(page_title)
   end
 
-  it 'creates the WikiPage::Meta record if it does not exist' do
-    expect { service.execute(page) }.to change { WikiPage::Meta.count }.by 1
-
-    expect(WikiPage::Meta.all.last).to have_attributes(
-      title: page_title,
-      container_key => container.id
-    )
-  end
-
-  context 'when WikiPage::Meta record exists' do
-    let!(:wiki_page_meta) { create(:wiki_page_meta, container: container) }
-
-    before do
-      allow(WikiPage::Meta).to receive(:find_by_canonical_slug).and_return(wiki_page_meta)
-    end
-
-    it 'doesn not create a WikiPage::Meta record' do
-      expect { service.execute(page) }.to change { WikiPage::Meta.count }.by 0
-    end
-  end
-
   it 'executes webhooks' do
     expect(service).to receive(:execute_hooks).once.with(WikiPage)
 
@@ -64,20 +42,6 @@ RSpec.shared_examples 'WikiPages::UpdateService#execute' do |container_type|
     let(:namespace) { container.is_a?(Group) ? container : container.namespace }
 
     subject(:track_event) { service.execute(page) }
-  end
-
-  context 'when the updated page is a template' do
-    let(:page) { create(:wiki_page, title: "#{Wiki::TEMPLATES_DIR}/foobar") }
-
-    it_behaves_like 'internal event tracking' do
-      let(:event) { 'update_wiki_page' }
-      let(:project) { container if container.is_a?(Project) }
-      let(:namespace) { container.is_a?(Group) ? container : container.namespace }
-      let(:label) { 'template' }
-      let(:property) { 'markdown' }
-
-      subject(:track_event) { service.execute(page) }
-    end
   end
 
   shared_examples 'adds activity event' do
