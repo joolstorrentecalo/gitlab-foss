@@ -119,10 +119,10 @@ RSpec.describe WorkItems::Type, feature_category: :team_planning do
       it 'deletes type but not unrelated issues' do
         type = create(:work_item_type, :non_default)
 
-        expect(described_class.count).to eq(10)
+        expect(described_class.count).to eq(9)
 
         expect { type.destroy! }.not_to change(Issue, :count)
-        expect(described_class.count).to eq(9)
+        expect(described_class.count).to eq(8)
       end
     end
 

@@ -11,7 +11,6 @@ module Gitlab
           task = find_or_create_type(::WorkItems::Type::TYPE_NAMES[:task])
           incident = find_or_create_type(::WorkItems::Type::TYPE_NAMES[:incident])
           epic = find_or_create_type(::WorkItems::Type::TYPE_NAMES[:epic])
-          ticket = find_or_create_type(::WorkItems::Type::TYPE_NAMES[:ticket])
 
           restrictions = [
             {
@@ -47,12 +46,6 @@ module Gitlab
             {
               parent_type_id: epic.id,
               child_type_id: issue.id,
-              maximum_depth: 1,
-              cross_hierarchy_enabled: true
-            },
-            {
-              parent_type_id: ticket.id,
-              child_type_id: task.id,
               maximum_depth: 1,
               cross_hierarchy_enabled: true
             }

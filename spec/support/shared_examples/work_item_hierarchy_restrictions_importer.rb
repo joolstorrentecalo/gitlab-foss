@@ -3,13 +3,13 @@
 RSpec.shared_examples 'work item hierarchy restrictions importer' do
   shared_examples_for 'adds restrictions' do
     it "adds all restrictions if they don't exist" do
-      expect { subject }.to change { WorkItems::HierarchyRestriction.count }.from(0).to(7)
+      expect { subject }.to change { WorkItems::HierarchyRestriction.count }.from(0).to(6)
     end
   end
 
   shared_examples 'clears type reactive cache' do
     specify do
-      expect_next_found_instances_of(WorkItems::Type, 7) do |instance|
+      expect_next_found_instances_of(WorkItems::Type, 6) do |instance|
         expect(instance).to receive(:clear_reactive_cache!)
       end
 
@@ -66,7 +66,7 @@ RSpec.shared_examples 'work item hierarchy restrictions importer' do
       expect { subject }.to make_queries_matching(/INSERT/, 1).and(
         change { WorkItems::HierarchyRestriction.count }.by(1)
       )
-      expect(WorkItems::HierarchyRestriction.count).to eq(7)
+      expect(WorkItems::HierarchyRestriction.count).to eq(6)
     end
 
     it_behaves_like 'clears type reactive cache'

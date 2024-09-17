@@ -32,8 +32,7 @@ module WorkItems
       task: 'Task',
       objective: 'Objective',
       key_result: 'Key Result',
-      epic: 'Epic',
-      ticket: 'Ticket'
+      epic: 'Epic'
     }.freeze
 
     # Base types need to exist on the DB on app startup
@@ -47,8 +46,7 @@ module WorkItems
       task: { name: TYPE_NAMES[:task], icon_name: 'issue-type-task', enum_value: 4 },
       objective: { name: TYPE_NAMES[:objective], icon_name: 'issue-type-objective', enum_value: 5 }, ## EE-only
       key_result: { name: TYPE_NAMES[:key_result], icon_name: 'issue-type-keyresult', enum_value: 6 }, ## EE-only
-      epic: { name: TYPE_NAMES[:epic], icon_name: 'issue-type-epic', enum_value: 7 }, ## EE-only
-      ticket: { name: TYPE_NAMES[:ticket], icon_name: 'issue-type-issue', enum_value: 8 }
+      epic: { name: TYPE_NAMES[:epic], icon_name: 'issue-type-epic', enum_value: 7 } ## EE-only
     }.freeze
 
     # A list of types user can change between - both original and new
@@ -109,7 +107,7 @@ module WorkItems
     end
 
     def self.allowed_types_for_issues
-      base_types.keys.excluding('objective', 'key_result', 'epic', 'ticket')
+      base_types.keys.excluding('objective', 'key_result', 'epic')
     end
 
     # method overridden in EE to perform the corresponding checks for the Epic type
