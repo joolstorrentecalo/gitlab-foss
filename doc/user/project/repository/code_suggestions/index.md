@@ -18,7 +18,7 @@ DETAILS:
 > - Subscription changed to require GitLab Duo Pro on February 15, 2024.
 
 NOTE:
-GitLab Duo requires GitLab 17.2 and later for the best user experience and results. Earlier versions may continue to work, however the experience may be degraded.
+GitLab Duo Code Suggestions requires [GitLab 16.8](https://about.gitlab.com/releases/2024/01/18/gitlab-16-8-released/) and later. Earlier GitLab versions are not supported.
 
 Write code more efficiently by using generative AI to suggest code while you're developing.
 
@@ -62,7 +62,6 @@ Prerequisites:
   [assigned you a seat](../../../../subscriptions/subscription-add-ons.md#assign-gitlab-duo-seats).
 - For self-managed GitLab, you must have GitLab 16.8 or later, and have
   [configured proxy settings](../../../../subscriptions/subscription-add-ons.md#configure-network-and-proxy-settings).
-
 To use Code Suggestions:
 
 1. Open your Git project in a supported IDE.
@@ -119,7 +118,6 @@ For use cases and best practices, follow the [GitLab Duo examples documentation]
 > - [Introduced](https://gitlab.com/gitlab-org/editor-extensions/gitlab-lsp/-/issues/276) in GitLab VS Code Extension 4.20.0.
 > - [Introduced](https://gitlab.com/gitlab-org/editor-extensions/gitlab-jetbrains-plugin/-/issues/462) in GitLab Duo for JetBrains 2.7.0.
 > - [Added](https://gitlab.com/gitlab-org/editor-extensions/gitlab.vim/-/merge_requests/152) to the GitLab Neovim plugin on July 16, 2024.
-> - Feature flags `advanced_context_resolver` and `code_suggestions_context` [enabled on self-managed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/161538) in GitLab 17.4.
 
 FLAG:
 The availability of this feature is controlled by a feature flag.
@@ -146,7 +144,7 @@ Prerequisites:
    what you want to build. Code Generation treats your code comments like chat. Your code comments
    update the `user_instruction`, and then improve the next results you receive.
 
-As you work, GitLab Duo provides Code Suggestions that use your other open files
+As you work, GitLab Duo provides code suggestions that use your other open files
 (within [truncation limits](#truncation-of-file-content))
 as extra context.
 

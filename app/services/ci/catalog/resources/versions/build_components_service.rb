@@ -9,21 +9,17 @@ module Ci
         class BuildComponentsService
           MAX_COMPONENTS = Ci::Catalog::ComponentsProject::COMPONENTS_LIMIT
 
-          def initialize(release, version, components_data)
+          def initialize(release, version)
             @release = release
             @version = version
-            @components_data = components_data
+
             @project = release.project
             @components_project = Ci::Catalog::ComponentsProject.new(project)
             @errors = []
           end
 
           def execute
-            components = if components_data
-                           build_components_from_passed_data
-                         else
-                           build_components_from_fetched_data
-                         end
+            components = build_components_from_fetched_data
 
             if errors.empty?
               ServiceResponse.success(payload: components)
@@ -34,16 +30,7 @@ module Ci
 
           private
 
-          attr_reader :release, :version, :project, :components_project, :components_data, :errors
-
-          def build_components_from_passed_data
-            check_number_of_components(components_data.size)
-            return if errors.present?
-
-            components_data.map do |component_data|
-              build_catalog_resource_component(component_data)
-            end
-          end
+          attr_reader :release, :version, :project, :components_project, :errors
 
           def build_components_from_fetched_data
             component_paths = components_project.fetch_component_paths(release.sha, limit: MAX_COMPONENTS + 1)

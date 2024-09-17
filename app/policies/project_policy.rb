@@ -362,6 +362,7 @@ class ProjectPolicy < BasePolicy
     enable :read_wiki
     enable :read_issue
     enable :read_label
+    enable :read_planning_hierarchy
     enable :read_milestone
     enable :read_snippet
     enable :read_project_member
@@ -376,7 +377,6 @@ class ProjectPolicy < BasePolicy
     enable :read_release
     enable :read_analytics
     enable :read_insights
-    enable :read_upload
   end
 
   rule { can?(:reporter_access) & can?(:create_issue) }.enable :create_incident
@@ -609,6 +609,7 @@ class ProjectPolicy < BasePolicy
     enable :admin_project_google_cloud
     enable :admin_project_aws
     enable :admin_secure_files
+    enable :read_upload
     enable :admin_upload
     enable :destroy_upload
     enable :admin_incident_management_timeline_event_tag
@@ -790,6 +791,7 @@ class ProjectPolicy < BasePolicy
     enable :read_issue_board_list
     enable :read_wiki
     enable :read_label
+    enable :read_planning_hierarchy
     enable :read_milestone
     enable :read_snippet
     enable :read_project_member
@@ -807,7 +809,6 @@ class ProjectPolicy < BasePolicy
     enable :read_pages_content
     enable :read_analytics
     enable :read_insights
-    enable :read_upload
 
     # NOTE: may be overridden by IssuePolicy
     enable :read_issue

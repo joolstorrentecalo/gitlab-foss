@@ -51,9 +51,6 @@ export default {
     requestReview(data) {
       this.$emit('request-review', data);
     },
-    removeReviewer(data) {
-      this.$emit('remove-reviewer', data);
-    },
   },
 };
 </script>
@@ -87,7 +84,6 @@ export default {
         :root-path="rootPath"
         :issuable-type="issuableType"
         @request-review="requestReview"
-        @remove-reviewer="removeReviewer"
       />
     </div>
   </div>

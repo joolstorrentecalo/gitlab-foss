@@ -96,7 +96,6 @@ export default {
       :key="tab.namespace"
       :title-link-attributes="tab.attrs"
       :query-param-value="tab.queryParamValue"
-      :lazy="tab.lazy"
     >
       <template #title>
         <span>{{ tab.title }}</span>

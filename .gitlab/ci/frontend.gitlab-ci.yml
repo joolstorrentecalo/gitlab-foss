@@ -48,8 +48,6 @@ compile-production-assets:
     - .compile-assets-base
     - .production
     - .frontend:rules:compile-production-assets
-  tags:
-    - $GITLAB_LARGE_RUNNER_OPTIONAL
   artifacts:
     name: webpack-report
     expire_in: 31d
@@ -66,7 +64,7 @@ compile-production-assets as-if-foss:
   extends:
     - compile-production-assets
     - .as-if-foss
-    - .qa:rules:test-on-omnibus-ce:follow-up
+    - .qa:rules:package-and-test-ce:follow-up
 
 follow-up:compile-production-assets:
   extends:
@@ -228,21 +226,6 @@ graphql-schema-dump:
       - tmp/tests/graphql/gitlab_schema.graphql
       - tmp/tests/graphql/gitlab_schema.json
 
-upload-graphql-schema-dump:
-  stage: fixtures
-  variables:
-    SETUP_DB: "false"
-  extends:
-    - .default-retry
-    - .ruby-cache
-    - .default-before_script
-    - .frontend:rules:upload-graphql-schema-dump
-    - .with-graphql-schema-dump-needs
-  script:
-    - source scripts/gitlab_component_helpers.sh
-    - create_and_upload_graphql_schema_package
-
-
 .frontend-test-base:
   extends:
     - .default-retry
@@ -397,7 +380,6 @@ jest predictive:
     - "detect-tests"
   script:
     - if [[ -s "$RSPEC_CHANGED_FILES_PATH" ]] || [[ -s "$RSPEC_MATCHING_JS_FILES_PATH" ]]; then run_timed_command "yarn jest:ci:predictive-without-fixtures"; fi
-  parallel: 4
 
 jest-with-fixtures predictive:
   extends:
@@ -414,7 +396,6 @@ jest vue3 predictive:
     - jest vue3 mr
     - .frontend:rules:jest:predictive
   needs:
-    - !reference [jest vue3 mr, needs]
     - "detect-tests"
   script:
     - if [[ -s "$RSPEC_CHANGED_FILES_PATH" ]] || [[ -s "$RSPEC_MATCHING_JS_FILES_PATH" ]]; then run_timed_command "yarn jest:ci:vue3-mr:predictive-without-fixtures"; fi
@@ -424,7 +405,6 @@ jest-with-fixtures vue3 predictive:
     - jest-with-fixtures vue3 mr
     - .frontend:rules:jest:predictive
   needs:
-    - !reference [jest-with-fixtures vue3 mr, needs]
     - "detect-tests"
   script:
     - if [[ -s "$RSPEC_CHANGED_FILES_PATH" ]] || [[ -s "$RSPEC_MATCHING_JS_FILES_PATH" ]]; then run_timed_command "yarn jest:ci:vue3-mr:predictive-with-fixtures"; fi

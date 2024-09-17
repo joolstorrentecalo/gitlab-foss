@@ -80,12 +80,14 @@ describe('WorkItemTokenInput', () => {
         [groupWorkItemsQuery, groupSearchedWorkItemResolver],
         [workItemsByReferencesQuery, workItemReferencesQueryResolver],
       ]),
+      provide: {
+        isGroup,
+      },
       propsData: {
         value: workItemsToAdd,
         childrenType,
         childrenIds: [],
         fullPath: 'test-project-path',
-        isGroup,
         parentWorkItemId: 'gid://gitlab/WorkItem/1',
         parentConfidential,
         areWorkItemsToAddValid,

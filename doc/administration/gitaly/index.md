@@ -128,7 +128,7 @@ Accessing Git repositories directly is done at your own risk and is not supporte
 
 The following shows GitLab set up to use direct access to Gitaly:
 
-![GitLab application interacting with Gitaly storage shards](img/shard_example_v13_3.png)
+![Shard example](img/shard_example_v13_3.png)
 
 In this example:
 
@@ -177,15 +177,12 @@ best suited by using Gitaly Cluster.
 
 ### Gitaly CLI
 
-> - `gitaly git` subcommand [introduced](https://gitlab.com/gitlab-org/gitaly/-/merge_requests/7119) in GitLab 17.4.
-
 The `gitaly` command is a command-line interface that provides additional subcommands for Gitaly administrators. For example,
 the Gitaly CLI is used to:
 
 - [Configure custom Git hooks](../server_hooks.md) for a repository.
 - Validate Gitaly configuration files.
 - Verify the internal Gitaly API is accessible.
-- [Run Git commands](troubleshooting.md#use-gitaly-git-when-git-is-required-for-troubleshooting) against a repository on disk.
 
 For more information on the other subcommands, run `sudo -u git -- /opt/gitlab/embedded/bin/gitaly --help`.
 
@@ -233,7 +230,7 @@ customers.
 The following shows GitLab set up to access `storage-1`, a virtual storage provided by Gitaly
 Cluster:
 
-![GitLab application interacting with virtual Gitaly storage, which interacts with Gitaly physical storage](img/cluster_example_v13_3.png)
+![Cluster example](img/cluster_example_v13_3.png)
 
 In this example:
 
@@ -459,7 +456,7 @@ Gitaly Cluster consists of multiple components:
 Praefect is a router and transaction manager for Gitaly, and a required
 component for running a Gitaly Cluster.
 
-![Praefect distributing incoming connections to Gitaly cluster nodes](img/praefect_architecture_v12_10.png)
+![Architecture diagram](img/praefect_architecture_v12_10.png)
 
 For more information, see [Gitaly High Availability (HA) Design](https://gitlab.com/gitlab-org/gitaly/-/blob/master/doc/design_ha.md).
 

@@ -246,31 +246,56 @@ RSpec.describe SessionsController, feature_category: :system_access do
           create(:broadcast_message_dismissal, broadcast_message: other_message, user: build(:user))
         end
 
-        it 'creates dismissed cookies based on db records' do
-          expect(cookies["hide_broadcast_message_#{message_banner.id}"]).to be_nil
-          expect(cookies["hide_broadcast_message_#{message_notification.id}"]).to be_nil
-          expect(cookies["hide_broadcast_message_#{other_message.id}"]).to be_nil
-
-          post_action
-
-          expect(cookies["hide_broadcast_message_#{message_banner.id}"]).to be(true)
-          expect(cookies["hide_broadcast_message_#{message_notification.id}"]).to be(true)
-          expect(cookies["hide_broadcast_message_#{other_message.id}"]).to be_nil
-        end
-
-        context 'when dismissal is expired' do
-          let_it_be(:message) { create(:broadcast_message, broadcast_type: :banner, message: 'banner') }
-
+        context 'when new_broadcast_message_dismissal feature flag is not enabled' do
           before do
-            create(:broadcast_message_dismissal, :expired, broadcast_message: message, user: user)
+            stub_feature_flags(new_broadcast_message_dismissal: false)
           end
 
-          it 'does not create cookie' do
-            expect(cookies["hide_broadcast_message_#{message.id}"]).to be_nil
+          it 'does not create dismissed cookies based on db records' do
+            expect(cookies["hide_broadcast_message_#{message_banner.id}"]).to be_nil
+            expect(cookies["hide_broadcast_message_#{message_notification.id}"]).to be_nil
+            expect(cookies["hide_broadcast_message_#{other_message.id}"]).to be_nil
 
             post_action
 
-            expect(cookies["hide_broadcast_message_#{message.id}"]).to be_nil
+            expect(cookies["hide_broadcast_message_#{message_banner.id}"]).to be_nil
+            expect(cookies["hide_broadcast_message_#{message_notification.id}"]).to be_nil
+            expect(cookies["hide_broadcast_message_#{other_message.id}"]).to be_nil
+          end
+        end
+
+        context 'when new_broadcast_message_dismissal feature flag is enabled' do
+          before do
+            allow(Gitlab::AppLogger).to receive(:info).and_call_original
+            stub_feature_flags(new_broadcast_message_dismissal: true)
+          end
+
+          it 'creates dismissed cookies based on db records' do
+            expect(cookies["hide_broadcast_message_#{message_banner.id}"]).to be_nil
+            expect(cookies["hide_broadcast_message_#{message_notification.id}"]).to be_nil
+            expect(cookies["hide_broadcast_message_#{other_message.id}"]).to be_nil
+
+            post_action
+
+            expect(cookies["hide_broadcast_message_#{message_banner.id}"]).to be(true)
+            expect(cookies["hide_broadcast_message_#{message_notification.id}"]).to be(true)
+            expect(cookies["hide_broadcast_message_#{other_message.id}"]).to be_nil
+          end
+
+          context 'when dismissal is expired' do
+            let_it_be(:message) { create(:broadcast_message, broadcast_type: :banner, message: 'banner') }
+
+            before do
+              create(:broadcast_message_dismissal, :expired, broadcast_message: message, user: user)
+            end
+
+            it 'does not create cookie' do
+              expect(cookies["hide_broadcast_message_#{message.id}"]).to be_nil
+
+              post_action
+
+              expect(cookies["hide_broadcast_message_#{message.id}"]).to be_nil
+            end
           end
         end
       end

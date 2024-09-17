@@ -93,16 +93,12 @@ Do not use **Add new**.
 
 ## Admin area
 
-Use:
+To describe this area of the UI, use **Admin** area. The UI button is **Admin**.
 
-- **Admin** area, to describe this area of the UI.
-- **Admin** for the UI button.
-
-Instead of:
+Do not use:
 
 - **Admin area** (with both words as bold)
 - **Admin Area** (with **Area** capitalized)
-- **Admin** Area (with Area capitalized)
 - **administrator area**
 - or other variants
 
@@ -158,13 +154,6 @@ Instead of **agnostic**, use **platform-independent** or **vendor-neutral**.
 ## AI, artificial intelligence
 
 Use **AI**. Do not spell out **artificial intelligence**.
-
-## AI Impact Dashboard
-
-Use title case for **AI Impact Dashboard**.
-
-On first mention on a page, use **GitLab Duo AI Impact Dashboard**.
-Thereafter, use **AI Impact Dashboard** by itself.
 
 ## AI-powered DevSecOps platform
 
@@ -439,12 +428,12 @@ Example:
 
 - Use code completion to populate the file.
 
-## Code Explanation
+## Code explanation
 
-Use title case for **Code Explanation**.
+Use sentence case for **Code explanation**.
 
-On first mention on a page, use **GitLab Duo Code Explanation**.
-Thereafter, use **Code Explanation** by itself.
+On first mention on a page, use **GitLab Duo Code explanation**.
+Thereafter, use **Code explanation** by itself.
 
 ## code generation
 
@@ -463,12 +452,12 @@ Examples:
 - Use code generation to create code based on your comments.
 - Adjust your code generation results by adding code comments to your file.
 
-## Code Review Summary
+## Code review summary
 
-Use title case for **Code Review Summary**.
+Use sentence case for **Code review summary**.
 
-On first mention on a page, use **GitLab Duo Code Review Summary**.
-Thereafter, use **Code Review Summary** by itself.
+On first mention on a page, use **GitLab Duo Code review summary**.
+Thereafter, use **Code review summary** by itself.
 
 ## Code Suggestions
 
@@ -683,12 +672,12 @@ Use **inactive** or **off** instead.
 
 Use **prevent** instead of **disallow**. ([Vale](../testing/vale.md) rule: [`Substitutions.yml`](https://gitlab.com/gitlab-org/gitlab/-/blob/master/doc/.vale/gitlab_base/Substitutions.yml))
 
-## Discussion Summary
+## Discussion summary
 
-Use title case for **Discussion Summary**.
+Use sentence case for **Discussion summary**.
 
-On first mention on a page, use **GitLab Duo Discussion Summary**.
-Thereafter, use **Discussion Summary** by itself.
+On first mention on a page, use **GitLab Duo Discussion summary**.
+Thereafter, use **Discussion summary** by itself.
 
 ## Docker-in-Docker, `dind`
 
@@ -978,33 +967,24 @@ Do not use **Dedicated** by itself. Always use **GitLab Dedicated**.
 
 Do not use **Duo** by itself. Always use **GitLab Duo**.
 
-On first use on a page, use **GitLab Duo `<featurename>`**. As of Aug, 2024,
+On first use on a page, use **GitLab Duo `<featurename>`**. As of Dec, 2023,
 the following are the names of GitLab Duo features:
 
-- GitLab Duo AI Impact Dashboard
 - GitLab Duo Chat
-- GitLab Duo Code Explanation
-- GitLab Duo Code Review Summary
 - GitLab Duo Code Suggestions
+- GitLab Duo Value stream forecasting
+- GitLab Duo Discussion summary
+- GitLab Duo Merge request summary
+- GitLab Duo Code review summary
+- GitLab Duo Code explanation
+- GitLab Duo Vulnerability explanation
+- GitLab Duo Vulnerability resolution
+- GitLab Duo Test generation
 - GitLab Duo for the CLI
-- GitLab Duo Issue Description Generation
-- GitLab Duo Issue Discussion Summary
-- GitLab Duo Merge Commit Message Generation
-- GitLab Duo Merge Request Summary
-- GitLab Duo Product Analytics
-- GitLab Duo Root Cause Analysis
-- GitLab Duo Test Generation
-- GitLab Duo Vulnerability Explanation
-- GitLab Duo Vulnerability Resolution
+- GitLab Duo Root cause analysis
+- GitLab Duo Issue description generation
 
 After the first use, use the feature name without **GitLab Duo**.
-
-## GitLab Duo Enterprise
-
-Always use **GitLab Duo Enterprise** for the add-on. Do not use **Duo Enterprise** unless approved by legal.
-
-You can use **the GitLab Duo Enterprise add-on** (with this capitalization) but you do not need to use **add-on**
-and should leave it off when you can.
 
 ## GitLab Duo Pro
 
@@ -1191,19 +1171,12 @@ Use lowercase for **issue**.
 
 Use lowercase for **issue board**.
 
-## Issue Description Generation
+## Issue description generation
 
-Use title case for **Issue Description Generation**.
+Use sentence case for **Issue description generation**.
 
-On first mention on a page, use **GitLab Duo Issue Description Generation**.
-Thereafter, use **Issue Description Generation** by itself.
-
-## Issue Discussion Summary
-
-Use title case for **Issue Discussion Summary**.
-
-On first mention on a page, use **GitLab Duo Issue Discussion Summary**.
-Thereafter, use **Issue Discussion Summary** by itself.
+On first mention on a page, use **GitLab Duo Issue description generation**.
+Thereafter, use **Issue description generation** by itself.
 
 ## issue weights
 
@@ -1414,13 +1387,6 @@ For **MB** and **GB**, follow the [Microsoft guidance](https://learn.microsoft.c
 When you add a [user account](#user-account) to a group or project,
 the user account becomes a **member**.
 
-## Merge Commit Message Generation
-
-Use title case for **Merge Commit Message Generation**.
-
-On first mention on a page, use **GitLab Duo Merge Commit Message Generation**.
-Thereafter, use **Merge Commit Message Generation** by itself.
-
 ## merge request branch
 
 Do not use **merge request branch**. See [branch](#branch).
@@ -1429,12 +1395,12 @@ Do not use **merge request branch**. See [branch](#branch).
 
 Use lowercase for **merge requests**. If you use **MR** as the acronym, spell it out on first use.
 
-## Merge Request Summary
+## Merge request summary
 
-Use title case for **Merge Request Summary**.
+Use sentence case for **Merge request summary**.
 
-On first mention on a page, use **GitLab Duo Merge Request Summary**.
-Thereafter, use **Merge Request Summary** by itself.
+On first mention on a page, use **GitLab Duo Merge request summary**.
+Thereafter, use **Merge request summary** by itself.
 
 ## milestones
 
@@ -1863,12 +1829,12 @@ There are two types of roles: [custom](#custom-role) and [default](#default-role
 
 Roles are not the same as [**access levels**](#access-level).
 
-## Root Cause Analysis
+## Root cause analysis
 
-Use title case for **Root Cause Analysis**.
+Use sentence case for **Root cause analysis**.
 
-On first mention on a page, use **GitLab Duo Root Cause Analysis**.
-Thereafter, use **Root Cause Analysis** by itself.
+On first mention on a page, use **GitLab Duo Root cause analysis**.
+Thereafter, use **Root cause analysis** by itself.
 
 ## roll back
 
@@ -2144,12 +2110,12 @@ talking about non-specific modules. For example:
 
 - You can publish a Terraform module to your project's Terraform Module Registry.
 
-## Test Generation
+## Test generation
 
-Use title case for **Test Generation**.
+Use sentence case for **Test generation**.
 
-On first mention on a page, use **GitLab Duo Test Generation**.
-Thereafter, use **Test Generation** by itself.
+On first mention on a page, use **GitLab Duo Test generation**.
+Thereafter, use **Test generation** by itself.
 
 ## text box
 
@@ -2306,6 +2272,12 @@ For example:
 Do not use **utilize**. Use **use** instead. It's more succinct and easier for non-native English speakers to understand.
 ([Vale](../testing/vale.md) rule: [`SubstitutionWarning.yml`](https://gitlab.com/gitlab-org/gitlab/-/blob/master/doc/.vale/gitlab_base/SubstitutionWarning.yml))
 
+## Value stream forecasting
+
+Use sentence case for **Value stream forecasting**. On first mention on a page, use **GitLab Duo Value stream forecasting**.
+
+Thereafter, use **Value stream forecasting** by itself.
+
 ## version, v
 
 To describe versions of GitLab, use **GitLab `<version number>`**. For example:
@@ -2325,19 +2297,19 @@ Pay attention to spacing by the letter **v**. In semantic versioning, no space e
 
 Do not use Latin abbreviations. Use **with**, **through**, or **by using** instead. ([Vale](../testing/vale.md) rule: [`LatinTerms.yml`](https://gitlab.com/gitlab-org/gitlab/-/blob/master/doc/.vale/gitlab_base/LatinTerms.yml))
 
-## Vulnerability Explanation
+## Vulnerability resolution
 
-Use title case for **Vulnerability Explanation**.
+Use sentence case for **Vulnerability resolution**.
 
-On first mention on a page, use **GitLab Duo Vulnerability Explanation**.
-Thereafter, use **Vulnerability Explanation** by itself.
+On first mention on a page, use **GitLab Duo Vulnerability resolution**.
+Thereafter, use **Vulnerability resolution** by itself.
 
-## Vulnerability Resolution
+## Vulnerability explanation
 
-Use title case for **Vulnerability Resolution**.
+Use sentence case for **Vulnerability explanation**.
 
-On first mention on a page, use **GitLab Duo Vulnerability Resolution**.
-Thereafter, use **Vulnerability Resolution** by itself.
+On first mention on a page, use **GitLab Duo Vulnerability explanation**.
+Thereafter, use **Vulnerability explanation** by itself.
 
 ## we
 

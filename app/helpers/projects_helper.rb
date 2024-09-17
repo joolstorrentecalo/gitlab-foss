@@ -236,7 +236,7 @@ module ProjectsHelper
     project.last_pipeline
   end
 
-  def show_no_ssh_key_message?(project)
+  def show_no_ssh_key_message?
     Gitlab::CurrentSettings.user_show_add_ssh_key_message? &&
       cookies[:hide_no_ssh_message].blank? &&
       !current_user.hide_no_ssh_key &&
@@ -911,16 +911,6 @@ module ProjectsHelper
     end
 
     ERB::Util.html_escape(message) % { strong_start: strong_start, strong_end: strong_end, project_name: project.name, group_name: project.group ? project.group.name : nil }
-  end
-
-  def project_permissions_data(project, target_form_id = nil)
-    data = visibility_confirm_modal_data(project, target_form_id)
-    cascading_settings_data = project_cascading_namespace_settings_tooltip_data(:duo_features_enabled, project, method(:edit_group_path))
-    data.merge!(
-      {
-        cascading_settings_data: cascading_settings_data
-      }
-    )
   end
 
   def visibility_confirm_modal_data(project, target_form_id = nil)

@@ -4,10 +4,9 @@ module Ci
   module Catalog
     module Resources
       class ReleaseService
-        def initialize(release, user, components_data)
+        def initialize(release, user)
           @release = release
           @user = user
-          @components_data = components_data
           @project = release.project
           @errors = []
         end
@@ -27,7 +26,7 @@ module Ci
 
         private
 
-        attr_reader :project, :errors, :release, :user, :components_data
+        attr_reader :project, :errors, :release, :user
 
         def track_release_duration
           name = :gitlab_ci_catalog_release_duration_seconds
@@ -53,7 +52,7 @@ module Ci
         def create_version
           return if errors.present?
 
-          response = Ci::Catalog::Resources::Versions::CreateService.new(release, user, components_data).execute
+          response = Ci::Catalog::Resources::Versions::CreateService.new(release, user).execute
           return if response.success?
 
           errors << response.message

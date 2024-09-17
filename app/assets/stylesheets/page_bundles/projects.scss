@@ -267,10 +267,6 @@
     color: var(--gl-text-color-subtle);
     @include str-truncated(100%);
   }
-
-  mark {
-    @include str-highlighted;
-  }
 }
 
 .projects-list {

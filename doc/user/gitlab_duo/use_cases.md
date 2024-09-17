@@ -11,11 +11,8 @@ The following use cases provide practical examples, exercises, and workflows wit
 Learn how to:
 
 - Refactor existing source code.
-- Use GitLab Duo Root Cause Analysis to debug problems.
+- Use root cause analysis to debug problems.
 - Solve security vulnerabilities.
-
-NOTE:
-If you have self-managed GitLab: GitLab Duo requires GitLab 17.2 and later for the best user experience and results. Earlier versions may continue to work, however the experience may be degraded.
 
 ## Use GitLab Duo to solve development challenges
 
@@ -551,7 +548,7 @@ introduces a security vulnerability with a [buffer overflow](https://en.wikipedi
 ```
 
 [SAST security scanners](../application_security/sast/analyzers.md) can detect and report the problem. Use [Vulnerability Explanation](../application_security/vulnerabilities/index.md#explaining-a-vulnerability) to understand the problem.
-Vulnerability Resolution helps to generate an MR.
+Vulnerability resolution helps to generate an MR.
 If the suggested changes do not fit requirements, or might lead to problems, you can use Code Suggestions and Duo Chat to refine. For example:
 
 1. Open VS Code or the Web IDE with GitLab Duo enabled, and add a comment with instructions:
@@ -597,9 +594,9 @@ Watch the walkthrough of these steps in [GitLab Duo Coffee Chat: Solve problems 
 
 - You can use GitLab Duo Chat to explain CI/CD errors.
 
-  ```markdown
-  Explain this CI/CD error: build.sh: line 14: go command not found
-  ```
+   ```markdown
+   Explain this CI/CD error: build.sh: line 14: go command not found
+   ```
 
 - What happens when you are impatient, and input just one or two words?
 

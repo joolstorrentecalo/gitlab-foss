@@ -26,7 +26,7 @@ import {
 } from '~/vue_shared/components/filtered_search_bar/constants';
 import { DEFAULT_PAGE_SIZE } from '~/vue_shared/issuable/list/constants';
 import {
-  WORK_ITEM_TO_ISSUABLE_MAP,
+  WORK_ITEM_TO_ISSUE_MAP,
   WIDGET_TYPE_MILESTONE,
   WIDGET_TYPE_AWARD_EMOJI,
   EMOJI_THUMBSUP,
@@ -37,8 +37,7 @@ import {
   WORK_ITEM_TYPE_ENUM_INCIDENT,
   WORK_ITEM_TYPE_ENUM_TASK,
 } from '~/work_items/constants';
-import { BoardType } from '~/boards/constants';
-import { STATUS_CLOSED, STATUS_OPEN, TYPE_EPIC } from '../constants';
+import { STATUS_CLOSED, STATUS_OPEN } from '../constants';
 import {
   ALTERNATIVE_FILTER,
   API_PARAM,
@@ -448,37 +447,25 @@ export function findWidget(type, workItem) {
   return workItem?.widgets?.find((widget) => widget.type === type);
 }
 
-export function mapWorkItemWidgetsToIssuableFields({
-  list,
-  workItem,
-  isBoard = false,
-  namespace = BoardType.project,
-  type,
-}) {
-  const listType = `${type}s`;
-
-  return produce(list, (draftData) => {
+export function mapWorkItemWidgetsToIssueFields(issuesList, workItem, isBoard = false) {
+  return produce(issuesList, (draftData) => {
     const activeList = isBoard
-      ? draftData[namespace].board.lists.nodes[0][listType].nodes
-      : draftData[namespace][listType].nodes;
+      ? draftData.project.board.lists.nodes[0].issues.nodes
+      : draftData.project.issues.nodes;
 
-    const activeItem = activeList.find((item) =>
-      type === TYPE_EPIC
-        ? item.iid === workItem.iid
-        : getIdFromGraphQLId(item.id) === getIdFromGraphQLId(workItem.id),
-    );
+    const activeItem = activeList.find((issue) => issue.iid === workItem.iid);
 
-    Object.keys(WORK_ITEM_TO_ISSUABLE_MAP).forEach((widgetType) => {
-      const currentWidget = findWidget(widgetType, workItem);
+    Object.keys(WORK_ITEM_TO_ISSUE_MAP).forEach((type) => {
+      const currentWidget = findWidget(type, workItem);
       if (!currentWidget) {
         return;
       }
-      const property = WORK_ITEM_TO_ISSUABLE_MAP[widgetType];
+      const property = WORK_ITEM_TO_ISSUE_MAP[type];
 
       // handling the case for assignees and labels
       if (
-        property === WORK_ITEM_TO_ISSUABLE_MAP[WIDGET_TYPE_ASSIGNEES] ||
-        property === WORK_ITEM_TO_ISSUABLE_MAP[WIDGET_TYPE_LABELS]
+        property === WORK_ITEM_TO_ISSUE_MAP[WIDGET_TYPE_ASSIGNEES] ||
+        property === WORK_ITEM_TO_ISSUE_MAP[WIDGET_TYPE_LABELS]
       ) {
         activeItem[property] = {
           ...currentWidget[property],
@@ -491,10 +478,7 @@ export function mapWorkItemWidgetsToIssuableFields({
       }
 
       // handling the case for milestone
-      if (
-        property === WORK_ITEM_TO_ISSUABLE_MAP[WIDGET_TYPE_MILESTONE] &&
-        currentWidget[property]
-      ) {
+      if (property === WORK_ITEM_TO_ISSUE_MAP[WIDGET_TYPE_MILESTONE] && currentWidget[property]) {
         activeItem[property] = { __persist: true, ...currentWidget[property] };
         return;
       }
@@ -506,14 +490,12 @@ export function mapWorkItemWidgetsToIssuableFields({
   });
 }
 
-export function updateUpvotesCount({ list, workItem, namespace = BoardType.project }) {
+export function updateUpvotesCount(issuesList, workItem) {
   const type = WIDGET_TYPE_AWARD_EMOJI;
-  const property = WORK_ITEM_TO_ISSUABLE_MAP[type];
+  const property = WORK_ITEM_TO_ISSUE_MAP[type];
 
-  return produce(list, (draftData) => {
-    const activeItem = draftData[namespace].issues.nodes.find(
-      (issue) => issue.iid === workItem.iid,
-    );
+  return produce(issuesList, (draftData) => {
+    const activeItem = draftData.project.issues.nodes.find((issue) => issue.iid === workItem.iid);
 
     const currentWidget = findWidget(type, workItem);
     if (!currentWidget) {

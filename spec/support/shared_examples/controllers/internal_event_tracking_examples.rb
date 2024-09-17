@@ -8,14 +8,11 @@
 # - project
 # - namespace
 # - category
-# - additional_properties
-# - event_attribute_overrides - is used when its necessary to override the attributes available in parent context.
-#
-# These legacy options are now deprecated:
 # - label
 # - property
 # - value
-# Prefer using additional_properties instead.
+# - additional_properties
+# - event_attribute_overrides
 
 RSpec.shared_examples 'internal event tracking' do
   let(:all_metrics) do
@@ -46,7 +43,6 @@ RSpec.shared_examples 'internal event tracking' do
       namespace: try(:namespace) || try(:project)&.namespace,
       category: try(:category) || 'InternalEventTracking',
       feature_enabled_by_namespace_ids: try(:feature_enabled_by_namespace_ids),
-      **(try(:additional_properties) || {}),
       **{
         label: try(:label),
         property: try(:property),

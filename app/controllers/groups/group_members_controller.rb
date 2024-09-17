@@ -73,18 +73,18 @@ class Groups::GroupMembersController < Groups::ApplicationController
 
   private
 
-  def members
-    @members ||= GroupMembersFinder
+  def group_members
+    @group_members ||= GroupMembersFinder
       .new(@group, current_user, params: filter_params)
       .execute(include_relations: requested_relations)
   end
 
   def invited_members
-    members.invite.with_invited_user_state
+    group_members.invite.with_invited_user_state
   end
 
   def non_invited_members
-    members.non_invite
+    group_members.non_invite
   end
 
   def present_invited_members(invited_members)

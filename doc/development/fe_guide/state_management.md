@@ -56,7 +56,7 @@ If you're still uncertain, prefer using Apollo before Pinia.
 
 ### Pick Apollo when
 
-- You rely on the GraphQL API
+- You rely on the GraphQL server state
 - You need specific Apollo features, for example:
   - [Parametrized cache, cache invalidation](graphql.md#immutability-and-cache-updates)
   - [Polling](graphql.md#polling-and-performance)
@@ -83,14 +83,14 @@ If you're considering using Pinia please drop a message in the `#frontend` inter
 
 ### Weaknesses
 
-- Can't do any advanced request handling out of the box (data normalization, polling, caching, etc.)
+- Can't do any advanced GraphQL request handling out of the box (data normalization, polling, caching, etc.)
 - Can lead to same pitfalls as Vuex without guidance (overblown stores)
 
 ### Pick Pinia when you have any of these
 
 - Significant percentage of Vue application state is client-side state
 - Migrating from Vuex is a high priority
-- Your application does not rely primarily on GraphQL API, and you don't plan the migration to GraphQL API in the near future
+- You're not considering using Apollo for client state management
 
 ## Combining Pinia and Apollo
 

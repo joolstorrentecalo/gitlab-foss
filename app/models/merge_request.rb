@@ -66,8 +66,6 @@ class MergeRequest < ApplicationRecord
   has_one :predictions, inverse_of: :merge_request
   delegate :suggested_reviewers, to: :predictions
 
-  has_one :merge_schedule, class_name: 'MergeRequests::MergeSchedule', inverse_of: :merge_request
-
   belongs_to :latest_merge_request_diff, class_name: 'MergeRequestDiff'
   manual_inverse_association :latest_merge_request_diff, :merge_request
 
@@ -380,7 +378,6 @@ class MergeRequest < ApplicationRecord
     preload_routables.preload(
       :assignees, :author, :unresolved_notes, :labels, :milestone,
       :timelogs, :latest_merge_request_diff, :reviewers,
-      :merge_schedule,
       target_project: :project_feature,
       metrics: [:latest_closed_by, :merged_by]
     )
@@ -852,16 +849,10 @@ class MergeRequest < ApplicationRecord
     compare.present? ? compare.raw_diffs(*args) : merge_request_diff.raw_diffs(*args)
   end
 
-  def diffs_for_streaming(diff_options = {}, &)
+  def diffs_for_streaming(diff_options = {})
     diff = diffable_merge_ref? ? merge_head_diff : merge_request_diff
 
-    offset = diff_options[:offset_index].to_i || 0
-
-    if block_given?
-      source_project.repository.diffs_by_changed_paths(diff.diff_refs, offset, &)
-    else
-      diff.diffs(diff_options)
-    end
+    diff.diffs(diff_options)
   end
 
   def diffs(diff_options = {})
@@ -2416,12 +2407,6 @@ class MergeRequest < ApplicationRecord
     return unless self.class.use_locked_set?
 
     Gitlab::MergeRequests::LockedSet.remove(self.id)
-  end
-
-  def first_diffs_slice(limit)
-    diff = diffable_merge_ref? ? merge_head_diff : merge_request_diff
-
-    diff.paginated_diffs(1, limit).diff_files
   end
 
   private

@@ -68,7 +68,6 @@ module GraphqlHelpers
   # TODO: this is too coupled to gem internals, making upgrades incredibly
   #       painful, and bypasses much of the validation of the framework.
   #       See https://gitlab.com/gitlab-org/gitlab/-/issues/363121
-  # rubocop: disable Metrics/ParameterLists -- This was disabled to add `field_opts`, needed for :calls_gitaly
   def resolve(
     resolver_class, # [Class[<= BaseResolver]] The resolver at test.
     obj: nil, # [Any] The BaseObject#object for the resolver (available as `#object` in the resolver).
@@ -77,8 +76,7 @@ module GraphqlHelpers
     schema: GitlabSchema, # [GraphQL::Schema] Schema to use during execution.
     parent: :not_given, # A GraphQL query node to be passed as the `:parent` extra.
     lookahead: :not_given, # A GraphQL lookahead object to be passed as the `:lookahead` extra.
-    arg_style: :internal_prepared, # Args are in internal format, but should use more rigorous processing,
-    field_opts: {}
+    arg_style: :internal_prepared # Args are in internal format, but should use more rigorous processing
   )
     # All resolution goes through fields, so we need to create one here that
     # uses our resolver. Thankfully, apart from the field name, resolvers
@@ -86,8 +84,7 @@ module GraphqlHelpers
     field = ::Types::BaseField.new(
       resolver_class: resolver_class,
       owner: resolver_parent,
-      name: 'field_value',
-      calls_gitaly: field_opts[:calls_gitaly]
+      name: 'field_value'
     )
 
     # All mutations accept a single `:input` argument. Wrap arguments here.
@@ -143,7 +140,7 @@ module GraphqlHelpers
     arg_style: :internal_prepared, # Args are in internal format, but should use more rigorous processing
     query: nil                     # Query to evaluate the field
   )
-    field = to_base_field(field, object_type).ensure_loaded
+    field = to_base_field(field, object_type)
     ctx[:current_user] = current_user unless current_user == :not_given
     query ||= GraphQL::Query.new(schema, context: ctx.to_h)
     extras[:lookahead] = negative_lookahead if extras[:lookahead] == :not_given && field.extras.include?(:lookahead)
@@ -172,9 +169,9 @@ module GraphqlHelpers
   end
 
   # create a valid query context object
-  def query_context(user: current_user, request: {})
+  def query_context(user: current_user)
     query = GraphQL::Query.new(empty_schema, document: nil, context: {}, variables: {})
-    GraphQL::Query::Context.new(query: query, values: { current_user: user, request: request })
+    GraphQL::Query::Context.new(query: query, values: { current_user: user })
   end
 
   # rubocop:enable Metrics/ParameterLists

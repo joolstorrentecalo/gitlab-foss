@@ -64,11 +64,6 @@ export default {
       required: false,
       default: () => [],
     },
-    showTaskWeight: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
   },
   data() {
     return {
@@ -114,11 +109,6 @@ export default {
           captureError: true,
           error,
         });
-      },
-      result() {
-        if (this.hasNextPage && this.children.length === 0) {
-          this.fetchNextPage();
-        }
       },
     },
     isExpanded: {
@@ -174,17 +164,12 @@ export default {
     },
     childItemClass() {
       return {
+        'gl-ml-5': !this.hasChildren,
         '!gl-ml-0': this.hasChildren || (!this.hasIndirectChildren && this.isTopLevel),
       };
     },
-    shouldShowWeight() {
-      return this.childItemType === WORK_ITEM_TYPE_VALUE_TASK ? this.showTaskWeight : true;
-    },
-    allowedChildren() {
-      return this.allowedChildTypes.length > 0;
-    },
     showChildrenDropzone() {
-      return !this.hasChildren && this.allowedChildren;
+      return !this.hasChildren && this.allowedChildTypes.length > 0;
     },
   },
   methods: {
@@ -227,70 +212,55 @@ export default {
 </script>
 
 <template>
-  <li class="tree-item !gl-px-0 !gl-py-2">
+  <li class="tree-item !gl-border-b-0 !gl-p-0">
     <div class="gl-flex gl-items-start">
-      <div v-if="hasIndirectChildren" class="gl-mr-2 gl-h-7 gl-w-5">
-        <gl-button
-          v-if="hasChildren"
-          v-gl-tooltip.hover
-          :title="chevronTooltip"
-          :aria-label="chevronTooltip"
-          :icon="chevronType"
-          category="tertiary"
-          size="small"
-          :loading="isLoadingChildren && !fetchNextPageInProgress"
-          class="!gl-px-0 !gl-py-3"
-          data-testid="expand-child"
-          @click="toggleItem"
-        />
-      </div>
-      <div
-        data-testid="child-contents-container"
-        class="gl-w-full"
-        :class="{
-          '!gl-border-x-0 !gl-border-b-1 !gl-border-t-0 !gl-border-solid !gl-border-gray-50 !gl-pb-2':
-            isExpanded && hasChildren && !isLoadingChildren,
-        }"
-      >
-        <work-item-link-child-contents
-          :child-item="childItem"
-          :can-update="canUpdate"
-          :class="childItemClass"
-          :parent-work-item-id="issuableGid"
-          :work-item-type="workItemType"
-          :show-labels="showLabels"
-          :work-item-full-path="workItemFullPath"
-          :show-weight="shouldShowWeight"
-          @click="$emit('click', $event)"
-          @removeChild="$emit('removeChild', childItem)"
-        />
-      </div>
-    </div>
-    <div class="!gl-ml-6">
-      <work-item-children-wrapper
-        v-if="isExpanded || showChildrenDropzone"
+      <gl-button
+        v-if="hasChildren"
+        v-gl-tooltip.hover
+        :title="chevronTooltip"
+        :aria-label="chevronTooltip"
+        :icon="chevronType"
+        category="tertiary"
+        size="small"
+        :loading="isLoadingChildren && !fetchNextPageInProgress"
+        class="!gl-px-0 !gl-py-3"
+        data-testid="expand-child"
+        @click="toggleItem"
+      />
+      <work-item-link-child-contents
+        :child-item="childItem"
         :can-update="canUpdate"
-        :work-item-id="issuableGid"
-        :work-item-iid="childItem.iid"
+        :class="childItemClass"
+        :parent-work-item-id="issuableGid"
         :work-item-type="workItemType"
-        :children="children"
-        :parent="childItem"
         :show-labels="showLabels"
-        :full-path="workItemFullPath"
-        :is-top-level="false"
-        :show-task-weight="showTaskWeight"
-        :has-indirect-children="hasIndirectChildren"
-        @removeChild="$emit('removeChild', childItem)"
-        @error="$emit('error', $event)"
+        :work-item-full-path="workItemFullPath"
         @click="$emit('click', $event)"
-      />
-      <work-item-children-load-more
-        v-if="hasNextPage && isExpanded"
-        class="!gl-pl-5"
-        data-testid="work-item-load-more"
-        :fetch-next-page-in-progress="fetchNextPageInProgress"
-        @fetch-next-page="fetchNextPage"
+        @removeChild="$emit('removeChild', childItem)"
       />
     </div>
+    <work-item-children-wrapper
+      v-if="isExpanded || showChildrenDropzone"
+      class="!gl-ml-6"
+      :can-update="canUpdate"
+      :work-item-id="issuableGid"
+      :work-item-iid="childItem.iid"
+      :work-item-type="workItemType"
+      :children="children"
+      :parent="childItem"
+      :show-labels="showLabels"
+      :full-path="workItemFullPath"
+      :is-top-level="false"
+      @removeChild="$emit('removeChild', childItem)"
+      @error="$emit('error', $event)"
+      @click="$emit('click', $event)"
+    />
+    <work-item-children-load-more
+      v-if="hasNextPage && isExpanded"
+      data-testid="work-item-load-more"
+      class="gl-ml-7 gl-pl-2"
+      :fetch-next-page-in-progress="fetchNextPageInProgress"
+      @fetch-next-page="fetchNextPage"
+    />
   </li>
 </template>

@@ -32,8 +32,8 @@ export default {
         ? n__('%d reply', '%d replies', this.replies.length)
         : __('Collapse replies');
     },
-    toggleIconColor() {
-      return this.collapsed ? '!gl-text-primary' : '!gl-text-blue-600';
+    toggleTextColor() {
+      return this.collapsed ? 'gl-text-blue-500' : 'gl-text-gray-900';
     },
     authors() {
       return [...new Set(this.replies.map((item) => item.author))];
@@ -44,24 +44,20 @@ export default {
       }
       return '';
     },
-    ariaState() {
-      return String(!this.collapsed);
-    },
   },
 };
 </script>
 
 <template>
   <li
-    class="toggle-comments gl-flex gl-min-h-8 gl-items-center gl-rounded-b-base gl-bg-subtle gl-p-3"
-    :aria-expanded="ariaState"
+    class="toggle-comments gl-flex gl-min-h-8 gl-items-center gl-rounded-bl-base gl-rounded-br-base gl-bg-gray-10 gl-p-3"
+    :class="{ expanded: !collapsed }"
     data-testid="toggle-comments-wrapper"
   >
     <gl-button
       category="tertiary"
       data-testid="toggle-replies-button"
       class="gl-my-2 gl-mr-3 !gl-p-0"
-      :class="toggleIconColor"
       :icon="iconName"
       @click="$emit('toggle')"
     />
@@ -89,7 +85,7 @@ export default {
       class="toggle-comments-button"
       @click="$emit('toggle')"
     >
-      <span>{{ toggleText }}</span>
+      <span :class="toggleTextColor">{{ toggleText }}</span>
     </gl-button>
   </li>
 </template>

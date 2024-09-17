@@ -41,6 +41,12 @@
   }
 }
 
+.toggle-colors {
+  input {
+    min-height: 34px;
+  }
+}
+
 .gl-broadcast-message-content p:last-child {
   margin: 0;
 }

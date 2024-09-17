@@ -1,7 +1,6 @@
 <script>
-import { GlFilteredSearchToken, GlButton, GlLink, GlIcon, GlTooltipDirective } from '@gitlab/ui';
+import { GlFilteredSearchToken, GlButton } from '@gitlab/ui';
 import { isEmpty } from 'lodash';
-import ApprovalCount from 'ee_else_ce/merge_requests/components/approval_count.vue';
 import { createAlert } from '~/alert';
 import Api from '~/api';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
@@ -18,8 +17,6 @@ import { DEFAULT_PAGE_SIZE, mergeRequestListTabs } from '~/vue_shared/issuable/l
 import {
   OPERATORS_IS,
   OPERATORS_IS_NOT,
-  TOKEN_TITLE_APPROVED_BY,
-  TOKEN_TYPE_APPROVED_BY,
   TOKEN_TITLE_AUTHOR,
   TOKEN_TYPE_AUTHOR,
   TOKEN_TITLE_DRAFT,
@@ -32,8 +29,6 @@ import {
   TOKEN_TYPE_ASSIGNEE,
   TOKEN_TITLE_REVIEWER,
   TOKEN_TYPE_REVIEWER,
-  TOKEN_TYPE_MERGE_USER,
-  TOKEN_TITLE_MERGE_USER,
   TOKEN_TITLE_MILESTONE,
   TOKEN_TYPE_MILESTONE,
   TOKEN_TITLE_MY_REACTION,
@@ -87,16 +82,10 @@ export default {
   mergeRequestListTabs,
   components: {
     GlButton,
-    GlLink,
-    GlIcon,
     IssuableList,
     CiIcon,
     MergeRequestStatistics,
     MergeRequestMoreActionsDropdown,
-    ApprovalCount,
-  },
-  directives: {
-    GlTooltip: GlTooltipDirective,
   },
   inject: [
     'autocompleteAwardEmojisPath',
@@ -199,19 +188,6 @@ export default {
       const preloadedUsers = [];
       const tokens = [
         {
-          type: TOKEN_TYPE_APPROVED_BY,
-          title: TOKEN_TITLE_APPROVED_BY,
-          icon: 'approval',
-          token: UserToken,
-          dataType: 'user',
-          operators: OPERATORS_IS_NOT,
-          fullPath: this.fullPath,
-          isProject: true,
-          recentSuggestionsStorageKey: `${this.fullPath}-merge_requests-recent-tokens-approved_by`,
-          preloadedUsers,
-          multiSelect: false,
-        },
-        {
           type: TOKEN_TYPE_ASSIGNEE,
           title: TOKEN_TITLE_ASSIGNEE,
           icon: 'user',
@@ -266,21 +242,6 @@ export default {
             { value: 'yes', title: this.$options.i18n.yes },
             { value: 'no', title: this.$options.i18n.no },
           ],
-          unique: true,
-        },
-        {
-          type: TOKEN_TYPE_MERGE_USER,
-          title: TOKEN_TITLE_MERGE_USER,
-          icon: 'merge',
-          token: UserToken,
-          dataType: 'user',
-          defaultUsers: [],
-          operators: OPERATORS_IS,
-          fullPath: this.fullPath,
-          isProject: true,
-          recentSuggestionsStorageKey: `${this.fullPath}-merge_requests-recent-tokens-merged_by`,
-          preloadedUsers,
-          multiselect: false,
           unique: true,
         },
         {
@@ -522,16 +483,7 @@ export default {
       this.sortKey = deriveSortKey({ sort, state });
       this.state = state || STATUS_OPEN;
     },
-    isMergeRequestBroken(mergeRequest) {
-      return (
-        mergeRequest.commitCount === 0 ||
-        !mergeRequest.sourceBranchExists ||
-        !mergeRequest.targetBranchExists ||
-        mergeRequest.conflicts
-      );
-    },
   },
-  STATUS_OPEN,
 };
 </script>
 
@@ -581,23 +533,10 @@ export default {
 
     <template #status="{ issuable = {} }">
       {{ getStatus(issuable) }}
-      <gl-link
-        v-if="issuable.state === $options.STATUS_OPEN && isMergeRequestBroken(issuable)"
-        v-gl-tooltip
-        :href="issuable.webUrl"
-        :title="__('Cannot be merged automatically')"
-        data-testid="merge-request-cannot-merge"
-      >
-        <gl-icon name="warning-solid" class="gl-text-gray-900" />
-      </gl-link>
     </template>
 
     <template #statistics="{ issuable = {} }">
       <merge-request-statistics :merge-request="issuable" />
-    </template>
-
-    <template #approval-status="{ issuable = {} }">
-      <approval-count :merge-request="issuable" full-text />
     </template>
 
     <template #pipeline-status="{ issuable = {} }">

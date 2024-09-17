@@ -287,9 +287,6 @@ export default {
     onInput(value) {
       this.updatedNoteBody = value;
     },
-    append(value) {
-      this.$refs.markdownEditor.append(value);
-    },
     handleKeySubmit(forceUpdate = false) {
       if (this.showBatchCommentsActions && !forceUpdate) {
         this.handleAddToReview();

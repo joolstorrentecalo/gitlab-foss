@@ -38,7 +38,7 @@ export default {
     GlPopover,
     WorkItemSidebarDropdownWidget,
   },
-  inject: ['fullPath'],
+  inject: ['fullPath', 'isGroup'],
   props: {
     workItemId: {
       type: String,
@@ -65,11 +65,6 @@ export default {
       default: '',
     },
     hasParent: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    isGroup: {
       type: Boolean,
       required: false,
       default: false,
@@ -128,7 +123,6 @@ export default {
     },
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     workspaceWorkItems: {
       query() {
         // TODO: Remove the this.isIssue check once issues are migrated to work items
@@ -156,7 +150,6 @@ export default {
         this.$emit('error', this.$options.i18n.workItemsFetchError);
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     workItemsByReference: {
       query: workItemsByReferencesQuery,
       variables() {

@@ -1,15 +1,8 @@
 <script>
 import { GlDisclosureDropdown, GlDisclosureDropdownItem } from '@gitlab/ui';
 import { TYPE_INCIDENT, TYPE_ISSUE } from '~/issues/constants';
-import { WORK_ITEM_TYPE_VALUE_EPIC, WORK_ITEM_TYPE_VALUE_ISSUE } from '~/work_items/constants';
+import { WORK_ITEM_TYPE_VALUE_EPIC } from '~/work_items/constants';
 import eventHub from '../event_hub';
-
-const allowedTypes = [
-  TYPE_INCIDENT,
-  TYPE_ISSUE,
-  WORK_ITEM_TYPE_VALUE_EPIC,
-  WORK_ITEM_TYPE_VALUE_ISSUE,
-];
 
 export default {
   components: {
@@ -19,7 +12,7 @@ export default {
   inject: ['id', 'issuableType'],
   computed: {
     showConvertToTaskItem() {
-      return allowedTypes.includes(this.issuableType);
+      return [TYPE_INCIDENT, TYPE_ISSUE, WORK_ITEM_TYPE_VALUE_EPIC].includes(this.issuableType);
     },
   },
   methods: {

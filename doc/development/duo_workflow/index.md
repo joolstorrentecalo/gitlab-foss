@@ -49,15 +49,15 @@ info: Any user with at least the Maintainer role can merge updates to this conte
         "project_id": "$PROJECT_ID_FOR_RUNNING_WORKFLOW_AGAINST"
      }' \
      $YOUR_GDK_ROOT_URL/api/v4/ai/duo_workflows/workflows
-   ```
+    ```
 
 ## Set up the Duo Workflow Service
 
 1. Clone the [Duo Workflow Service respository](https://gitlab.com/gitlab-org/duo-workflow/duo-workflow-service)
 
-   ```shell
-     git clone git@gitlab.com:gitlab-org/duo-workflow/duo-workflow-service.git
-   ```
+  ```shell
+    git clone git@gitlab.com:gitlab-org/duo-workflow/duo-workflow-service.git
+  ```
 
 1. Navigate to the Duo Workflow Service directory
 
@@ -99,9 +99,9 @@ info: Any user with at least the Maintainer role can merge updates to this conte
 
 1. Clone the [Duo Workflow Executor repository](https://gitlab.com/gitlab-org/duo-workflow/duo-workflow-executor)
 
-   ```shell
-     git clone git@gitlab.com:gitlab-org/duo-workflow/duo-workflow-executor.git
-   ```
+  ```shell
+    git clone git@gitlab.com:gitlab-org/duo-workflow/duo-workflow-executor.git
+  ```
 
 1. Navigate to the Duo Workflow Executor directory
 
@@ -125,34 +125,52 @@ info: Any user with at least the Maintainer role can merge updates to this conte
 
 1. Run the executor with your GitLab token and workflow ID
 
-   ```shell
-   make && \
-   ./bin/duo-workflow-executor \
-       --goal='Fix the pipeline for the Merge request 62 in the project 19." \
-       --insecure --debug
-       --workflow-id=$WORKFLOW_ID \
-       --token=$YOUR_GITLAB_PAT \
-       --base-url="$GDK_GITLAB_URL" \
-       --user-id="1"
-   ```
+  ```shell
+  make && \
+  ./bin/duo-workflow-executor \
+      --goal='Fix the pipeline for the Merge request 62 in the project 19." \
+      --insecure --debug
+      --workflow-id=$WORKFLOW_ID \
+      --token=$YOUR_GITLAB_PAT \
+      --base-url="$GDK_GITLAB_URL" \
+      --user-id="1"
+  ```
 
 1. Verify that the checkpoints for workflow have been created
 
-   ```shell
-   curl --verbose \
-     --header "Authorization: Bearer $YOUR_GITLAB_PAT" \
-     $GDK_GITLAB_URL/api/v4/ai/duo_workflows/workflows/$WORKFLOW_ID/checkpoints
-   ```
+  ```shell
+  curl --verbose \
+    --header "Authorization: Bearer $YOUR_GITLAB_PAT" \
+    $GDK_GITLAB_URL/api/v4/ai/duo_workflows/workflows/$WORKFLOW_ID/checkpoints
+  ```
 
 ## Configure the GitLab VS Code Extension
 
-The above steps show how to start a workflow directly from the Duo Workflow
-Executor.
+The above steps show how to start a workflow directly from the Duo Workflow Exector. If you would like to start it with the VS Code Extension instead, follow these steps:
 
-If you would like to start Duo Workflow with the VS Code Extension instead,
-follow [these steps](../../user/duo_workflow/index.md#prerequisites).
+1. Update to the latest version.
+1. Pull the executor Docker image:
 
-If you are debugging or making changes to the VSCode extension and need to run the extension in development mode, you can do that following [these instructions](https://gitlab.com/gitlab-org/gitlab-vscode-extension/-/blob/main/CONTRIBUTING.md#configuring-development-environment).
+   ```shell
+   docker pull redhat/ubi8:latest
+   ```
+
+1. Get the Docker socket path:
+
+   ```shell
+   docker context list
+   ```
+
+1. Update VS Code settings (JSON):
+
+   ```json
+   {
+     "gitlab.duoWorkflow.dockerSocket": "<docker_socket_path>",
+     "gitlab.featureFlags.languageServerWebviews": true
+   }
+   ```
+
+   If you are debugging or making changes to the VSCode extension and need to run the extension in development mode, you can do that following [these instructions](https://gitlab.com/gitlab-org/gitlab-vscode-extension/-/blob/main/CONTRIBUTING.md#configuring-development-environment).
 
 ## Troubleshooting
 

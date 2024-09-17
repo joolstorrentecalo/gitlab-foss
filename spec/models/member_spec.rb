@@ -1322,8 +1322,7 @@ RSpec.describe Member, feature_category: :groups_and_projects do
   end
 
   context 'for updating organization_users' do
-    let_it_be(:organization) { create(:organization) }
-    let_it_be(:group) { create(:group, organization: organization) }
+    let_it_be(:group) { create(:group) }
     let_it_be(:user) { create(:user) }
     let(:member) { create(:group_member, source: group, user: user) }
 
@@ -1557,18 +1556,6 @@ RSpec.describe Member, feature_category: :groups_and_projects do
       end
 
       create_member
-    end
-
-    context 'when member is a requested member' do
-      let(:member) { create(:group_member, source: source, requested_at: Time.current.utc) }
-
-      it 'calls the system hook service' do
-        expect_next_instance_of(SystemHooksService) do |instance|
-          expect(instance).to receive(:execute_hooks_for).with(an_instance_of(GroupMember), :request)
-        end
-
-        create_member
-      end
     end
 
     context 'when source is a group' do

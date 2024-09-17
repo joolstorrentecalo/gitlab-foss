@@ -57,7 +57,8 @@ module Packages
       return ::Project.none unless Ability.allowed?(user, :read_package_within_public_registries,
         within_group.packages_policy_subject)
 
-      projects_visible_to_reporters(user, within_group: within_group, within_public_package_registry: true)
+      projects_visible_to_reporters(user, within_group: within_group,
+        within_public_package_registry: !Ability.allowed?(user, :read_group, within_group))
     end
 
     def projects_visible_to_reporters(user, within_group:, within_public_package_registry: false)

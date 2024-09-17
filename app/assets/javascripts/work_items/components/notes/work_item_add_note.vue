@@ -190,9 +190,9 @@ export default {
       return {
         'timeline-entry note-form': this.isNewDiscussion,
         // eslint-disable-next-line @gitlab/require-i18n-strings
-        '!gl-pb-5 note note-wrapper note-comment discussion-reply-holder clearfix':
+        'note note-wrapper note-comment discussion-reply-holder !gl-border-t-0 clearfix':
           !this.isNewDiscussion,
-        'is-replying': this.isEditing,
+        '!gl-pt-0 is-replying': this.isEditing,
         'internal-note': this.isInternalThread,
       };
     },

@@ -157,7 +157,6 @@ class Namespace < ApplicationRecord
   validate :nesting_level_allowed, unless: -> { project_namespace? }
   validate :changing_shared_runners_enabled_is_allowed, unless: -> { project_namespace? }
   validate :changing_allow_descendants_override_disabled_shared_runners_is_allowed, unless: -> { project_namespace? }
-  validate :parent_organization_match, if: :require_organization?
 
   delegate :name, to: :owner, allow_nil: true, prefix: true
   delegate :avatar_url, to: :owner, allow_nil: true
@@ -246,9 +245,6 @@ class Namespace < ApplicationRecord
   end
 
   scope :with_shared_runners_enabled, -> { where(shared_runners_enabled: true) }
-
-  scope :by_contains_all_traversal_ids, ->(traversal_ids) { where('traversal_ids::bigint[] @> ARRAY[?]::bigint[]', traversal_ids) }
-  scope :by_traversal_ids, ->(traversal_ids) { where('traversal_ids::bigint[] = ARRAY[?]::bigint[]', traversal_ids) }
 
   # Make sure that the name is same as strong_memoize name in root_ancestor
   # method
@@ -736,13 +732,6 @@ class Namespace < ApplicationRecord
   end
 
   private
-
-  def parent_organization_match
-    return unless parent
-    return if parent.organization_id == organization_id
-
-    errors.add(:organization_id, _("must match the parent organization's ID"))
-  end
 
   def cross_namespace_reference?(from)
     return false if from == self

@@ -390,6 +390,7 @@ class User < ApplicationRecord
   end
 
   after_create_commit :create_default_organization_user
+  after_update_commit :update_default_organization_user, if: -> { saved_change_to_admin }
 
   # User's Layout preference
   enum layout: { fixed: 0, fluid: 1 }
@@ -434,7 +435,6 @@ class User < ApplicationRecord
     :enabled_following, :enabled_following=,
     :home_organization, :home_organization_id, :home_organization_id=,
     :dpop_enabled, :dpop_enabled=,
-    :use_work_items_view, :use_work_items_view=,
     to: :user_preference
 
   delegate :path, to: :namespace, allow_nil: true, prefix: true
@@ -2042,20 +2042,21 @@ class User < ApplicationRecord
 
   def assigned_open_merge_requests_count(force: false)
     Rails.cache.fetch(['users', id, 'assigned_open_merge_requests_count', merge_request_dashboard_enabled?], force: force, expires_in: COUNT_CACHE_VALIDITY_PERIOD) do
-      params = { assignee_id: id, state: 'opened', non_archived: true }
-      params[:reviewer_id] = 'none' if merge_request_dashboard_enabled?
+      review_states = if merge_request_dashboard_enabled?
+                        %w[requested_changes reviewed]
+                      end
 
-      MergeRequestsFinder.new(self, params).execute.count
+      MergeRequestsFinder.new(self, assignee_id: self.id, review_states: review_states, state: 'opened', non_archived: true).execute.count
     end
   end
 
   def review_requested_open_merge_requests_count(force: false)
     Rails.cache.fetch(['users', id, 'review_requested_open_merge_requests_count', merge_request_dashboard_enabled?], force: force, expires_in: COUNT_CACHE_VALIDITY_PERIOD) do
-      if merge_request_dashboard_enabled?
-        MergeRequestsFinder.new(self, assigned_user_id: id, reviewer_review_states: %w[unreviewed unapproved review_started], assigned_review_states: %w[requested_changes reviewed], state: 'opened', non_archived: true).execute.count
-      else
-        MergeRequestsFinder.new(self, reviewer_id: id, state: 'opened', non_archived: true).execute.count
-      end
+      review_state = if merge_request_dashboard_enabled?
+                       'unreviewed'
+                     end
+
+      MergeRequestsFinder.new(self, reviewer_id: id, review_state: review_state, state: 'opened', non_archived: true).execute.count
     end
   end
 
@@ -2539,8 +2540,6 @@ class User < ApplicationRecord
   end
 
   def should_delay_delete?(deleted_by)
-    return false if placeholder?
-
     is_deleting_own_record = deleted_by.id == id
 
     is_deleting_own_record &&
@@ -2736,6 +2735,10 @@ class User < ApplicationRecord
 
   def create_default_organization_user
     Organizations::OrganizationUser.create_default_organization_record_for(id, user_is_admin: admin?)
+  end
+
+  def update_default_organization_user
+    Organizations::OrganizationUser.update_default_organization_record_for(id, user_is_admin: admin?)
   end
 
   # method overridden in EE

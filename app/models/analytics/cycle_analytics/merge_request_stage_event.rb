@@ -30,10 +30,6 @@ module Analytics
       def self.issuable_model
         ::MergeRequest
       end
-
-      def self.assignees_model
-        MergeRequestAssignee
-      end
     end
   end
 end

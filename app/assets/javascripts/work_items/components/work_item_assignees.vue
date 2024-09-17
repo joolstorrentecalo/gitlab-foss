@@ -23,13 +23,10 @@ export default {
     UncollapsedAssigneeList,
   },
   mixins: [Tracking.mixin()],
+  inject: ['isGroup'],
   props: {
     fullPath: {
       type: String,
-      required: true,
-    },
-    isGroup: {
-      type: Boolean,
       required: true,
     },
     workItemId: {

@@ -86,10 +86,14 @@ module QA
             }
           ])
 
+          Flow::Pipeline.wait_for_pipeline_creation(project: project)
           project.visit!
-          Flow::Pipeline.wait_for_pipeline_creation_via_api(project: project)
+          Flow::Pipeline.visit_latest_pipeline
 
-          project.visit_job('deploy')
+          Page::Project::Pipeline::Show.perform do |pipeline|
+            pipeline.click_job('deploy')
+          end
+
           Page::Project::Job::Show.perform do |job|
             expect(job).to be_successful(timeout: 180)
           end
@@ -105,13 +109,16 @@ module QA
             }
           ])
 
+          Flow::Pipeline.wait_for_pipeline_creation(project: another_project)
           another_project.visit!
-          Flow::Pipeline.wait_for_pipeline_creation_via_api(project: another_project)
+          Flow::Pipeline.visit_latest_pipeline
 
-          another_project.visit_job('install')
+          Page::Project::Pipeline::Show.perform do |pipeline|
+            pipeline.click_job('install')
+          end
+
           Page::Project::Job::Show.perform do |job|
             expect(job).to be_successful(timeout: 180)
-
             job.click_browse_button
           end
 
@@ -123,6 +130,7 @@ module QA
 
           project.visit!
           Page::Project::Menu.perform(&:go_to_package_registry)
+
           Page::Project::Packages::Index.perform do |index|
             expect(index).to have_package(package.name)
 

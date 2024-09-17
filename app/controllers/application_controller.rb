@@ -396,11 +396,11 @@ class ApplicationController < BaseActionController
   end
 
   def bitbucket_server_import_enabled?
-    Gitlab::CurrentSettings.import_sources.include?('bitbucket_server') || Feature.enabled?(:override_bitbucket_server_disabled, current_user, type: :ops)
+    Gitlab::CurrentSettings.import_sources.include?('bitbucket_server')
   end
 
   def github_import_enabled?
-    Gitlab::CurrentSettings.import_sources.include?('github') || Feature.enabled?(:override_github_disabled, current_user, type: :ops)
+    Gitlab::CurrentSettings.import_sources.include?('github')
   end
 
   def gitea_import_enabled?
@@ -443,18 +443,27 @@ class ApplicationController < BaseActionController
   end
 
   def set_current_context(&block)
+    static_context =
+      if Feature.enabled?(:controller_static_context, Feature.current_request)
+        {} # middleware should've included caller_id and feature_category
+      else
+        { caller_id: self.class.endpoint_id_for_action(action_name) }
+      end
+
     # even though feature_category is pre-populated by
     # Gitlab::Middleware::ActionControllerStaticContext
     # using the static annotation on controllers, the
     # controllers can override feature_category conditionally
-    Gitlab::ApplicationContext.push(feature_category: feature_category) if feature_category.present?
+    static_context[:feature_category] = feature_category if feature_category.present?
 
     Gitlab::ApplicationContext.push(
-      user: -> { context_user },
-      project: -> { @project if @project&.persisted? },
-      namespace: -> { @group if @group&.persisted? },
-      remote_ip: request.ip,
-      **http_router_rule_context
+      static_context.merge({
+        user: -> { context_user },
+        project: -> { @project if @project&.persisted? },
+        namespace: -> { @group if @group&.persisted? },
+        remote_ip: request.ip,
+        **http_router_rule_context
+      })
     )
     yield
   ensure

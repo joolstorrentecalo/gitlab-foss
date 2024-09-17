@@ -82,7 +82,7 @@ export default {
       return !(hasContent && this.isCollapsible && this.collapsed);
     },
     toggleIcon() {
-      return this.collapsed ? 'chevron-down' : 'chevron-up';
+      return this.collapsed ? 'chevron-lg-down' : 'chevron-lg-up';
     },
     toggleLabel() {
       return this.collapsed ? __('Expand') : __('Collapse');
@@ -108,11 +108,9 @@ export default {
     showForm() {
       this.isFormVisible = true;
       this.collapsed = false;
-      this.$emit('showForm');
     },
     hideForm() {
       this.isFormVisible = false;
-      this.$emit('hideForm');
     },
     toggleForm() {
       if (this.isFormVisible) {
@@ -138,7 +136,7 @@ export default {
         headerClass,
         {
           'gl-rounded-base gl-border-b-0': !isContentVisible,
-          'gl-relative gl-pr-10': isCollapsible,
+          'gl-relative gl-pr-9': isCollapsible,
         },
       ]"
     >
@@ -161,11 +159,11 @@ export default {
             class="gl-inline-flex gl-items-center gl-gap-2 gl-text-sm gl-text-subtle"
             data-testid="crud-count"
           >
-            <template v-if="displayedCount">
+            <slot v-if="$scopedSlots.count" name="count"></slot>
+            <template v-else>
               <gl-icon v-if="icon" :name="icon" data-testid="crud-icon" />
               {{ displayedCount }}
             </template>
-            <slot v-if="$scopedSlots.count" name="count"></slot>
           </span>
         </h2>
         <p
@@ -187,10 +185,7 @@ export default {
           @click="showForm"
           >{{ toggleText }}</gl-button
         >
-        <div
-          v-if="isCollapsible"
-          class="gl-border-l gl-absolute gl-right-5 gl-top-4 gl-h-6 gl-pl-3"
-        >
+        <div v-if="isCollapsible" class="gl-absolute gl-right-5 gl-top-4 gl-h-6">
           <gl-button
             v-gl-tooltip
             :title="toggleLabel"

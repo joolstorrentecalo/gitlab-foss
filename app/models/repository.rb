@@ -457,6 +457,10 @@ class Repository
     expire_status_cache
 
     repository_event(:create_repository)
+
+    return unless project.present?
+
+    project.run_after_commit_or_now { Onboarding::ProgressWorker.perform_async(namespace_id, 'git_write') }
   end
 
   # Runs code just before a repository is deleted.
@@ -771,8 +775,8 @@ class Repository
   #
   # order_by: name|email|commits
   # sort: asc|desc default: 'asc'
-  def contributors(ref: nil, order_by: nil, sort: 'asc')
-    commits = self.commits(ref, limit: 2000, offset: 0, skip_merges: true)
+  def contributors(order_by: nil, sort: 'asc')
+    commits = self.commits(nil, limit: 2000, offset: 0, skip_merges: true)
 
     commits = commits.group_by(&:author_email).map do |email, commits|
       contributor = Gitlab::Contributor.new

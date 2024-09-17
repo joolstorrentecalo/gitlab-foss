@@ -14,8 +14,9 @@ import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { semverRegex } from '~/lib/utils/regexp';
 import MarkdownEditor from '~/vue_shared/components/markdown/markdown_editor.vue';
 import { helpPagePath } from '~/helpers/help_page_helper';
+import { uploadModel } from '../services/upload_model';
 import createModelVersionMutation from '../graphql/mutations/create_model_version.mutation.graphql';
-import { MODEL_VERSION_CREATION_MODAL_ID } from '../constants';
+import { emptyArtifactFile, MODEL_VERSION_CREATION_MODAL_ID } from '../constants';
 
 export default {
   name: 'ModelVersionCreate',
@@ -41,7 +42,7 @@ export default {
     disableAttachments: {
       type: Boolean,
       required: false,
-      default: false,
+      default: true,
     },
   },
   data() {
@@ -49,6 +50,7 @@ export default {
       version: null,
       description: '',
       errorMessage: null,
+      selectedFile: emptyArtifactFile,
       versionData: null,
       submitButtonDisabled: true,
       markdownDocPath: helpPagePath('user/markdown'),
@@ -126,20 +128,29 @@ export default {
           this.errorMessage = errors.join(', ');
           this.versionData = null;
         } else {
-          const { showPath, importPath } =
-            this.versionData.mlModelVersionCreate.modelVersion._links;
-          await this.$refs.importArtifactZoneRef.uploadArtifact(importPath);
+          const { importPath } = this.versionData.mlModelVersionCreate.modelVersion._links;
+
+          await uploadModel({
+            importPath,
+            file: this.selectedFile.file,
+            subfolder: this.selectedFile.subfolder,
+            maxAllowedFileSize: this.maxAllowedFileSize,
+            onUploadProgress: this.$refs.importArtifactZoneRef.onUploadProgress,
+          });
+          const { showPath } = this.versionData.mlModelVersionCreate.modelVersion._links;
           visitUrl(showPath);
         }
       } catch (error) {
         Sentry.captureException(error);
         this.errorMessage = error;
+        this.selectedFile = emptyArtifactFile;
       }
     },
     resetModal() {
       this.version = null;
       this.description = '';
       this.errorMessage = null;
+      this.selectedFile = emptyArtifactFile;
       this.versionData = null;
     },
     hideAlert() {
@@ -240,6 +251,7 @@ export default {
           <import-artifact-zone
             id="versionImportArtifactZone"
             ref="importArtifactZoneRef"
+            v-model="selectedFile"
             class="gl-px-3 gl-py-0"
             :submit-on-select="false"
           />

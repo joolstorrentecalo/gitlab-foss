@@ -90,7 +90,6 @@ export default {
     class="expandable-card"
     :class="{ 'is-collapsed gl-border-white hover:gl-border-gray-100': !isExpanded }"
     data-testid="failed-jobs-card"
-    @click="toggleWidget"
   >
     <template #title>
       <gl-button

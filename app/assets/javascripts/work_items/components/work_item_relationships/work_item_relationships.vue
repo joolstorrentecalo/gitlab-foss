@@ -1,24 +1,15 @@
 <script>
 import { produce } from 'immer';
-import { GlAlert, GlButton, GlLink, GlBadge } from '@gitlab/ui';
+import { GlAlert, GlButton, GlLink } from '@gitlab/ui';
 
-import { s__, n__, sprintf } from '~/locale';
+import { s__ } from '~/locale';
 import { helpPagePath } from '~/helpers/help_page_helper';
 import CrudComponent from '~/vue_shared/components/crud_component.vue';
 
 import workItemLinkedItemsQuery from '../../graphql/work_item_linked_items.query.graphql';
 import removeLinkedItemsMutation from '../../graphql/remove_linked_items.mutation.graphql';
-import {
-  findLinkedItemsWidget,
-  saveShowLabelsToLocalStorage,
-  getShowLabelsFromLocalStorage,
-} from '../../utils';
-import {
-  LINKED_CATEGORIES_MAP,
-  LINKED_ITEMS_ANCHOR,
-  WORKITEM_RELATIONSHIPS_SHOWLABELS_LOCALSTORAGEKEY,
-  sprintfWorkItem,
-} from '../../constants';
+import { findLinkedItemsWidget } from '../../utils';
+import { LINKED_CATEGORIES_MAP, LINKED_ITEMS_ANCHOR } from '../../constants';
 
 import WorkItemMoreActions from '../shared/work_item_more_actions.vue';
 import WorkItemRelationshipList from './work_item_relationship_list.vue';
@@ -30,18 +21,12 @@ export default {
     GlAlert,
     GlButton,
     GlLink,
-    GlBadge,
     CrudComponent,
     WorkItemRelationshipList,
     WorkItemAddRelationshipForm,
     WorkItemMoreActions,
   },
   props: {
-    isGroup: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     workItemId: {
       type: String,
       required: false,
@@ -112,10 +97,8 @@ export default {
       linksIsBlockedBy: [],
       linksBlocks: [],
       widgetName: LINKED_ITEMS_ANCHOR,
-      defaultShowLabels: true,
       showLabels: true,
       linkedWorkItems: [],
-      showLabelsLocalStorageKey: WORKITEM_RELATIONSHIPS_SHOWLABELS_LOCALSTORAGEKEY,
     };
   },
   computed: {
@@ -131,23 +114,6 @@ export default {
     isEmptyRelatedWorkItems() {
       return !this.error && this.linkedWorkItems.length === 0;
     },
-    countBadgeAriaLabel() {
-      const message = sprintf(
-        n__(
-          'WorkItem|%{workItemType} has 1 linked item',
-          'WorkItem|%{workItemType} has %{itemCount} linked items',
-          this.linkedWorkItemsCount,
-        ),
-        { itemCount: this.linkedWorkItemsCount },
-      );
-      return sprintfWorkItem(message, this.workItemType);
-    },
-  },
-  mounted() {
-    this.showLabels = getShowLabelsFromLocalStorage(
-      this.showLabelsLocalStorageKey,
-      this.defaultShowLabels,
-    );
   },
   methods: {
     showLinkItemForm() {
@@ -155,10 +121,6 @@ export default {
     },
     hideLinkItemForm() {
       this.$refs.widget.hideForm();
-    },
-    toggleShowLabels() {
-      this.showLabels = !this.showLabels;
-      saveShowLabelsToLocalStorage(this.showLabelsLocalStorageKey, this.showLabels);
     },
     async removeLinkedItem(linkedItem) {
       try {
@@ -237,25 +199,18 @@ export default {
     ref="widget"
     :anchor-id="widgetName"
     :title="$options.i18n.title"
+    :count="linkedWorkItemsCount"
+    icon="issues"
     :is-loading="isLoading"
     is-collapsible
     data-testid="work-item-relationships"
   >
-    <template #count>
-      <gl-badge
-        :aria-label="countBadgeAriaLabel"
-        data-testid="linked-items-count-bage"
-        variant="muted"
-      >
-        {{ linkedWorkItemsCount }}
-      </gl-badge>
-    </template>
-
     <template #actions>
       <gl-button
         v-if="canAdminWorkItemLink"
         data-testid="link-item-add-button"
         size="small"
+        class="gl-mr-3"
         @click="showLinkItemForm"
       >
         <slot name="add-button-text">{{ $options.i18n.addLinkedWorkItemButtonLabel }}</slot>
@@ -266,13 +221,12 @@ export default {
         :work-item-type="workItemType"
         :show-labels="showLabels"
         :show-view-roadmap-action="false"
-        @toggle-show-labels="toggleShowLabels"
+        @toggle-show-labels="showLabels = !showLabels"
       />
     </template>
 
     <template #form>
       <work-item-add-relationship-form
-        :is-group="isGroup"
         :work-item-id="workItemId"
         :work-item-iid="workItemIid"
         :work-item-full-path="workItemFullPath"
@@ -297,6 +251,11 @@ export default {
 
       <work-item-relationship-list
         v-if="linksBlocks.length"
+        class="gl-pb-3"
+        :class="{
+          'gl-mb-5 gl-border-b-1 gl-border-b-default gl-border-b-solid':
+            linksIsBlockedBy.length || linksRelatesTo.length,
+        }"
         :linked-items="linksBlocks"
         :heading="$options.i18n.blockingTitle"
         :can-update="canAdminWorkItemLink"
@@ -313,6 +272,10 @@ export default {
       />
       <work-item-relationship-list
         v-if="linksIsBlockedBy.length"
+        class="gl-pb-3"
+        :class="{
+          'gl-mb-5 gl-border-b-1 gl-border-b-default gl-border-b-solid': linksRelatesTo.length,
+        }"
         :linked-items="linksIsBlockedBy"
         :heading="$options.i18n.blockedByTitle"
         :can-update="canAdminWorkItemLink"
@@ -329,6 +292,7 @@ export default {
       />
       <work-item-relationship-list
         v-if="linksRelatesTo.length"
+        class="gl-pb-3"
         :linked-items="linksRelatesTo"
         :heading="$options.i18n.relatedToTitle"
         :can-update="canAdminWorkItemLink"

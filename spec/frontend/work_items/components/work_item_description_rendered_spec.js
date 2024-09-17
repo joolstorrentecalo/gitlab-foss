@@ -1,7 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import waitForPromises from 'helpers/wait_for_promises';
-import { useMockInternalEventsTracking } from 'helpers/tracking_internal_events_helper';
 import { renderGFM } from '~/behaviors/markdown/render_gfm';
 import { handleLocationHash } from '~/lib/utils/common_utils';
 import eventHub from '~/issues/show/event_hub';
@@ -18,7 +17,6 @@ describe('WorkItemDescriptionRendered', () => {
 
   const findCheckboxAtIndex = (index) => wrapper.findAll('input[type="checkbox"]').at(index);
   const findCreateWorkItemModal = () => wrapper.findComponent(CreateWorkItemModal);
-  const findReadMore = () => wrapper.findComponent({ ref: 'show-all-btn' });
 
   const defaultWorkItemDescription = {
     description: descriptionTextWithCheckboxes,
@@ -28,21 +26,19 @@ describe('WorkItemDescriptionRendered', () => {
   const createComponent = ({
     workItemDescription = defaultWorkItemDescription,
     canEdit = false,
-    isGroup = false,
-    workItemType = 'ISSUE',
     mockComputed = {},
+    hasWorkItemsBeta = false,
   } = {}) => {
     wrapper = shallowMount(WorkItemDescriptionRendered, {
       propsData: {
         workItemId: 'gid://gitlab/WorkItem/818',
         workItemDescription,
         canEdit,
-        isGroup,
-        workItemType,
       },
       computed: mockComputed,
       provide: {
         fullPath: 'full/path',
+        workItemsBeta: hasWorkItemsBeta,
       },
     });
   };
@@ -56,8 +52,7 @@ describe('WorkItemDescriptionRendered', () => {
   });
 
   describe('with truncation', () => {
-    const { bindInternalEventDocument } = useMockInternalEventsTracking();
-    beforeEach(() => {
+    it('shows the untruncate action', () => {
       createComponent({
         workItemDescription: {
           description: 'This is a long description',
@@ -69,17 +64,8 @@ describe('WorkItemDescriptionRendered', () => {
           },
         },
       });
-    });
 
-    it('shows the untruncate action', () => {
-      expect(findReadMore().exists()).toBe(true);
-    });
-    it('tracks untruncate action', async () => {
-      const { trackEventSpy } = bindInternalEventDocument(wrapper.element);
-
-      await findReadMore().vm.$emit('click');
-
-      expect(trackEventSpy).toHaveBeenCalledWith('expand_description_on_workitem', {}, undefined);
+      expect(wrapper.find('[data-test-id="description-read-more"]').exists()).toBe(true);
     });
   });
 
@@ -96,7 +82,8 @@ describe('WorkItemDescriptionRendered', () => {
           },
         },
       });
-      expect(findReadMore().exists()).toBe(false);
+
+      expect(wrapper.find('[data-test-id="description-read-more"]').exists()).toBe(false);
     });
   });
 
@@ -152,7 +139,7 @@ describe('WorkItemDescriptionRendered', () => {
 
       const updatedDescription = `- [x] todo 1\n- [x] todo 2`;
       expect(wrapper.emitted('descriptionUpdated')).toEqual([[updatedDescription]]);
-      expect(findReadMore().exists()).toBe(false);
+      expect(wrapper.find('[data-test-id="description-read-more"]').exists()).toBe(false);
     });
 
     it('disables checkbox while updating', async () => {
@@ -170,7 +157,7 @@ describe('WorkItemDescriptionRendered', () => {
 
       const updatedDescription = `- [ ] todo 1\n- [ ] todo 2`;
       expect(wrapper.emitted('descriptionUpdated')).toEqual([[updatedDescription]]);
-      expect(findReadMore().exists()).toBe(false);
+      expect(wrapper.find('[data-test-id="description-read-more"]').exists()).toBe(false);
     });
   });
 
@@ -212,11 +199,11 @@ and even more`,
           hideButton: true,
           isGroup: false,
           parentId: 'gid://gitlab/WorkItem/818',
-          showProjectSelector: false,
+          showProjectSelector: true,
           title:
             'item 2 with a really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really really rea',
           visible: true,
-          workItemTypeName: 'TASK',
+          workItemTypeName: 'ISSUE',
         });
 
         findCreateWorkItemModal().vm.$emit('workItemCreated');
@@ -227,62 +214,6 @@ and even more`,
         await nextTick();
 
         expect(findCreateWorkItemModal().props('visible')).toBe(false);
-      });
-
-      describe('when work item epic', () => {
-        it('converts task list item to child issue', async () => {
-          const description = '1. [ ] item 1\n1. [ ] item 2';
-          createComponent({
-            isGroup: true,
-            workItemType: 'Epic',
-            workItemDescription: { description },
-          });
-          await waitForPromises();
-
-          eventHub.$emit('convert-task-list-item', {
-            id: 'gid://gitlab/WorkItem/818',
-            sourcepos: '1:1-1:13',
-          });
-          await nextTick();
-
-          expect(findCreateWorkItemModal().props()).toMatchObject({
-            asDropdownItem: false,
-            description: ``,
-            hideButton: true,
-            isGroup: true,
-            parentId: 'gid://gitlab/WorkItem/818',
-            showProjectSelector: true,
-            title: 'item 1',
-            visible: true,
-            workItemTypeName: 'ISSUE',
-          });
-        });
-      });
-
-      describe('when work item issue', () => {
-        it('converts task list item to child task', async () => {
-          const description = '1. [ ] item 1\n1. [ ] item 2';
-          createComponent({ workItemType: 'ISSUE', workItemDescription: { description } });
-          await waitForPromises();
-
-          eventHub.$emit('convert-task-list-item', {
-            id: 'gid://gitlab/WorkItem/818',
-            sourcepos: '1:1-1:13',
-          });
-          await nextTick();
-
-          expect(findCreateWorkItemModal().props()).toMatchObject({
-            asDropdownItem: false,
-            description: ``,
-            hideButton: true,
-            isGroup: false,
-            parentId: 'gid://gitlab/WorkItem/818',
-            showProjectSelector: false,
-            title: 'item 1',
-            visible: true,
-            workItemTypeName: 'TASK',
-          });
-        });
       });
     });
 

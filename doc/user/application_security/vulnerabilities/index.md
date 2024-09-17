@@ -45,9 +45,9 @@ GitLab can help you with a vulnerability by using a large language model to:
 - Help developers and security analysts to understand the vulnerability, how it could be exploited, and how to fix it.
 - Provide a suggested mitigation.
 
-### Vulnerability Explanation
+### Vulnerability explanation
 
-Explain a vulnerability with GitLab Duo Vulnerability Explanation. Use the explanation to better
+Explain a vulnerability with GitLab Duo Vulnerability explanation. Use the explanation to better
 understand a vulnerability and its possible mitigation.
 
 Prerequisites:
@@ -79,7 +79,7 @@ On GitLab.com this feature is available. By default, it is powered by Anthropic'
 model. We cannot guarantee that the large language model produces results that are correct. Use the
 explanation with caution.
 
-### Data shared with third-party AI APIs for Vulnerability Explanation
+### Data shared with third-party AI APIs for vulnerability explanation
 
 The following data is shared with third-party AI APIs:
 
@@ -87,7 +87,7 @@ The following data is shared with third-party AI APIs:
 - Vulnerability identifiers.
 - Filename.
 
-## Vulnerability Resolution
+## Vulnerability resolution
 
 DETAILS:
 **Tier: GitLab.com and Self-managed:** For a limited time, Ultimate. In the future, Ultimate with [GitLab Duo Enterprise](../../../subscriptions/subscription-add-ons.md). **GitLab Dedicated:** GitLab Duo Enterprise.
@@ -123,17 +123,15 @@ To resolve the vulnerability:
 1. Select outside the filter field. The vulnerability severity totals and list of matching vulnerabilities are updated.
 1. Select the SAST vulnerability you want resolved.
 1. In the upper-right corner, select **Resolve with AI**.
-1. Add an additional commit to the MR. This forces a new pipeline to run.
-1. After the pipeline is complete, on the [pipeline security tab](../vulnerability_report/pipeline.md#view-vulnerabilities-in-a-pipeline), confirm that the vulnerability no longer appears.
-1. On the vulnerability report, [manually update the vulnerability](../vulnerability_report/index.md#change-status-of-vulnerabilities).
 
 A merge request containing the AI remediation suggestions is opened. Review the suggested changes,
 then process the merge request according to your standard workflow.
 
 ### Limitations of Vulnerability Resolution
 
-Vulnerability Resolution is enabled for the following list of vulnerability classes. If you see that the button is disabled, that means that the CWE is not part of the supported list at this time. We are actively testing and expanding coverage for Vulnerability Resolution to more classes of vulnerabilities.
+Vulnerability Resolution is enabled for the following list of vulnerability classes. If you see that the button is disabled, that means that the CWE is not part of the supported list at this time. We are actively testing and expanding coverage for Vulnerability Resolution to more classes of vulnerabilities. 
 
+<br><br>
 <details><summary style="color:#5943b6"><a>View the complete list of supported CWEs for Vulnerability Resolution</a></summary>
 
 <ul>
@@ -196,7 +194,7 @@ resources to troubleshoot:
 - General errors, such as "an unexpected error has occurred" - this may indicate an issue within
   GitLab Duo. Please try again, and report to GitLab if the error continues.
 
-### Data shared with third-party AI APIs for Vulnerability Resolution
+### Data shared with third-party AI APIs for vulnerability resolution
 
 The following data is shared with third-party AI APIs:
 
@@ -211,11 +209,6 @@ The following data is shared with third-party AI APIs:
 DETAILS:
 **Tier:** Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
-
-> - Introduced in GitLab 17.3 with a flag. Disabled by default.
-> - Enabled on GitLab.com in GitLab 17.3.
-> - Enabled on self-managed and GitLab Dedicated in GitLab 17.4.
-> - Generally available in GitLab 17.4. Feature flag removed.
 
 For some vulnerabilities detected by Advanced SAST, a **Code flow** tab is available. A
 vulnerability's code flow is the path the data takes from the user input (source) to the vulnerable

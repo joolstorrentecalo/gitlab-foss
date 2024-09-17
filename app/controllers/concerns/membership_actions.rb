@@ -163,15 +163,11 @@ module MembershipActions
   end
 
   def already_a_member!
-    member = members.with_user(current_user)
-    if member.present?
-      redirect_to polymorphic_path(membershipable), notice: _('You already have access.')
-    else
-      requester = requesters.with_user(current_user)
-      return unless requester.present?
+    member = members_and_requesters.find_by(user_id: current_user.id) # rubocop: disable CodeReuse/ActiveRecord
+    return if member.nil?
 
-      redirect_to polymorphic_path(membershipable), notice: _('You have already requested access.')
-    end
+    message = member.request? ? _('You have already requested access.') : _('You already have access.')
+    redirect_to polymorphic_path(membershipable), notice: message
   end
 
   private

@@ -84,27 +84,6 @@ RSpec.describe Environment, :use_clean_rails_memory_store_caching, feature_categ
         end
       end
     end
-
-    context 'with cluster agent related fields' do
-      let(:cluster_agent) { create(:cluster_agent, project: project) }
-
-      it 'fails when configuring kubernetes namespace without cluster agent is invalid' do
-        environment.kubernetes_namespace = 'default'
-
-        environment.valid?
-
-        expect(environment.errors[:kubernetes_namespace].first).to eq('cannot be set without a cluster agent')
-      end
-
-      it 'fails when configuring flux resource path without kubernetes namespace is invalid' do
-        environment.cluster_agent_id = cluster_agent.id
-        environment.flux_resource_path = 'HelmRelease/default'
-
-        environment.valid?
-
-        expect(environment.errors[:flux_resource_path].first).to eq('cannot be set without a kubernetes namespace')
-      end
-    end
   end
 
   describe 'validate and sanitize external url' do
@@ -798,7 +777,7 @@ RSpec.describe Environment, :use_clean_rails_memory_store_caching, feature_categ
   describe '#stop_with_actions!' do
     let(:user) { create(:user) }
 
-    subject { environment.stop_with_actions! }
+    subject { environment.stop_with_actions!(user) }
 
     shared_examples_for 'stop with playing a teardown job' do
       before do
@@ -1001,12 +980,12 @@ RSpec.describe Environment, :use_clean_rails_memory_store_caching, feature_categ
 
     it_behaves_like 'stop with playing a teardown job' do
       let(:factory_type) { :ci_build }
-      let(:factory_options) { { user: user } }
+      let(:factory_options) { {} }
     end
 
     it_behaves_like 'stop with playing a teardown job' do
       let(:factory_type) { :ci_bridge }
-      let(:factory_options) { { user: user, downstream: project } }
+      let(:factory_options) { { downstream: project } }
     end
   end
 

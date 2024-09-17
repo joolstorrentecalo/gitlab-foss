@@ -87,12 +87,11 @@ For more information, see [Pack-objects cache](../../../../administration/gitaly
 
 ### Reduce concurrent clones in CI/CD
 
-CI/CD loads tend to be concurrent because pipelines are [scheduled during set times](../../../../ci/pipelines/pipeline_efficiency.md#reduce-how-often-jobs-run).
+CI/CD loads tend to be concurrent because pipelines are scheduled during set times.
 As a result, the Git requests against the repositories can spike notably during
 these times and lead to reduced performance for both CI/CD and users alike.
 
-Reduce CI/CD pipeline concurrency by [staggering them](../../../../ci/pipelines/schedules.md#view-and-optimize-pipeline-schedules)
-to run at different times.
+Reduce CI/CD pipeline concurrency by staggering them to run at different times.
 For example, a set running at one time and another set running several minutes
 later.
 
@@ -250,7 +249,7 @@ ensure all Git references are present. To profile your repository:
    ```shell
    git clone --mirror <git_repo_url>
    ```
-
+    
    After cloning, the repository will be in the bare Git format that is compatible with `git-sizer`.
 1. Run `git-sizer` with all statistics in the directory of your Git repository:
 

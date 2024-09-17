@@ -30,7 +30,7 @@ RSpec.describe 'Projects > Files > User previews file while editing in single fi
 
   before do
     sign_in user
-    visit project_edit_blob_path(project, File.join(project.default_branch, 'README.md'))
+    create_and_edit_file('README.md')
   end
 
   context 'when user toggles preview' do
@@ -65,11 +65,14 @@ RSpec.describe 'Projects > Files > User previews file while editing in single fi
       fill_editor(content_mermaid_graph)
       click_link 'Preview'
       wait_for_requests
-
-      page.within('.js-markdown-code') do
-        expect(page.html).to include(expected_mermaid_graph)
-      end
+      expect(page.html).to include(expected_mermaid_graph)
     end
+  end
+
+  def create_and_edit_file(file_name)
+    visit project_new_blob_path(project, 'master', file_name: file_name)
+    click_button "Commit changes"
+    visit project_edit_blob_path(project, File.join(project.default_branch, file_name))
   end
 
   def fill_editor(content)

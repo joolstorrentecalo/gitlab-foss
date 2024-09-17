@@ -20,6 +20,10 @@
   color: $text;
   border-color: $border;
 
+  &.btn-border-color {
+    border-color: $border-color;
+  }
+
   > .icon {
     color: $text;
   }
@@ -151,6 +155,15 @@
   &:focus {
     background-color: transparent;
     box-shadow: none;
+  }
+}
+
+.btn-block {
+  width: 100%;
+  margin: 0;
+
+  &.btn {
+    padding: 6px 0;
   }
 }
 

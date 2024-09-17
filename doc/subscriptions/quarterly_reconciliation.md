@@ -15,9 +15,6 @@ In accordance with [the GitLab Subscription Agreement](https://about.gitlab.com/
 GitLab reviews your seat usage and sends you an invoice for any overages.
 This review occurs either quarterly (quarterly reconciliation process) or annually (annual true-up process).
 
-To prevent overages, you can [turn on restricted access](../administration/settings/sign_up_restrictions.md#turn-on-restricted-access).
-This setting restricts groups from adding new billable users when there are no seats left in the subscription.
-
 ## Quarterly reconciliation versus annual true-ups
 
 With **quarterly reconciliation**, you are billed per quarter on a prorated basis for the remaining portion of the subscription term.
@@ -81,7 +78,7 @@ You are automatically enrolled in quarterly reconciliation if:
 You are excluded from quarterly reconciliation if you:
 
 - Purchased your subscription from a reseller or another channel partner.
-- Purchased a subscription that is not a 12-month term (includes multi-year and non-standard length subscriptions).
+- Purchased a multi-year subscription.
 - Purchased your subscription with a purchasing order.
 - Are a public sector customer.
 - Have an offline environment and used a license file to activate your subscription.
@@ -94,9 +91,12 @@ If you are excluded from quarterly reconciliation and not on a free tier, your t
 
 ### Failed payment
 
-If your credit card is declined during the reconciliation process, you receive an email with the subject `Action required: Your GitLab subscription failed to reconcile`. To resolve this issue, you must:
+If your credit card is declined during the reconciliation process, you receive an email with the subject `Your GitLab subscription failed to reconcile`.
+To resolve this issue, you must [update your payment information](customers_portal.md#set-a-default-payment-method).
 
-1. [Update your payment information](customers_portal.md#change-your-payment-method).
-1. [Set your chosen payment method as default](customers_portal.md#set-a-default-payment-method).
+1. Sign in to your account at `https://customers.gitlab.com`.
+1. On the left sidebar, select **Billing account settings**.
+1. Under **Payment methods**, select **Add new payment method**.
+1. To mark the new payment method as default, select **Edit** > **Default**.
 
 When the payment method is updated, reconciliation is retried automatically.

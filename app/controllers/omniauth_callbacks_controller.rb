@@ -165,7 +165,9 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
         redirect_identity_exists
       end
     else
-      sign_in_user_flow(auth_module::User)
+      Namespace.with_disabled_organization_validation do
+        sign_in_user_flow(auth_module::User)
+      end
     end
   end
 
@@ -188,15 +190,17 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def redirect_authorize_identity_link(identity_linker)
     state = SecureRandom.uuid
     session[:identity_link_state] = state
-    session[:identity_link_provider] = identity_linker.provider
-    session[:identity_link_extern_uid] = identity_linker.uid
 
-    redirect_to new_user_settings_identities_path(state: state)
+    redirect_to new_user_settings_identities_path(
+      provider: identity_linker.provider,
+      extern_uid: identity_linker.uid,
+      state: state
+    )
   end
 
   def build_auth_user(auth_user_class)
     strong_memoize_with(:build_auth_user, auth_user_class) do
-      auth_user_class.new(oauth, { organization_id: Current.organization_id })
+      auth_user_class.new(oauth)
     end
   end
 

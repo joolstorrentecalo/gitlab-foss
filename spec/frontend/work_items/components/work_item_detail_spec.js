@@ -99,6 +99,7 @@ describe('WorkItemDetail component', () => {
   const findDetailWrapper = () => wrapper.findByTestId('detail-wrapper');
 
   const createComponent = ({
+    isGroup = false,
     isModal = false,
     isDrawer = false,
     updateInProgress = false,
@@ -109,10 +110,10 @@ describe('WorkItemDetail component', () => {
     mutationHandler,
     error = undefined,
     workItemsAlphaEnabled = false,
+    workItemsBeta = false,
     namespaceLevelWorkItems = true,
     hasSubepicsFeature = true,
     router = true,
-    modalIsGroup = null,
   } = {}) => {
     wrapper = shallowMountExtended(WorkItemDetail, {
       apolloProvider: createMockApollo([
@@ -128,7 +129,6 @@ describe('WorkItemDetail component', () => {
         isModal,
         workItemIid,
         isDrawer,
-        modalIsGroup,
       },
       data() {
         return {
@@ -139,11 +139,18 @@ describe('WorkItemDetail component', () => {
       provide: {
         glFeatures: {
           workItemsAlpha: workItemsAlphaEnabled,
+          workItemsBeta,
           namespaceLevelWorkItems,
         },
+        hasIssueWeightsFeature: true,
+        hasIterationsFeature: true,
+        hasOkrsFeature: true,
         hasSubepicsFeature,
+        hasIssuableHealthStatusFeature: true,
+        projectNamespace: 'namespace',
         fullPath: 'group/project',
         groupPath: 'group',
+        isGroup,
         reportAbusePath: '/report/abuse/path',
       },
       stubs: {
@@ -890,15 +897,6 @@ describe('WorkItemDetail component', () => {
         await waitForPromises();
         expect(findEditButton().exists()).toBe(false);
       });
-    });
-  });
-
-  describe('calculates correct isGroup prop for attributes wrapper', () => {
-    it('equal to modalIsGroup prop when provided', async () => {
-      createComponent({ modalIsGroup: true });
-      await waitForPromises();
-
-      expect(findWorkItemAttributesWrapper().props('isGroup')).toBe(true);
     });
   });
 });

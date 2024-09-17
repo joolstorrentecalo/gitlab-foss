@@ -38,7 +38,6 @@ const REVIEW_STATE_ICONS = {
 export default {
   i18n: {
     reRequestReview: __('Re-request review'),
-    removeReviewer: s__('MergeRequest|Remove reviewer'),
   },
   components: {
     GlButton,
@@ -61,11 +60,6 @@ export default {
       type: String,
       required: false,
       default: TYPE_ISSUE,
-    },
-    isEditable: {
-      type: Boolean,
-      required: false,
-      default: false,
     },
   },
   data() {
@@ -118,13 +112,7 @@ export default {
       this.loadingStates[userId] = LOADING_STATE;
       this.$emit('request-review', { userId, callback: this.requestReviewComplete });
     },
-    removeReviewer(userId) {
-      this.loadingStates[userId] = LOADING_STATE;
-      this.$emit('remove-reviewer', {
-        userId,
-        callback: () => this.requestRemovalComplete(userId),
-      });
-    },
+
     requestReviewComplete(userId, success) {
       if (success) {
         this.loadingStates[userId] = SUCCESS_STATE;
@@ -135,9 +123,6 @@ export default {
       } else {
         this.loadingStates[userId] = null;
       }
-    },
-    requestRemovalComplete(userId) {
-      delete this.loadingStates[userId];
     },
     reviewStateIcon(user) {
       if (user.mergeRequestInteraction.approved) {
@@ -214,20 +199,6 @@ export default {
           :name="reviewStateIcon(user).name"
           :aria-label="reviewStateIcon(user).title"
           data-testid="reviewer-state-icon"
-        />
-      </span>
-      <span v-if="isEditable" class="gl-inline-flex gl-h-6 gl-w-6">
-        <gl-button
-          v-gl-tooltip.top.viewport
-          :title="$options.i18n.removeReviewer"
-          :aria-label="$options.i18n.removeReviewer"
-          :loading="loadingStates[user.id] === $options.LOADING_STATE"
-          class="gl-float-right gl-ml-2 !gl-text-subtle"
-          size="small"
-          icon="close"
-          variant="link"
-          data-testid="remove-request-button"
-          @click="removeReviewer(user.id)"
         />
       </span>
     </div>

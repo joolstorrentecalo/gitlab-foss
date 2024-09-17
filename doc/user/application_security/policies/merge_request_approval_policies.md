@@ -21,6 +21,9 @@ result policy is a security approval policy that allows approval to be required 
 findings of one or more security scan jobs. Merge request approval policies are evaluated after a CI scanning job is fully executed and both vulnerability and license type policies are evaluated based on the job artifact reports that are published in the completed pipeline.
 
 NOTE:
+Merge request approval policies are applicable only to [protected](../../project/protected_branches.md) target branches.
+
+NOTE:
 When a protected branch is created or deleted, the policy approval rules synchronize, with a delay of 1 minute.
 
 The following video gives you an overview of GitLab merge request approval policies (previously scan result policies):
@@ -32,37 +35,14 @@ The following video gives you an overview of GitLab merge request approval polic
   <iframe src="https://www.youtube-nocookie.com/embed/w5I9gcUgr9U" frameborder="0" allowfullscreen> </iframe>
 </figure>
 
-## Restrictions
+## Requirements and limitations
 
-- You can enforce merge request approval policies only on [protected](../../project/repository/branches/protected.md)
-  target branches.
-- You can assign a maximum of five rules to each policy.
-- You can assign a maximum of five merge request approval policies to each security policy project.
-- Policies created for a group or subgroup can take some time to apply to all the merge requests in
-  the group.
-- Merge request approval policies do not check the integrity or authenticity of the scan results
-  generated in the artifact reports.
-- A merge request approval policy is evaluated according to its rules. By default, if the rules are
-  invalid, or can't be evaluated, approval is required. You can change this behavior with the
-  [`fallback_behavior` field](#fallback_behavior).
-
-## Pipeline requirements
-
-A merge request approval policy is enforced according to the outcome of the pipeline. Consider the
-following when implementing a merge request approval policy:
-
-- A merge request approval policy evaluates completed pipeline jobs, ignoring manual jobs. When the
-  manual jobs are run, the policy re-evaluates the merge request's jobs.
-- All configured scanners must be present in the merge request's latest pipeline. If not, approvals
-  are required even if some vulnerability criteria have not been met.
-- The pipeline must produce artifacts for all enabled scanners, for both the source and target
-  branches. If not, there's no basis for comparison and so the policy can't be evaluated. You should
-  use a scan execution policy to enforce this requirement.
-- Policy evaluation depends on a successful and completed merge base pipeline. If the merge base
-  pipeline is skipped, merge requests with the merge base pipeline are blocked.
-- Security scanners specified in a policy must be configured and enabled in the projects on which
-  the policy is enforced. If not, the merge request approval policy cannot be evaluated and the
-  corresponding approvals are required.
+- You must add the respective [security scanning tools](../index.md#application-coverage).
+  Otherwise, merge request approval policies cannot get evaluated and the corresponding approvals stay required.
+- The maximum number of merge request approval policies is five per security policy project.
+- Each policy can have a maximum of five rules.
+- All configured scanners must be present in the merge request's latest pipeline. If not, approvals are required even if some vulnerability criteria have not been met.
+- Merge request approval policies evaluate findings and determine approval requirements based on the job artifact reports published in a completed pipeline. However, merge request approval policies do not check the integrity or authenticity of the scan results generated in the artifact reports.
 
 ## Merge request with multiple pipelines
 
@@ -280,7 +260,6 @@ On self-managed GitLab, by default the `fallback_behavior` field is available. T
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/135398) in GitLab 16.7 [with a flag](../../../administration/feature_flags.md) named `security_policies_policy_scope`. Enabled by default.
 > - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/443594) in GitLab 16.11. Feature flag `security_policies_policy_scope` removed.
-> - Scoping by group [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/468384) in GitLab 17.4.
 
 Security policy enforcement depends first on establishing a link between the group, subgroup, or
 project on which you want to enforce policies, and the security policy project that contains the
@@ -292,13 +271,12 @@ You can refine a security policy's scope to:
 
 - _Include_ only projects containing a compliance framework label.
 - _Include_ or _exclude_ selected projects from enforcement.
-- _Include_ selected groups. Optionally use this with the `projects` object to exclude selected projects.
 
 ### Policy scope schema
 
 | Field | Type | Required | Possible values | Description |
 |-------|------|----------|-----------------|-------------|
-| `policy_scope` | `object` | false | `compliance_frameworks`, `projects`, `groups` | Scopes the policy based on compliance framework labels, projects, or groups you define. |
+| `policy_scope` | `object` | false | `compliance_frameworks`, `projects` | Scopes the policy based on compliance framework labels or projects you define. |
 
 ### `policy_scope` scope type
 
@@ -306,7 +284,6 @@ You can refine a security policy's scope to:
 |-------|------|-----------------|-------------|
 | `compliance_frameworks` | `array` |  | List of IDs of the compliance frameworks in scope of enforcement, in an array of objects with key `id`. |
 | `projects` | `object` |  `including`, `excluding` | Use `excluding:` or `including:` then list the IDs of the projects you wish to include or exclude, in an array of objects with key `id`. |
-| `groups` | `object` | `including` | Use `including:` then list the IDs of the groups you wish to include, in an array of objects with key `id`. |
 
 ### Example `policy.yml` with security policy scopes
 

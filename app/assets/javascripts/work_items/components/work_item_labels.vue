@@ -33,14 +33,10 @@ export default {
     WorkItemSidebarDropdownWidget,
   },
   mixins: [Tracking.mixin()],
-  inject: ['canAdminLabel', 'issuesListPath', 'labelsManagePath'],
+  inject: ['canAdminLabel', 'isGroup', 'issuesListPath', 'labelsManagePath'],
   props: {
     fullPath: {
       type: String,
-      required: true,
-    },
-    isGroup: {
-      type: Boolean,
       required: true,
     },
     workItemId: {
@@ -170,7 +166,6 @@ export default {
     },
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     workItem: {
       query: workItemByIidQuery,
       variables() {
@@ -194,7 +189,6 @@ export default {
         this.$emit('error', i18n.fetchError);
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     searchLabels: {
       query() {
         return this.isGroup ? groupLabelsQuery : projectLabelsQuery;

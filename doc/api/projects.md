@@ -58,39 +58,39 @@ are returned.
 GET /projects
 ```
 
-| Attribute                     | Type     | Required | Description |
-|:------------------------------|:---------|:---------|:------------|
-| `archived`                    | boolean  | No       | Limit by archived status. |
-| `id_after`                    | integer  | No       | Limit results to projects with IDs greater than the specified ID. |
-| `id_before`                   | integer  | No       | Limit results to projects with IDs less than the specified ID. |
-| `imported`                    | boolean  | No       | Limit results to projects which were imported from external systems by current user. |
-| `include_hidden`              | boolean  | No       | Include hidden projects. _(administrators only)_ Premium and Ultimate only. |
-| `include_pending_delete`      | boolean  | No       | Include projects pending deletion. _(administrators only)_ |
-| `last_activity_after`         | datetime | No       | Limit results to projects with last activity after specified time. Format: ISO 8601 (`YYYY-MM-DDTHH:MM:SSZ`) |
-| `last_activity_before`        | datetime | No       | Limit results to projects with last activity before specified time. Format: ISO 8601 (`YYYY-MM-DDTHH:MM:SSZ`) |
-| `membership`                  | boolean  | No       | Limit by projects that the current user is a member of. |
-| `min_access_level`            | integer  | No       | Limit by current user minimal [role (`access_level`)](members.md#roles). |
-| `order_by`                    | string   | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, `star_count`, `last_activity_at`, or `similarity` fields. `repository_size`, `storage_size`, `packages_size` or `wiki_size` fields are only allowed for administrators. `similarity` is only available when searching and is limited to projects that the current user is a member of. Default is `created_at`. |
-| `owned`                       | boolean  | No       | Limit by projects explicitly owned by the current user. |
-| `repository_checksum_failed`  | boolean  | No       | Limit projects where the repository checksum calculation has failed. Premium and Ultimate only. |
-| `repository_storage`          | string   | No       | Limit results to projects stored on `repository_storage`. _(administrators only)_ |
-| `search_namespaces`           | boolean  | No       | Include ancestor namespaces when matching search criteria. Default is `false`. |
-| `search`                      | string   | No       | Return list of projects matching the search criteria. |
-| `simple`                      | boolean  | No       | Return only limited fields for each project. This operation is a no-op without authentication where only simple fields are returned. |
-| `sort`                        | string   | No       | Return projects sorted in `asc` or `desc` order. Default is `desc`. |
-| `starred`                     | boolean  | No       | Limit by projects starred by the current user. |
-| `statistics`                  | boolean  | No       | Include project statistics. Available only to users with at least the Reporter role. |
-| `topic_id`                    | integer  | No       | Limit results to projects with the assigned topic given by the topic ID. |
-| `topic`                       | string   | No       | Comma-separated topic names. Limit results to projects that match all of given topics. See `topics` attribute. |
-| `updated_after`               | datetime | No       | Limit results to projects last updated after the specified time. Format: ISO 8601 (`YYYY-MM-DDTHH:MM:SSZ`). [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/393979) in GitLab 15.10. For this filter to work, you must also provide `updated_at` as the `order_by` attribute. |
-| `updated_before`              | datetime | No       | Limit results to projects last updated before the specified time. Format: ISO 8601 (`YYYY-MM-DDTHH:MM:SSZ`). [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/393979) in GitLab 15.10. For this filter to work, you must also provide `updated_at` as the `order_by` attribute. |
-| `visibility`                  | string   | No       | Limit by visibility `public`, `internal`, or `private`. |
-| `wiki_checksum_failed`        | boolean  | No       | Limit projects where the wiki checksum calculation has failed. Premium and Ultimate only. |
-| `with_custom_attributes`      | boolean  | No       | Include [custom attributes](custom_attributes.md) in response. _(administrator only)_ |
-| `with_issues_enabled`         | boolean  | No       | Limit by enabled issues feature. |
-| `with_merge_requests_enabled` | boolean  | No       | Limit by enabled merge requests feature. |
-| `with_programming_language`   | string   | No       | Limit by projects which use the given programming language. |
-| `marked_for_deletion_on`      | date     | No       | Filter by date when project was marked for deletion. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/463939) in GitLab 17.1. Premium and Ultimate only. |
+| Attribute                                      | Type     | Required | Description |
+|------------------------------------------------|----------|----------|-------------|
+| `archived`                                     | boolean  | No       | Limit by archived status. |
+| `id_after`                                     | integer  | No       | Limit results to projects with IDs greater than the specified ID. |
+| `id_before`                                    | integer  | No       | Limit results to projects with IDs less than the specified ID. |
+| `imported`                                     | boolean  | No       | Limit results to projects which were imported from external systems by current user. |
+| `include_hidden`                               | boolean  | No       | Include hidden projects. _(administrators only)_ Premium and Ultimate only. |
+| `include_pending_delete`                       | boolean  | No       | Include projects pending deletion. _(administrators only)_ |
+| `last_activity_after`                          | datetime | No       | Limit results to projects with last activity after specified time. Format: ISO 8601 (`YYYY-MM-DDTHH:MM:SSZ`) |
+| `last_activity_before`                         | datetime | No       | Limit results to projects with last activity before specified time. Format: ISO 8601 (`YYYY-MM-DDTHH:MM:SSZ`) |
+| `membership`                                   | boolean  | No       | Limit by projects that the current user is a member of. |
+| `min_access_level`                             | integer  | No       | Limit by current user minimal [role (`access_level`)](members.md#roles). |
+| `order_by`                                     | string   | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, `last_activity_at`, or `similarity` fields. `repository_size`, `storage_size`, `packages_size` or `wiki_size` fields are only allowed for administrators. `similarity` is only available when searching and is limited to projects that the current user is a member of. Default is `created_at`. |
+| `owned`                                        | boolean  | No       | Limit by projects explicitly owned by the current user. |
+| `repository_checksum_failed`                   | boolean  | No       | Limit projects where the repository checksum calculation has failed. Premium and Ultimate only. |
+| `repository_storage`                           | string   | No       | Limit results to projects stored on `repository_storage`. _(administrators only)_ |
+| `search_namespaces`                            | boolean  | No       | Include ancestor namespaces when matching search criteria. Default is `false`. |
+| `search`                                       | string   | No       | Return list of projects matching the search criteria. |
+| `simple`                                       | boolean  | No       | Return only limited fields for each project. This operation is a no-op without authentication where only simple fields are returned. |
+| `sort`                                         | string   | No       | Return projects sorted in `asc` or `desc` order. Default is `desc`. |
+| `starred`                                      | boolean  | No       | Limit by projects starred by the current user. |
+| `statistics`                                   | boolean  | No       | Include project statistics. Available only to users with at least the Reporter role. |
+| `topic_id`                                     | integer  | No       | Limit results to projects with the assigned topic given by the topic ID. |
+| `topic`                                        | string   | No       | Comma-separated topic names. Limit results to projects that match all of given topics. See `topics` attribute. |
+| `updated_after`                                | datetime | No       | Limit results to projects last updated after the specified time. Format: ISO 8601 (`YYYY-MM-DDTHH:MM:SSZ`). [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/393979) in GitLab 15.10. For this filter to work, you must also provide `updated_at` as the `order_by` attribute. |
+| `updated_before`                               | datetime | No       | Limit results to projects last updated before the specified time. Format: ISO 8601 (`YYYY-MM-DDTHH:MM:SSZ`). [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/393979) in GitLab 15.10. For this filter to work, you must also provide `updated_at` as the `order_by` attribute. |
+| `visibility`                                   | string   | No       | Limit by visibility `public`, `internal`, or `private`. |
+| `wiki_checksum_failed`                         | boolean  | No       | Limit projects where the wiki checksum calculation has failed. Premium and Ultimate only. |
+| `with_custom_attributes`                       | boolean  | No       | Include [custom attributes](custom_attributes.md) in response. _(administrator only)_ |
+| `with_issues_enabled`                          | boolean  | No       | Limit by enabled issues feature. |
+| `with_merge_requests_enabled`                  | boolean  | No       | Limit by enabled merge requests feature. |
+| `with_programming_language`                    | string   | No       | Limit by projects which use the given programming language. |
+| `marked_for_deletion_on`                       | date     | No       | Filter by date when project was marked for deletion. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/463939) in GitLab 17.1. Premium and Ultimate only. |
 
 This endpoint supports [keyset pagination](rest/index.md#keyset-based-pagination)
 for selected `order_by` options.
@@ -336,14 +336,14 @@ GET /users/:user_id/projects
 ```
 
 | Attribute                     | Type     | Required | Description |
-|:------------------------------|:---------|:---------|:------------|
+|-------------------------------|----------|----------|-------------|
 | `user_id`                     | string   | Yes      | The ID or username of the user. |
 | `archived`                    | boolean  | No       | Limit by archived status. |
 | `id_after`                    | integer  | No       | Limit results to projects with IDs greater than the specified ID. |
 | `id_before`                   | integer  | No       | Limit results to projects with IDs less than the specified ID. |
 | `membership`                  | boolean  | No       | Limit by projects that the current user is a member of. |
 | `min_access_level`            | integer  | No       | Limit by current user minimal [role (`access_level`)](members.md#roles). |
-| `order_by`                    | string   | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, `star_count`, or `last_activity_at` fields. Default is `created_at`. |
+| `order_by`                    | string   | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, or `last_activity_at` fields. Default is `created_at`. |
 | `owned`                       | boolean  | No       | Limit by projects explicitly owned by the current user. |
 | `search`                      | string   | No       | Return list of projects matching the search criteria. |
 | `simple`                      | boolean  | No       | Return only limited fields for each project. Without authentication, this operation is a no-op; only simple fields are returned. |
@@ -618,9 +618,9 @@ GET /users/:user_id/contributed_projects
 ```
 
 | Attribute  | Type    | Required | Description |
-|:-----------|:--------|:---------|:------------|
+|------------|---------|----------|-------------|
 | `user_id`  | string  | Yes      | The ID or username of the user. |
-| `order_by` | string  | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, `star_count`, or `last_activity_at` fields. Default is `created_at`. |
+| `order_by` | string  | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, or `last_activity_at` fields. Default is `created_at`. |
 | `simple`   | boolean | No       | Return only limited fields for each project. Without authentication, this operation is a no-op; only simple fields are returned. |
 | `sort`     | string  | No       | Return projects sorted in `asc` or `desc` order. Default is `desc`. |
 
@@ -863,12 +863,12 @@ GET /users/:user_id/starred_projects
 ```
 
 | Attribute                     | Type     | Required | Description |
-|:------------------------------|:---------|:---------|:------------|
+|-------------------------------|----------|----------|-------------|
 | `user_id`                     | string   | Yes      | The ID or username of the user. |
 | `archived`                    | boolean  | No       | Limit by archived status. |
 | `membership`                  | boolean  | No       | Limit by projects that the current user is a member of. |
 | `min_access_level`            | integer  | No       | Limit by current user minimal [role (`access_level`)](members.md#roles). |
-| `order_by`                    | string   | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, `star_count`, or `last_activity_at` fields. Default is `created_at`. |
+| `order_by`                    | string   | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, or `last_activity_at` fields. Default is `created_at`. |
 | `owned`                       | boolean  | No       | Limit by projects explicitly owned by the current user. |
 | `search`                      | string   | No       | Return list of projects matching the search criteria. |
 | `simple`                      | boolean  | No       | Return only limited fields for each project. Without authentication, this operation is a no-op; only simple fields are returned. |
@@ -1121,7 +1121,7 @@ GET /projects/:id
 ```
 
 | Attribute                | Type              | Required | Description |
-|:-------------------------|:------------------|:---------|:------------|
+|--------------------------|-------------------|----------|-------------|
 | `id`                     | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `license`                | boolean           | No       | Include project license data. |
 | `statistics`             | boolean           | No       | Include project statistics. Available only to users with at least the Reporter role. |
@@ -1395,7 +1395,7 @@ GET /projects/:id/users
 ```
 
 | Attribute    | Type              | Required | Description |
-|:-------------|:------------------|:---------|:------------|
+|--------------|-------------------|----------|-------------|
 | `id`         | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `search`     | string            | No       | Search for specific users. |
 | `skip_users` | integer array     | No       | Filter out users with the specified IDs. |
@@ -1430,7 +1430,7 @@ GET /projects/:id/groups
 ```
 
 | Attribute                 | Type              | Required | Description |
-|:--------------------------|:------------------|:---------|:------------|
+|---------------------------|-------------------|----------|-------------|
 | `id`                      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `search`                  | string            | No       | Search for specific groups. |
 | `shared_min_access_level` | integer           | No       | Limit to shared groups with at least this [role (`access_level`)](members.md#roles). |
@@ -1468,7 +1468,7 @@ GET /projects/:id/share_locations
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `search`  | string            | No       | Search for specific groups. |
 
@@ -1492,6 +1492,10 @@ GET /projects/:id/share_locations
   }
 ]
 ```
+
+## Get project events
+
+Refer to the [Events API documentation](events.md#list-a-projects-visible-events).
 
 ## Create project
 
@@ -1521,7 +1525,7 @@ curl --request POST --header "PRIVATE-TOKEN: <your-token>" \
 General project attributes:
 
 | Attribute                                          | Type    | Required                       | Description |
-|:---------------------------------------------------|:--------|:-------------------------------|:------------|
+|----------------------------------------------------|---------|--------------------------------|-------------|
 | `name`                                             | string  | Yes (if `path` isn't provided) | The name of the new project. Equals path if not provided. |
 | `path`                                             | string  | Yes (if `name` isn't provided) | Repository name for new project. Generated based on name if not provided (generated as lowercase with dashes). The path must not start or end with a special character and must not contain consecutive special characters. |
 | `allow_merge_on_skipped_pipeline`                  | boolean | No                             | Set whether or not merge requests can be merged with skipped jobs. |
@@ -1588,7 +1592,7 @@ settings with access control options can be one of:
 - `enabled`: Enable and set the feature to **Everyone with access**.
 
 | Attribute                              | Type   | Required | Description |
-|:---------------------------------------|:-------|:---------|:------------|
+|----------------------------------------|--------|----------|-------------|
 | `analytics_access_level`               | string | No       | Set visibility of [analytics](../user/analytics/index.md). |
 | `builds_access_level`                  | string | No       | Set visibility of [pipelines](../ci/pipelines/settings.md#change-which-users-can-view-your-pipelines). |
 | `container_registry_access_level`      | string | No       | Set visibility of [container registry](../user/packages/container_registry/index.md#change-visibility-of-the-container-registry). |
@@ -1627,7 +1631,7 @@ POST /projects/user/:user_id
 General project attributes:
 
 | Attribute                                          | Type    | Required | Description |
-|:---------------------------------------------------|:--------|:---------|:------------|
+|----------------------------------------------------|---------|----------|-------------|
 | `name`                                             | string  | Yes      | The name of the new project. |
 | `user_id`                                          | integer | Yes      | The user ID of the project owner. |
 | `allow_merge_on_skipped_pipeline`                  | boolean | No       | Set whether or not merge requests can be merged with skipped jobs. |
@@ -1696,7 +1700,7 @@ settings with access control options can be one of:
 - `enabled`: Enable and set the feature to **Everyone with access**.
 
 | Attribute                              | Type   | Required | Description |
-|:---------------------------------------|:-------|:---------|:------------|
+|----------------------------------------|--------|----------|-------------|
 | `analytics_access_level`               | string | No       | Set visibility of [analytics](../user/analytics/index.md). |
 | `builds_access_level`                  | string | No       | Set visibility of [pipelines](../ci/pipelines/settings.md#change-which-users-can-view-your-pipelines). |
 | `container_registry_access_level`      | string | No       | Set visibility of [container registry](../user/packages/container_registry/index.md#change-visibility-of-the-container-registry). |
@@ -1744,7 +1748,7 @@ curl --request PUT --header "PRIVATE-TOKEN: <your-token>" \
 General project attributes:
 
 | Attribute                                          | Type              | Required | Description |
-|:---------------------------------------------------|:------------------|:---------|:------------|
+|----------------------------------------------------|-------------------|----------|-------------|
 | `id`                                               | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `allow_merge_on_skipped_pipeline`                  | boolean           | No       | Set whether or not merge requests can be merged with skipped jobs. |
 | `allow_pipeline_trigger_approve_deployment`        | boolean           | No       | Set whether or not a pipeline triggerer is allowed to approve deployments. Premium and Ultimate only. |
@@ -1764,8 +1768,8 @@ General project attributes:
 | `ci_allow_fork_pipelines_to_run_in_parent_project` | boolean           | No       | Enable or disable [running pipelines in the parent project for merge requests from forks](../ci/pipelines/merge_request_pipelines.md#run-pipelines-in-the-parent-project). _([Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/325189) in GitLab 15.3.)_ |
 | `ci_separated_caches`                              | boolean           | No       | Set whether or not caches should be [separated](../ci/caching/index.md#cache-key-names) by branch protection status. |
 | `ci_restrict_pipeline_cancellation_role`           | string            | No       | Set the [role required to cancel a pipeline or job](../ci/pipelines/settings.md#restrict-roles-that-can-cancel-pipelines-or-jobs). One of `developer`, `maintainer`, or `no_one`. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/429921) in GitLab 16.8. Premium and Ultimate only. |
-| `ci_pipeline_variables_minimum_override_role`      | string            | No       | When `restrict_user_defined_variables` is enabled, you can specify which role can override variables. One of `owner`, `maintainer`, `developer` or `no_one_allowed`. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/440338) in GitLab 17.1. |
-| `ci_push_repository_for_job_token_allowed`         | boolean           | No       | Enable or disable the ability to push to the project repository using job token. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/389060) in GitLab 17.2. |
+| `ci_pipeline_variables_minimum_override_role`           | string            | No       | When `restrict_user_defined_variables` is enabled, you can specify which role can override variables. One of `owner`, `maintainer`, `developer` or `no_one_allowed`. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/440338) in GitLab 17.1. |
+| `ci_push_repository_for_job_token_allowed` | boolean           | No       | Enable or disable the ability to push to the project repository using job token. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/389060) in GitLab 17.2. |
 | `container_expiration_policy_attributes`           | hash              | No       | Update the image cleanup policy for this project. Accepts: `cadence` (string), `keep_n` (integer), `older_than` (string), `name_regex` (string), `name_regex_delete` (string), `name_regex_keep` (string), `enabled` (boolean). |
 | `container_registry_enabled`                       | boolean           | No       | _(Deprecated)_ Enable container registry for this project. Use `container_registry_access_level` instead. |
 | `default_branch`                                   | string            | No       | The [default branch](../user/project/repository/branches/default.md) name. |
@@ -1829,7 +1833,7 @@ settings with access control options can be one of:
 - `enabled`: Enable and set the feature to **Everyone with access**.
 
 | Attribute                              | Type   | Required | Description |
-|:---------------------------------------|:-------|:---------|:------------|
+|----------------------------------------|--------|----------|-------------|
 | `analytics_access_level`               | string | No       | Set visibility of [analytics](../user/analytics/index.md). |
 | `builds_access_level`                  | string | No       | Set visibility of [pipelines](../ci/pipelines/settings.md#change-which-users-can-view-your-pipelines). |
 | `container_registry_access_level`      | string | No       | Set visibility of [container registry](../user/packages/container_registry/index.md#change-visibility-of-the-container-registry). |
@@ -1863,7 +1867,7 @@ POST /projects/:id/fork
 ```
 
 | Attribute                | Type              | Required | Description |
-|:-------------------------|:------------------|:---------|:------------|
+|--------------------------|-------------------|----------|-------------|
 | `id`                     | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `branches`               | string            | No       | Branches to fork (empty for all branches). |
 | `description`            | string            | No       | The description assigned to the resultant project after forking. |
@@ -1885,12 +1889,12 @@ GET /projects/:id/forks
 ```
 
 | Attribute                     | Type              | Required | Description |
-|:------------------------------|:------------------|:---------|:------------|
+|-------------------------------|-------------------|----------|-------------|
 | `id`                          | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `archived`                    | boolean           | No       | Limit by archived status. |
 | `membership`                  | boolean           | No       | Limit by projects that the current user is a member of. |
 | `min_access_level`            | integer           | No       | Limit by current user minimal [role (`access_level`)](members.md#roles). |
-| `order_by`                    | string            | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, `star_count`, or `last_activity_at` fields. Default is `created_at`. |
+| `order_by`                    | string            | No       | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, or `last_activity_at` fields. Default is `created_at`. |
 | `owned`                       | boolean           | No       | Limit by projects explicitly owned by the current user. |
 | `search`                      | string            | No       | Return list of projects matching the search criteria. |
 | `simple`                      | boolean           | No       | Return only limited fields for each project. Without authentication, this operation is a no-op; only simple fields are returned. |
@@ -2003,7 +2007,7 @@ POST /projects/:id/star
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ```shell
@@ -2110,13 +2114,13 @@ By default, this request returns 20 results at a time because the API results [a
 
 Parameters:
 
-| Attribute                | Type             | Required | Description |
-|:-------------------------|:-----------------|:---------|:------------|
-| `id`                     | integer/string   | yes      | The ID or [URL-encoded path of the group](rest/index.md#namespaced-path-encoding) owned by the authenticated user |
-| `search`                 | string           | no       | Return the list of authorized groups matching the search criteria |
-| `min_access_level`       | integer          | no       | Limit to groups where current user has at least the specified [role (`access_level`)](members.md#roles) |
-| `relation`               | array of strings | no       | Filter the groups by relation (direct or inherited) |
-| `with_custom_attributes` | boolean          | no       | Include [custom attributes](custom_attributes.md) in response (administrators only) |
+| Attribute                             | Type              | Required | Description |
+| ------------------------------------- | ----------------- | -------- | ---------- |
+| `id`                                  | integer/string    | yes      | The ID or [URL-encoded path of the group](rest/index.md#namespaced-path-encoding) owned by the authenticated user |
+| `search`                              | string            | no       | Return the list of authorized groups matching the search criteria |
+| `min_access_level`                    | integer           | no       | Limit to groups where current user has at least the specified [role (`access_level`)](members.md#roles) |
+| `relation`                            | array of strings  | no       | Filter the groups by relation (direct or inherited) |
+| `with_custom_attributes`              | boolean           | no       | Include [custom attributes](custom_attributes.md) in response (administrators only) |
 
 ```plaintext
 GET /projects/:id/invited_groups
@@ -2145,9 +2149,9 @@ Unstars a given project. Returns status code `304` if the project is not starred
 POST /projects/:id/unstar
 ```
 
-| Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
-| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| Attribute | Type           | Required               | Description |
+|-----------|----------------|------------------------|-------------|
+| `id`      | integer or string | Yes | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ```shell
 curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/unstar"
@@ -2252,10 +2256,10 @@ List the users who starred the specified project.
 GET /projects/:id/starrers
 ```
 
-| Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
-| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
-| `search`  | string            | No       | Search for specific users. |
+| Attribute | Type           | Required               | Description |
+|-----------|----------------|------------------------|-------------|
+| `id`      | integer or string | Yes | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `search`  | string         | No | Search for specific users. |
 
 ```shell
 curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/starrers"
@@ -2299,7 +2303,7 @@ GET /projects/:id/languages
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ```shell
@@ -2328,7 +2332,7 @@ POST /projects/:id/archive
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ```shell
@@ -2462,7 +2466,7 @@ POST /projects/:id/unarchive
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ```shell
@@ -2609,11 +2613,11 @@ The option to delete projects immediately from deletion protection settings in t
 DELETE /projects/:id
 ```
 
-| Attribute            | Type              | Required | Description |
-|:---------------------|:------------------|:---------|:------------|
-| `id`                 | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
-| `full_path`          | string            | no       | Full path of project to use with `permanently_remove`. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/396500) in GitLab 15.11. To find the project path, use `path_with_namespace` from [get single project](projects.md#get-single-project). Premium and Ultimate only. |
-| `permanently_remove` | boolean/string    | no       | Immediately deletes a project if it is marked for deletion. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/396500) in GitLab 15.11. Premium and Ultimate only. |
+| Attribute                              | Type              | Required | Description |
+|----------------------------------------|-------------------|----------|-------------|
+| `id`                                   | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `full_path`                            | string            | no       | Full path of project to use with `permanently_remove`. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/396500) in GitLab 15.11. To find the project path, use `path_with_namespace` from [get single project](projects.md#get-single-project). Premium and Ultimate only. |
+| `permanently_remove`                   | boolean/string    | no       | Immediately deletes a project if it is marked for deletion. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/396500) in GitLab 15.11. Premium and Ultimate only. |
 
 ## Restore project marked for deletion
 
@@ -2628,8 +2632,144 @@ POST /projects/:id/restore
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+
+## Markdown uploads
+
+Markdown uploads are files uploaded to a project that can be referenced in Markdown text in an issue, merge request, snippet, or wiki page.
+
+### Upload a file
+
+> - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/112450) in GitLab 15.10. Feature flag `enforce_max_attachment_size_upload_api` removed.
+> - `full_path` response attribute pattern [changed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/150939) in GitLab 17.1.
+> - `id` attribute [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/161160) in GitLab 17.3.
+
+Uploads a file to the specified project to be used in an issue or merge request
+description, or a comment.
+
+```plaintext
+POST /projects/:id/uploads
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `file`    | string            | Yes      | The file to be uploaded. |
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+
+To upload a file from your file system, use the `--form` argument. This causes
+cURL to post data using the header `Content-Type: multipart/form-data`. The
+`file=` parameter must point to a file on your file system and be preceded by
+`@`. For example:
+
+```shell
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" \
+     --form "file=@dk.png" "https://gitlab.example.com/api/v4/projects/5/uploads"
+```
+
+Returned object:
+
+```json
+{
+  "id": 5,
+  "alt": "dk",
+  "url": "/uploads/66dbcd21ec5d24ed6ea225176098d52b/dk.png",
+  "full_path": "/-/project/1234/uploads/66dbcd21ec5d24ed6ea225176098d52b/dk.png",
+  "markdown": "![dk](/uploads/66dbcd21ec5d24ed6ea225176098d52b/dk.png)"
+}
+```
+
+The returned `full_path` is the absolute path to the file.
+The returned `url` can be used in Markdown contexts. The link is expanded when the format in `markdown` is used.
+
+### List uploads
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/157066) in GitLab 17.2.
+
+Get all uploads of the project sorted by `created_at` in descending order.
+
+You must have at least the Maintainer role to use this endpoint.
+
+```plaintext
+GET /projects/:id/uploads
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+
+Example request:
+
+```shell
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/uploads"
+```
+
+Returned object:
+
+```json
+[
+  {
+    "id": 1,
+    "size": 1024,
+    "filename": "image.png",
+    "created_at":"2024-06-20T15:53:03.067Z",
+    "uploaded_by": {
+      "id": 18,
+      "name" : "Alexandra Bashirian",
+      "username" : "eileen.lowe"
+    }
+  },
+  {
+    "id": 2,
+    "size": 512,
+    "filename": "other-image.png",
+    "created_at":"2024-06-19T15:53:03.067Z",
+    "uploaded_by": null
+  }
+]
+```
+
+### Download an uploaded file
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/157066) in GitLab 17.2.
+
+You must have at least the Maintainer role to use this endpoint.
+
+```plaintext
+GET /projects/:id/uploads/:upload_id
+```
+
+| Attribute   | Type              | Required | Description |
+|-------------|-------------------|----------|-------------|
+| `id`        | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `upload_id` | integer           | Yes      | The ID of the upload. |
+
+Example request:
+
+```shell
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/uploads/1"
+```
+
+### Delete an uploaded file
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/157066) in GitLab 17.2.
+
+You must have at least the Maintainer role to use this endpoint.
+
+```plaintext
+DELETE /projects/:id/uploads/:upload_id
+```
+
+| Attribute   | Type              | Required | Description |
+|-------------|-------------------|----------|-------------|
+| `id`        | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `upload_id` | integer           | Yes      | The ID of the upload. |
+
+Example request:
+
+```shell
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/uploads/1"
+```
 
 ## Upload a project avatar
 
@@ -2640,7 +2780,7 @@ PUT /projects/:id
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `avatar`  | string            | Yes      | The file to be uploaded. |
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
@@ -2675,8 +2815,8 @@ You can access this endpoint without authentication if the project is publicly a
 GET /projects/:id/avatar
 ```
 
-| Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+| Attribute | Type              | Required | Description           |
+| --------- | ----------------- | -------- | --------------------- |
 | `id`      | integer or string | yes      | ID or [URL-encoded path](rest/index.md#namespaced-path-encoding) of the project. |
 
 Example:
@@ -2707,7 +2847,7 @@ POST /projects/:id/share
 ```
 
 | Attribute      | Type              | Required | Description |
-|:---------------|:------------------|:---------|:------------|
+|----------------|-------------------|----------|-------------|
 | `group_access` | integer           | Yes      | The [role (`access_level`)](members.md#roles) to grant the group. |
 | `group_id`     | integer           | Yes      | The ID of the group to share with. |
 | `id`           | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
@@ -2722,7 +2862,7 @@ DELETE /projects/:id/share/:group_id
 ```
 
 | Attribute  | Type              | Required | Description |
-|:-----------|:------------------|:---------|:------------|
+|------------|-------------------|----------|-------------|
 | `group_id` | integer           | Yes      | The ID of the group. |
 | `id`       | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
@@ -2744,7 +2884,7 @@ POST /projects/:id/import_project_members/:project_id
 ```
 
 | Attribute    | Type              | Required | Description |
-|:-------------|:------------------|:---------|:------------|
+|--------------|-------------------|----------|-------------|
 | `id`         | integer or string | Yes      | The ID or [URL-encoded path](rest/index.md#namespaced-path-encoding) of the target project to receive the members. |
 | `project_id` | integer or string | Yes      | The ID or [URL-encoded path](rest/index.md#namespaced-path-encoding) of the source project to import the members from. |
 
@@ -2785,6 +2925,514 @@ When there is a system error (`404` and `422` HTTP status codes):
 {  "message":  "Import failed"  }
 ```
 
+## Hooks
+
+Also called project hooks and webhooks. These are different for [system hooks](system_hooks.md)
+that are system-wide.
+
+Prerequisites:
+
+- You must be an administrator or have at least the Maintainer role for the project.
+
+### List project hooks
+
+Get a list of project hooks.
+
+```plaintext
+GET /projects/:id/hooks
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+
+### Get project hook
+
+Get a specific hook for a project.
+
+```plaintext
+GET /projects/:id/hooks/:hook_id
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `hook_id` | integer           | Yes      | The ID of a project hook. |
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+
+```json
+{
+  "id": 1,
+  "url": "http://example.com/hook",
+  "name": "Hook name",
+  "description": "Hook description",
+  "project_id": 3,
+  "push_events": true,
+  "push_events_branch_filter": "",
+  "issues_events": true,
+  "confidential_issues_events": true,
+  "merge_requests_events": true,
+  "tag_push_events": true,
+  "note_events": true,
+  "confidential_note_events": true,
+  "job_events": true,
+  "pipeline_events": true,
+  "wiki_page_events": true,
+  "deployment_events": true,
+  "releases_events": true,
+  "enable_ssl_verification": true,
+  "repository_update_events": false,
+  "alert_status": "executable",
+  "disabled_until": null,
+  "url_variables": [ ],
+  "created_at": "2012-10-12T17:04:47Z",
+  "resource_access_token_events": true,
+  "custom_webhook_template": "{\"event\":\"{{object_kind}}\"}",
+  "custom_headers": [
+    {
+      "key": "Authorization"
+    }
+  ]
+}
+```
+
+### Get project hook events
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/151048) in GitLab 17.3.
+
+Get a list of events for a specific project hook in the past 7 days from start date.
+
+```plaintext
+GET /projects/:id/hooks/:hook_id/events
+```
+
+| Attribute | Type              | Required | Description                                                                                                                                                                                 |
+|-----------|-------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `hook_id` | integer           | Yes      | The ID of a project hook.                                                                                                                                                                   |
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding).                                                                                                        |
+ | `status` | integer or string | No | The response status code of the events, for example: `200` or `500`. You can search by status category: `successful` (200-299), `client_failure` (400-499), and `server_failure` (500-599). |
+| `page`             | integer | No | Page to retrieve. Defaults to `1`.                      |
+| `per_page`         | integer | No | Number of records to return per page. Defaults to `20`. |
+
+```json
+[
+  {
+    "id": 1,
+    "url": "https://example.net/",
+    "trigger": "push_hooks",
+    "request_headers": {
+      "Content-Type": "application/json",
+      "User-Agent": "GitLab/17.1.0-pre",
+      "Idempotency-Key": "3a427872-00df-429c-9bc9-a9475de2efe4",
+      "X-Gitlab-Event": "Push Hook",
+      "X-Gitlab-Webhook-UUID": "3c5c0404-c866-44bc-a5f6-452bb1bfc76e",
+      "X-Gitlab-Instance": "https://gitlab.example.com",
+      "X-Gitlab-Event-UUID": "9cebe914-4827-408f-b014-cfa23a47a35f",
+      "X-Gitlab-Token": "[REDACTED]"
+    },
+    "request_data": {
+      "object_kind": "push",
+      "event_name": "push",
+      "before": "468abc807a2b2572f43e72c743b76cee6db24025",
+      "after": "f15b32277d2c55c6c595845a87109b09c913c556",
+      "ref": "refs/heads/master",
+      "ref_protected": true,
+      "checkout_sha": "f15b32277d2c55c6c595845a87109b09c913c556",
+      "message": null,
+      "user_id": 1,
+      "user_name": "Administrator",
+      "user_username": "root",
+      "user_email": null,
+      "user_avatar": "https://www.gravatar.com/avatar/13efe0d4559475ba84ecc802061febbdea6e224fcbffd7ec7da9cd431845299c?s=80&d=identicon",
+      "project_id": 7,
+      "project": {
+        "id": 7,
+        "name": "Flight",
+        "description": "Incidunt ea ab officia a veniam.",
+        "web_url": "https://gitlab.example.com/flightjs/Flight",
+        "avatar_url": null,
+        "git_ssh_url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "git_http_url": "https://gitlab.example.com/flightjs/Flight.git",
+        "namespace": "Flightjs",
+        "visibility_level": 10,
+        "path_with_namespace": "flightjs/Flight",
+        "default_branch": "master",
+        "ci_config_path": null,
+        "homepage": "https://gitlab.example.com/flightjs/Flight",
+        "url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "ssh_url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "http_url": "https://gitlab.example.com/flightjs/Flight.git"
+      },
+      "commits": [
+        {
+          "id": "f15b32277d2c55c6c595845a87109b09c913c556",
+          "message": "v1.5.2\n",
+          "title": "v1.5.2",
+          "timestamp": "2017-06-19T14:39:53-07:00",
+          "url": "https://gitlab.example.com/flightjs/Flight/-/commit/f15b32277d2c55c6c595845a87109b09c913c556",
+          "author": {
+            "name": "Andrew Lunny",
+            "email": "[REDACTED]"
+          },
+          "added": [],
+          "modified": [
+            "package.json"
+          ],
+          "removed": []
+        },
+        {
+          "id": "8749d49930866a4871fa086adbd7d2057fcc3ebb",
+          "message": "Merge pull request #378 from flightjs/alunny/publish_lib\n\npublish lib and index to npm",
+          "title": "Merge pull request #378 from flightjs/alunny/publish_lib",
+          "timestamp": "2017-06-16T10:26:39-07:00",
+          "url": "https://gitlab.example.com/flightjs/Flight/-/commit/8749d49930866a4871fa086adbd7d2057fcc3ebb",
+          "author": {
+            "name": "angus croll",
+            "email": "[REDACTED]"
+          },
+          "added": [],
+          "modified": [
+            "package.json"
+          ],
+          "removed": []
+        },
+        {
+          "id": "468abc807a2b2572f43e72c743b76cee6db24025",
+          "message": "publish lib and index to npm\n",
+          "title": "publish lib and index to npm",
+          "timestamp": "2017-06-16T10:23:04-07:00",
+          "url": "https://gitlab.example.com/flightjs/Flight/-/commit/468abc807a2b2572f43e72c743b76cee6db24025",
+          "author": {
+            "name": "Andrew Lunny",
+            "email": "[REDACTED]"
+          },
+          "added": [],
+          "modified": [
+            "package.json"
+          ],
+          "removed": []
+        }
+      ],
+      "total_commits_count": 3,
+      "push_options": {},
+      "repository": {
+        "name": "Flight",
+        "url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "description": "Incidunt ea ab officia a veniam.",
+        "homepage": "https://gitlab.example.com/flightjs/Flight",
+        "git_http_url": "https://gitlab.example.com/flightjs/Flight.git",
+        "git_ssh_url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "visibility_level": 10
+      }
+    },
+    "response_headers": {
+      "Date": "Sun, 26 May 2024 03:03:17 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Length": "16",
+      "Connection": "close",
+      "X-Powered-By": "Express",
+      "Access-Control-Allow-Origin": "*",
+      "X-Pd-Status": "sent to primary"
+    },
+    "response_body": "{\"success\":true}",
+    "execution_duration": 1.0906479999999874,
+    "response_status": "200"
+  },
+  {
+    "id": 2,
+    "url": "https://example.net/",
+    "trigger": "push_hooks",
+    "request_headers": {
+      "Content-Type": "application/json",
+      "User-Agent": "GitLab/17.1.0-pre",
+      "Idempotency-Key": "7c6e0583-49f2-4dc5-a50b-4c0bcf3c1b27",
+      "X-Gitlab-Event": "Push Hook",
+      "X-Gitlab-Webhook-UUID": "a753eedb-1d72-4549-9ca7-eac8ea8e50dd",
+      "X-Gitlab-Instance": "https://gitlab.example.com",
+      "X-Gitlab-Event-UUID": "842d7c3e-3114-4396-8a95-66c084d53cb1",
+      "X-Gitlab-Token": "[REDACTED]"
+    },
+    "request_data": {
+      "object_kind": "push",
+      "event_name": "push",
+      "before": "468abc807a2b2572f43e72c743b76cee6db24025",
+      "after": "f15b32277d2c55c6c595845a87109b09c913c556",
+      "ref": "refs/heads/master",
+      "ref_protected": true,
+      "checkout_sha": "f15b32277d2c55c6c595845a87109b09c913c556",
+      "message": null,
+      "user_id": 1,
+      "user_name": "Administrator",
+      "user_username": "root",
+      "user_email": null,
+      "user_avatar": "https://www.gravatar.com/avatar/13efe0d4559475ba84ecc802061febbdea6e224fcbffd7ec7da9cd431845299c?s=80&d=identicon",
+      "project_id": 7,
+      "project": {
+        "id": 7,
+        "name": "Flight",
+        "description": "Incidunt ea ab officia a veniam.",
+        "web_url": "https://gitlab.example.com/flightjs/Flight",
+        "avatar_url": null,
+        "git_ssh_url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "git_http_url": "https://gitlab.example.com/flightjs/Flight.git",
+        "namespace": "Flightjs",
+        "visibility_level": 10,
+        "path_with_namespace": "flightjs/Flight",
+        "default_branch": "master",
+        "ci_config_path": null,
+        "homepage": "https://gitlab.example.com/flightjs/Flight",
+        "url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "ssh_url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "http_url": "https://gitlab.example.com/flightjs/Flight.git"
+      },
+      "commits": [
+        {
+          "id": "f15b32277d2c55c6c595845a87109b09c913c556",
+          "message": "v1.5.2\n",
+          "title": "v1.5.2",
+          "timestamp": "2017-06-19T14:39:53-07:00",
+          "url": "https://gitlab.example.com/flightjs/Flight/-/commit/f15b32277d2c55c6c595845a87109b09c913c556",
+          "author": {
+            "name": "Andrew Lunny",
+            "email": "[REDACTED]"
+          },
+          "added": [],
+          "modified": [
+            "package.json"
+          ],
+          "removed": []
+        },
+        {
+          "id": "8749d49930866a4871fa086adbd7d2057fcc3ebb",
+          "message": "Merge pull request #378 from flightjs/alunny/publish_lib\n\npublish lib and index to npm",
+          "title": "Merge pull request #378 from flightjs/alunny/publish_lib",
+          "timestamp": "2017-06-16T10:26:39-07:00",
+          "url": "https://gitlab.example.com/flightjs/Flight/-/commit/8749d49930866a4871fa086adbd7d2057fcc3ebb",
+          "author": {
+            "name": "angus croll",
+            "email": "[REDACTED]"
+          },
+          "added": [],
+          "modified": [
+            "package.json"
+          ],
+          "removed": []
+        },
+        {
+          "id": "468abc807a2b2572f43e72c743b76cee6db24025",
+          "message": "publish lib and index to npm\n",
+          "title": "publish lib and index to npm",
+          "timestamp": "2017-06-16T10:23:04-07:00",
+          "url": "https://gitlab.example.com/flightjs/Flight/-/commit/468abc807a2b2572f43e72c743b76cee6db24025",
+          "author": {
+            "name": "Andrew Lunny",
+            "email": "[REDACTED]"
+          },
+          "added": [],
+          "modified": [
+            "package.json"
+          ],
+          "removed": []
+        }
+      ],
+      "total_commits_count": 3,
+      "push_options": {},
+      "repository": {
+        "name": "Flight",
+        "url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "description": "Incidunt ea ab officia a veniam.",
+        "homepage": "https://gitlab.example.com/flightjs/Flight",
+        "git_http_url": "https://gitlab.example.com/flightjs/Flight.git",
+        "git_ssh_url": "ssh://git@gitlab.example.com:2222/flightjs/Flight.git",
+        "visibility_level": 10
+      }
+    },
+    "response_headers": {
+      "Date": "Sun, 26 May 2024 03:03:19 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Length": "16",
+      "Connection": "close",
+      "X-Powered-By": "Express",
+      "Access-Control-Allow-Origin": "*",
+      "X-Pd-Status": "sent to primary"
+    },
+    "response_body": "{\"success\":true}",
+    "execution_duration": 1.0716120000000728,
+    "response_status": "200"
+  }
+]
+```
+
+### Resend project hook event
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/151130) in GitLab 17.4.
+
+Resends a specific hook event.
+
+This endpoint has a rate limit of five requests per minute for each hook and authenticated user.
+To disable this limit on self-managed GitLab and GitLab Dedicated, an administrator can
+[disable the feature flag](../administration/feature_flags.md) named `web_hook_event_resend_api_endpoint_rate_limit`.
+
+```plaintext
+POST /projects/:id/hooks/:hook_id/events/:hook_event_id/resend
+```
+
+| Attribute | Type             | Required | Description              |
+|-----------|------------------|----------|--------------------------|
+| `hook_id` | integer          | Yes      | The ID of a project hook. |
+| `hook_event_id`      | integer | Yes      | The ID of a hook event. |
+
+```json
+{
+  "response_status": 200
+}
+```
+
+### Add project hook
+
+Adds a hook to a specified project.
+
+```plaintext
+POST /projects/:id/hooks
+```
+
+| Attribute                    | Type              | Required | Description |
+|------------------------------|-------------------|----------|-------------|
+| `id`                         | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `url`                        | string            | Yes      | The hook URL. |
+| `name`                       | string            | No       | Name of the hook ([introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/460887) in GitLab 17.1). |
+| `description`                | string            | No       | Description of the hook ([introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/460887) in GitLab 17.1). |
+| `confidential_issues_events` | boolean           | No       | Trigger hook on confidential issues events. |
+| `confidential_note_events`   | boolean           | No       | Trigger hook on confidential note events. |
+| `deployment_events`          | boolean           | No       | Trigger hook on deployment events. |
+| `enable_ssl_verification`    | boolean           | No       | Do SSL verification when triggering the hook. |
+| `issues_events`              | boolean           | No       | Trigger hook on issues events. |
+| `job_events`                 | boolean           | No       | Trigger hook on job events. |
+| `merge_requests_events`      | boolean           | No       | Trigger hook on merge requests events. |
+| `note_events`                | boolean           | No       | Trigger hook on note events. |
+| `pipeline_events`            | boolean           | No       | Trigger hook on pipeline events. |
+| `push_events_branch_filter`  | string            | No       | Trigger hook on push events for matching branches only. |
+| `branch_filter_strategy`     | string         | No       | Filter push events by branch. Possible values are `wildcard` (default), `regex`, and `all_branches`. |
+| `push_events`                | boolean           | No       | Trigger hook on push events. |
+| `releases_events`            | boolean           | No       | Trigger hook on release events. |
+| `tag_push_events`            | boolean           | No       | Trigger hook on tag push events. |
+| `token`                      | string            | No       | Secret token to validate received payloads; the token isn't returned in the response. |
+| `wiki_page_events`           | boolean           | No       | Trigger hook on wiki events. |
+| `resource_access_token_events` | boolean         | No       | Trigger hook on project access token expiry events. |
+| `custom_webhook_template`    | string            | No       | Custom webhook template for the hook. |
+| `custom_headers`             | array             | No       | Custom headers for the hook. |
+
+### Edit project hook
+
+Edits a hook for a specified project.
+
+```plaintext
+PUT /projects/:id/hooks/:hook_id
+```
+
+| Attribute                    | Type              | Required | Description |
+|------------------------------|-------------------|----------|-------------|
+| `hook_id`                    | integer           | Yes      | The ID of the project hook. |
+| `id`                         | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `url`                        | string            | Yes      | The hook URL. |
+| `name`                       | string            | No       | Name of the hook ([introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/460887) in GitLab 17.1). |
+| `description`                | string            | No       | Description of the hook ([introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/460887) in GitLab 17.1). |
+| `confidential_issues_events` | boolean           | No       | Trigger hook on confidential issues events. |
+| `confidential_note_events`   | boolean           | No       | Trigger hook on confidential note events. |
+| `deployment_events`          | boolean           | No       | Trigger hook on deployment events. |
+| `enable_ssl_verification`    | boolean           | No       | Do SSL verification when triggering the hook. |
+| `issues_events`              | boolean           | No       | Trigger hook on issues events. |
+| `job_events`                 | boolean           | No       | Trigger hook on job events. |
+| `merge_requests_events`      | boolean           | No       | Trigger hook on merge requests events. |
+| `note_events`                | boolean           | No       | Trigger hook on note events. |
+| `pipeline_events`            | boolean           | No       | Trigger hook on pipeline events. |
+| `push_events_branch_filter`  | string            | No       | Trigger hook on push events for matching branches only. |
+| `branch_filter_strategy`     | string         | No       | Filter push events by branch. Possible values are `wildcard` (default), `regex`, and `all_branches`. |
+| `push_events`                | boolean           | No       | Trigger hook on push events. |
+| `releases_events`            | boolean           | No       | Trigger hook on release events. |
+| `tag_push_events`            | boolean           | No       | Trigger hook on tag push events. |
+| `token`                      | string            | No       | Secret token to validate received payloads. Not returned in the response. When you change the webhook URL, the secret token is reset and not retained. |
+| `wiki_page_events`           | boolean           | No       | Trigger hook on wiki page events. |
+| `resource_access_token_events` | boolean         | No       | Trigger hook on project access token expiry events. |
+| `custom_webhook_template`    | string            | No       | Custom webhook template for the hook. |
+| `custom_headers`             | array             | No       | Custom headers for the hook. |
+
+### Delete project hook
+
+Removes a hook from a project. This method is idempotent, and can be called
+multiple times. Either the hook is available or not.
+
+```plaintext
+DELETE /projects/:id/hooks/:hook_id
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `hook_id` | integer           | Yes      | The ID of the project hook. |
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+
+Note the JSON response differs if the hook is available or not. If the project
+hook is available before it's returned in the JSON response or an empty response
+is returned.
+
+### Trigger a test project hook
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/147656) in GitLab 16.11.
+> - Special rate limit [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/150066) in GitLab 17.0 [with a flag](../administration/feature_flags.md) named `web_hook_test_api_endpoint_rate_limit`. Enabled by default.
+
+Trigger a test hook for a specified project.
+
+In GitLab 17.0 and later, this endpoint has a special rate limit. In GitLab 17.0 the rate was three requests per minute for each project hook.
+In GitLab 17.1 this was changed to five requests per minute for each project and authenticated user.
+To disable this limit on self-managed GitLab and GitLab Dedicated, an administrator can
+[disable the feature flag](../administration/feature_flags.md) named `web_hook_test_api_endpoint_rate_limit`.
+
+```plaintext
+POST /projects/:id/hooks/:hook_id/test/:trigger
+```
+
+| Attribute | Type              | Required | Description                                                                                                                                                                                                                                                |
+|-----------|-------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `hook_id` | integer           | Yes      | The ID of the project hook.                                                                                                                                                                                                                                |
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding).                                                                                                                                                                       |
+| `trigger` | string            | Yes      | One of `push_events`, `tag_push_events`, `issues_events`, `confidential_issues_events`, `note_events`, `merge_requests_events`, `job_events`, `pipeline_events`, `wiki_page_events`, `releases_events`, `emoji_events`, or `resource_access_token_events`. |
+
+```json
+{"message":"201 Created"}
+```
+
+### Set a custom header
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/153768) in GitLab 17.1.
+
+```plaintext
+PUT /projects/:id/hooks/:hook_id/custom_headers/:key
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `hook_id` | integer           | Yes      | The ID of the project hook. |
+| `key`     | string            | Yes      | The key of the custom header. |
+| `value`   | string            | Yes      | The value of the custom header. |
+
+On success, this endpoint returns the response code `204 No Content`.
+
+### Delete a custom header
+
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/153768) in GitLab 17.1.
+
+```plaintext
+DELETE /projects/:id/hooks/:hook_id/custom_headers/:key
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `hook_id` | integer           | Yes      | The ID of the project hook. |
+| `key`     | string            | Yes      | The key of the custom header. |
+
+On success, this endpoint returns the response code `204 No Content`.
+
 ## Fork relationship
 
 Allows modification of the forked relationship between existing projects.
@@ -2797,7 +3445,7 @@ POST /projects/:id/fork/:forked_from_id
 ```
 
 | Attribute        | Type              | Required | Description |
-|:-----------------|:------------------|:---------|:------------|
+|------------------|-------------------|----------|-------------|
 | `forked_from_id` | ID                | Yes      | The ID of the project that was forked from. |
 | `id`             | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
@@ -2808,7 +3456,7 @@ DELETE /projects/:id/fork
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ## Search for projects by name
@@ -2822,9 +3470,9 @@ GET /projects
 ```
 
 | Attribute  | Type   | Required | Description |
-|:-----------|:-------|:---------|:------------|
+|------------|--------|----------|-------------|
 | `search`   | string | Yes      | A string contained in the project name. |
-| `order_by` | string | No       | Return requests ordered by `id`, `name`, `created_at`, `star_count`, or `last_activity_at` fields. |
+| `order_by` | string | No       | Return requests ordered by `id`, `name`, `created_at` or `last_activity_at` fields. |
 | `sort`     | string | No       | Return requests sorted in `asc` or `desc` order. |
 
 ```shell
@@ -2838,9 +3486,121 @@ POST /projects/:id/housekeeping
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `task`    | string            | No       | `prune` to trigger manual prune of unreachable objects or `eager` to trigger eager housekeeping. |
+
+## Push rules
+
+DETAILS:
+**Tier:** Premium, Ultimate
+**Offering:** GitLab.com, Self-managed, GitLab Dedicated
+
+### Get project push rules
+
+Get the [push rules](../user/project/repository/push_rules.md) of a
+project.
+
+```plaintext
+GET /projects/:id/push_rule
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding) |
+
+```json
+{
+  "id": 1,
+  "project_id": 3,
+  "commit_message_regex": "Fixes \\d+\\..*",
+  "commit_message_negative_regex": "ssh\\:\\/\\/",
+  "branch_name_regex": "",
+  "deny_delete_tag": false,
+  "created_at": "2012-10-12T17:04:47Z",
+  "member_check": false,
+  "prevent_secrets": false,
+  "author_email_regex": "",
+  "file_name_regex": "",
+  "max_file_size": 5,
+  "commit_committer_check": false,
+  "commit_committer_name_check": false,
+  "reject_unsigned_commits": false,
+  "reject_non_dco_commits": false
+}
+```
+
+### Add project push rule
+
+Adds a push rule to a specified project.
+
+```plaintext
+POST /projects/:id/push_rule
+```
+
+<!-- markdownlint-disable MD056 -->
+
+| Attribute                       | Type              | Required | Description |
+|---------------------------------|-------------------|----------|-------------|
+| `id`                            | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `author_email_regex`            | string            | No       | All commit author emails must match this, for example `@my-company.com$`. |
+| `branch_name_regex`             | string            | No       | All branch names must match this, for example `(feature|hotfix)\/.*`. |
+| `commit_message_negative_regex` | string            | No       | No commit message is allowed to match this, for example `ssh\:\/\/`. |
+| `commit_message_regex`          | string            | No       | All commit messages must match this, for example `Fixed \d+\..*`. |
+| `deny_delete_tag`               | boolean           | No       | Deny deleting a tag. |
+| `file_name_regex`               | string            | No       | All committed filenames must **not** match this, for example `(jar|exe)$`. |
+| `max_file_size`                 | integer           | No       | Maximum file size (MB). |
+| `member_check`                  | boolean           | No       | Restrict commits by author (email) to existing GitLab users. |
+| `prevent_secrets`               | boolean           | No       | GitLab rejects any files that are likely to contain secrets. |
+| `commit_committer_check`        | boolean           | No       | Users can only push commits to this repository if the committer email is one of their own verified emails. |
+| `commit_committer_name_check`   | boolean           | No       | Users can only push commits to this repository if the commit author name is consistent with their GitLab account name. |
+| `reject_unsigned_commits`       | boolean           | No       | Reject commit when it's not signed. |
+| `reject_non_dco_commits`        | boolean           | No       | Reject commit when it's not DCO certified. |
+
+<!-- markdownlint-enable MD056 -->
+
+### Edit project push rule
+
+Edits a push rule for a specified project.
+
+```plaintext
+PUT /projects/:id/push_rule
+```
+
+<!-- markdownlint-disable MD056 -->
+
+| Attribute                       | Type              | Required | Description |
+|---------------------------------|-------------------|----------|-------------|
+| `id`                            | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
+| `author_email_regex`            | string            | No       | All commit author emails must match this, for example `@my-company.com$`. |
+| `branch_name_regex`             | string            | No       | All branch names must match this, for example `(feature|hotfix)\/.*`. |
+| `commit_message_negative_regex` | string            | No       | No commit message is allowed to match this, for example `ssh\:\/\/`. |
+| `commit_message_regex`          | string            | No       | All commit messages must match this, for example `Fixed \d+\..*`. |
+| `deny_delete_tag`               | boolean           | No       | Deny deleting a tag. |
+| `file_name_regex`               | string            | No       | All committed filenames must **not** match this, for example `(jar|exe)$`. |
+| `max_file_size`                 | integer           | No       | Maximum file size (MB). |
+| `member_check`                  | boolean           | No       | Restrict commits by author (email) to existing GitLab users. |
+| `prevent_secrets`               | boolean           | No       | GitLab rejects any files that are likely to contain secrets. |
+| `commit_committer_check`        | boolean           | No       | Users can only push commits to this repository if the committer email is one of their own verified emails. |
+| `commit_committer_name_check`   | boolean           | No       | Users can only push commits to this repository if the commit author name is consistent with their GitLab account name. |
+| `reject_unsigned_commits`       | boolean           | No       | Reject commits when they are not signed. |
+| `reject_non_dco_commits`        | boolean           | No       | Reject commit when it's not DCO certified. |
+
+<!-- markdownlint-enable MD056 -->
+
+### Delete project push rule
+
+> - Moved to GitLab Premium in 13.9.
+
+Removes a push rule from a project.
+
+```plaintext
+DELETE /projects/:id/push_rule
+```
+
+| Attribute | Type              | Required | Description |
+|-----------|-------------------|----------|-------------|
+| `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ## Get groups to which a user can transfer a project
 
@@ -2853,7 +3613,7 @@ GET /projects/:id/transfer_locations
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `search`  | string            | No       | The group names to search for. |
 
@@ -2896,7 +3656,7 @@ PUT /projects/:id/transfer
 ```
 
 | Attribute   | Type              | Required | Description |
-|:------------|:------------------|:---------|:------------|
+|-------------|-------------------|----------|-------------|
 | `id`        | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `namespace` | integer or string | Yes      | The ID or path of the namespace to transfer to project to. |
 
@@ -3019,6 +3779,22 @@ Example response:
 }
 ```
 
+## Branches
+
+Read more in the [Branches](branches.md) documentation.
+
+## Project import/export
+
+Read more in the [Project import/export](project_import_export.md) documentation.
+
+## Project members
+
+Read more in the [Project members](members.md) documentation.
+
+## Project vulnerabilities
+
+Read more in the [Project vulnerabilities](project_vulnerabilities.md) documentation.
+
 ## Get a project's pull mirror details
 
 DETAILS:
@@ -3036,7 +3812,7 @@ GET /projects/:id/mirror/pull
 Supported attributes:
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 Example request:
@@ -3080,7 +3856,7 @@ where `token` is a [personal access token](../user/profile/personal_access_token
 with the API scope enabled.
 
 | Attribute                        | Type    | Required | Description |
-|:---------------------------------|:--------|:---------|:------------|
+|----------------------------------|---------|----------|-------------|
 | `import_url`                     | string  | Yes      | URL of remote repository being mirrored (with `user:token` if needed). |
 | `mirror`                         | boolean | Yes      | Enables pull mirroring on project when set to `true`. |
 | `mirror_trigger_builds`          | boolean | No       | Trigger pipelines for mirror updates when set to `true`. |
@@ -3130,12 +3906,16 @@ POST /projects/:id/mirror/pull
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ```shell
 curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/:id/mirror/pull"
 ```
+
+## Project badges
+
+Read more in the [Project Badges](project_badges.md) documentation.
 
 ## Download snapshot of a Git repository
 
@@ -3153,7 +3933,7 @@ GET /projects/:id/snapshot
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 | `wiki`    | boolean           | No       | Whether to download the wiki, rather than project, repository. |
 
@@ -3169,7 +3949,7 @@ GET /projects/:id/storage
 ```
 
 | Attribute | Type              | Required | Description |
-|:----------|:------------------|:---------|:------------|
+|-----------|-------------------|----------|-------------|
 | `id`      | integer or string | Yes      | ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding). |
 
 ```json

@@ -243,10 +243,10 @@ related objects, such as jobs, logs, artifacts, and triggers.
 ### Pipeline security on protected branches
 
 A strict security model is enforced when pipelines are executed on
-[protected branches](../../user/project/repository/branches/protected.md).
+[protected branches](../../user/project/protected_branches.md).
 
 The following actions are allowed on protected branches if the user is
-[allowed to merge or push](../../user/project/repository/branches/protected.md)
+[allowed to merge or push](../../user/project/protected_branches.md)
 to that specific branch:
 
 - Run manual pipelines (using the [Web UI](#run-a-pipeline-manually) or [pipelines API](#pipelines-api)).
@@ -273,9 +273,8 @@ DETAILS:
 **Tier:** Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-You can set up your project to automatically trigger a pipeline based on tags in a different project.
-When a new tag pipeline in the subscribed project finishes, it triggers a pipeline on your project's default branch,
-regardless of the tag pipeline's success, failure, or cancellation.
+You can trigger a pipeline in your project whenever a pipeline finishes for a new
+tag in a different project.
 
 Prerequisites:
 
@@ -293,11 +292,13 @@ To trigger the pipeline when the upstream project is rebuilt:
    For example, if the project is `https://gitlab.com/gitlab-org/gitlab`, use `gitlab-org/gitlab`.
 1. Select **Subscribe**.
 
-The maximum number of upstream pipeline subscriptions is 2 by default, for both the upstream and
+Any pipelines that complete successfully for new tags in the subscribed project
+now trigger a pipeline on the current project's default branch. The maximum
+number of upstream pipeline subscriptions is 2 by default, for both the upstream and
 downstream projects. On self-managed instances, an administrator can change this
 [limit](../../administration/instance_limits.md#number-of-cicd-subscriptions-to-a-project).
 
-## How pipeline duration is calculated
+### How pipeline duration is calculated
 
 The total running time for a given pipeline excludes:
 

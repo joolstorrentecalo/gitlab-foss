@@ -378,7 +378,9 @@ class Integration < ApplicationRecord
   end
 
   def self.project_and_group_specific_integration_names
-    PROJECT_AND_GROUP_LEVEL_ONLY_INTEGRATION_NAMES.dup
+    names = PROJECT_AND_GROUP_LEVEL_ONLY_INTEGRATION_NAMES.dup
+    names.delete('jira_cloud_app') unless Feature.enabled?(:enable_jira_connect_configuration) # rubocop:disable Gitlab/FeatureFlagWithoutActor -- flag must be global
+    names
   end
   private_class_method :project_and_group_specific_integration_names
 

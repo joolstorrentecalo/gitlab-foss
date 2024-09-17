@@ -7,7 +7,7 @@ import { s__ } from '~/locale';
 import { getParameterByName, updateHistory, setUrlParams } from '~/lib/utils/url_utility';
 import glFeatureFlagMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import { convertToGraphQLId, getIdFromGraphQLId } from '~/graphql_shared/utils';
-import { TYPENAME_GROUP, TYPENAME_WORK_ITEM } from '~/graphql_shared/constants';
+import { TYPENAME_WORK_ITEM } from '~/graphql_shared/constants';
 import { isLoggedIn } from '~/lib/utils/common_utils';
 import { WORKSPACE_PROJECT } from '~/issues/constants';
 import {
@@ -107,11 +107,6 @@ export default {
       required: false,
       default: '',
     },
-    modalIsGroup: {
-      type: Boolean,
-      required: false,
-      default: null,
-    },
     isDrawer: {
       type: Boolean,
       required: false,
@@ -202,7 +197,6 @@ export default {
         },
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     allowedChildTypes: {
       query: getAllowedWorkItemChildTypes,
       variables() {
@@ -268,7 +262,13 @@ export default {
       return this.isWidgetPresent(WIDGET_TYPE_HIERARCHY)?.parent;
     },
     hasParent() {
-      const { workItemType, parentWorkItem, hasSubepicsFeature } = this;
+      // TODO: This is a temporary check till the issue work item migration is completed
+      // Issue: https://gitlab.com/gitlab-org/gitlab/-/issues/468114
+      const { workItemType, glFeatures, parentWorkItem, hasSubepicsFeature } = this;
+
+      if (workItemType === WORK_ITEM_TYPE_VALUE_TASK) {
+        return glFeatures.namespaceLevelWorkItems && parentWorkItem;
+      }
 
       if (workItemType === WORK_ITEM_TYPE_VALUE_EPIC) {
         return hasSubepicsFeature && parentWorkItem;
@@ -277,15 +277,6 @@ export default {
       return Boolean(parentWorkItem);
     },
     shouldShowAncestors() {
-      // TODO: This is a temporary check till the issue work item migration is completed
-      // Issue: https://gitlab.com/gitlab-org/gitlab/-/issues/468114
-      if (
-        this.workItemType === WORK_ITEM_TYPE_VALUE_TASK &&
-        !this.glFeatures.namespaceLevelWorkItems
-      ) {
-        return false;
-      }
-
       // Checks whether current work item has parent
       // or it is in hierarchy but there is no permission to view the parent
       return this.hasParent || this.workItemHierarchy?.hasParent;
@@ -329,6 +320,12 @@ export default {
     workItemWeight() {
       return this.isWidgetPresent(WIDGET_TYPE_WEIGHT);
     },
+    showRolledUpWeight() {
+      return this.workItemWeight?.widgetDefinition?.rollUp;
+    },
+    rolledUpWeight() {
+      return this.workItemWeight?.rolledUpWeight;
+    },
     workItemBodyClass() {
       return {
         'gl-pt-5': !this.updateError && !this.isModal,
@@ -369,9 +366,6 @@ export default {
     },
     workItemPresent() {
       return !isEmpty(this.workItem);
-    },
-    isGroupWorkItem() {
-      return Boolean(this.modalIsGroup ?? this.workItem.namespace?.id.includes(TYPENAME_GROUP));
     },
   },
   mounted() {
@@ -702,11 +696,10 @@ export default {
               :class="{ 'is-modal': isModal }"
             >
               <work-item-attributes-wrapper
-                :class="{ 'gl-top-11': isDrawer }"
+                :class="{ 'gl-top-3': isDrawer }"
                 :full-path="workItemFullPath"
                 :work-item="workItem"
                 :group-path="groupPath"
-                :is-group="isGroupWorkItem"
                 @error="updateError = $event"
                 @attributesUpdated="$emit('attributesUpdated', $event)"
               />
@@ -722,13 +715,14 @@ export default {
             <work-item-tree
               v-if="showWorkItemTree"
               :full-path="workItemFullPath"
-              :is-group="isGroupWorkItem"
               :work-item-type="workItemType"
               :parent-work-item-type="workItem.workItemType.name"
               :work-item-id="workItem.id"
               :work-item-iid="workItemIid"
               :can-update="canUpdate"
               :can-update-children="canUpdateChildren"
+              :rolled-up-weight="rolledUpWeight"
+              :show-rolled-up-weight="showRolledUpWeight"
               :confidential="workItem.confidential"
               :allowed-child-types="allowedChildTypes"
               @show-modal="openInModal"
@@ -737,7 +731,6 @@ export default {
             />
             <work-item-relationships
               v-if="workItemLinkedItems"
-              :is-group="isGroupWorkItem"
               :work-item-id="workItem.id"
               :work-item-iid="workItemIid"
               :work-item-full-path="workItemFullPath"

@@ -92,7 +92,7 @@ RSpec.describe OmniauthCallbacksController, type: :controller, feature_category:
     end
   end
 
-  describe 'omniauth', :with_current_organization do
+  describe 'omniauth' do
     let(:user) { create(:omniauth_user, extern_uid: extern_uid, provider: provider) }
     let(:omniauth_email) { user.email }
     let(:additional_info) { {} }
@@ -648,7 +648,7 @@ RSpec.describe OmniauthCallbacksController, type: :controller, feature_category:
       let(:post_action) { post :saml, params: { SAMLResponse: mock_saml_response } }
     end
 
-    context 'for sign up', :with_current_organization do
+    context 'for sign up' do
       before do
         user.destroy!
       end

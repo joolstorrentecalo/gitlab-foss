@@ -14,9 +14,10 @@ import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import MarkdownEditor from '~/vue_shared/components/markdown/markdown_editor.vue';
 import { helpPagePath } from '~/helpers/help_page_helper';
 import { semverRegex, noSpacesRegex } from '~/lib/utils/regexp';
+import { uploadModel } from '../services/upload_model';
 import createModelVersionMutation from '../graphql/mutations/create_model_version.mutation.graphql';
 import createModelMutation from '../graphql/mutations/create_model.mutation.graphql';
-import { MODEL_CREATION_MODAL_ID } from '../constants';
+import { emptyArtifactFile, MODEL_CREATION_MODAL_ID } from '../constants';
 
 export default {
   name: 'ModelCreate',
@@ -38,7 +39,7 @@ export default {
     disableAttachments: {
       type: Boolean,
       required: false,
-      default: false,
+      default: true,
     },
   },
   data() {
@@ -48,6 +49,7 @@ export default {
       description: '',
       versionDescription: '',
       errorMessage: null,
+      selectedFile: emptyArtifactFile,
       modelData: null,
       versionData: null,
       markdownDocPath: helpPagePath('user/markdown'),
@@ -135,14 +137,22 @@ export default {
             this.versionData = await this.createModelVersion(this.modelData.mlModelCreate.model.id);
           }
           const versionErrors = this.versionData?.mlModelVersionCreate?.errors || [];
+
           if (versionErrors.length) {
             this.errorMessage = versionErrors.join(', ');
             this.versionData = null;
           } else {
             // Attempt importing model artifacts
-            const { showPath, importPath } =
-              this.versionData.mlModelVersionCreate.modelVersion._links;
-            await this.$refs.importArtifactZoneRef.uploadArtifact(importPath);
+            const { importPath } = this.versionData.mlModelVersionCreate.modelVersion._links;
+            await uploadModel({
+              importPath,
+              file: this.selectedFile.file,
+              subfolder: this.selectedFile.subfolder,
+              maxAllowedFileSize: this.maxAllowedFileSize,
+              onUploadProgress: this.$refs.importArtifactZoneRef.onUploadProgress,
+            });
+
+            const { showPath } = this.versionData.mlModelVersionCreate.modelVersion._links;
             visitUrl(showPath);
           }
         } else {
@@ -152,6 +162,7 @@ export default {
       } catch (error) {
         Sentry.captureException(error);
         this.errorMessage = error;
+        this.selectedFile = emptyArtifactFile;
       }
     },
     resetModal() {
@@ -160,6 +171,7 @@ export default {
       this.description = '';
       this.versionDescription = '';
       this.errorMessage = null;
+      this.selectedFile = emptyArtifactFile;
       this.modelData = null;
       this.versionData = null;
     },
@@ -329,6 +341,7 @@ export default {
           <import-artifact-zone
             id="versionImportArtifactZone"
             ref="importArtifactZoneRef"
+            v-model="selectedFile"
             class="gl-px-3 gl-py-0"
             :submit-on-select="false"
           />

@@ -390,7 +390,7 @@ describe('Pipelines table in Commits and Merge requests', () => {
     });
   });
 
-  describe('unsuccessful request', () => {
+  describe('unsuccessfull request', () => {
     beforeEach(async () => {
       mock.onGet('endpoint.json').reply(HTTP_STATUS_INTERNAL_SERVER_ERROR, []);
 

@@ -23,7 +23,6 @@ GitLab Duo Workflow, as part of your IDE, takes the information you provide
 and uses AI to walk you through an implementation plan.
 
 For the first release, there is only one supported Workflow: write or update code to fix a broken pipeline on a merge request.
-You can do this from VS Code or by running a cURL command.
 
 ## Prerequisites
 
@@ -62,14 +61,10 @@ Before you can use GitLab Duo Workflow in VS Code:
    docker context use colima
    ```
 
-1. [Authenticate with the GitLab container registry](../packages/container_registry/authenticate_with_container_registry.md).
-
-1. Manually pull the
-   [latest version of the Workflow Docker image](https://gitlab.com/gitlab-org/duo-workflow/default-docker-image/container_registry/6740066)
-   from the container registry:
+1. Manually pull the required Docker image:
 
    ```shell
-   docker pull registry.gitlab.com/gitlab-org/duo-workflow/default-docker-image/workflow-generic-image:v0.0.4
+   docker pull redhat/ubi8
    ```
 
 1. Access VS Code settings:
@@ -80,7 +75,6 @@ Before you can use GitLab Duo Workflow in VS Code:
 
    ```json
    "gitlab.duoWorkflow.dockerSocket": "/Users/<username>/.colima/default/docker.sock"
-   "gitlab.featureFlags.languageServerWebviews": true
    ```
 
 1. Save the settings file.
@@ -97,32 +91,6 @@ To use GitLab Duo Workflow:
 1. In the Duo Workflow panel, type your command, along with the merge request ID and project ID. Copy-paste is not currently possible.
    - Merge request ID: In GitLab, the ID is in the merge request URL.
    - Project ID: In GitLab, the ID is on the project overview page. In the upper-right corner, select the vertical ellipsis (**{ellipsis_v}**) to view it.
-
-## Use cURL to run GitLab Duo Workflow against a CI/CD pipeline
-
-Instead of running GitLab Workflow in VS Code, you can use a cURL command. See
-[the handbook](https://handbook.gitlab.com/handbook/engineering/architecture/design-documents/duo_workflow/#with-remote-ci-pipeline-execution) for details.
-
-1. Create a personal access token with the `api` scope, or create an OAuth access token with the `ai_workflows` scope.
-1. Start GitLab Workflow in a CI/CD pipeline by using the following cURL request.
-
-   ```shell
-        curl POST --verbose \
-        --header 'Authorization: Bearer $YOUR_GITLAB_PAT' \
-        --header 'Content-Type: application/json' \
-        --data '{
-            "project_id": "$PROJECT_ID_FOR_RUNNING_WORKFLOW_AGAINST",
-            "start_workflow": true,
-            "goal": "Fix the pipeline for merge request X in project Y."
-        }' \
-        --location 'https://gitlab.com/api/v4/ai/duo_workflows/workflows'
-    ```
-
-The response should be the pipeline ID. To view the pipeline execution, go to:
-
-```http
-https://gitlab.com/$namespace/$project/-/pipelines/$pipeline_id
-```
 
 ## The context Duo Workflow is aware of
 

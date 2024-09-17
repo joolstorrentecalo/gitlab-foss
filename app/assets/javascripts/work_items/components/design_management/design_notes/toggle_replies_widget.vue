@@ -44,9 +44,6 @@ export default {
       }
       return '';
     },
-    ariaState() {
-      return String(!this.collapsed);
-    },
   },
 };
 </script>
@@ -55,7 +52,6 @@ export default {
   <li
     class="toggle-comments gl-flex gl-min-h-8 gl-items-center gl-rounded-bl-base gl-rounded-br-base gl-bg-gray-10 gl-p-3"
     :class="{ expanded: !collapsed }"
-    :aria-expanded="ariaState"
     data-testid="toggle-comments-wrapper"
   >
     <gl-button

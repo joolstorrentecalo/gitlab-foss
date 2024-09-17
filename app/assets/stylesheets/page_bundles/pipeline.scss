@@ -230,7 +230,6 @@
 .ci-job-item-failed {
   background-color: var(--red-50, $red-50);
 
-  // stylelint-disable-next-line gitlab/no-gl-class
   .gl-dark & {
     background-color: var(--gray-200, $gray-200);
   }
@@ -310,7 +309,6 @@
 
     // stylelint-disable-next-line gitlab/no-gl-class
     .gl-badge.badge-muted {
-      // stylelint-disable-next-line gitlab/no-gl-class
       .gl-dark & {
         @apply gl-bg-gray-100;
       }

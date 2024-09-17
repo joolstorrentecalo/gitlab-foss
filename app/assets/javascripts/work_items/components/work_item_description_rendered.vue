@@ -5,7 +5,6 @@ import Sortable from 'sortablejs';
 import { renderGFM } from '~/behaviors/markdown/render_gfm';
 import TaskListItemActions from '~/issues/show/components/task_list_item_actions.vue';
 import eventHub from '~/issues/show/event_hub';
-import { InternalEvents } from '~/tracking';
 import {
   convertDescriptionWithNewSort,
   deleteTaskListItem,
@@ -16,19 +15,14 @@ import { getSortableDefaultOptions, isDragging } from '~/sortable/utils';
 import { handleLocationHash } from '~/lib/utils/common_utils';
 import { getLocationHash } from '~/lib/utils/url_utility';
 import SafeHtml from '~/vue_shared/directives/safe_html';
-import {
-  WORK_ITEM_TYPE_ENUM_ISSUE,
-  WORK_ITEM_TYPE_ENUM_TASK,
-  WORK_ITEM_TYPE_VALUE_EPIC,
-} from '../constants';
-
-const trackingMixin = InternalEvents.mixin();
+import { WORK_ITEM_TYPE_ENUM_ISSUE } from '../constants';
 
 const FULL_OPACITY = 'gl-opacity-10';
 const CURSOR_GRAB = 'gl-cursor-grab';
 const isCheckbox = (target) => target?.classList.contains('task-list-item-checkbox');
 
 export default {
+  WORK_ITEM_TYPE_ENUM_ISSUE,
   directives: {
     SafeHtml,
     GlTooltip: GlTooltipDirective,
@@ -37,7 +31,6 @@ export default {
     CreateWorkItemModal: () => import('~/work_items/components/create_work_item_modal.vue'),
     GlButton,
   },
-  mixins: [trackingMixin],
   props: {
     disableTruncation: {
       type: Boolean,
@@ -84,11 +77,6 @@ export default {
     };
   },
   computed: {
-    childItemType() {
-      return this.workItemType === WORK_ITEM_TYPE_VALUE_EPIC
-        ? WORK_ITEM_TYPE_ENUM_ISSUE
-        : WORK_ITEM_TYPE_ENUM_TASK;
-    },
     descriptionText() {
       return this.workItemDescription?.description;
     },
@@ -326,15 +314,19 @@ export default {
       }
     },
     truncateLongDescription() {
-      /* Truncate when description is > 80% viewport height, plus 96px buffer to avoid trivial truncations. */
-      const maxHeight = window.innerHeight * 0.8 + 96;
+      /* Truncate when description is > 40% viewport height or 512px.
+         Update `.work-item-description .truncated` max height if value changes. */
+      const defaultMaxHeight = window.innerHeight * 0.4;
+      let maxHeight = defaultMaxHeight;
+      if (defaultMaxHeight > 512) {
+        maxHeight = 512;
+      } else if (defaultMaxHeight < 256) {
+        maxHeight = 256;
+      }
       this.truncated = this.$refs['gfm-content']?.clientHeight > maxHeight;
     },
     showAll() {
       this.truncated = false;
-      this.trackEvent('expand_description_on_workitem', {
-        label: this.workItemTypeName,
-      });
     },
   },
 };
@@ -362,7 +354,6 @@ export default {
       >
         <div class="show-all-btn gl-flex gl-w-full gl-items-center gl-justify-center">
           <gl-button
-            ref="show-all-btn"
             variant="confirm"
             category="tertiary"
             class="gl-mx-4"
@@ -378,10 +369,10 @@ export default {
       hide-button
       :is-group="isGroup"
       :parent-id="workItemId"
-      :show-project-selector="isGroup"
+      show-project-selector
       :title="childTitle"
       :visible="visible"
-      :work-item-type-name="childItemType"
+      :work-item-type-name="$options.WORK_ITEM_TYPE_ENUM_ISSUE"
       @hideModal="visible = false"
       @workItemCreated="handleWorkItemCreated"
     />

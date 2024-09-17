@@ -12,7 +12,11 @@ import {
 } from '~/behaviors/shortcuts/keybindings';
 import { shouldDisableShortcuts } from '~/behaviors/shortcuts/shortcuts_toggle';
 import { sanitize } from '~/lib/dompurify';
+import { EVT_EXPAND_ALL_FILES } from '../constants';
+import eventHub from '../event_hub';
 import CompareDropdownLayout from './compare_dropdown_layout.vue';
+import DiffStats from './diff_stats.vue';
+import SettingsDropdown from './settings_dropdown.vue';
 
 export default {
   components: {
@@ -22,23 +26,34 @@ export default {
     GlButtonGroup,
     GlButton,
     GlSprintf,
+    SettingsDropdown,
+    DiffStats,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
   },
   props: {
-    toggleFileTreeVisible: {
-      type: Boolean,
+    diffFilesCountText: {
+      type: String,
       required: false,
-      default: false,
+      default: null,
     },
   },
   computed: {
     ...mapGetters('diffs', [
+      'whichCollapsedTypes',
       'diffCompareDropdownTargetVersions',
       'diffCompareDropdownSourceVersions',
     ]),
-    ...mapState('diffs', ['commit', 'showTreeList', 'startVersion', 'latestVersionPath']),
+    ...mapState('diffs', [
+      'diffFiles',
+      'commit',
+      'showTreeList',
+      'startVersion',
+      'latestVersionPath',
+      'addedLines',
+      'removedLines',
+    ]),
     toggleFileBrowserShortcutKey() {
       return shouldDisableShortcuts() ? null : keysFor(MR_TOGGLE_FILE_BROWSER)[0];
     },
@@ -51,6 +66,9 @@ export default {
       return shouldDisableShortcuts()
         ? description
         : sanitize(`${description} <kbd class="flat gl-ml-1" aria-hidden=true>${key}</kbd>`);
+    },
+    hasChanges() {
+      return this.diffFiles.length > 0;
     },
     hasSourceVersions() {
       return this.diffCompareDropdownSourceVersions.length > 0;
@@ -105,6 +123,9 @@ export default {
   },
   methods: {
     ...mapActions('diffs', ['setShowTreeList']),
+    expandAllFiles() {
+      eventHub.$emit(EVT_EXPAND_ALL_FILES);
+    },
     ...mapActions('diffs', ['moveToNeighboringCommit']),
   },
 };
@@ -114,7 +135,7 @@ export default {
   <div class="mr-version-controls">
     <div class="mr-version-menus-container gl-px-5 gl-pb-2 gl-pt-3">
       <gl-button
-        v-if="toggleFileTreeVisible"
+        v-if="hasChanges"
         v-gl-tooltip.html="toggleFileBrowserTooltip"
         variant="default"
         icon="sidebar"
@@ -195,6 +216,22 @@ export default {
       >
         {{ __('Show latest version') }}
       </gl-button>
+      <div v-if="hasChanges" class="inline-parallel-buttons ml-auto gl-hidden md:gl-flex">
+        <diff-stats
+          :diff-files-count-text="diffFilesCountText"
+          :added-lines="addedLines"
+          :removed-lines="removedLines"
+        />
+        <gl-button
+          v-show="whichCollapsedTypes.any"
+          variant="default"
+          class="gl-mr-3"
+          @click="expandAllFiles"
+        >
+          {{ __('Expand all files') }}
+        </gl-button>
+        <settings-dropdown />
+      </div>
     </div>
   </div>
 </template>

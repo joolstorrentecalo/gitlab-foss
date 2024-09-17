@@ -11,15 +11,15 @@ query assigneeOrReviewer(
 ) {
   currentUser {
     id
-    mergeRequests: assigneeOrReviewerMergeRequests(
+    assigneeOrReviewerMergeRequests(
       state: $state
       assignedReviewStates: $assignedReviewStates
       reviewerReviewStates: $reviewerReviewStates
       mergedAfter: $mergedAfter
       first: $perPage
       after: $afterCursor
-      sort: UPDATED_DESC
     ) {
+      count
       pageInfo {
         ...PageInfo
       }
