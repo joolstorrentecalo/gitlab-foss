@@ -5,7 +5,7 @@ class InvitesController < ApplicationController
 
   prepend_before_action :authenticate_user!, :track_invite_join_click, only: :show
   before_action :member
-  before_action :ensure_member_exists
+  # before_action :ensure_member_exists
   before_action :invite_details
   skip_before_action :authenticate_user!, only: :decline
 
@@ -14,6 +14,8 @@ class InvitesController < ApplicationController
   respond_to :html
 
   feature_category :system_access
+
+  TYPE_ORGANIZATION_INVITE = 'org-invite'
 
   def show
     accept if skip_invitation_prompt?
@@ -68,6 +70,13 @@ class InvitesController < ApplicationController
     end
   end
 
+  def organization_invite
+    strong_memoize(:organization_invite) do
+      @token = params[:id].to_s
+      Organizations::OrganizationInvite.find_by_token(@token)
+    end
+  end
+
   def ensure_member_exists
     return if member
 
@@ -75,7 +84,7 @@ class InvitesController < ApplicationController
   end
 
   def track_invite_join_click
-    return unless member && initial_invite_email?
+    return unless member && initial_member_invite_email?
 
     Gitlab::Tracking.event(self.class.name, 'join_clicked', label: 'invite_email')
   end
@@ -83,23 +92,35 @@ class InvitesController < ApplicationController
   def authenticate_user!
     return if current_user
 
-    if user_sign_up?
+    if user_sign_up? || organization_invite_email?
       set_session_invite_params
 
-      redirect_to new_user_registration_path(invite_email: member.invite_email), notice: _("To accept this invitation, create an account or sign in.")
+      redirect_to new_user_registration_path(invite_email: invite_email), notice: _("To accept this invitation, create an account or sign in.")
     else
       redirect_to new_user_session_path(sign_in_redirect_params), notice: sign_in_notice
     end
   end
 
-  def set_session_invite_params
-    session[:invite_email] = member.invite_email
-
-    session[:originating_member_id] = member.id if initial_invite_email?
+  def invite_email
+    member.invite_email if initial_member_invite_email?
+    organization_invite.email if organization_invite_email?
   end
 
-  def initial_invite_email?
+  def set_session_invite_params
+    if initial_member_invite_email?
+      session[:invite_email] = member.invite_email
+      session[:originating_member_id] = member.id
+    elsif organization_invite_email?
+      session[:originating_organization_invite_id] = organization_invite.id
+    end
+  end
+
+  def initial_member_invite_email?
     params[:invite_type] == ::Members::InviteMailer::INITIAL_INVITE
+  end
+
+  def organization_invite_email?
+    params[:invite_type] == TYPE_ORGANIZATION_INVITE
   end
 
   def sign_in_redirect_params
@@ -107,6 +128,10 @@ class InvitesController < ApplicationController
   end
 
   def user_sign_up?
+    user_sign_up_for_member? || organization_invite_email?
+  end
+
+  def user_sign_up_for_member?
     Gitlab::CurrentSettings.allow_signup? && member && !User.find_by_any_email(member.invite_email)
   end
 

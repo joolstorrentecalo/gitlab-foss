@@ -1709,6 +1709,10 @@ class User < ApplicationRecord
     Members::PendingInvitationsFinder.new(verified_emails).execute
   end
 
+  def pending_organization_invitation
+    Organizations::OrganizationInvite.find_by(email: email)
+  end
+
   def all_emails(include_private_email: true)
     all_emails = []
     all_emails << email unless temp_oauth_email?
@@ -2735,6 +2739,8 @@ class User < ApplicationRecord
   end
 
   def create_default_organization_user
+    return if pending_organization_invitation
+
     Organizations::OrganizationUser.create_default_organization_record_for(id, user_is_admin: admin?)
   end
 

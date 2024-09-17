@@ -6,7 +6,9 @@ module Organizations
       return error_no_permissions unless can?(current_user, :create_organization)
       return error_feature_flag unless Feature.enabled?(:allow_organization_creation, current_user)
 
-      add_organization_owner_attributes
+      owner_email = params.delete(:owner_email)
+      add_organization_owner_attributes unless owner_email
+
       organization = Gitlab::Database::QueryAnalyzers::PreventCrossDatabaseModification
                        .allow_cross_database_modification_within_transaction(
                          url: 'https://gitlab.com/gitlab-org/gitlab/-/issues/438757'
@@ -15,6 +17,7 @@ module Organizations
       end
 
       if organization.persisted?
+        OrganizationInvites::CreateService.new(current_user:current_user, params: { organization: organization, email: owner_email }).execute if owner_email
         ServiceResponse.success(payload: { organization: organization })
       else
         error_creating(organization)

@@ -568,6 +568,10 @@ class NotificationService
     mailer.member_about_to_expire_email(member.real_source_type, member.id).deliver_later
   end
 
+  def owner_invited_to_new_org(organization, email_address, cleartext_token)
+    mailer.owner_invited_to_new_org_email(organization, email_address, cleartext_token).deliver_later
+  end
+
   def project_was_moved(project, old_path_with_namespace)
     recipients = project_moved_recipients(project)
     recipients = notifiable_users(recipients, :custom, custom_action: :moved_project, project: project)

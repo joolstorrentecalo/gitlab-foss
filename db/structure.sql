@@ -14509,6 +14509,26 @@ CREATE TABLE organization_details (
     CONSTRAINT check_9fbd483b51 CHECK ((char_length(avatar) <= 255))
 );
 
+CREATE TABLE organization_invites (
+    organization_id bigint NOT NULL,
+    inviter_user_id bigint,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    accepted_at timestamp with time zone,
+    access_level smallint DEFAULT 0 NOT NULL,
+    email text NOT NULL,
+    token text NOT NULL
+);
+
+CREATE SEQUENCE organization_invites_organization_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE organization_invites_organization_id_seq OWNED BY organization_invites.organization_id;
+
 CREATE TABLE organization_settings (
     organization_id bigint NOT NULL,
     created_at timestamp with time zone NOT NULL,
@@ -22042,6 +22062,8 @@ ALTER TABLE ONLY operations_strategies_user_lists ALTER COLUMN id SET DEFAULT ne
 
 ALTER TABLE ONLY operations_user_lists ALTER COLUMN id SET DEFAULT nextval('operations_user_lists_id_seq'::regclass);
 
+ALTER TABLE ONLY organization_invites ALTER COLUMN organization_id SET DEFAULT nextval('organization_invites_organization_id_seq'::regclass);
+
 ALTER TABLE ONLY organization_users ALTER COLUMN id SET DEFAULT nextval('organization_users_id_seq'::regclass);
 
 ALTER TABLE ONLY organizations ALTER COLUMN id SET DEFAULT nextval('organizations_id_seq'::regclass);
@@ -24466,6 +24488,9 @@ ALTER TABLE ONLY operations_user_lists
 
 ALTER TABLE ONLY organization_details
     ADD CONSTRAINT organization_details_pkey PRIMARY KEY (organization_id);
+
+ALTER TABLE ONLY organization_invites
+    ADD CONSTRAINT organization_invites_pkey PRIMARY KEY (organization_id);
 
 ALTER TABLE ONLY organization_settings
     ADD CONSTRAINT organization_settings_pkey PRIMARY KEY (organization_id);
@@ -29395,6 +29420,10 @@ CREATE UNIQUE INDEX index_operations_user_lists_on_project_id_and_name ON operat
 CREATE UNIQUE INDEX index_ops_feature_flags_issues_on_feature_flag_id_and_issue_id ON operations_feature_flags_issues USING btree (feature_flag_id, issue_id);
 
 CREATE UNIQUE INDEX index_ops_strategies_user_lists_on_strategy_id_and_user_list_id ON operations_strategies_user_lists USING btree (strategy_id, user_list_id);
+
+CREATE INDEX index_organization_invites_on_inviter_user_id ON organization_invites USING btree (inviter_user_id);
+
+CREATE INDEX index_organization_invites_on_organization_id ON organization_invites USING btree (organization_id);
 
 CREATE INDEX index_organization_users_on_org_id_access_level_user_id ON organization_users USING btree (organization_id, access_level, user_id);
 
@@ -34787,6 +34816,9 @@ ALTER TABLE ONLY audit_events_google_cloud_logging_configurations
 ALTER TABLE ONLY geo_node_statuses
     ADD CONSTRAINT fk_rails_0ecc699c2a FOREIGN KEY (geo_node_id) REFERENCES geo_nodes(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY organization_invites
+    ADD CONSTRAINT fk_rails_0f09173189 FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE;
+
 ALTER TABLE ONLY user_synced_attributes_metadata
     ADD CONSTRAINT fk_rails_0f4aa0981f FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
 
@@ -35581,6 +35613,9 @@ ALTER TABLE ONLY milestone_releases
 
 ALTER TABLE ONLY scan_execution_policy_rules
     ADD CONSTRAINT fk_rails_7be2571ecf FOREIGN KEY (security_policy_id) REFERENCES security_policies(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY organization_invites
+    ADD CONSTRAINT fk_rails_7d8f87193d FOREIGN KEY (inviter_user_id) REFERENCES users(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY resource_state_events
     ADD CONSTRAINT fk_rails_7ddc5f7457 FOREIGN KEY (source_merge_request_id) REFERENCES merge_requests(id) ON DELETE SET NULL;

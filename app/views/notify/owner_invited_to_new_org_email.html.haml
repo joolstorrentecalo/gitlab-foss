@@ -1,0 +1,5 @@
+- join_text =  s_('InviteEmail|Join now')
+- join_url = invite_url(@cleartext_token, invite_type: 'org-invite')
+
+%p.invite-actions
+  = link_to join_text, join_url, class: 'invite-btn-join'

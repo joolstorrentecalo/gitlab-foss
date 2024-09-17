@@ -12,6 +12,7 @@ class Notify < ApplicationMailer
   include Emails::Issues
   include Emails::MergeRequests
   include Emails::Notes
+  include Emails::Organizations
   include Emails::PagesDomains
   include Emails::Projects
   include Emails::Profile
