@@ -73,10 +73,12 @@ instance:
     - .qa
   variables:
     QA_SCENARIO: Test::Instance::Image
+    QA_PARALLEL_RUN: true
   rules:
     - !reference [.rules:test:smoke-for-omnibus-mr, rules]
     - !reference [.rules:test:feature-flags-set, rules]  # always run instance to validate ff change
     - !reference [.rules:test:qa-parallel, rules]
+    #- !reference [.rules:test:run-parallel-only-merge-request, rules]
     - if: $QA_SUITES =~ /Test::Instance::All/
 
 instance-selective:
@@ -111,6 +113,7 @@ praefect:
     QA_CAN_TEST_PRAEFECT: "true"
     QA_GITALY_TRANSACTIONS_ENABLED: "false"
     KNAPSACK_TEST_FILE_PATTERN: "qa/specs/features/**/3_create/**/*_spec.rb"
+    QA_PARALLEL_RUN: true
   rules:
     - !reference [.rules:test:smoke-for-omnibus-mr, rules]
     - !reference [.rules:test:qa-parallel, rules]
@@ -154,6 +157,7 @@ gitaly-transactions:
     QA_CAN_TEST_PRAEFECT: "true"
     KNAPSACK_TEST_FILE_PATTERN: "qa/specs/features/**/3_create/**/*_spec.rb"
     QA_GITALY_TRANSACTIONS_ENABLED: "true"
+    QA_PARALLEL_RUN: true
   rules:
     - !reference [.rules:test:qa-parallel, rules]
     - if: $QA_SUITES =~ /Test::Instance::All/
@@ -198,6 +202,7 @@ gitaly-reftables-backend:
     QA_CAN_TEST_PRAEFECT: "true"
     KNAPSACK_TEST_FILE_PATTERN: "qa/specs/features/**/3_create/**/*_spec.rb"
     QA_FEATURE_FLAGS: "gitaly_new_repo_reftable_backend=enabled"
+    QA_PARALLEL_RUN: true
   rules:
     - !reference [.rules:test:qa-parallel, rules]
     - if: $QA_SUITES =~ /Test::Instance::All/
@@ -440,6 +445,7 @@ elasticsearch:
   extends: .qa
   variables:
     QA_SCENARIO: "Test::Integration::Elasticsearch"
+    QA_PARALLEL_RUN: true
   before_script:
     - !reference [.qa, before_script]
   rules:
