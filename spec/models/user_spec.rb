@@ -111,9 +111,6 @@ RSpec.describe User, feature_category: :user_profile do
     it { is_expected.to delegate_method(:dpop_enabled).to(:user_preference) }
     it { is_expected.to delegate_method(:dpop_enabled=).to(:user_preference).with_arguments(:args) }
 
-    it { is_expected.to delegate_method(:use_work_items_view).to(:user_preference) }
-    it { is_expected.to delegate_method(:use_work_items_view=).to(:user_preference).with_arguments(:args) }
-
     it { is_expected.to delegate_method(:job_title).to(:user_detail).allow_nil }
     it { is_expected.to delegate_method(:job_title=).to(:user_detail).with_arguments(:args).allow_nil }
 
@@ -6104,15 +6101,17 @@ RSpec.describe User, feature_category: :user_profile do
         stub_feature_flags(merge_request_dashboard: true)
       end
 
-      it 'returns number of open merge requests from non-archived projects where there are no reviewers' do
+      it 'returns number of open merge requests from non-archived projects where a reviewer has requested changes' do
         user    = create(:user)
         project = create(:project, :public)
         archived_project = create(:project, :public, :archived)
 
-        create(:merge_request, source_project: project, author: user, assignees: [user], reviewers: [user])
-        create(:merge_request, source_project: project, source_branch: 'feature_conflict', author: user, assignees: [user])
+        mr = create(:merge_request, source_project: project, author: user, assignees: [user], reviewers: [user])
+        create(:merge_request, source_project: project, source_branch: 'feature_conflict', author: user, assignees: [user], reviewers: [user])
         create(:merge_request, :closed, source_project: project, author: user, assignees: [user])
         create(:merge_request, source_project: archived_project, author: user, assignees: [user])
+
+        mr.merge_request_reviewers.update_all(state: :requested_changes)
 
         expect(user.assigned_open_merge_requests_count(force: true)).to eq 1
       end
@@ -6142,13 +6141,10 @@ RSpec.describe User, feature_category: :user_profile do
         project = create(:project, :public)
         archived_project = create(:project, :public, :archived)
 
-        mr = create(:merge_request, source_project: project, author: user, reviewers: [user])
-        mr2 = create(:merge_request, source_project: project, source_branch: 'feature_conflict', author: user, assignees: [user], reviewers: create_list(:user, 2))
+        create(:merge_request, source_project: project, author: user, reviewers: [user])
+        create(:merge_request, source_project: project, source_branch: 'feature_conflict', author: user, reviewers: [user])
         create(:merge_request, :closed, source_project: project, author: user, reviewers: [user])
         create(:merge_request, source_project: archived_project, author: user, reviewers: [user])
-
-        mr.merge_request_reviewers.update_all(state: :unreviewed)
-        mr2.merge_request_reviewers.update_all(state: :requested_changes)
 
         expect(user.review_requested_open_merge_requests_count(force: true)).to eq 2
       end
@@ -6549,19 +6545,13 @@ RSpec.describe User, feature_category: :user_profile do
 
       context 'with possible spam contribution' do
         context 'with comments' do
-          before do
-            allow(user).to receive(:has_possible_spam_contributions?).and_call_original
+          it_behaves_like 'schedules the record for deletion with the correct delay' do
+            before do
+              allow(user).to receive(:has_possible_spam_contributions?).and_call_original
 
-            note = create(:note_on_issue, author: user)
-            create(:event, :commented, target: note, author: user)
-          end
-
-          it_behaves_like 'schedules the record for deletion with the correct delay'
-
-          context 'when user is a placeholder' do
-            let(:user) { create(:user, :placeholder, note: "existing note") }
-
-            it_behaves_like 'schedules user for deletion without delay'
+              note = create(:note_on_issue, author: user)
+              create(:event, :commented, target: note, author: user)
+            end
           end
         end
 

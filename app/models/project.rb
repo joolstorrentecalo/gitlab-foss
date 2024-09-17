@@ -846,9 +846,6 @@ class Project < ApplicationRecord
 
   scope :in_organization, ->(organization) { where(organization: organization) }
   scope :by_project_namespace, ->(project_namespace) { where(project_namespace_id: project_namespace) }
-  scope :by_any_overlap_with_traversal_ids, ->(traversal_ids) {
-    joins_namespace.where('namespaces.traversal_ids::bigint[] && ARRAY[?]::bigint[]', traversal_ids)
-  }
 
   scope :not_a_fork, -> {
     left_outer_joins(:fork_network_member).where(fork_network_member: { forked_from_project_id: nil })
@@ -3007,17 +3004,6 @@ class Project < ApplicationRecord
     environments.where("name LIKE (#{::Gitlab::SQL::Glob.to_like(quoted_scope)})") # rubocop:disable GitlabSecurity/SqlInjection
   end
 
-  def batch_loaded_environment_by_name(name)
-    # This code path has caused N+1s in the past, since environments are only indirectly
-    # associated to builds and pipelines; see https://gitlab.com/gitlab-org/gitlab/-/issues/326445
-    # We therefore batch-load them to prevent dormant N+1s until we found a proper solution.
-    BatchLoader.for(name).batch(key: id) do |names, loader, args|
-      Environment.where(name: names, project: args[:key]).find_each do |environment|
-        loader.call(environment.name, environment)
-      end
-    end
-  end
-
   def latest_jira_import
     jira_imports.last
   end
@@ -3443,7 +3429,6 @@ class Project < ApplicationRecord
       self.topics.delete_all
       self.topics = @topic_list.map do |topic_name|
         Projects::Topic
-          .for_organization(organization_id)
           .where('lower(name) = ?', topic_name.downcase)
           .order(total_projects_count: :desc)
           .first_or_create(name: topic_name, title: topic_name, slug: Gitlab::Slug::Path.new(topic_name).generate)

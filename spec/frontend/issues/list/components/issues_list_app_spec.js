@@ -1126,10 +1126,9 @@ describe('CE IssuesListApp component', () => {
       });
 
       it('selects active issuable', () => {
-        expect(findIssuableList().props('activeIssuable')).toEqual({
-          ...getIssuesQueryResponse.data.project.issues.nodes[0],
-          fullPath: defaultProvide.fullPath,
-        });
+        expect(findIssuableList().props('activeIssuable')).toEqual(
+          getIssuesQueryResponse.data.project.issues.nodes[0],
+        );
       });
 
       describe('when closing the drawer', () => {

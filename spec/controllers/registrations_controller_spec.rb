@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe RegistrationsController, :with_current_organization, feature_category: :user_profile do
+RSpec.describe RegistrationsController, feature_category: :user_profile do
   include TermsHelper
   include FullNameHelper
 
@@ -209,6 +209,7 @@ RSpec.describe RegistrationsController, :with_current_organization, feature_cate
                   category: 'RegistrationsController',
                   action: 'accepted',
                   label: 'invite_email',
+                  property: member.id.to_s,
                   user: member.reload.user
                 )
               end

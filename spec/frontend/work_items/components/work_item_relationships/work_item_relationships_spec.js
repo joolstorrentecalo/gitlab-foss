@@ -14,14 +14,10 @@ import workItemLinkedItemsQuery from '~/work_items/graphql/work_item_linked_item
 import WorkItemMoreActions from '~/work_items/components/shared/work_item_more_actions.vue';
 import removeLinkedItemsMutation from '~/work_items/graphql/remove_linked_items.mutation.graphql';
 
-import { useLocalStorageSpy } from 'helpers/local_storage_helper';
-import * as utils from '~/work_items/utils';
 import {
   removeLinkedWorkItemResponse,
   workItemLinkedItemsResponse,
   workItemEmptyLinkedItemsResponse,
-  workItemSingleLinkedItemResponse,
-  mockLinkedItems,
 } from '../../mock_data';
 
 describe('WorkItemRelationships', () => {
@@ -76,7 +72,7 @@ describe('WorkItemRelationships', () => {
   const findLoadingIcon = () => wrapper.findComponent(GlLoadingIcon);
   const findErrorMessage = () => wrapper.findComponent(GlAlert);
   const findEmptyRelatedMessageContainer = () => wrapper.findByTestId('crud-empty');
-  const findLinkedItemsCountBadge = () => wrapper.findByTestId('linked-items-count-bage');
+  const findLinkedItemsCountContainer = () => wrapper.findByTestId('crud-count');
   const findLinkedItemsHelpLink = () => wrapper.findByTestId('help-link');
   const findAllWorkItemRelationshipListComponents = () =>
     wrapper.findAllComponents(WorkItemRelationshipList);
@@ -117,7 +113,7 @@ describe('WorkItemRelationships', () => {
 
     // renders all 3 lists: blocking, blocked by and related to
     expect(findAllWorkItemRelationshipListComponents().length).toBe(3);
-    expect(findLinkedItemsCountBadge().text()).toBe('3');
+    expect(findLinkedItemsCountContainer().text()).toBe('3');
   });
 
   it('shows an alert when list loading fails', async () => {
@@ -148,7 +144,7 @@ describe('WorkItemRelationships', () => {
   it('removes linked item and shows toast message when removeLinkedItem event is emitted', async () => {
     await createComponent();
 
-    expect(findLinkedItemsCountBadge().text()).toBe('3');
+    expect(findLinkedItemsCountContainer().text()).toBe('3');
 
     await findAllWorkItemRelationshipListComponents()
       .at(0)
@@ -165,7 +161,7 @@ describe('WorkItemRelationships', () => {
 
     expect($toast.show).toHaveBeenCalledWith('Linked item removed');
 
-    expect(findLinkedItemsCountBadge().text()).toBe('2');
+    expect(findLinkedItemsCountContainer().text()).toBe('2');
   });
 
   it.each`
@@ -190,18 +186,6 @@ describe('WorkItemRelationships', () => {
   );
 
   describe('more actions', () => {
-    useLocalStorageSpy();
-
-    beforeEach(async () => {
-      jest.spyOn(utils, 'getShowLabelsFromLocalStorage');
-      jest.spyOn(utils, 'saveShowLabelsToLocalStorage');
-      await createComponent();
-    });
-
-    afterEach(() => {
-      localStorage.clear();
-    });
-
     it('renders the `WorkItemMoreActions` component', async () => {
       await createComponent();
 
@@ -231,29 +215,5 @@ describe('WorkItemRelationships', () => {
 
       expect(findAllWorkItemRelationshipListComponents().at(0).props('showLabels')).toBe(true);
     });
-
-    it('calls saveShowLabelsToLocalStorage on toggle', () => {
-      findMoreActions().vm.$emit('toggle-show-labels');
-      expect(utils.saveShowLabelsToLocalStorage).toHaveBeenCalled();
-    });
-
-    it('calls getShowLabelsFromLocalStorage on mount', () => {
-      expect(utils.getShowLabelsFromLocalStorage).toHaveBeenCalled();
-    });
-
-    it.each`
-      ariaLabel                                                              | linkedItemsResponse
-      ${`Task has ${mockLinkedItems.linkedItems.nodes.length} linked items`} | ${workItemLinkedItemsResponse}
-      ${'Task has 1 linked item'}                                            | ${workItemSingleLinkedItemResponse}
-    `(
-      'renders the correct aria labels for the badge count',
-      async ({ ariaLabel, linkedItemsResponse }) => {
-        await createComponent({
-          workItemLinkedItemsHandler: jest.fn().mockResolvedValue(linkedItemsResponse),
-        });
-
-        expect(findLinkedItemsCountBadge().attributes('aria-label')).toBe(ariaLabel);
-      },
-    );
   });
 });

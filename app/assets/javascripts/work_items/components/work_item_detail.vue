@@ -202,7 +202,6 @@ export default {
         },
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     allowedChildTypes: {
       query: getAllowedWorkItemChildTypes,
       variables() {
@@ -371,7 +370,7 @@ export default {
       return !isEmpty(this.workItem);
     },
     isGroupWorkItem() {
-      return Boolean(this.modalIsGroup ?? this.workItem.namespace?.id.includes(TYPENAME_GROUP));
+      return this.modalIsGroup ?? this.workItem.namespace?.id.includes(TYPENAME_GROUP);
     },
   },
   mounted() {
@@ -702,7 +701,7 @@ export default {
               :class="{ 'is-modal': isModal }"
             >
               <work-item-attributes-wrapper
-                :class="{ 'gl-top-11': isDrawer }"
+                :class="{ 'gl-top-3': isDrawer }"
                 :full-path="workItemFullPath"
                 :work-item="workItem"
                 :group-path="groupPath"

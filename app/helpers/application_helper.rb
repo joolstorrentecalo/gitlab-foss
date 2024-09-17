@@ -389,11 +389,7 @@ module ApplicationHelper
 
     url = user.mastodon.match UserDetail::MASTODON_VALIDATION_REGEX
 
-    if url && Feature.enabled?(:verify_mastodon_user, user)
-      external_redirect_path(url: "https://#{url[2]}/@#{url[1]}", rel: 'me')
-    else
-      external_redirect_path(url: "https://#{url[2]}/@#{url[1]}")
-    end
+    external_redirect_path(url: "https://#{url[2]}/@#{url[1]}")
   end
 
   def collapsed_super_sidebar?
@@ -432,16 +428,6 @@ module ApplicationHelper
     content_for :page_specific_styles do
       universal_stylesheet_link_tag path
     end
-  end
-
-  def add_work_items_stylesheet
-    add_page_specific_style('page_bundles/work_items')
-    add_page_specific_style('page_bundles/notes_shared')
-  end
-
-  def add_issuable_stylesheet
-    add_page_specific_style('page_bundles/issuable')
-    add_page_specific_style('page_bundles/notes_shared')
   end
 
   def page_startup_api_calls

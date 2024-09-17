@@ -100,8 +100,8 @@ RSpec.describe MergeRequests::UpdateService, :mailer, feature_category: :code_re
       end
 
       context 'usage counters' do
-        let(:merge_request2) { create(:merge_request, source_project: project) }
-        let(:draft_merge_request) { create(:merge_request, :draft_merge_request, source_project: project) }
+        let(:merge_request2) { create(:merge_request) }
+        let(:draft_merge_request) { create(:merge_request, :draft_merge_request) }
 
         it 'update as expected' do
           expect(Gitlab::UsageDataCounters::MergeRequestActivityUniqueCounter)
@@ -691,12 +691,6 @@ RSpec.describe MergeRequests::UpdateService, :mailer, feature_category: :code_re
 
           expect(user2.review_requested_open_merge_requests_count).to eq(1)
           expect(user3.review_requested_open_merge_requests_count).to eq(0)
-        end
-
-        it 'invalidates assignee merge request count cache' do
-          expect(merge_request.assignees).to all(receive(:invalidate_merge_request_cache_counts))
-
-          update_merge_request(reviewer_ids: [user2.id])
         end
 
         it_behaves_like 'triggers GraphQL subscription mergeRequestReviewersUpdated' do

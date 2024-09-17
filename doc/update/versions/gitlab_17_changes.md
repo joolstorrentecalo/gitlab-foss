@@ -117,19 +117,6 @@ For more information, see the:
 - [Deprecations and removals documentation](../../update/deprecations.md#non-expiring-access-tokens).
 - [Deprecation issue](https://gitlab.com/gitlab-org/gitlab/-/issues/369122).
 
-## Issues to be aware of when upgrading from 17.1 and earlier
-
-- If the customer is using GitLab Duo and upgrading to GitLab 17.2.3 or earlier, they must do both of the following:
-  - Resynchronize their license.
-  - Restart the server after the upgrade.
-- If the customer is using GitLab Duo and upgrading to GitLab 17.2.4 or later, they must do either of the following:
-  - Resynchronize their license.
-  - Wait until the next scheduled license synchronization, which happens every 24 hours.
-
-After the customer has upgraded to GitLab 17.2.4 or later, these steps are not required for future upgrades.
-
-For more information, see [issue 480328](https://gitlab.com/gitlab-org/gitlab/-/issues/480328).
-
 ## Issues to be aware of when upgrading from 17.3
 
 - Migration failures when upgrading from GitLab 17.3.
@@ -138,7 +125,7 @@ For more information, see [issue 480328](https://gitlab.com/gitlab-org/gitlab/-/
 
   ```shell
   main: == [advisory_lock_connection] object_id: 127900, pg_backend_pid: 76263
-  main: == 20240812040748 AddUniqueConstraintToRemoteDevelopmentAgentConfigs: migrating
+  main: == 20240812040748 AddUniqueConstraintToRemoteDevelopmentAgentConfigs: migrating 
   main: -- transaction_open?(nil)
   main:    -> 0.0000s
   main: -- view_exists?(:postgres_partitions)
@@ -179,55 +166,9 @@ For more information, see [issue 480328](https://gitlab.com/gitlab-org/gitlab/-/
    agent_configs_to_remove.delete_all
    ```
 
-## 17.5.0
-
-With the upgrade to OpenSSL version 3:
-
-- GitLab requires TLS 1.2 or higher for all outgoing and incoming TLS connections.
-- TLS/SSL certificates must have at least 112 bits of security. RSA, DSA, and DH keys shorter than 2048 bits, and ECC keys shorter than 224 bits are prohibited.
-
-Older services, such as LDAP and Webhook servers, may still use TLS
-1.1. However, TLS 1.0 and 1.1 have reached end-of-life and are no longer
-considered secure. GitLab will fail to connect to services using TLS
-1.0 or 1.1 with a `no protocols available` error message.
-
-In addition, OpenSSL 3 increased the [default security level from level 1 to 2](https://docs.openssl.org/3.0/man3/SSL_CTX_set_security_level/#default-callback-behaviour),
-raising the number of bits of security from 80 to 112. For example,
-a certificate signed with an RSA key can use RSA-2048 but not RSA-1024. GitLab
-will fail to connect to a service that uses a certificate signed with insufficient
-bits with a `certificate key too weak` error message.
-
-Check the [GitLab documentation on securing your installation](../../security/index.md)
-for more details.
-
-## 17.4.0
-
-- Starting with GitLab 17.4, new GitLab installations have a different database schema regarding ID columns.
-  - All previous integer (32 bits) ID columns (for example columns like `id`, `%_id`, `%_ids`) are now created as `bigint` (64 bits).
-  - Existing installations will migrate from 32 bit to 64 bit integers in later releases when database migrations ship to perform this change.
-  - If you are building a new GitLab environment to test upgrades, install GitLab 17.3 or earlier to get
-    the same integer types as your existing environments. You can then upgrade to later releases to run the same
-    database migrations as your existing environments. This isn't necessary if you're restoring from backup into the
-    new environment as the database restore removes the existing database schema definition and uses the definition
-    that's stored as part of the backup.
-- Git 2.46.0 and later is required by Gitaly. For installations from source, you should use the [Git version provided by Gitaly](../../install/installation.md#git).
-
 ## 17.3.0
 
 - Git 2.45.0 and later is required by Gitaly. For installations from source, you should use the [Git version provided by Gitaly](../../install/installation.md#git).
-
-### Geo installations
-
-- Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
-
-  **Affected releases**:
-
-  | Affected minor releases | Affected patch releases | Fixed in |
-  | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-  | 17.3                    |  All                    | 17.3.1   |
 
 ## 17.2.1
 
@@ -273,20 +214,9 @@ for more details.
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
   | 16.11                   |  All                    | None     |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-
-- Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
-
-  **Affected releases**:
-
-  | Affected minor releases | Affected patch releases | Fixed in |
-  | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-  | 17.3                    |  All                    | 17.3.1   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.2                    |  All                    | None     |
 
 ## 17.1.0
 
@@ -310,20 +240,9 @@ for more details.
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
   | 16.11                   |  All                    | None     |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-
-- Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
-
-  **Affected releases**:
-
-  | Affected minor releases | Affected patch releases | Fixed in |
-  | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-  | 17.3                    |  All                    | 17.3.1   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.2                    |  All                    | None     |
 
 ## 17.0.0
 
@@ -336,17 +255,6 @@ for more details.
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
   | 16.11                   |  All                    | None     |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-
-- Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
-
-  **Affected releases**:
-
-  | Affected minor releases | Affected patch releases | Fixed in |
-  | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-  | 17.3                    |  All                    | 17.3.1   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.2                    |  All                    | None     |

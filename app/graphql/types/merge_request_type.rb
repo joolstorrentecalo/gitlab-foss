@@ -16,8 +16,6 @@ module Types
 
     present_using MergeRequestPresenter
 
-    field :closed_at, Types::TimeType, null: true, complexity: 5,
-      description: 'Timestamp of when the merge request was closed, null if not closed.'
     field :created_at, Types::TimeType, null: false,
       description: 'Timestamp of when the merge request was created.'
     field :description, GraphQL::Types::String, null: true,
@@ -99,11 +97,6 @@ module Types
     field :merge_status_enum, ::Types::MergeRequests::MergeStatusEnum,
       method: :public_merge_status, null: true,
       description: 'Merge status of the merge request.'
-
-    field :merge_after, ::Types::TimeType,
-      null: true,
-      description: 'Date after which the merge request can be merged.',
-      alpha: { milestone: '17.4' }
 
     field :detailed_merge_status, ::Types::MergeRequests::DetailedMergeStatusEnum, null: true,
       calls_gitaly: true,
@@ -332,10 +325,6 @@ module Types
       AutoMergeService.new(object.project, current_user).available_strategies(object)
     end
 
-    def closed_at
-      object.metrics&.latest_closed_at
-    end
-
     def commits
       object.commits.commits
     end
@@ -350,10 +339,6 @@ module Types
 
     def merge_user
       object.metrics&.merged_by || object.merge_user
-    end
-
-    def merge_after
-      object.merge_schedule&.merge_after
     end
 
     def detailed_merge_status

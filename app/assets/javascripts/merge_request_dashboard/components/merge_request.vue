@@ -1,6 +1,6 @@
 <script>
 import { GlLink, GlSprintf, GlIcon, GlTooltipDirective } from '@gitlab/ui';
-import ApprovalCount from 'ee_else_ce/merge_requests/components/approval_count.vue';
+import ApprovalCount from 'ee_else_ce/merge_request_dashboard/components/approval_count.vue';
 import { __, n__, sprintf } from '~/locale';
 import SafeHtml from '~/vue_shared/directives/safe_html';
 import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
@@ -106,20 +106,20 @@ export default {
       <assigned-users :users="mergeRequest.reviewers.nodes" type="REVIEWERS" />
     </td>
     <td class="gl-py-4 gl-pl-3 gl-pr-5 gl-align-top">
-      <div class="gl-flex gl-justify-end gl-gap-3" :aria-label="statsAriaLabel">
+      <div class="gl-flex gl-justify-end" :aria-label="statsAriaLabel">
         <div class="gl-whitespace-nowrap">
           <gl-icon name="comments" class="!gl-align-middle" />
           {{ mergeRequest.userNotesCount }}
         </div>
-        <div class="gl-whitespace-nowrap">
+        <div class="gl-ml-5 gl-whitespace-nowrap">
           <gl-icon name="doc-code" />
           <span>{{ mergeRequest.diffStatsSummary.fileCount }}</span>
         </div>
-        <div class="gl-flex gl-items-center gl-font-bold gl-text-green-600">
+        <div class="gl-ml-3 gl-flex gl-items-center gl-font-bold gl-text-green-600">
           <span>+</span>
           <span>{{ mergeRequest.diffStatsSummary.additions }}</span>
         </div>
-        <div class="gl-flex gl-items-center gl-font-bold gl-text-red-500">
+        <div class="gl-ml-3 gl-flex gl-items-center gl-font-bold gl-text-red-500">
           <span>−</span>
           <span>{{ mergeRequest.diffStatsSummary.deletions }}</span>
         </div>

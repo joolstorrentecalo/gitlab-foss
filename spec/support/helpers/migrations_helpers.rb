@@ -14,7 +14,9 @@ module MigrationsHelpers
     return true unless milestone
 
     migration_milestone = Gitlab::VersionInfo.parse_from_milestone(milestone)
-    min_milestone = Gitlab::Database.min_schema_gitlab_version
+    min_milestone = Gitlab::VersionInfo.parse_from_milestone(
+      ::Gitlab::Database::MIN_SCHEMA_GITLAB_VERSION
+    )
 
     migration_milestone < min_milestone
   end
@@ -141,10 +143,10 @@ module MigrationsHelpers
   end
 
   def finalized_by_version
-    finalized_by = ::Gitlab::Utils::BatchedBackgroundMigrationsDictionary
+    finalized_by = ::Gitlab::Database::BackgroundMigration::BatchedBackgroundMigrationDictionary
       .entry(described_class.to_s.demodulize)&.finalized_by
 
-    finalized_by.to_i if finalized_by.present?
+    finalized_by.to_i if finalized_by
   end
 
   def migration_schema_version

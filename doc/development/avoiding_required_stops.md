@@ -158,8 +158,8 @@ is identified after release, the following steps must still be completed:
    required stop, and the [`upgrade_path.yml`](https://gitlab.com/gitlab-org/gitlab/-/blob/master/config/upgrade_path.yml).
    The `upgrade_path.yml` is the single source of truth (SSoT) for all our required stops.
 1. Communicate the changes with the customer Support and Release management teams.
-1. File an issue with the Database group to squash migrations to that version in the next release. Use this
-   template for your issue:
+1. If the required stops is database related, file an issue with the Database group to
+   squash migrations to that version in the next release. Use this template for your issue:
 
    ```markdown
    Title: `Squash migrations to <Required stop version>`
@@ -176,6 +176,8 @@ is identified after release, the following steps must still be completed:
 
 ### In the release following the required stop
 
+1. Update `Gitlab::Database::MIN_SCHEMA_GITLAB_VERSION` in `lib/gitlab/database.rb` to the
+   new required stop versions. Do not change `Gitlab::Database::MIN_SCHEMA_VERSION`.
 1. In the `charts` project, update the
    [upgrade check hook](https://docs.gitlab.com/charts/development/upgrade_stop.html)
    to the required stop version.

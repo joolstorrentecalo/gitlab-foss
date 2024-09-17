@@ -16,7 +16,7 @@ import { helpPagePath } from '~/helpers/help_page_helper';
 import { noSpacesRegex } from '~/lib/utils/regexp';
 import { getIdFromGraphQLId } from '~/graphql_shared/utils';
 import editModelMutation from '../graphql/mutations/edit_model.mutation.graphql';
-import { MODEL_EDIT_MODAL_ID } from '../constants';
+import { emptyArtifactFile, MODEL_EDIT_MODAL_ID } from '../constants';
 
 export default {
   name: 'ModelEdit',
@@ -41,7 +41,7 @@ export default {
     disableAttachments: {
       type: Boolean,
       required: false,
-      default: false,
+      default: true,
     },
   },
   data() {
@@ -98,6 +98,7 @@ export default {
       } catch (error) {
         Sentry.captureException(error);
         this.errorMessage = error;
+        this.selectedFile = emptyArtifactFile;
       }
     },
     resetModal() {

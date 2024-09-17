@@ -32,11 +32,6 @@ export default {
       required: false,
       default: undefined,
     },
-    category: {
-      type: String,
-      required: false,
-      default: undefined,
-    },
     triggerSource: {
       type: String,
       required: true,
@@ -87,7 +82,6 @@ export default {
     v-if="isButtonTrigger"
     v-bind="componentAttributes"
     :variant="variant"
-    :category="category"
     :icon="icon"
     @click="openModal"
   >

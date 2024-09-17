@@ -108,7 +108,7 @@ qa:metadata-lint:
     - run_timed_command "bundle exec bin/qa Test::Instance::All http://localhost:3000 --test-metadata-only"
     - cd ..
     - run_timed_command "./scripts/qa/testcases-check qa/tmp/test-metadata.json"
-    - run_timed_command "./scripts/qa/quarantine-check qa/tmp/test-metadata.json"
+    - run_timed_command "./scripts/qa/quarantine-types-check qa/tmp/test-metadata.json"
   artifacts:
     expire_in: 31d
     when: always
@@ -156,8 +156,8 @@ e2e:test-on-omnibus-ee:
     RELEASE: "${REGISTRY_HOST}/${REGISTRY_GROUP}/build/omnibus-gitlab-mirror/gitlab-ee:${RELEASE_IMAGE_TAG}"
     PIPELINE_NAME: E2E Omnibus GitLab EE
 
-# Same as e2e:test-on-omnibus-ee but runs automatically after manual:e2e-test-pipeline-generate
-follow-up:e2e:test-on-omnibus-ee:
+# Same as e2e:e2e:test-on-omnibus-ee but runs automatically after manual:e2e-test-pipeline-generate
+follow-up:e2e:e2e:test-on-omnibus-ee:
   extends:
     - e2e:test-on-omnibus-ee
     - .qa:rules:follow-up-e2e
@@ -201,7 +201,7 @@ e2e:test-on-omnibus-ce:
     QA_RUN_TYPE: e2e-test-on-omnibus-ce
     PIPELINE_NAME: E2E Omnibus GitLab CE
 
-e2e:test-on-omnibus-ee-nightly:
+e2e:test-on-omnibus-nightly:
   extends:
     - .e2e-trigger-base
     - .qa:rules:test-on-omnibus-nightly
@@ -210,7 +210,6 @@ e2e:test-on-omnibus-ee-nightly:
     - build-qa-image
     - e2e-test-pipeline-generate
   variables:
-    RELEASE: "${REGISTRY_HOST}/${REGISTRY_GROUP}/build/omnibus-gitlab-mirror/gitlab-ee:${RELEASE_IMAGE_TAG}"
     GITLAB_SEMVER_VERSION: $GITLAB_SEMVER_VERSION
     QA_RUN_TYPE: nightly
     PIPELINE_NAME: E2E Omnibus GitLab Nightly
@@ -240,7 +239,6 @@ e2e:test-product-analytics:
     PIPELINE_NAME: E2E Product Analytics
     GDK_IMAGE: "${CI_REGISTRY_IMAGE}/gitlab-qa-gdk:${CI_COMMIT_SHA}"
     GITLAB_QA_IMAGE: "${CI_REGISTRY_IMAGE}/gitlab-ee-qa:${CI_COMMIT_SHA}"
-    UPSTREAM_COMMIT_SHA: $CI_COMMIT_SHA
   needs:
     - build-gdk-image
     - build-qa-image

@@ -3,7 +3,6 @@ import { GlAlert } from '@gitlab/ui';
 import { sprintf, s__ } from '~/locale';
 import { createAlert } from '~/alert';
 import CrudComponent from '~/vue_shared/components/crud_component.vue';
-import { findWidget } from '~/issues/list/utils';
 import {
   FORM_TYPES,
   WORK_ITEMS_TREE_TEXT,
@@ -13,16 +12,8 @@ import {
   WORK_ITEM_TYPE_ENUM_KEY_RESULT,
   WORK_ITEM_TYPE_ENUM_EPIC,
   CHILD_ITEMS_ANCHOR,
-  WORKITEM_TREE_SHOWLABELS_LOCALSTORAGEKEY,
-  WORK_ITEM_TYPE_VALUE_EPIC,
-  WIDGET_TYPE_HIERARCHY,
 } from '../../constants';
-import {
-  findHierarchyWidgets,
-  getDefaultHierarchyChildrenCount,
-  saveShowLabelsToLocalStorage,
-  getShowLabelsFromLocalStorage,
-} from '../../utils';
+import { findHierarchyWidgets, getDefaultHierarchyChildrenCount } from '../../utils';
 import getWorkItemTreeQuery from '../../graphql/work_item_tree.query.graphql';
 import WorkItemChildrenLoadMore from '../shared/work_item_children_load_more.vue';
 import WorkItemMoreActions from '../shared/work_item_more_actions.vue';
@@ -102,16 +93,13 @@ export default {
       formType: null,
       childType: null,
       widgetName: CHILD_ITEMS_ANCHOR,
-      defaultShowLabels: true,
       showLabels: true,
       fetchNextPageInProgress: false,
       workItem: {},
       disableContent: false,
-      showLabelsLocalStorageKey: WORKITEM_TREE_SHOWLABELS_LOCALSTORAGEKEY,
     };
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     hierarchyWidget: {
       query: getWorkItemTreeQuery,
       variables() {
@@ -141,12 +129,6 @@ export default {
     },
   },
   computed: {
-    workItemHierarchy() {
-      return findWidget(WIDGET_TYPE_HIERARCHY, this.workItem);
-    },
-    rolledUpCountsByType() {
-      return this.workItemHierarchy?.rolledUpCountsByType || [];
-    },
     childrenIds() {
       return this.children.map((c) => c.id);
     },
@@ -177,11 +159,6 @@ export default {
     children() {
       return this.hierarchyWidget?.nodes || [];
     },
-    hasIndirectChildren() {
-      return this.children
-        .map((child) => findHierarchyWidgets(child.widgets) || {})
-        .some((hierarchy) => hierarchy.hasChildren);
-    },
     isLoadingChildren() {
       return this.$apollo.queries.hierarchyWidget.loading;
     },
@@ -203,15 +180,6 @@ export default {
     shouldRolledUpWeightBeVisible() {
       return this.showRolledUpWeight && this.rolledUpWeight !== null;
     },
-    showTaskWeight() {
-      return this.workItemType !== WORK_ITEM_TYPE_VALUE_EPIC;
-    },
-  },
-  mounted() {
-    this.showLabels = getShowLabelsFromLocalStorage(
-      this.showLabelsLocalStorageKey,
-      this.defaultShowLabels,
-    );
   },
   methods: {
     genericActionItems(workItem) {
@@ -242,10 +210,6 @@ export default {
     showModal({ event, child }) {
       this.$emit('show-modal', { event, modalWorkItem: child });
     },
-    toggleShowLabels() {
-      this.showLabels = !this.showLabels;
-      saveShowLabelsToLocalStorage(this.showLabelsLocalStorageKey, this.showLabels);
-    },
     async fetchNextPage() {
       if (this.hasNextPage && !this.fetchNextPageInProgress) {
         this.fetchNextPageInProgress = true;
@@ -275,30 +239,34 @@ export default {
     ref="workItemTree"
     :title="$options.WORK_ITEMS_TREE_TEXT.title"
     :anchor-id="widgetName"
+    :count="childrenIds.length"
+    icon="issue-type-task"
     :is-loading="isLoadingChildren && !fetchNextPageInProgress"
     is-collapsible
     data-testid="work-item-tree"
   >
     <template #count>
       <work-item-rolled-up-data
-        v-if="!isLoadingChildren"
         :work-item-id="workItemId"
         :work-item-iid="workItemIid"
         :work-item-type="workItemType"
-        :rolled-up-counts-by-type="rolledUpCountsByType"
         :full-path="fullPath"
       />
     </template>
 
     <template #actions>
-      <work-item-actions-split-button v-if="canUpdateChildren" :actions="addItemsActions" />
+      <work-item-actions-split-button
+        v-if="canUpdateChildren"
+        :actions="addItemsActions"
+        class="gl-mr-3"
+      />
       <work-item-more-actions
         :work-item-iid="workItemIid"
         :full-path="fullPath"
         :work-item-type="workItemType"
         :show-labels="showLabels"
         show-view-roadmap-action
-        @toggle-show-labels="toggleShowLabels"
+        @toggle-show-labels="showLabels = !showLabels"
       />
     </template>
 
@@ -331,32 +299,28 @@ export default {
       <gl-alert v-if="error" variant="danger" @dismiss="error = undefined">
         {{ error }}
       </gl-alert>
-      <div class="!gl-px-3 gl-pb-3 gl-pt-2">
-        <work-item-children-wrapper
-          :children="children"
-          :parent="workItem"
-          :can-update="canUpdateChildren"
-          :full-path="fullPath"
-          :work-item-id="workItemId"
-          :work-item-iid="workItemIid"
-          :work-item-type="workItemType"
-          :show-labels="showLabels"
-          :disable-content="disableContent"
-          :allowed-child-types="allowedChildTypes"
-          :show-task-weight="showTaskWeight"
-          :has-indirect-children="hasIndirectChildren"
-          @error="error = $event"
-          @show-modal="showModal"
-        />
-        <work-item-children-load-more
-          v-if="hasNextPage"
-          data-testid="work-item-load-more"
-          :class="{ '!gl-pl-5': hasIndirectChildren }"
-          :show-task-weight="showTaskWeight"
-          :fetch-next-page-in-progress="fetchNextPageInProgress"
-          @fetch-next-page="fetchNextPage"
-        />
-      </div>
+
+      <work-item-children-wrapper
+        :children="children"
+        :parent="workItem"
+        :can-update="canUpdateChildren"
+        :full-path="fullPath"
+        :work-item-id="workItemId"
+        :work-item-iid="workItemIid"
+        :work-item-type="workItemType"
+        :show-labels="showLabels"
+        :disable-content="disableContent"
+        :allowed-child-types="allowedChildTypes"
+        @error="error = $event"
+        @show-modal="showModal"
+      />
+      <work-item-children-load-more
+        v-if="hasNextPage"
+        data-testid="work-item-load-more"
+        class="gl-ml-4 gl-pl-1"
+        :fetch-next-page-in-progress="fetchNextPageInProgress"
+        @fetch-next-page="fetchNextPage"
+      />
     </template>
   </crud-component>
 </template>

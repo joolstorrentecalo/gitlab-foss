@@ -22,7 +22,7 @@ Use Pipeline execution policies to enforce CI/CD jobs for all applicable project
 
 ## Pipeline execution policies schema
 
-> - The `suffix` field was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/159858) in GitLab 17.4.
+> - The `suffix` field was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/159858) in GitLab 17.4 [with a flag](../../../administration/feature_flags.md) named `pipeline_execution_policy_suffix`. Disabled by default.
 
 The YAML file with pipeline execution policies consists of an array of objects matching pipeline execution
 policy schema nested under the `pipeline_execution_policy` key. You can configure a maximum of five
@@ -65,7 +65,7 @@ Note the following:
 
 ### Job naming best practice
 
-> - Naming conflict handling [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/473189) in GitLab 17.4.
+> - Naming conflict handling was introduced in GitLab 17.4 with a flag named `pipeline_execution_policy_suffix`. Disabled by default.
 
 There is no visible indicator for jobs coming from a security policy. Adding a unique prefix or suffix to job names makes it easier to identify them and avoid job name collisions.
 
@@ -100,26 +100,6 @@ Example of the resulting jobs:
 - `sast:policy-123456-0`
 - `sast:policy-123456-1`
 
-### Job stage best practice
-
-Jobs defined in a pipeline execution policy can use any [stage](../../../ci/yaml/index.md#stage)
-defined in the project's CI/CD configuration, also the reserved stages `.pipeline-policy-pre` and
-`.pipeline-policy-post`.
-
-NOTE:
-If your policy contains jobs only in the `.pre` and `.post` stages, the policy's pipeline is
-evaluated as "empty" and so is not merged with the project's pipeline. To use `.pre` and `.post`
-stages in a pipeline execution policy, you **must** include another job running in another stage
-which is available on the project, for example `.pipeline-policy-pre`.
-
-When using the `inject_ci` [pipeline strategy](#pipeline-strategies), if a target project does not
-contain its own `.gitlab-ci.yml` file, then the only stages available are the default pipeline
-stages and the reserved stages.
-
-When enforcing pipeline execution policies over projects whose CI/CD configuration you do not
-control, you should define jobs in the `.pipeline-policy-pre` and `.pipeline-policy-post` stages.
-These stages are always available, regardless of any project's CI/CD configuration.
-
 ### `content` type
 
 | Field | Type | Required | Description |
@@ -128,49 +108,12 @@ These stages are always available, regardless of any project's CI/CD configurati
 | `file` | `string` | true | A full file path relative to the root directory (/). The YAML files must have the `.yml` or `.yaml` extension. |
 | `ref` | `string` | false | The ref to retrieve the file from. Defaults to the HEAD of the project when not specified. |
 
-To run pipelines with injected CI/CD configuration, users must have access to the project with the CI/CD configuration.
-
-Starting in GitLab 17.4, users can store the CI/CD configuration in a security policy project repository and grant pipeline execution access to the repository. Projects linked to the security policy project then have access to the repository as a source for security policies.
-You can configure this in the project's general settings for security policy projects.
-
 ### `policy_scope` scope type
-
-> - Scoping by group [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/468384) in GitLab 17.4.
 
 | Field | Type | Possible values | Description |
 |-------|------|-----------------|-------------|
 | `compliance_frameworks` | `array` |  | List of IDs of the compliance frameworks in scope of enforcement, in an array of objects with key `id`. |
-| `projects` | `object` | `including`, `excluding` | Use `excluding:` or `including:` then list the IDs of the projects you wish to include or exclude, in an array of objects with key `id`. |
-| `groups` | `object` | `including` | Use `including:` then list the IDs of the groups you wish to include, in an array of objects with key `id`. |
-
-For example:
-
-Projects with a specific compliance framework:
-
-```yaml
- policy_scope:
-  compliance_frameworks:
-    - id: 1020076
-```
-
-Only a specific set of projects:
-
-```yaml
-policy_scope:
-  projects:
-    including:
-      - id: 61213118
-      - id: 59560885
- ```
-
-All projects except one specific project:
-
-```yaml
-policy_scope:
-  projects:
-    excluding:
-      - id: 59560885
-```
+| `projects` | `object` |  `including`, `excluding` | Use `excluding:` or `including:` then list the IDs of the projects you wish to include or exclude, in an array of objects with key `id`. |
 
 ## Pipeline strategies
 
@@ -184,10 +127,6 @@ Having multiple policies enabled injects all jobs additively.
 
 When using this strategy, a project CI/CD configuration cannot override any behavior defined in the policy pipelines because each pipeline has an isolated YAML configuration.
 
-For projects without a `.gitlab-ci.yml` file, this strategy will create the `.gitlab-ci.yml` file
-implicitly. That is, a pipeline containing only the jobs defined in the pipeline execution policy is
-executed.
-
 ### `override_project_ci`
 
 This strategy completely replaces the project's existing CI/CD configuration with a new one defined by the pipeline execution policy. This strategy is ideal when the entire pipeline needs to be standardized or replaced, such as enforcing organization-wide CI/CD standards or compliance requirements.
@@ -195,14 +134,6 @@ This strategy completely replaces the project's existing CI/CD configuration wit
 The strategy takes precedence over other policies using the `inject_ci` strategy. If any policy with `override_project_ci` applies, the project CI configuration will be ignored. Other security policy configurations will not be overridden.
 
 This strategy allows users to include the project CI/CD configuration in the pipeline execution policy configuration, enabling them to customize the policy jobs. For example, by combining policy and project CI/CD configuration into one YAML file, users can override `before_script` configuration.
-
-NOTE:
-When a pipeline execution policy uses workflow rules that prevent policy jobs from running, the
-project's original CI/CD configuration remains in effect instead of being overridden. You can
-conditionally apply pipeline execution policies to control when the policy impacts the project's
-CI/CD configuration. For example, if you set a workflow rule `if: $CI_PIPELINE_SOURCE ==
-"merge_request_event"`, the project's CI configuration is only overridden when the pipeline source
-is a merge request event.
 
 ### Include a project's CI/CD configuration in the pipeline execution policy configuration
 

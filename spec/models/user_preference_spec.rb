@@ -95,10 +95,6 @@ RSpec.describe UserPreference, feature_category: :user_profile do
     describe 'user belongs to the home organization' do
       let_it_be(:organization) { create(:organization) }
 
-      before do
-        user_preference.home_organization = organization
-      end
-
       context 'when user is an organization user' do
         before do
           create(:organization_user, organization: organization, user: user)
@@ -202,6 +198,69 @@ RSpec.describe UserPreference, feature_category: :user_profile do
     end
   end
 
+  describe '#tab_width' do
+    it 'is set to 8 by default' do
+      # Intentionally not using factory here to test the constructor.
+      pref = described_class.new
+
+      expect(pref.tab_width).to eq(8)
+    end
+
+    it 'returns default value when assigning nil' do
+      pref = described_class.new(tab_width: nil)
+
+      expect(pref.tab_width).to eq(8)
+    end
+  end
+
+  describe '#tab_width=' do
+    it 'sets to default value when nil' do
+      pref = described_class.new(tab_width: nil)
+
+      expect(pref.read_attribute(:tab_width)).to eq(8)
+    end
+
+    it 'sets user values' do
+      pref = described_class.new(tab_width: 12)
+
+      expect(pref.read_attribute(:tab_width)).to eq(12)
+    end
+  end
+
+  describe '#time_display_relative' do
+    it 'is set to true by default' do
+      pref = described_class.new
+
+      expect(pref.time_display_relative).to eq(true)
+    end
+
+    it 'returns default value when assigning nil' do
+      pref = described_class.new(time_display_relative: nil)
+
+      expect(pref.time_display_relative).to eq(true)
+    end
+
+    it 'returns assigned value' do
+      pref = described_class.new(time_display_relative: false)
+
+      expect(pref.time_display_relative).to eq(false)
+    end
+  end
+
+  describe '#time_display_relative=' do
+    it 'sets to default value when nil' do
+      pref = described_class.new(time_display_relative: nil)
+
+      expect(pref.read_attribute(:time_display_relative)).to eq(true)
+    end
+
+    it 'sets user values' do
+      pref = described_class.new(time_display_relative: false)
+
+      expect(pref.read_attribute(:time_display_relative)).to eq(false)
+    end
+  end
+
   describe '#project_shortcut_buttons' do
     it 'is set to true by default' do
       pref = described_class.new
@@ -227,6 +286,40 @@ RSpec.describe UserPreference, feature_category: :user_profile do
       pref = described_class.new(keyboard_shortcuts_enabled: false)
 
       expect(pref.keyboard_shortcuts_enabled).to eq(false)
+    end
+  end
+
+  describe '#render_whitespace_in_code' do
+    it 'is set to false by default' do
+      pref = described_class.new
+
+      expect(pref.render_whitespace_in_code).to eq(false)
+    end
+
+    it 'returns default value when assigning nil' do
+      pref = described_class.new(render_whitespace_in_code: nil)
+
+      expect(pref.render_whitespace_in_code).to eq(false)
+    end
+
+    it 'returns assigned value' do
+      pref = described_class.new(render_whitespace_in_code: true)
+
+      expect(pref.render_whitespace_in_code).to eq(true)
+    end
+  end
+
+  describe '#render_whitespace_in_code=' do
+    it 'sets to default value when nil' do
+      pref = described_class.new(render_whitespace_in_code: nil)
+
+      expect(pref.read_attribute(:render_whitespace_in_code)).to eq(false)
+    end
+
+    it 'sets user values' do
+      pref = described_class.new(render_whitespace_in_code: true)
+
+      expect(pref.read_attribute(:render_whitespace_in_code)).to eq(true)
     end
   end
 

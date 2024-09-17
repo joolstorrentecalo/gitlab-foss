@@ -1,7 +1,6 @@
 <script>
-import { GlLink, GlDrawer, GlButton, GlTooltipDirective } from '@gitlab/ui';
+import { GlLink, GlDrawer } from '@gitlab/ui';
 import { escapeRegExp } from 'lodash';
-import { __ } from '~/locale';
 import deleteWorkItemMutation from '~/work_items/graphql/delete_work_item.mutation.graphql';
 import { TYPE_EPIC, TYPE_ISSUE } from '~/issues/constants';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
@@ -9,13 +8,9 @@ import { visitUrl } from '~/lib/utils/url_utility';
 
 export default {
   name: 'WorkItemDrawer',
-  directives: {
-    GlTooltip: GlTooltipDirective,
-  },
   components: {
     GlLink,
     GlDrawer,
-    GlButton,
     WorkItemDetail: () => import('~/work_items/components/work_item_detail.vue'),
   },
   inject: ['fullPath'],
@@ -36,11 +31,6 @@ export default {
       default: TYPE_ISSUE,
     },
   },
-  data() {
-    return {
-      copyTooltipText: this.$options.i18n.copyTooltipText,
-    };
-  },
   computed: {
     activeItemFullPath() {
       if (this.activeItem?.fullPath) {
@@ -53,11 +43,7 @@ export default {
       return this.activeItem.referencePath.split(delimiter)[0];
     },
     modalIsGroup() {
-      return this.issuableType.toLowerCase() === TYPE_EPIC;
-    },
-    headerReference() {
-      const path = this.activeItemFullPath.substring(this.activeItemFullPath.lastIndexOf('/') + 1);
-      return `${path}#${this.activeItem.iid}`;
+      return this.issuableType === TYPE_EPIC;
     },
   },
   methods: {
@@ -76,12 +62,8 @@ export default {
         Sentry.captureException(error);
       }
     },
-    redirectToWorkItem(e) {
+    redirectToWorkItem() {
       const workItem = this.activeItem;
-      if (e.metaKey || e.ctrlKey) {
-        return;
-      }
-      e.preventDefault();
       const escapedFullPath = escapeRegExp(this.fullPath);
       // eslint-disable-next-line no-useless-escape
       const regex = new RegExp(`groups\/${escapedFullPath}\/-\/(work_items|epics)\/\\d+`);
@@ -98,17 +80,6 @@ export default {
         visitUrl(workItem.webUrl);
       }
     },
-    handleCopyToClipboard() {
-      this.copyTooltipText = this.$options.i18n.copiedTooltipText;
-      setTimeout(() => {
-        this.copyTooltipText = this.$options.i18n.copyTooltipText;
-      }, 2000);
-    },
-  },
-  i18n: {
-    copyTooltipText: __('Copy item URL'),
-    copiedTooltipText: __('Copied'),
-    openTooltipText: __('Open in full page'),
   },
 };
 </script>
@@ -117,45 +88,17 @@ export default {
   <gl-drawer
     :open="open"
     data-testid="work-item-drawer"
-    header-sticky
     header-height="calc(var(--top-bar-height) + var(--performance-bar-height))"
-    class="gl-w-full gl-leading-reset lg:gl-w-[480px] xl:gl-w-[768px] min-[1440px]:gl-w-[912px]"
+    class="gl-w-full gl-leading-reset sm:gl-w-4/10"
     @close="$emit('close')"
   >
     <template #title>
-      <div class="gl-text gl-flex gl-w-full gl-items-center gl-gap-x-2 xl:gl-px-4">
-        <gl-link
-          :href="activeItem.webUrl"
-          class="gl-text-sm gl-font-bold gl-text-default"
-          @click="redirectToWorkItem"
-        >
-          {{ headerReference }}
-        </gl-link>
-        <gl-button
-          v-gl-tooltip
-          data-testid="work-item-drawer-copy-button"
-          :title="copyTooltipText"
-          category="tertiary"
-          class="gl-text-secondary"
-          icon="link"
-          size="small"
-          :aria-label="$options.i18n.copyTooltipText"
-          :data-clipboard-text="activeItem.webUrl"
-          @click="handleCopyToClipboard"
-        />
-        <gl-button
-          v-gl-tooltip
-          data-testid="work-item-drawer-link-button"
-          :href="activeItem.webUrl"
-          :title="$options.i18n.openTooltipText"
-          category="tertiary"
-          class="gl-text-secondary"
-          icon="maximize"
-          size="small"
-          :aria-label="$options.i18n.openTooltipText"
-          @click="redirectToWorkItem"
-        />
-      </div>
+      <gl-link
+        class="gl-text-default"
+        :href="activeItem.webUrl"
+        @click.prevent="redirectToWorkItem"
+        >{{ __('Open full view') }}</gl-link
+      >
     </template>
     <template #default>
       <work-item-detail
@@ -164,7 +107,7 @@ export default {
         :modal-work-item-full-path="activeItemFullPath"
         :modal-is-group="modalIsGroup"
         is-drawer
-        class="work-item-drawer !gl-pt-0 xl:!gl-px-6"
+        class="work-item-drawer !gl-pt-0"
         @deleteWorkItem="deleteWorkItem"
         v-on="$listeners"
       />

@@ -1,11 +1,11 @@
 <script>
 import { GlFilteredSearchToken, GlButton, GlLink, GlIcon, GlTooltipDirective } from '@gitlab/ui';
 import { isEmpty } from 'lodash';
-import ApprovalCount from 'ee_else_ce/merge_requests/components/approval_count.vue';
 import { createAlert } from '~/alert';
 import Api from '~/api';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { STATUS_ALL, STATUS_CLOSED, STATUS_OPEN, STATUS_MERGED } from '~/issues/constants';
+import axios from '~/lib/utils/axios_utils';
 import { fetchPolicies } from '~/lib/graphql';
 import { isPositiveInteger } from '~/lib/utils/number_utils';
 import { scrollUp } from '~/lib/utils/scroll_utils';
@@ -17,8 +17,6 @@ import { DEFAULT_PAGE_SIZE, mergeRequestListTabs } from '~/vue_shared/issuable/l
 import {
   OPERATORS_IS,
   OPERATORS_IS_NOT,
-  TOKEN_TITLE_APPROVED_BY,
-  TOKEN_TYPE_APPROVED_BY,
   TOKEN_TITLE_AUTHOR,
   TOKEN_TYPE_AUTHOR,
   TOKEN_TITLE_DRAFT,
@@ -31,8 +29,6 @@ import {
   TOKEN_TYPE_ASSIGNEE,
   TOKEN_TITLE_REVIEWER,
   TOKEN_TYPE_REVIEWER,
-  TOKEN_TYPE_MERGE_USER,
-  TOKEN_TITLE_MERGE_USER,
   TOKEN_TITLE_MILESTONE,
   TOKEN_TYPE_MILESTONE,
   TOKEN_TITLE_MY_REACTION,
@@ -42,7 +38,6 @@ import {
   TOKEN_TITLE_RELEASE,
   TOKEN_TYPE_RELEASE,
 } from '~/vue_shared/components/filtered_search_bar/constants';
-import { AutocompleteCache } from '~/issues/dashboard/utils';
 import {
   convertToApiParams,
   convertToSearchQuery,
@@ -93,7 +88,6 @@ export default {
     CiIcon,
     MergeRequestStatistics,
     MergeRequestMoreActionsDropdown,
-    ApprovalCount,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -199,19 +193,6 @@ export default {
       const preloadedUsers = [];
       const tokens = [
         {
-          type: TOKEN_TYPE_APPROVED_BY,
-          title: TOKEN_TITLE_APPROVED_BY,
-          icon: 'approval',
-          token: UserToken,
-          dataType: 'user',
-          operators: OPERATORS_IS_NOT,
-          fullPath: this.fullPath,
-          isProject: true,
-          recentSuggestionsStorageKey: `${this.fullPath}-merge_requests-recent-tokens-approved_by`,
-          preloadedUsers,
-          multiSelect: false,
-        },
-        {
           type: TOKEN_TYPE_ASSIGNEE,
           title: TOKEN_TITLE_ASSIGNEE,
           icon: 'user',
@@ -266,21 +247,6 @@ export default {
             { value: 'yes', title: this.$options.i18n.yes },
             { value: 'no', title: this.$options.i18n.no },
           ],
-          unique: true,
-        },
-        {
-          type: TOKEN_TYPE_MERGE_USER,
-          title: TOKEN_TITLE_MERGE_USER,
-          icon: 'merge',
-          token: UserToken,
-          dataType: 'user',
-          defaultUsers: [],
-          operators: OPERATORS_IS,
-          fullPath: this.fullPath,
-          isProject: true,
-          recentSuggestionsStorageKey: `${this.fullPath}-merge_requests-recent-tokens-merged_by`,
-          preloadedUsers,
-          multiselect: false,
           unique: true,
         },
         {
@@ -401,7 +367,6 @@ export default {
   },
   created() {
     this.updateData(this.initialSort);
-    this.autocompleteCache = new AutocompleteCache();
   },
   methods: {
     fetchBranches(search) {
@@ -415,13 +380,8 @@ export default {
           });
         });
     },
-    fetchEmojis(search) {
-      return this.autocompleteCache.fetch({
-        url: this.autocompleteAwardEmojisPath,
-        cacheName: 'emojis',
-        searchProperty: 'name',
-        search,
-      });
+    fetchEmojis() {
+      return axios.get(this.autocompleteAwardEmojisPath);
     },
     fetchLabelsWithFetchPolicy(search, fetchPolicy = fetchPolicies.CACHE_FIRST) {
       return this.$apollo
@@ -600,10 +560,6 @@ export default {
 
     <template #statistics="{ issuable = {} }">
       <merge-request-statistics :merge-request="issuable" />
-    </template>
-
-    <template #approval-status="{ issuable = {} }">
-      <approval-count :merge-request="issuable" full-text />
     </template>
 
     <template #pipeline-status="{ issuable = {} }">

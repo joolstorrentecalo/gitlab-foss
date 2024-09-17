@@ -48,11 +48,6 @@ export default {
       required: false,
       default: null,
     },
-    querySort: {
-      type: String,
-      required: false,
-      default: null,
-    },
     reassigned: {
       type: Boolean,
       required: false,
@@ -68,7 +63,6 @@ export default {
     };
   },
   apollo: {
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     sourceUsers: {
       query: importSourceUsersQuery,
       variables() {
@@ -78,7 +72,6 @@ export default {
           [this.cursor.before ? 'last' : 'first']: DEFAULT_PAGE_SIZE,
           statuses: this.queryStatuses,
           search: this.querySearch,
-          sort: this.querySort,
         };
       },
       skip() {
@@ -227,7 +220,7 @@ export default {
           :label="reassignedUser(item).name"
           :sub-label="`@${reassignedUser(item).username}`"
         />
-        <placeholder-actions v-else :key="item.id" :source-user="item" @confirm="onConfirm(item)" />
+        <placeholder-actions v-else :source-user="item" @confirm="onConfirm(item)" />
       </template>
     </gl-table>
 

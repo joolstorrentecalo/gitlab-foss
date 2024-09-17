@@ -13,7 +13,6 @@ import { DESIGN_NOT_FOUND_ERROR, DESIGN_VERSION_NOT_EXIST_ERROR } from '../error
 import DesignPresentation from './design_presentation.vue';
 import DesignToolbar from './design_toolbar.vue';
 import DesignSidebar from './design_sidebar.vue';
-import DesignScaler from './design_scaler.vue';
 
 const DEFAULT_SCALE = 1;
 const DEFAULT_MAX_SCALE = 2;
@@ -23,7 +22,6 @@ export default {
     DesignPresentation,
     DesignSidebar,
     DesignToolbar,
-    DesignScaler,
     GlAlert,
   },
   inject: ['fullPath'],
@@ -210,11 +208,6 @@ export default {
             disable-commenting
             @setMaxScale="setMaxScale"
           />
-        </div>
-        <div
-          class="design-scaler-wrapper gl-absolute gl-mb-6 gl-flex gl-items-center gl-justify-center"
-        >
-          <design-scaler :max-scale="maxScale" @scale="scale = $event" />
         </div>
         <design-sidebar
           :design="design"

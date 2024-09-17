@@ -28,10 +28,7 @@ export const MODEL_VERSION_CREATION_MODAL_ID = 'create-model-version-modal';
 export const MODEL_CREATION_MODAL_ID = 'create-model-modal';
 export const MODEL_EDIT_MODAL_ID = 'edit-model-modal';
 
-export const UPLOAD_STATUS = {
-  CREATING: 0,
-  PROCESSING: 1,
-  CANCELED: 2,
-  FAILED: 3,
-  SUCCEEDED: 4,
+export const emptyArtifactFile = {
+  file: null,
+  subfolder: '',
 };

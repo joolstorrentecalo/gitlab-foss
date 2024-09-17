@@ -86,7 +86,6 @@ describe('WorkItemAssignees component', () => {
         workItemType: 'Task',
         canUpdate,
         canInviteMembers,
-        isGroup: false,
       },
       apolloProvider,
     });

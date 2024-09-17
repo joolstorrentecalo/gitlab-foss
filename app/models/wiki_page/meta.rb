@@ -6,34 +6,16 @@ class WikiPage
 
     self.table_name = 'wiki_page_meta'
 
-    belongs_to :project, optional: true
-    belongs_to :namespace, optional: true
+    belongs_to :project
 
     has_many :slugs, class_name: 'WikiPage::Slug', foreign_key: 'wiki_page_meta_id', inverse_of: :wiki_page_meta
 
-    validate :project_or_namespace_present?
+    validates :project_id, presence: true
 
     alias_method :resource_parent, :project
 
-    def container_key
-      namespace.present? ? :namespace_id : :project_id
-    end
-
-    def container
-      project || namespace
-    end
-
-    def container=(value)
-      self.project = value if value.is_a?(Project)
-      self.namespace = value if value.is_a?(Namespace)
-    end
-
-    private
-
-    def project_or_namespace_present?
-      return unless (project_id.nil? && namespace_id.nil?) || (project_id.present? && namespace_id.present?)
-
-      errors.add(:base, s_('Wiki|WikiPage::Meta should belong to either project or namespace.'))
+    def self.container_key
+      :project_id
     end
   end
 end

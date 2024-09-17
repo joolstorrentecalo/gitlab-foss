@@ -818,10 +818,7 @@ export default {
       this.viewType = ISSUES_LIST_VIEW_KEY;
     },
     handleSelectIssuable(issuable) {
-      this.activeIssuable = {
-        ...issuable,
-        fullPath: this.fullPath,
-      };
+      this.activeIssuable = issuable;
     },
     updateIssuablesCache(workItem) {
       const client = this.$apollo.provider.clients.defaultClient;
@@ -905,7 +902,6 @@ export default {
     <issuable-list
       v-if="hasAnyIssues"
       :namespace="fullPath"
-      :full-path="fullPath"
       recent-searches-storage-key="issues"
       :search-tokens="searchTokens"
       :has-scoped-labels-feature="hasScopedLabelsFeature"

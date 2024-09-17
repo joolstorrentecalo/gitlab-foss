@@ -88,7 +88,12 @@ export default {
 </script>
 
 <template>
-  <crud-component :title="$options.i18n.title" icon="deployments" :count="freezePeriods.length">
+  <crud-component
+    class="deploy-freeze-table"
+    :title="$options.i18n.title"
+    icon="deployments"
+    :count="freezePeriods.length"
+  >
     <template #actions>
       <gl-button v-gl-modal.deploy-freeze-modal size="small" data-testid="add-deploy-freeze">{{
         $options.i18n.addDeployFreeze

@@ -62,14 +62,6 @@ export const getQueryResponse = {
             conflicts: false,
             sourceBranchExists: true,
             targetBranchExists: true,
-            approved: false,
-            approvedBy: {
-              nodes: [
-                {
-                  id: 1,
-                },
-              ],
-            },
           },
         ],
       },

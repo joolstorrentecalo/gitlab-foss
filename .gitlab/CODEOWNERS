@@ -7,10 +7,10 @@
 .gitlab/CODEOWNERS @gitlab-org/development-leaders @gitlab-org/tw-leadership
 
 ## Allows release tooling and Gitaly team members to update the Gitaly Version
-/GITALY_SERVER_VERSION @project_278964_bot_77e28085fcec07f14dfd31c689824b5b @gitlab-org/maintainers/rails-backend @gitlab-org/delivery @gl-gitaly
+/GITALY_SERVER_VERSION @project_278964_bot6 @gitlab-org/maintainers/rails-backend @gitlab-org/delivery @gl-gitaly
 
 ## Allows release tooling, KAS version maintainers and the delivery team to update the KAS version
-/GITLAB_KAS_VERSION @project_278964_bot_77e28085fcec07f14dfd31c689824b5b @gitlab-org/maintainers/kas-version-maintainers @gitlab-org/maintainers/rails-backend @gitlab-org/delivery
+/GITLAB_KAS_VERSION @project_278964_bot6 @gitlab-org/maintainers/kas-version-maintainers @gitlab-org/maintainers/rails-backend @gitlab-org/delivery
 
 ## Files that are excluded from required approval
 ## These rules override the * rule above, so that changes to docs and templates
@@ -164,7 +164,7 @@ Dangerfile
 /config/upgrade_path.yml
 
 # Secure & Threat Management ownership delineation
-# https://handbook.gitlab.com/handbook/engineering/development/sec/delineate-sec/#technical-boundaries
+# https://about.gitlab.com/handbook/engineering/development/threat-management/delineate-secure-threat-management.html#technical-boundaries
 ^[Threat Insights backend] @gitlab-org/govern/threat-insights-backend-team
 /development/sec/cyclonedx_property_taxonomy.md
 /app/finders/security/
@@ -180,17 +180,6 @@ Dangerfile
 /ee/lib/api/vulnerabilit*.rb
 /ee/spec/policies/vulnerabilities/
 /ee/spec/policies/vulnerability*.rb
-
-^[Threat Insights frontend] @gitlab-org/govern/threat-insights-frontend-team
-/app/assets/javascripts/vue_merge_request_widget/widgets/security_reports/**
-/ee/app/assets/javascripts/vue_merge_request_widget/widgets/security_reports/**
-/ee/app/assets/javascripts/security_dashboard/**
-/ee/spec/frontend/security_dashboard/**
-/ee/app/assets/javascripts/vulnerabilities/**
-/spec/frontend/vue_merge_request_widget/widgets/security_reports/**
-/ee/spec/frontend/vue_merge_request_widget/widgets/security_reports/**
-/ee/app/assets/javascripts/dependencies/**
-/ee/spec/frontend/dependencies/**
 
 ^[Composition Analysis backend] @gitlab-org/secure/composition-analysis-be
 /app/events/package_metadata/
@@ -1068,7 +1057,7 @@ lib/gitlab/checks/**
 /doc/user/project/organize_work_with_projects.md @lciutacu
 /doc/user/project/pages/ @msedlakjakubowski
 /doc/user/project/project_topics.md @lciutacu
-/doc/user/project/repository/branches/protected.md @brendan777
+/doc/user/project/protected_branches.md @brendan777
 /doc/user/project/protected_tags.md @brendan777
 /doc/user/project/quick_actions.md @msedlakjakubowski
 /doc/user/project/releases/ @phillipwells

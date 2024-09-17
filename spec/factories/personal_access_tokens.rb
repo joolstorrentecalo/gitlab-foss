@@ -44,8 +44,4 @@ FactoryBot.define do
       end
     end
   end
-
-  factory :resource_access_token, parent: :personal_access_token do
-    user { association :user, :project_bot }
-  end
 end

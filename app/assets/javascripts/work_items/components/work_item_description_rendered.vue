@@ -16,11 +16,7 @@ import { getSortableDefaultOptions, isDragging } from '~/sortable/utils';
 import { handleLocationHash } from '~/lib/utils/common_utils';
 import { getLocationHash } from '~/lib/utils/url_utility';
 import SafeHtml from '~/vue_shared/directives/safe_html';
-import {
-  WORK_ITEM_TYPE_ENUM_ISSUE,
-  WORK_ITEM_TYPE_ENUM_TASK,
-  WORK_ITEM_TYPE_VALUE_EPIC,
-} from '../constants';
+import { WORK_ITEM_TYPE_ENUM_ISSUE } from '../constants';
 
 const trackingMixin = InternalEvents.mixin();
 
@@ -29,6 +25,7 @@ const CURSOR_GRAB = 'gl-cursor-grab';
 const isCheckbox = (target) => target?.classList.contains('task-list-item-checkbox');
 
 export default {
+  WORK_ITEM_TYPE_ENUM_ISSUE,
   directives: {
     SafeHtml,
     GlTooltip: GlTooltipDirective,
@@ -84,11 +81,6 @@ export default {
     };
   },
   computed: {
-    childItemType() {
-      return this.workItemType === WORK_ITEM_TYPE_VALUE_EPIC
-        ? WORK_ITEM_TYPE_ENUM_ISSUE
-        : WORK_ITEM_TYPE_ENUM_TASK;
-    },
     descriptionText() {
       return this.workItemDescription?.description;
     },
@@ -378,10 +370,10 @@ export default {
       hide-button
       :is-group="isGroup"
       :parent-id="workItemId"
-      :show-project-selector="isGroup"
+      show-project-selector
       :title="childTitle"
       :visible="visible"
-      :work-item-type-name="childItemType"
+      :work-item-type-name="$options.WORK_ITEM_TYPE_ENUM_ISSUE"
       @hideModal="visible = false"
       @workItemCreated="handleWorkItemCreated"
     />

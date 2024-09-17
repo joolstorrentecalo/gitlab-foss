@@ -5,20 +5,14 @@ import { shallowMountExtended, mountExtended } from 'helpers/vue_test_utils_help
 import createMockApollo from 'helpers/mock_apollo_helper';
 import waitForPromises from 'helpers/wait_for_promises';
 import setWindowLocation from 'helpers/set_window_location_helper';
-import {
-  getQueryResponse,
-  getCountsQueryResponse,
-} from 'ee_else_ce_jest/merge_requests/list/mock_data';
-import ApprovalCount from 'ee_else_ce/merge_requests/components/approval_count.vue';
+import { getCountsQueryResponse, getQueryResponse } from 'jest/merge_requests/list/mock_data';
 import { STATUS_CLOSED, STATUS_OPEN, STATUS_MERGED } from '~/issues/constants';
 import { TYPENAME_USER } from '~/graphql_shared/constants';
 import { convertToGraphQLId } from '~/graphql_shared/utils';
 import {
-  TOKEN_TYPE_APPROVED_BY,
   TOKEN_TYPE_AUTHOR,
   TOKEN_TYPE_DRAFT,
   TOKEN_TYPE_LABEL,
-  TOKEN_TYPE_MERGE_USER,
   TOKEN_TYPE_MILESTONE,
   TOKEN_TYPE_MY_REACTION,
   TOKEN_TYPE_SOURCE_BRANCH,
@@ -145,12 +139,10 @@ describe('Merge requests list app', () => {
 
       it('does not have preloaded users when gon.current_user_id does not exist', () => {
         expect(findIssuableList().props('searchTokens')).toMatchObject([
-          { type: TOKEN_TYPE_APPROVED_BY, preloadedUsers: [] },
           { type: TOKEN_TYPE_ASSIGNEE },
           { type: TOKEN_TYPE_REVIEWER, preloadedUsers: [] },
           { type: TOKEN_TYPE_AUTHOR, preloadedUsers: [] },
           { type: TOKEN_TYPE_DRAFT },
-          { type: TOKEN_TYPE_MERGE_USER, preloadedUsers: [] },
           { type: TOKEN_TYPE_MILESTONE },
           { type: TOKEN_TYPE_TARGET_BRANCH },
           { type: TOKEN_TYPE_SOURCE_BRANCH },
@@ -163,12 +155,10 @@ describe('Merge requests list app', () => {
 
     describe('when all tokens are available', () => {
       const urlParams = {
-        'approved_by_usernames[]': 'anthony',
         assignee_username: 'bob',
         reviewer_username: 'bill',
         draft: 'yes',
         'label_name[]': 'fluff',
-        merge_user: 'mallory',
         milestone_title: 'milestone',
         my_reaction_emoji: '🔥',
         'target_branches[]': 'branch-a',
@@ -200,12 +190,10 @@ describe('Merge requests list app', () => {
         ];
 
         expect(findIssuableList().props('searchTokens')).toMatchObject([
-          { type: TOKEN_TYPE_APPROVED_BY, preloadedUsers },
           { type: TOKEN_TYPE_ASSIGNEE },
           { type: TOKEN_TYPE_REVIEWER, preloadedUsers },
           { type: TOKEN_TYPE_AUTHOR, preloadedUsers },
           { type: TOKEN_TYPE_DRAFT },
-          { type: TOKEN_TYPE_MERGE_USER, preloadedUsers },
           { type: TOKEN_TYPE_MILESTONE },
           { type: TOKEN_TYPE_TARGET_BRANCH },
           { type: TOKEN_TYPE_SOURCE_BRANCH },
@@ -217,12 +205,10 @@ describe('Merge requests list app', () => {
 
       it('pre-displays tokens that are in the url search parameters', () => {
         expect(findIssuableList().props('initialFilterValue')).toMatchObject([
-          { type: TOKEN_TYPE_APPROVED_BY },
           { type: TOKEN_TYPE_ASSIGNEE },
           { type: TOKEN_TYPE_REVIEWER },
           { type: TOKEN_TYPE_DRAFT },
           { type: TOKEN_TYPE_LABEL },
-          { type: TOKEN_TYPE_MERGE_USER },
           { type: TOKEN_TYPE_MILESTONE },
           { type: TOKEN_TYPE_MY_REACTION },
           { type: TOKEN_TYPE_TARGET_BRANCH },
@@ -344,17 +330,6 @@ describe('Merge requests list app', () => {
 
         expect(findCannotMergeLink().exists()).toBe(exists);
       },
-    );
-  });
-
-  it('renders approval count component', async () => {
-    createComponent({ mountFn: mountExtended });
-
-    await waitForPromises();
-
-    expect(wrapper.findComponent(ApprovalCount).exists()).toBe(true);
-    expect(wrapper.findComponent(ApprovalCount).props('mergeRequest')).toEqual(
-      getQueryResponse.data.project.mergeRequests.nodes[0],
     );
   });
 });

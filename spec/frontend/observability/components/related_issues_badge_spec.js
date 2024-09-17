@@ -20,8 +20,7 @@ describe('RelatedIssuesBadge', () => {
         issuesTotal: 3,
         loading: false,
         error: null,
-        anchorId: 'anchor',
-        parentScrollingId: 'parent',
+        anchorId: '#anchor',
         ...props,
       },
     });
@@ -40,9 +39,7 @@ describe('RelatedIssuesBadge', () => {
     it('scrolls to the element when clicked', () => {
       findButton().vm.$emit('click');
 
-      expect(scrollToElement).toHaveBeenCalledWith('#anchor', {
-        parent: '#parent',
-      });
+      expect(scrollToElement).toHaveBeenCalledWith('#anchor');
     });
   });
 

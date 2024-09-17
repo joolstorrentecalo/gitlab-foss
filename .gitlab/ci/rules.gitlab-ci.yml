@@ -195,9 +195,6 @@
 .if-dot-com-gitlab-org-default-branch: &if-dot-com-gitlab-org-default-branch
   if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PROJECT_NAMESPACE == "gitlab-org" && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
 
-.if-not-dot-com-gitlab-org-default-branch: &if-not-dot-com-gitlab-org-default-branch
-  if: '$CI_SERVER_HOST != "gitlab.com" || $CI_PROJECT_NAMESPACE != "gitlab-org" || $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"'
-
 .if-dot-com-gitlab-org-merge-request: &if-dot-com-gitlab-org-merge-request
   if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_SERVER_HOST == "gitlab.com" && $CI_PROJECT_NAMESPACE == "gitlab-org"'
 
@@ -710,7 +707,7 @@
 
 .observability-code-patterns: &observability-code-patterns
   # backend
-  - "ee/app/helpers/observability/**/*"
+  - "ee/app/helpers/observability/*"
   - "ee/app/helpers/projects/observability_helper.rb"
   - "lib/gitlab/observability.rb"
   - "ee/lib/ee/gitlab/observability.rb"
@@ -720,10 +717,10 @@
   - "ee/app/controllers/projects/logs_controller.rb"
   - "ee/app/services/observability/**/*"
   # frontend
-  - "app/assets/javascripts/observability/**/*"
-  - "ee/app/assets/javascripts/logs/**/*"
-  - "ee/app/assets/javascripts/metrics/**/*"
-  - "ee/app/assets/javascripts/tracing/**/*"
+  - "app/assets/javascripts/observability/*"
+  - "ee/app/assets/javascripts/logs/*"
+  - "ee/app/assets/javascripts/metrics/*"
+  - "ee/app/assets/javascripts/tracing/*"
 
 ##################
 # Conditions set #
@@ -1305,13 +1302,6 @@
     - !reference [.frontend:rules:default-frontend-jobs, rules]
     - <<: *if-default-refs
       changes: *docs-patterns
-
-
-.frontend:rules:upload-graphql-schema-dump:
-  rules:
-    - <<: *if-not-dot-com-gitlab-org-default-branch
-      when: never
-    - !reference [.frontend:rules:default-frontend-jobs, rules]
 
 # .frontend:rules:default-frontend-jobs, with a additional rules when MR is not approved
 .frontend:rules:frontend_fixture:

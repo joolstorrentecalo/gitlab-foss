@@ -93,16 +93,12 @@ Do not use **Add new**.
 
 ## Admin area
 
-Use:
+To describe this area of the UI, use **Admin** area. The UI button is **Admin**.
 
-- **Admin** area, to describe this area of the UI.
-- **Admin** for the UI button.
-
-Instead of:
+Do not use:
 
 - **Admin area** (with both words as bold)
 - **Admin Area** (with **Area** capitalized)
-- **Admin** Area (with Area capitalized)
 - **administrator area**
 - or other variants
 

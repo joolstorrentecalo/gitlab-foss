@@ -11,9 +11,9 @@ RSpec.describe 'Database schema', feature_category: :database do
 
   IGNORED_INDEXES_ON_FKS = {
     ai_testing_terms_acceptances: %w[user_id], # testing terms only have 1 entry, and if the user is deleted the record should remain
+    application_settings: %w[instance_administration_project_id instance_administrators_group_id],
     ci_build_trace_metadata: [%w[partition_id build_id], %w[partition_id trace_artifact_id]], # the index on build_id is enough
     ci_builds: [%w[partition_id stage_id], %w[partition_id execution_config_id], %w[auto_canceled_by_partition_id auto_canceled_by_id], %w[upstream_pipeline_partition_id upstream_pipeline_id], %w[partition_id commit_id]], # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/142804#note_1745483081
-    ci_build_needs: %w[project_id], # we will create async index, see https://gitlab.com/gitlab-org/gitlab/-/merge_requests/163429#note_2065627176
     ci_daily_build_group_report_results: [%w[partition_id last_pipeline_id]], # index on last_pipeline_id is sufficient
     ci_pipeline_artifacts: [%w[partition_id pipeline_id]], # index on pipeline_id is sufficient
     ci_pipeline_chat_data: [%w[partition_id pipeline_id]], # index on pipeline_id is sufficient
@@ -29,7 +29,6 @@ RSpec.describe 'Database schema', feature_category: :database do
     p_ci_build_trace_metadata: [%w[partition_id build_id], %w[partition_id trace_artifact_id]], # the index on build_id is enough
     p_ci_builds: [%w[partition_id stage_id], %w[partition_id execution_config_id], %w[auto_canceled_by_partition_id auto_canceled_by_id], %w[upstream_pipeline_partition_id upstream_pipeline_id], %w[partition_id commit_id]], # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/142804#note_1745483081
     p_ci_builds_execution_configs: [%w[partition_id pipeline_id]], # the index on pipeline_id is enough
-    p_ci_pipelines: [%w[auto_canceled_by_partition_id auto_canceled_by_id]], # index on auto_canceled_by_id is sufficient
     p_ci_pipeline_variables: [%w[partition_id pipeline_id]], # index on pipeline_id is sufficient
     p_ci_stages: [%w[partition_id pipeline_id]], # the index on pipeline_id is sufficient
     # `search_index_id index_type` is the composite foreign key configured for `search_namespace_index_assignments`,
@@ -46,7 +45,6 @@ RSpec.describe 'Database schema', feature_category: :database do
   # See: https://docs.gitlab.com/ee/development/migration_style_guide.html#dropping-a-database-table
   REMOVED_FKS = {
     # example_table: %w[example_column]
-    alert_management_alerts: %w[prometheus_alert_id]
   }.with_indifferent_access.freeze
 
   # List of columns historically missing a FK, don't add more columns
@@ -76,9 +74,7 @@ RSpec.describe 'Database schema', feature_category: :database do
     chat_teams: %w[team_id],
     ci_builds: %w[project_id runner_id user_id erased_by_id trigger_request_id partition_id auto_canceled_by_partition_id execution_config_id upstream_pipeline_partition_id],
     ci_builds_metadata: %w[partition_id project_id build_id],
-    ci_build_needs: %w[project_id],
     ci_daily_build_group_report_results: %w[partition_id],
-    ci_deleted_objects: %w[project_id],
     ci_job_artifacts: %w[partition_id project_id job_id],
     ci_namespace_monthly_usages: %w[namespace_id],
     ci_pipeline_artifacts: %w[partition_id],
@@ -86,16 +82,15 @@ RSpec.describe 'Database schema', feature_category: :database do
     ci_pipelines_config: %w[partition_id],
     ci_pipeline_messages: %w[partition_id],
     ci_pipeline_metadata: %w[partition_id],
-    ci_pipeline_variables: %w[partition_id pipeline_id project_id],
+    ci_pipeline_variables: %w[partition_id],
     ci_pipelines: %w[partition_id auto_canceled_by_partition_id],
     p_ci_pipelines: %w[partition_id auto_canceled_by_partition_id auto_canceled_by_id],
-    p_ci_runner_machine_builds: %w[project_id],
     ci_runner_projects: %w[runner_id],
     ci_sources_pipelines: %w[partition_id source_partition_id source_job_id],
     ci_sources_projects: %w[partition_id],
     ci_stages: %w[partition_id project_id pipeline_id],
     ci_trigger_requests: %w[commit_id],
-    ci_job_artifact_states: %w[partition_id project_id],
+    ci_job_artifact_states: %w[partition_id],
     cluster_providers_aws: %w[security_group_id vpc_id access_key_id],
     cluster_providers_gcp: %w[gcp_project_id operation_id],
     compliance_management_frameworks: %w[group_id],
@@ -150,9 +145,8 @@ RSpec.describe 'Database schema', feature_category: :database do
     p_catalog_resource_component_usages: %w[used_by_project_id], # No FK constraint because we want to preserve historical usage data
     p_ci_finished_build_ch_sync_events: %w[build_id],
     p_ci_finished_pipeline_ch_sync_events: %w[pipeline_id project_namespace_id],
-    p_ci_job_annotations: %w[partition_id job_id project_id],
     p_ci_job_artifacts: %w[partition_id project_id job_id],
-    p_ci_pipeline_variables: %w[partition_id pipeline_id project_id],
+    p_ci_pipeline_variables: %w[partition_id],
     p_ci_builds_execution_configs: %w[partition_id],
     p_ci_stages: %w[partition_id project_id pipeline_id],
     project_build_artifacts_size_refreshes: %w[last_job_artifact_id],
@@ -182,7 +176,6 @@ RSpec.describe 'Database schema', feature_category: :database do
     vulnerability_identifiers: %w[external_id],
     vulnerability_occurrence_identifiers: %w[project_id],
     vulnerability_scanners: %w[external_id],
-    vulnerability_state_transitions: %w[state_changed_at_pipeline_id],
     security_scans: %w[pipeline_id project_id], # foreign key is not added as ci_pipeline table will be moved into different db soon
     dependency_list_exports: %w[pipeline_id], # foreign key is not added as ci_pipeline table is in different db
     vulnerability_reads: %w[cluster_agent_id namespace_id], # namespace_id is a denormalization of `project.namespace`
@@ -203,8 +196,7 @@ RSpec.describe 'Database schema', feature_category: :database do
     scan_result_policy_violations: %w[approval_policy_rule_id],
     software_license_policies: %w[approval_policy_rule_id],
     ai_testing_terms_acceptances: %w[user_id], # testing terms only have 1 entry, and if the user is deleted the record should remain
-    namespace_settings: %w[early_access_program_joined_by_id], # isn't used inside product itself. Only through Snowflake
-    workspaces_agent_config_versions: %w[item_id] # polymorphic associations
+    namespace_settings: %w[early_access_program_joined_by_id] # isn't used inside product itself. Only through Snowflake
   }.with_indifferent_access.freeze
 
   context 'for table' do
@@ -369,8 +361,7 @@ RSpec.describe 'Database schema', feature_category: :database do
     "RawUsageData" => %w[payload], # Usage data payload changes often, we cannot use one schema
     "Releases::Evidence" => %w[summary],
     "Vulnerabilities::Finding::Evidence" => %w[data], # Validation work in progress
-    "Ai::DuoWorkflows::Checkpoint" => %w[checkpoint metadata], # https://gitlab.com/gitlab-org/gitlab/-/issues/468632
-    "RemoteDevelopment::WorkspacesAgentConfigVersion" => %w[object object_changes] # Managed by paper_trail gem
+    "Ai::DuoWorkflows::Checkpoint" => %w[checkpoint metadata] # https://gitlab.com/gitlab-org/gitlab/-/issues/468632
   }.freeze
 
   # We are skipping GEO models for now as it adds up complexity
@@ -469,10 +460,6 @@ RSpec.describe 'Database schema', feature_category: :database do
 
       expect(problematic_indexes).to be_empty
     end
-  end
-
-  context 'ID columns' do
-    it_behaves_like 'All IDs are bigint'
   end
 
   private

@@ -229,6 +229,7 @@ export default {
           :header-text="headerText"
           :toggle-text="toggleText"
           :no-results-text="$options.i18n.noMatchingResults"
+          positioning-strategy="fixed"
           :items="listItems"
           :selected="localSelectedItem"
           :reset-button-label="resetButton"

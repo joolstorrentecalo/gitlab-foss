@@ -11,7 +11,6 @@ import WorkItemChildrenWrapper from '~/work_items/components/work_item_links/wor
 import WorkItemLinksForm from '~/work_items/components/work_item_links/work_item_links_form.vue';
 import WorkItemActionsSplitButton from '~/work_items/components/work_item_links/work_item_actions_split_button.vue';
 import WorkItemMoreActions from '~/work_items/components/shared/work_item_more_actions.vue';
-import WorkItemRolledUpData from '~/work_items/components/work_item_links/work_item_rolled_up_data.vue';
 import getWorkItemTreeQuery from '~/work_items/graphql/work_item_tree.query.graphql';
 import {
   FORM_TYPES,
@@ -21,16 +20,12 @@ import {
   WORK_ITEM_TYPE_ENUM_ISSUE,
   WORK_ITEM_TYPE_VALUE_EPIC,
   WORK_ITEM_TYPE_VALUE_OBJECTIVE,
-  WORK_ITEM_TYPE_VALUE_TASK,
 } from '~/work_items/constants';
-import { useLocalStorageSpy } from 'helpers/local_storage_helper';
-import * as utils from '~/work_items/utils';
 import {
   workItemHierarchyTreeResponse,
   workItemHierarchyPaginatedTreeResponse,
   workItemHierarchyTreeEmptyResponse,
   workItemHierarchyNoUpdatePermissionResponse,
-  mockRolledUpCountsByType,
 } from '../../mock_data';
 
 jest.mock('~/alert');
@@ -51,8 +46,6 @@ describe('WorkItemTree', () => {
   const findErrorMessage = () => wrapper.findComponent(GlAlert);
   const findWorkItemLinkChildrenWrapper = () => wrapper.findComponent(WorkItemChildrenWrapper);
   const findMoreActions = () => wrapper.findComponent(WorkItemMoreActions);
-  const findCrudComponent = () => wrapper.findComponent(CrudComponent);
-  const findRolledUpData = () => wrapper.findComponent(WorkItemRolledUpData);
 
   const createComponent = async ({
     workItemType = 'Objective',
@@ -63,7 +56,6 @@ describe('WorkItemTree', () => {
     canUpdateChildren = true,
     hasSubepicsFeature = true,
     workItemHierarchyTreeHandler = workItemHierarchyTreeResponseHandler,
-    shouldWaitForPromise = true,
   } = {}) => {
     wrapper = shallowMountExtended(WorkItemTree, {
       propsData: {
@@ -82,10 +74,7 @@ describe('WorkItemTree', () => {
       },
       stubs: { CrudComponent },
     });
-
-    if (shouldWaitForPromise) {
-      await waitForPromises();
-    }
+    await waitForPromises();
   };
 
   it('displays Add button', () => {
@@ -114,20 +103,6 @@ describe('WorkItemTree', () => {
     expect(findWorkItemLinkChildrenWrapper().exists()).toBe(true);
     expect(findWorkItemLinkChildrenWrapper().props().children).toHaveLength(1);
   });
-
-  it.each`
-    workItemType                      | showTaskWeight
-    ${WORK_ITEM_TYPE_VALUE_EPIC}      | ${false}
-    ${WORK_ITEM_TYPE_VALUE_TASK}      | ${true}
-    ${WORK_ITEM_TYPE_VALUE_OBJECTIVE} | ${true}
-  `(
-    'passes `showTaskWeight` as $showTaskWeight when the type is $workItemType',
-    async ({ workItemType, showTaskWeight }) => {
-      await createComponent({ workItemType });
-
-      expect(findWorkItemLinkChildrenWrapper().props().showTaskWeight).toBe(showTaskWeight);
-    },
-  );
 
   it('does not display form by default', () => {
     createComponent();
@@ -230,8 +205,8 @@ describe('WorkItemTree', () => {
       expect(findToggleFormSplitButton().exists()).toBe(false);
     });
 
-    it('passes correct `canUpdate` prop to children wrapper', () => {
-      expect(findWorkItemLinkChildrenWrapper().props('canUpdate')).toBe(false);
+    it('does not display link menu on children', () => {
+      expect(findWorkItemLinkChildrenWrapper().exists()).toBe(false);
     });
   });
 
@@ -286,18 +261,6 @@ describe('WorkItemTree', () => {
   });
 
   describe('more actions', () => {
-    useLocalStorageSpy();
-
-    beforeEach(async () => {
-      jest.spyOn(utils, 'getShowLabelsFromLocalStorage');
-      jest.spyOn(utils, 'saveShowLabelsToLocalStorage');
-      await createComponent();
-    });
-
-    afterEach(() => {
-      localStorage.clear();
-    });
-
     it.each`
       visible | workItemType
       ${true} | ${WORK_ITEM_TYPE_VALUE_EPIC}
@@ -330,39 +293,6 @@ describe('WorkItemTree', () => {
       await nextTick();
 
       expect(findWorkItemLinkChildrenWrapper().props('showLabels')).toBe(true);
-    });
-
-    it('calls saveShowLabelsToLocalStorage on toggle', () => {
-      findMoreActions().vm.$emit('toggle-show-labels');
-      expect(utils.saveShowLabelsToLocalStorage).toHaveBeenCalled();
-    });
-
-    it('calls getShowLabelsFromLocalStorage on mount', () => {
-      expect(utils.getShowLabelsFromLocalStorage).toHaveBeenCalled();
-    });
-  });
-
-  it('renders crud component', async () => {
-    await createComponent();
-
-    expect(findCrudComponent().exists()).toBe(true);
-  });
-
-  it('renders rolled up data only when query is loaded', async () => {
-    createComponent({ shouldWaitForPromise: false });
-
-    expect(findRolledUpData().exists()).toBe(false);
-
-    await waitForPromises();
-
-    expect(findRolledUpData().exists()).toBe(true);
-
-    expect(findRolledUpData().props()).toEqual({
-      workItemId: 'gid://gitlab/WorkItem/2',
-      workItemIid: '2',
-      workItemType: 'Objective',
-      rolledUpCountsByType: mockRolledUpCountsByType,
-      fullPath: 'test/project',
     });
   });
 });

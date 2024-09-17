@@ -132,6 +132,7 @@ describe('WorkItemDevelopment CE', () => {
     .mockResolvedValue(closedWorkItemWithAutoCloseFlagEnabled);
 
   const createComponent = ({
+    isGroup = false,
     workItemId = 'gid://gitlab/WorkItem/1',
     workItemIid = '1',
     workItemFullPath = 'full-path',
@@ -152,6 +153,7 @@ describe('WorkItemDevelopment CE', () => {
         workItemFullPath,
       },
       provide: {
+        isGroup,
         glFeatures: {
           workItemsAlpha: workItemsAlphaEnabled,
         },

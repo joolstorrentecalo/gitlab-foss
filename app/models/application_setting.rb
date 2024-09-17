@@ -8,6 +8,9 @@ class ApplicationSetting < ApplicationRecord
   include IgnorableColumns
   include Sanitizable
 
+  ignore_columns %i[instance_administration_project_id instance_administrators_group_id], remove_with: '16.2', remove_after: '2023-06-22'
+  ignore_columns %i[repository_storages], remove_with: '16.8', remove_after: '2023-12-21'
+  ignore_column :required_instance_ci_template, remove_with: '17.1', remove_after: '2024-05-10'
   ignore_column :sign_in_text_html, remove_with: '17.5', remove_after: '2024-10-17'
   ignore_columns %i[
     encrypted_openai_api_key
@@ -42,8 +45,6 @@ class ApplicationSetting < ApplicationRecord
   PACKAGE_REGISTRY_SETTINGS = [:nuget_skip_metadata_url_validation].freeze
 
   USERS_UNCONFIRMED_SECONDARY_EMAILS_DELETE_AFTER_DAYS = 3
-
-  INACTIVE_RESOURCE_ACCESS_TOKENS_DELETE_AFTER_DAYS = 30
 
   enum whats_new_variant: { all_tiers: 0, current_tier: 1, disabled: 2 }, _prefix: true
   enum email_confirmation_setting: { off: 0, soft: 1, hard: 2 }, _prefix: true
@@ -647,6 +648,11 @@ class ApplicationSetting < ApplicationRecord
 
   jsonb_accessor :importers,
     silent_admin_exports_enabled: [:boolean, { default: false }]
+
+  jsonb_accessor :cluster_agents,
+    receptive_cluster_agents_enabled: [:boolean, { default: false }]
+
+  validates :cluster_agents, json_schema: { filename: 'application_setting_cluster_agents' }
 
   validates :rate_limits, json_schema: { filename: "application_setting_rate_limits" }
 

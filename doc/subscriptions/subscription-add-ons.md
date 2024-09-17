@@ -150,7 +150,7 @@ Prerequisites:
 
 - You must have an active paid Premium or Ultimate subscription. GitLab Duo Pro trials are not available to free users of self-managed at this time.
 - You must have GitLab 16.8 or later and your instance must be able to [synchronize your subscription data](self_managed/index.md#subscription-data-synchronization) with GitLab.
-- GitLab Duo requires GitLab 17.2 and later for the best user experience and results. Earlier versions may continue to work, however the experience may be degraded.
+- For the best GitLab Duo experience, upgrade to the [latest version](https://about.gitlab.com/releases/categories/releases/) of GitLab.
 
 1. Go to the [GitLab Duo Pro trial page](https://about.gitlab.com/solutions/gitlab-duo-pro/self-managed-and-gitlab-dedicated-trial/).
 1. Complete the fields.
@@ -165,21 +165,7 @@ Prerequisites:
 
 The trial automatically syncs to your instance within 24 hours. After the trial has synced, [assign seats](#assign-gitlab-duo-seats) to users that you want to access GitLab Duo.
 
-## Automatic seat removal
-
-GitLab Duo add-on seats are removed automatically to ensure only eligible users have access. This
-happens when there are:
-
-- Seat overages
-- Blocked, banned, and deactivated users
-
-### At subscription expiration
-
-If your subscription containing the GitLab Duo add-on expires, seat assignments are retained for 28 days. If the subscription is renewed, or a new subscription containing GitLab Duo is purchased during this 28-day window, users will be automatically re-assigned.
-
-At the end of the 28 day grace period, seat assignments are removed and users will need to be reassigned.
-
-### For seat overages
+## Automatic seat removal for seat overages
 
 If your quantity of purchased GitLab Duo add-on seats is reduced, seat assignments are automatically removed to match the seat quantity available in the subscription.
 
@@ -193,33 +179,3 @@ Seats are selected for removal based on the following criteria, in this order:
 
 1. Users who have not yet used Code Suggestions, ordered by most recently assigned.
 1. Users who have used Code Suggestions, ordered by least recent usage of Code Suggestions.
-
-### For blocked, banned and deactivated users
-
-Once or twice each day, a CronJob reviews GitLab Duo seat assignments. If a user who is assigned a GitLab Duo seat becomes
-blocked, banned, or deactivated, their access to GitLab Duo features is automatically removed.
-
-After the seat has been removed, it becomes available and can be re-assigned to a new user.
-
-## Changes to GitLab Duo Pro and GitLab Duo Enterprise access
-
-DETAILS:
-**Tier:** Premium, Ultimate
-**Offering:** GitLab.com, Self-managed, GitLab Dedicated
-
-Starting October 17, 2024, customers with a Premium or Ultimate subscription
-must have a GitLab Duo add-on to access AI-powered features.
-
-To [continue using](https://about.gitlab.com/gitlab-duo/) GitLab Duo Pro or GitLab Duo Enterprise features, you can either:
-
-- Start a free trial
-- Purchase GitLab Duo Pro or Duo Enterprise
-
-GitLab Duo Enterprise is available only for Ultimate subscriptions.
-
-If you have already purchased GitLab Duo Pro or Enterprise, to avoid losing access, you must
-assign remaining seats before October 17, 2024.
-
-If you have an Ultimate subscription and purchased GitLab Duo Pro with the option to
-upgrade to Duo Enterprise, you must upgrade before October 17, 2024. If you
-don't upgrade, you will lose access to GitLab Duo Enterprise features.

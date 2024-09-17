@@ -227,7 +227,6 @@ merge_requests:
 - merge_request_context_commits
 - merge_request_context_commit_diff_files
 - merge_request_stage_events
-- merge_schedule
 - events
 - merge_requests_closing_issues
 - cached_closes_issues
@@ -294,8 +293,6 @@ merge_request_diff_files:
 merge_request_context_commits:
 - merge_request
 - diff_files
-merge_schedule:
-- merge_request
 cleanup_schedule:
 - merge_request
 ci_pipelines:
@@ -885,7 +882,6 @@ project:
 - security_policy_management_project_linked_configurations
 - security_policy_project_linked_projects
 - security_policy_project_linked_namespaces
-- security_policy_project_linked_groups
 - relation_import_trackers
 - saved_replies
 - security_policy_project_links
@@ -896,7 +892,6 @@ project:
 - observability_metrics
 - observability_traces
 - observability_logs
-- security_exclusions
 award_emoji:
 - awardable
 - user
@@ -1143,7 +1138,7 @@ approval_rules:
   - approval_project_rules_users
   - approval_project_rules_protected_branches
   - scan_result_policy_read
-  - approval_policy_rule
+  - approval_policy_rules
 approval_project_rules_users:
   - user
   - approval_project_rule

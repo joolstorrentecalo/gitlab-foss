@@ -55,6 +55,7 @@ describe('WorkItemAttributesWrapper component', () => {
 
   const createComponent = ({
     workItem = workItemQueryResponse.data.workItem,
+    workItemsBeta = false,
     workItemsAlpha = false,
     groupPath = '',
     workItemParticipantsQueryHandler = workItemParticipantsQuerySuccessHandler,
@@ -67,11 +68,11 @@ describe('WorkItemAttributesWrapper component', () => {
         fullPath: 'group/project',
         workItem,
         groupPath,
-        isGroup: false,
       },
       provide: {
         hasSubepicsFeature: true,
         glFeatures: {
+          workItemsBeta,
           workItemsAlpha,
         },
       },

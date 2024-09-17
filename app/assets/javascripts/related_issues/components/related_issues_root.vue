@@ -179,7 +179,6 @@ export default {
             if (response && response.data && response.data.message) {
               this.errorMessage = response.data.message;
             }
-            this.isFormVisible = true;
           })
           .finally(() => {
             this.isSubmitting = false;
@@ -283,7 +282,5 @@ export default {
     @addIssuableFormCancel="onPendingFormCancel"
     @pendingIssuableRemoveRequest="onPendingIssueRemoveRequest"
     @relatedIssueRemoveRequest="onRelatedIssueRemoveRequest"
-    @showForm="isFormVisible = true"
-    @hideForm="isFormVisible = false"
   />
 </template>
