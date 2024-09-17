@@ -73,10 +73,12 @@ instance:
     - .qa
   variables:
     QA_SCENARIO: Test::Instance::Image
+    QA_PARALLEL_RUN: false
   rules:
     - !reference [.rules:test:smoke-for-omnibus-mr, rules]
     - !reference [.rules:test:feature-flags-set, rules]  # always run instance to validate ff change
     - !reference [.rules:test:qa-parallel, rules]
+    #- !reference [.rules:test:run-parallel-only-merge-request, rules]
     - if: $QA_SUITES =~ /Test::Instance::All/
 
 instance-selective:
