@@ -67,6 +67,8 @@ module Gitlab
 
           def revert_partitioning
             migration_context.with_lock_retries(raise_on_exhaustion: true) do
+              drop_foreign_keys_from_partition
+
               migration_context.execute(<<~SQL)
                 ALTER TABLE #{connection.quote_table_name(parent_table_name)}
                 DETACH PARTITION #{connection.quote_table_name(table_name)};
@@ -197,6 +199,14 @@ module Gitlab
                   LIKE #{quote_table_name(table_name)} INCLUDING ALL
               ) PARTITION BY LIST(#{quote_column_name(partitioning_column)})
             SQL
+          end
+
+          def drop_foreign_keys_from_partition
+            Gitlab::Database::PostgresForeignKey.by_referenced_table_name(table_name).not_inherited.each do |fk|
+              next if fk.constrained_table_name == table_name.to_s
+
+              migration_context.remove_foreign_key_if_exists(fk.constrained_table_name, name: fk.name)
+            end
           end
 
           def attach_foreign_keys_to_parent
