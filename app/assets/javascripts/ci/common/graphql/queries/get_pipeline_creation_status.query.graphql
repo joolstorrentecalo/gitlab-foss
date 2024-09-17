@@ -1,0 +1,9 @@
+query getPipelineCreationStatus($fullPath: ID!, $id: String!) {
+  project(fullPath: $fullPath) {
+    id
+    ciPipelineCreation(id: $id) {
+      pipelineId
+      status
+    }
+  }
+}

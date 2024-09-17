@@ -1,0 +1,8 @@
+subscription pipelineCreationStatusSubscription($issuableId: IssuableID!) {
+  pipelineCreationStatusUpdated(issuableId: $issuableId) {
+    ... on ciPipelineCreation {
+      pipelineId
+      status
+    }
+  }
+}

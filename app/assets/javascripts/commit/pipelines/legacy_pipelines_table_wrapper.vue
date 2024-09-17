@@ -5,6 +5,7 @@ import { getParameterByName } from '~/lib/utils/url_utility';
 import PipelinesTable from '~/ci/common/pipelines_table.vue';
 import { PIPELINE_ID_KEY } from '~/ci/constants';
 import eventHub from '~/ci/event_hub';
+import PipelineCreationStatus from '~/ci/common/pipeline_creation_status.vue';
 import PipelinesMixin from '~/ci/pipeline_details/mixins/pipelines_mixin';
 import PipelinesService from '~/ci/pipelines_page/services/pipelines_service';
 import PipelineStore from '~/ci/pipeline_details/stores/pipelines_store';
@@ -19,6 +20,7 @@ export default {
     GlLoadingIcon,
     GlModal,
     GlSprintf,
+    PipelineCreationStatus,
     PipelinesTable,
     TablePagination,
   },
@@ -77,6 +79,7 @@ export default {
     const store = new PipelineStore();
 
     return {
+      isCreatingPipeline: 'SUCCEEDED',
       store,
       state: store.state,
       page: getParameterByName('page') || '1',
@@ -175,6 +178,9 @@ export default {
         mergeRequestId: this.mergeRequestId,
         isAsync: this.isMergeRequestTable,
       });
+    },
+    onPipelineCreationStatusUpdated(status) {
+      this.isCreatingPipeline = status === 'CREATING';
     },
     tryRunPipeline() {
       if (!this.shouldShowSecurityWarning) {
@@ -291,13 +297,13 @@ export default {
         variant="confirm"
         data-testid="run_pipeline_button_mobile"
         :loading="state.isRunningMergeRequestPipeline"
-        @click="tryRunPipeline"
+        @click="onClick"
       >
         {{ $options.i18n.runPipelineText }}
       </gl-button>
 
       <pipelines-table
-        :is-creating-pipeline="state.isRunningMergeRequestPipeline"
+        :is-creating-pipeline="isCreatingPipeline"
         :pipeline-id-type="$options.pipelineIdKey"
         :pipelines="state.pipelines"
         :update-graph-dropdown="updateGraphDropdown"
@@ -308,13 +314,21 @@ export default {
       >
         <template #table-header-actions>
           <div v-if="canRenderPipelineButton" class="gl-text-right">
-            <gl-button
-              data-testid="run_pipeline_button"
-              :loading="state.isRunningMergeRequestPipeline"
-              @click="tryRunPipeline"
+            <pipeline-creation-status
+              :id="mergeRequestId.toString()"
+              :full-path="sourceProjectFullPath"
+              @updated="onPipelineCreationStatusUpdated"
             >
-              {{ $options.i18n.runPipelineText }}
-            </gl-button>
+              <template #default="{ isCreating }">
+                <gl-button
+                  data-testid="run_pipeline_button"
+                  :loading="isCreating"
+                  @click="tryRunPipeline"
+                >
+                  {{ $options.i18n.runPipelineText }}
+                </gl-button>
+              </template>
+            </pipeline-creation-status>
           </div>
         </template>
       </pipelines-table>
