@@ -4917,14 +4917,3 @@ export const mockMoveWorkItemMutationResponse = ({ error = undefined } = {}) => 
     },
   },
 });
-
-export const mockUserPreferences = (useWorkItemsView = true) => ({
-  data: {
-    currentUser: {
-      id: '1',
-      userPreferences: {
-        useWorkItemsView,
-      },
-    },
-  },
-});

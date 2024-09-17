@@ -128,13 +128,7 @@ describe('ImportArtifactZone', () => {
       expect(wrapper.emitted('change')).toStrictEqual([[]]);
     });
 
-    it('does not show any alert initially', async () => {
-      await emulateFileDrop();
-
-      expect(alert().exists()).toBe(false);
-    });
-
-    it('shows success alert', async () => {
+    it('shows and success alert', async () => {
       await emulateFileDrop();
       await waitForPromises();
 

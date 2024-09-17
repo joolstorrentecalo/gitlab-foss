@@ -68,7 +68,7 @@ export default {
       if (!this.states.length) {
         return null;
       }
-      const someRunning = this.states.some((s) => s === STATUS.CREATING || s === STATUS.PROCESSING);
+      const someRunning = this.states.some((s) => s === STATUS.CREATING);
 
       if (someRunning) {
         return null;
