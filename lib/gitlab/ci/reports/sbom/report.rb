@@ -12,7 +12,7 @@ module Gitlab
           VERSION = 1
 
           attr_reader :source, :errors
-          attr_accessor :sbom_attributes, :metadata, :components
+          attr_accessor :sbom_attributes, :metadata, :components, :created_at
 
           def initialize
             @sbom_attributes = {
