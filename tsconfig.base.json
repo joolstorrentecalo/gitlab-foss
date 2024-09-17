@@ -1,0 +1,67 @@
+{
+  "include": [
+    "app/assets/javascripts/locale/*.js",
+    "app/assets/javascripts/locale/*.d.ts",
+    "@types"
+  ],
+  "exclude": [
+    "node_modules",
+    // excluding compiled translations
+    "app/assets/javascripts/locale/**/app.js",
+  ],
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig.json to read more about this file */
+
+    /* Basic Options */
+    "target": "ESNext",                       /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */
+    "module": "commonjs",                     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */
+    "lib": ["ESNext", "DOM"],                 /* Specify library files to be included in the compilation. */
+    "allowJs": true,                          /* Allow javascript files to be compiled. */
+    "checkJs": true,                          /* Report errors in .js files. */
+    "noEmit": true,                           /* Do not emit outputs. */
+
+    /* Strict Type-Checking Options */
+    "strict": true,                           /* Enable all strict type-checking options. */
+    "alwaysStrict": true,                     /* Parse in strict mode and emit "use strict" for each source file. */
+
+    /* Module Resolution Options */
+    "baseUrl": ".",                           /* Base directory to resolve non-absolute module names. */
+    "paths": {                                /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
+      "@sentry/browser": [
+        "app/assets/javascripts/sentry/sentry_browser_wrapper.js"
+      ],
+      "~/*": ["app/assets/javascripts/*"],
+      "emojis/*": ["fixtures/emojis/*"],
+      "images/*": ["app/assets/images/*"],
+      "vendor/*": ["vendor/assets/javascripts/*"],
+      "shared_queries/*": ["app/graphql/queries/*"],
+      "ee_else_ce/*": ["ee/app/assets/javascripts/*"],
+      "jh_else_ce/*": ["app/assets/javascripts/*"],
+      "any_else_ce/*": ["ee/app/assets/javascripts/*"],
+      "spec/test_constants$/*": ["spec/frontend/__helpers__/test_constants/*"],
+      "ee_else_ce_jest/*": ["ee/spec/frontend/*"],
+      "helpers/*": ["spec/frontend/__helpers__/*"],
+      "jest/*": ["spec/frontend/*"],
+      "test_fixtures/*": ["tmp/tests/frontend/fixtures-ee/*"],
+      "test_fixtures_static/*": ["spec/frontend/fixtures/static/*"],
+      "test_helpers/*": ["spec/frontend_integration/test_helpers/*"],
+      "public/*": ["public/*"],
+      "storybook_addons/*": ["storybook/config/addons/*"],
+      "ee/*": ["ee/app/assets/javascripts/*"],
+      "ee_component/*": ["ee/app/assets/javascripts/*"],
+      "ee_images/*": ["ee/app/assets/images/*"],
+      "jh_else_ee/*": ["ee/app/assets/javascripts/*"],
+      "ee_jest/*": ["ee/spec/frontend/*"],
+      "apollo-client": ["@apollo/client"],
+      "apollo-link": ["@apollo/link"]
+    },
+    "typeRoots": ["./@types/"],               /* List of folders to include type definitions from. */
+    "types": [],                              /* Type declaration files to be included in compilation. */
+    "allowSyntheticDefaultImports": true,     /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
+    "esModuleInterop": true,                  /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
+
+    /* Advanced Options */
+    "skipLibCheck": false,                    /* Skip type checking of declaration files. */
+    "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
+  }
+}

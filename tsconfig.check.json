@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "app/assets/javascripts/locale/*.js",
+    "@types"
+  ],
+  "compilerOptions": {
+    "skipLibCheck": true,                    /* Skip type checking of declaration files. */
+  }
+}

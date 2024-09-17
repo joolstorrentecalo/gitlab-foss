@@ -45,11 +45,12 @@ async function createJsConfig() {
   const jsConfig = {
     // As we're introducing jsconfig to the project, as a precaution we add both:
     // 'include' and 'exclude' options. This might be simplified in the future.
-    exclude: ['node_modules', 'vendor'],
+    exclude: ['node_modules', 'vendor', 'app/assets/javascripts/locale/**/app.js'],
 
     // 'include' is currently manually defined. We might want to append manually
     // defined paths with paths from aliases
     include: [
+      '@types',
       'app/assets/javascripts',
       'ee/app/assets/javascripts',
       'spec/frontend',
@@ -66,6 +67,8 @@ async function createJsConfig() {
 
     compilerOptions: {
       baseUrl: '.', // Define the project root
+      typeRoots: ['./@types/'],
+      lib: ['ES2020', 'DOM', 'DOM.Iterable'],
       checkJs: false, // Disable type checking on JavaScript files
       disableSizeLimit: true, // Disable memory size limit for the language server
       skipLibCheck: true, // Skip type checking all .d.ts files
