@@ -19083,6 +19083,9 @@ msgstr[1] ""
 msgid "DesignManagement|Add a description"
 msgstr ""
 
+msgid "DesignManagement|Add design"
+msgstr ""
+
 msgid "DesignManagement|Adding a design with the same filename replaces the file in a new version."
 msgstr ""
 
@@ -19131,6 +19134,9 @@ msgstr ""
 msgid "DesignManagement|Could not delete comment. Please try again."
 msgstr ""
 
+msgid "DesignManagement|Could not find design."
+msgstr ""
+
 msgid "DesignManagement|Could not update comment. Please try again."
 msgstr ""
 
@@ -19177,6 +19183,9 @@ msgid "DesignManagement|Go to previous design"
 msgstr ""
 
 msgid "DesignManagement|Hide comments"
+msgstr ""
+
+msgid "DesignManagement|Requested design version does not exist."
 msgstr ""
 
 msgid "DesignManagement|Requested design version does not exist. Showing latest version instead"

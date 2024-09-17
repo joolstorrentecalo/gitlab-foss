@@ -153,8 +153,10 @@ export default {
             :href="`#${anchorId}`"
             :aria-labelledby="anchorId"
           />
-          <slot v-if="$scopedSlots.title" name="title"></slot>
-          <template v-else>{{ title }}</template>
+          <span class="gl-py-1">
+            <slot v-if="$scopedSlots.title" name="title"></slot>
+            <template v-else>{{ title }}</template>
+          </span>
 
           <span
             v-if="displayedCount || $scopedSlots.count"
