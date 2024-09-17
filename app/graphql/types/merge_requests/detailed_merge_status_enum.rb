@@ -66,6 +66,9 @@ module Types
       value 'SECURITY_POLICIES_EVALUATING',
         value: :security_policy_evaluation,
         description: 'All security policies must be evaluated.'
+      value 'MERGE_TIME',
+        value: :merge_time,
+        description: 'Merge request must be merged after the configured time.'
     end
   end
 end
