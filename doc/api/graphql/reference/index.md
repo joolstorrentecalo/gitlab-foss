@@ -30397,6 +30397,23 @@ Returns [`MergeRequest`](#mergerequest).
 | ---- | ---- | ----------- |
 | <a id="projectmergerequestiid"></a>`iid` | [`String!`](#string) | IID of the merge request, for example `1`. |
 
+##### `Project.mergeRequestViolations`
+
+Compliance violations reported on merge requests merged within the project.
+
+Returns [`ComplianceViolationConnection`](#complianceviolationconnection).
+
+This field returns a [connection](#connections). It accepts the
+four standard [pagination arguments](#pagination-arguments):
+`before: String`, `after: String`, `first: Int`, and `last: Int`.
+
+###### Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="projectmergerequestviolationsfilters"></a>`filters` | [`ComplianceViolationInput`](#complianceviolationinput) | Filters applied when retrieving compliance violations. |
+| <a id="projectmergerequestviolationssort"></a>`sort` | [`ComplianceViolationSort`](#complianceviolationsort) | List compliance violations by sort order. |
+
 ##### `Project.mergeRequests`
 
 Merge requests of the project.
