@@ -3975,4 +3975,39 @@ RSpec.describe Group, feature_category: :groups_and_projects do
       })
     end
   end
+
+  describe '#crm_group' do
+    let!(:crm_group) { create(:group) }
+    let!(:root_group) { create(:group) }
+    let!(:parent_group) { create(:group, parent: root_group) }
+    let!(:child_group) { create(:group, parent: parent_group) }
+
+    context 'when the group has a source_group_id' do
+      let!(:crm_settings) { create(:crm_settings, group: child_group, source_group: crm_group) }
+
+      it 'returns the source_group' do
+        expect(child_group.crm_group).to eq(crm_group)
+      end
+    end
+
+    context 'when the group does not have a source_group_id but is a root group' do
+      it 'returns the root group' do
+        expect(root_group.crm_group).to eq(root_group)
+      end
+    end
+
+    context 'when the group has no source_group_id and is not a root group' do
+      context 'when a parent group has a source_group_id' do
+        let!(:crm_settings) { create(:crm_settings, group: parent_group, source_group: crm_group) }
+
+        it 'traverses up the hierarchy and returns the first group with a source_group_id' do
+          expect(child_group.crm_group).to eq(crm_group)
+        end
+      end
+
+      it 'returns the root group if no groups in the hierarchy have a source_group_id' do
+        expect(child_group.crm_group).to eq(root_group)
+      end
+    end
+  end
 end

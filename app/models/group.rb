@@ -20,6 +20,7 @@ class Group < Namespace
   include ChronicDurationAttribute
   include RunnerTokenExpirationInterval
   include Importable
+  include IdInOrdered
 
   extend ::Gitlab::Utils::Override
 
@@ -135,6 +136,7 @@ class Group < Namespace
   has_many :group_callouts, class_name: 'Users::GroupCallout', foreign_key: :group_id
 
   has_many :protected_branches, inverse_of: :group, foreign_key: :namespace_id
+  has_many :crm_targets, class_name: 'Group::CrmSettings', inverse_of: :source_group
 
   has_one :group_feature, inverse_of: :group, class_name: 'Groups::FeatureSetting'
 
@@ -1020,6 +1022,21 @@ class Group < Namespace
       full_path: full_path
     }
   end
+
+  def crm_group
+    Group.id_in_ordered(traversal_ids.reverse)
+      .joins(:crm_settings)
+      .where.not(crm_settings: { source_group_id: nil })
+      .first&.crm_settings&.source_group || root_ancestor
+  end
+  strong_memoize_attr :crm_group
+
+  def crm_group?
+    return true if root? && crm_settings&.source_group_id.nil?
+
+    crm_targets.present?
+  end
+  strong_memoize_attr :crm_group?
 
   private
 
