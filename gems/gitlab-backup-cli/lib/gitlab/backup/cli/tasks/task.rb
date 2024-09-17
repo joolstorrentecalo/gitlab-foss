@@ -33,7 +33,7 @@ module Gitlab
           def restore!(archive_directory)
             archived_data_location = Pathname(archive_directory).join(destination_path)
 
-            target.restore(archived_data_location, nil)
+            target.restore(archived_data_location, options.backup_id)
           end
 
           # Key string that identifies the task

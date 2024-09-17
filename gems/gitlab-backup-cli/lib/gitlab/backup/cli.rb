@@ -12,6 +12,7 @@ module Gitlab
     # GitLab Backup CLI
     module Cli
       autoload :BackupExecutor, 'gitlab/backup/cli/backup_executor'
+      autoload :BaseExecutor, 'gitlab/backup/cli/base_executor'
       autoload :Commands, 'gitlab/backup/cli/commands'
       autoload :Dependencies, 'gitlab/backup/cli/dependencies'
       autoload :Errors, 'gitlab/backup/cli/errors'

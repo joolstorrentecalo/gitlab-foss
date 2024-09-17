@@ -18,7 +18,8 @@ module Gitlab
             restore_executor =
               Gitlab::Backup::Cli::RestoreExecutor.new(
                 context: build_context,
-                backup_id: backup_id
+                backup_id: backup_id,
+                backup_options: executor_options
               )
 
             duration = measure_duration do
@@ -50,6 +51,10 @@ module Gitlab
             yield
 
             ActiveSupport::Duration.build(Time.now - start)
+          end
+
+          def executor_options
+            parent_options.select { |key, _| BaseExecutor::CMD_OPTIONS.include?(key) }
           end
         end
       end

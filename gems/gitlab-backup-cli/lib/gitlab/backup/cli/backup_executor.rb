@@ -10,9 +10,8 @@ module Gitlab
       #
       # It also allows for multiple backups to happen in parallel
       # without one overwriting data from another
-      class BackupExecutor
-        attr_reader :context, :metadata, :workdir, :archive_directory, :backup_bucket, :wait_for_completion,
-          :registry_bucket, :service_account_file
+      class BackupExecutor < BaseExecutor
+        attr_reader :context, :metadata, :workdir, :archive_directory
 
         # @param [Gitlab::Backup::Cli::SourceContext] context
         def initialize(context:, backup_options: {})
@@ -20,10 +19,7 @@ module Gitlab
           @metadata = build_metadata
           @workdir = create_temporary_workdir!
           @archive_directory = context.backup_basedir.join(metadata.backup_id)
-          @backup_bucket = backup_options["backup_bucket"]
-          @registry_bucket = backup_options["registry_bucket"]
-          @wait_for_completion = backup_options["wait_for_completion"]
-          @service_account_file = backup_options["service_account_file"]
+          super(backup_options: backup_options)
         end
 
         def execute

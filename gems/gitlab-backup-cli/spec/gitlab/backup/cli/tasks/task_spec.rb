@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Gitlab::Backup::Cli::Tasks::Task do
-  let(:options) { nil }
+  let(:options) { instance_double("::Backup::Option", backup_id: "abc123") }
   let(:context) { build_fake_context }
   let(:tmpdir) { Pathname.new(Dir.mktmpdir('task', temp_path)) }
   let(:metadata) { build(:backup_metadata) }
