@@ -185,6 +185,15 @@ include:
       variables:
         QA_RSPEC_TAGS: "--tag ~smoke --tag ~orchestrated --tag ~skip_live_env --tag ~transient"
 
+.rules:test:run-parallel-only-merge-request:
+  rules:
+    - <<: *if-schedule-pipeline
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train"'
+      variables:
+        QA_PARALLEL_RUN: true
+
+
 # ------------------------------------------
 # Report
 # ------------------------------------------
