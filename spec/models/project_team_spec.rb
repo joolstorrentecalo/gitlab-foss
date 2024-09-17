@@ -658,7 +658,7 @@ RSpec.describe ProjectTeam, feature_category: :groups_and_projects do
       [maintainer, reporter, promoted_guest, guest, group_developer, second_developer, user_without_access].map(&:id)
     end
 
-    let(:expected) do
+    let(:expected_ce) do
       {
         maintainer.id => Gitlab::Access::MAINTAINER,
         reporter.id => Gitlab::Access::REPORTER,
@@ -668,6 +668,16 @@ RSpec.describe ProjectTeam, feature_category: :groups_and_projects do
         second_developer.id => Gitlab::Access::MAINTAINER,
         user_without_access.id => Gitlab::Access::NO_ACCESS
       }
+    end
+
+    let(:expected_ee) do
+      expected_ce.transform_values do |level|
+        { access_level: level, member_role_name: nil }
+      end
+    end
+
+    let(:expected) do
+      Gitlab.ee? ? expected_ee : expected_ce
     end
 
     before do
@@ -719,7 +729,7 @@ RSpec.describe ProjectTeam, feature_category: :groups_and_projects do
         second_new_user = create(:user)
         all_users = users + [new_user.id, second_new_user.id]
 
-        expected_all = expected.merge(
+        expected_ce.merge!(
           new_user.id => Gitlab::Access::NO_ACCESS,
           second_new_user.id => Gitlab::Access::NO_ACCESS
         )
@@ -732,7 +742,7 @@ RSpec.describe ProjectTeam, feature_category: :groups_and_projects do
         expect(queries.log_message).to match(/\W#{new_user.id}\W/)
         expect(queries.log_message).to match(/\W#{second_new_user.id}\W/)
         expect(queries.log_message).not_to match(/\W#{promoted_guest.id}\W/)
-        expect(access_levels(all_users)).to eq(expected_all)
+        expect(access_levels(all_users)).to eq(expected)
       end
     end
 

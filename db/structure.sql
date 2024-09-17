@@ -16236,7 +16236,8 @@ CREATE TABLE project_authorizations (
     user_id bigint NOT NULL,
     project_id bigint NOT NULL,
     access_level integer NOT NULL,
-    is_unique boolean
+    is_unique boolean,
+    member_role_id bigint
 );
 
 CREATE TABLE project_auto_devops (
@@ -33919,6 +33920,9 @@ ALTER TABLE p_ci_builds
 
 ALTER TABLE ONLY approval_group_rules_users
     ADD CONSTRAINT fk_888a0df3b7 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY project_authorizations
+    ADD CONSTRAINT fk_88a59c7b2d FOREIGN KEY (member_role_id) REFERENCES member_roles(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY bulk_import_entities
     ADD CONSTRAINT fk_88c725229f FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;

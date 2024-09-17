@@ -8,6 +8,8 @@ class ProjectAuthorization < ApplicationRecord
   belongs_to :user
   belongs_to :project
 
+  delegate :group, to: :project, allow_nil: true
+
   validates :project, presence: true
   validates :access_level, inclusion: { in: Gitlab::Access.all_values }, presence: true
   validates :user, uniqueness: { scope: :project }, presence: true
