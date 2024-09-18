@@ -30582,6 +30582,8 @@ CREATE INDEX index_topics_on_name ON topics USING btree (name);
 
 CREATE INDEX index_topics_on_name_trigram ON topics USING gin (name gin_trgm_ops);
 
+CREATE INDEX index_topics_on_non_private_projects_count_and_organization_id ON topics USING btree (non_private_projects_count DESC, organization_id);
+
 CREATE UNIQUE INDEX index_topics_on_organization_id_and_name ON topics USING btree (organization_id, name);
 
 CREATE UNIQUE INDEX index_topics_on_organization_id_slug_and ON topics USING btree (organization_id, slug) WHERE (slug IS NOT NULL);

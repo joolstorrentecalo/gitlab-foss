@@ -118,13 +118,16 @@ class Explore::ProjectsController < Explore::ApplicationController
   end
 
   def load_topics
-    @topics = Projects::TopicsFinder.new(params: params.permit(:search)).execute.page(pagination_params[:page]).without_count
+    @topics = Projects::TopicsFinder.new(
+      params: params.permit(:search),
+      organization_id: ::Current.organization_id
+    ).execute.page(pagination_params[:page]).without_count
   end
 
   def load_topic
     topic_name = Feature.enabled?(:explore_topics_cleaned_path) ? URI.decode_www_form_component(params[:topic_name]) : params[:topic_name]
 
-    @topic = Projects::Topic.find_by_name_case_insensitive(topic_name)
+    @topic = Projects::Topic.for_organization(::Current.organization_id).find_by_name_case_insensitive(topic_name)
   end
 
   # rubocop: disable CodeReuse/ActiveRecord

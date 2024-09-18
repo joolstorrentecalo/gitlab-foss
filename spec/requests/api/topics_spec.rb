@@ -2,23 +2,24 @@
 
 require 'spec_helper'
 
-RSpec.describe API::Topics, :with_current_organization, :aggregate_failures, feature_category: :groups_and_projects do
+RSpec.describe API::Topics, :aggregate_failures, :with_current_public_organization, feature_category: :groups_and_projects do
   include WorkhorseHelpers
 
   let_it_be(:file) { fixture_file_upload('spec/fixtures/dk.png') }
+  let_it_be(:namespace) { create(:namespace, organization: current_organization) }
 
   let_it_be(:topic_1) { create(:topic, name: 'Git', total_projects_count: 1, non_private_projects_count: 1, avatar: file, organization: current_organization) }
   let_it_be(:topic_2) { create(:topic, name: 'GitLab', total_projects_count: 2, non_private_projects_count: 2, organization: current_organization) }
   let_it_be(:topic_3) { create(:topic, name: 'other-topic', total_projects_count: 3, non_private_projects_count: 3, organization: current_organization) }
 
-  let_it_be(:admin) { create(:user, :admin, organization: current_organization) }
-  let_it_be(:user) { create(:user, organization: current_organization) }
+  let_it_be(:admin) { create(:user, :admin, namespace: namespace) }
+  let_it_be(:user) { create(:user, namespace: namespace) }
 
   let(:path) { '/topics' }
 
   describe 'GET /topics' do
     it 'returns topics ordered by total_projects_count' do
-      get api(path)
+      get api(path, user)
 
       expect(response).to have_gitlab_http_status(:ok)
       expect(response).to include_pagination_headers
@@ -39,7 +40,9 @@ RSpec.describe API::Topics, :with_current_organization, :aggregate_failures, fea
     end
 
     context 'with without_projects' do
-      let_it_be(:topic_4) { create(:topic, name: 'unassigned topic', total_projects_count: 0) }
+      let_it_be(:topic_4) do
+        create(:topic, organization: current_organization, name: 'unassigned topic', total_projects_count: 0)
+      end
 
       it 'returns topics without assigned projects' do
         get api(path), params: { without_projects: true }

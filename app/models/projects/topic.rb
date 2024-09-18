@@ -44,6 +44,10 @@ module Projects
     end
 
     class << self
+      def find_by_id_and_organization!(id, organization_id)
+        find_by!(id: id, organization_id: organization_id)
+      end
+
       def find_by_name_case_insensitive(name)
         find_by('LOWER(name) = ?', name.downcase)
       end
