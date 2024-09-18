@@ -42,7 +42,7 @@ module Ci
           Tagging
             .merge(unscoped.scoped_tagging)
             .where(context: :tags)
-            .where(tag_id: Tag.where(name: name))
+            .where(tag_id: Tag.where("name ~* ?", name))
         )
       end
 

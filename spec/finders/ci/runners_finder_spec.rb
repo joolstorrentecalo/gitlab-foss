@@ -455,6 +455,22 @@ RSpec.describe Ci::RunnersFinder, feature_category: :fleet_visibility do
                 it 'returns correct runner' do
                   expect(subject).to match_array([runner_project_5])
                 end
+
+                context 'when searching using part of the tag name' do
+                  let(:extra_params) { { tag_name: %w[unner] } }
+
+                  it 'returns correct runner' do
+                    expect(subject).to match_array([runner_project_5])
+                  end
+                end
+
+                context 'when searching using regular expression' do
+                  let(:extra_params) { { tag_name: %w[^r.*n.*r] } }
+
+                  it 'returns correct runner' do
+                    expect(subject).to match_array([runner_project_5])
+                  end
+                end
               end
 
               context 'by runner type' do
