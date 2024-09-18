@@ -19,6 +19,7 @@ module MergeRequests
       merge_request.mark_as_merged
 
       create_event(merge_request)
+      publish_event_store_event(merge_request)
       todo_service.merge_merge_request(merge_request, current_user)
 
       merge_request_activity_counter.track_merge_mr_action(user: current_user)
@@ -49,6 +50,10 @@ module MergeRequests
     end
 
     private
+
+    def publish_event_store_event(merge_request)
+      Gitlab::EventStore.publish MergeRequests::MergedEvent.new(data: { merge_request_id: merge_request.id })
+    end
 
     def close_issues(merge_request)
       return unless merge_request.target_branch == project.default_branch
