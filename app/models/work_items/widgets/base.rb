@@ -29,6 +29,16 @@ module WorkItems
         end
       end
 
+      def self.sync_data_callback_class
+        ::WorkItems::DataSync::Widgets.const_get(name.demodulize, false)
+      rescue NameError
+        nil
+      end
+
+      def sync_data_callback_class
+        @sync_data_callback_class ||= self.class.sync_data_callback_class
+      end
+
       def type
         self.class.type
       end

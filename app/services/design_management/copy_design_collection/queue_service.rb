@@ -18,7 +18,16 @@ module DesignManagement
 
         target_design_collection.start_copy!
 
-        DesignManagement::CopyDesignCollectionWorker.perform_async(current_user.id, issue.id, target_issue.id)
+        # adding local variables as instance variables will be evaluated in context of `target_issue` object, so these
+        # instance variables will no longer be available, see AfterCommitQueue#run_after_commit_or_now
+        current_user_id = current_user.id
+        issue_id = issue.id
+        target_issue_id = target_issue.id
+
+        # this needs to run `after commit` if this service is called from a transaction somehow, or `now` otherwise.
+        target_issue.run_after_commit_or_now do
+          DesignManagement::CopyDesignCollectionWorker.perform_async(current_user_id, issue_id, target_issue_id)
+        end
 
         ServiceResponse.success
       end
