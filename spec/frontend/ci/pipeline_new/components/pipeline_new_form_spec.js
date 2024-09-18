@@ -39,7 +39,6 @@ Vue.use(VueApollo);
 
 jest.mock('~/lib/utils/url_utility', () => ({
   visitUrl: jest.fn(),
-  joinPaths: jest.fn(),
 }));
 
 const pipelinesPath = '/root/project/-/pipelines';
