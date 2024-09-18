@@ -1808,10 +1808,30 @@ RSpec.describe Ci::Pipeline, :mailer, factory_default: :keep, feature_category: 
         expect(pipeline).to be_dangling
       end
 
-      it 'returns true if pipeline comes from any CI sources' do
+      it 'returns false if pipeline comes from any CI sources' do
         pipeline.source = Enums::Ci::Pipeline.ci_sources.each_key.first
 
         expect(pipeline).not_to be_dangling
+      end
+    end
+
+    describe '#dangling_except_pipeline_execution_policy?' do
+      it 'returns true if pipeline comes from any dangling sources except pipeline_execution_policy' do
+        pipeline.source = Enums::Ci::Pipeline.dangling_sources.each_key.first
+
+        expect(pipeline).to be_dangling_except_pipeline_execution_policy
+      end
+
+      it 'returns false if pipeline comes from pipeline_execution_policy' do
+        pipeline.source = 'pipeline_execution_policy'
+
+        expect(pipeline).not_to be_dangling_except_pipeline_execution_policy
+      end
+
+      it 'returns false if pipeline comes from any CI sources' do
+        pipeline.source = Enums::Ci::Pipeline.ci_sources.each_key.first
+
+        expect(pipeline).not_to be_dangling_except_pipeline_execution_policy
       end
     end
 

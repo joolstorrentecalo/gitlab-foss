@@ -50,7 +50,8 @@ module Enums
           ondemand_dast_validation: 14,
           security_orchestration_policy: 15,
           container_registry_push: 16,
-          duo_workflow: 17
+          duo_workflow: 17,
+          pipeline_execution_policy: 18
         }
       end
 
@@ -66,7 +67,7 @@ module Enums
       # - when a container_registry_push pipeline runs it is for security testing purpose and should
       #   not affect the ref CI status.
       def self.dangling_sources
-        sources.slice(:webide, :parent_pipeline, :ondemand_dast_scan, :ondemand_dast_validation, :security_orchestration_policy, :container_registry_push, :duo_workflow)
+        sources.slice(:webide, :parent_pipeline, :ondemand_dast_scan, :ondemand_dast_validation, :security_orchestration_policy, :container_registry_push, :duo_workflow, :pipeline_execution_policy)
       end
 
       # CI sources are those pipeline events that affect the CI status of the ref
@@ -85,6 +86,10 @@ module Enums
 
       def self.ci_and_security_orchestration_sources
         ci_sources.merge(sources.slice(:security_orchestration_policy))
+      end
+
+      def self.dangling_sources_except_pipeline_execution_policy
+        dangling_sources.except(:pipeline_execution_policy)
       end
 
       # Returns the `Hash` to use for creating the `config_sources` enum for
