@@ -48,6 +48,27 @@ module Emails
       mail_with_locale(to: user.notification_email_for(project.group), subject: subject("Project cleanup failure"))
     end
 
+    def repository_rewrite_history_success_email(project, user)
+      @project = project
+      @user = user
+
+      mail_with_locale(
+        to: user.notification_email_for(project.group),
+        subject: subject("Project history rewrite has completed")
+      )
+    end
+
+    def repository_rewrite_history_failure_email(project, user, error)
+      @project = project
+      @user = user
+      @error = error
+
+      mail_with_locale(
+        to: user.notification_email_for(project.group),
+        subject: subject("Project history rewrite failure")
+      )
+    end
+
     def repository_push_email(project_id, opts = {})
       @message =
         Gitlab::Email::Message::RepositoryPush.new(self, project_id, opts)
