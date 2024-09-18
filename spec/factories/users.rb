@@ -21,8 +21,9 @@ FactoryBot.define do
                     true
                   end
 
-      # TODO: Remove usage of default organization https://gitlab.com/gitlab-org/gitlab/-/issues/446293
-      user.assign_personal_namespace(create(:organization, :default)) if assign_ns
+      org = Organizations::Organization.order(:created_at).first || create(:organization)
+
+      user.assign_personal_namespace(org) if assign_ns
     end
 
     trait :without_default_org do

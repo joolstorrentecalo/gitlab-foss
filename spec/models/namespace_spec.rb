@@ -11,6 +11,7 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
   let_it_be(:project_sti_name) { Namespaces::ProjectNamespace.sti_name }
   let_it_be(:user_sti_name) { Namespaces::UserNamespace.sti_name }
 
+  let_it_be(:organization) { create(:organization) }
   let!(:namespace) { create(:namespace, :with_namespace_settings) }
   let(:gitlab_shell) { Gitlab::Shell.new }
   let(:repository_storage) { 'default' }
@@ -859,8 +860,8 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
     end
 
     context 'when made a child group' do
-      let!(:namespace) { create(:group) }
-      let!(:parent_namespace) { create(:group, children: [namespace]) }
+      let!(:parent_namespace) { create(:group) }
+      let!(:namespace) { create(:group, parent: parent_namespace) }
 
       it 'returns database value' do
         expect(namespace.traversal_ids).to eq [parent_namespace.id, namespace.id]
@@ -868,9 +869,9 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
     end
 
     context 'when root_ancestor changes' do
-      let(:old_root) { create(:group) }
+      let(:old_root) { create(:group, organization: organization) }
       let(:namespace) { create(:group, parent: old_root) }
-      let(:new_root) { create(:group) }
+      let(:new_root) { create(:group, organization: organization) }
 
       it 'resets root_ancestor memo' do
         expect(namespace.root_ancestor).to eq old_root
@@ -930,8 +931,8 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
   end
 
   context 'traversal_ids on update' do
-    let(:namespace1) { create(:group) }
-    let(:namespace2) { create(:group) }
+    let(:namespace1) { create(:group, organization: organization) }
+    let(:namespace2) { create(:group, organization: organization) }
 
     context 'when parent_id is changed' do
       subject { namespace1.update!(parent: namespace2) }
@@ -971,7 +972,7 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
   end
 
   describe "after_commit :expire_child_caches" do
-    let(:namespace) { create(:group) }
+    let(:namespace) { create(:group, organization: organization) }
 
     it "expires the child caches when updated" do
       child_1 = create(:group, parent: namespace, updated_at: 1.week.ago)
@@ -1005,7 +1006,8 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
     it "expires on parent changes" do
       expect(namespace).to receive(:expire_child_caches).once
 
-      namespace.update!(parent: create(:group))
+      new_parent = create(:group, organization: organization)
+      namespace.update!(parent: new_parent)
     end
 
     it "doesn't expire on other field changes" do
@@ -1854,10 +1856,10 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
 
     context 'when a group is transferred into a root group' do
       context 'when the root group "Share with group lock" is enabled' do
-        let(:root_group) { create(:group, share_with_group_lock: true) }
+        let(:root_group) { create(:group, share_with_group_lock: true, organization: organization) }
 
         context 'when the subgroup "Share with group lock" is enabled' do
-          let(:subgroup) { create(:group, share_with_group_lock: true) }
+          let(:subgroup) { create(:group, share_with_group_lock: true, organization: organization) }
 
           it 'the subgroup "Share with group lock" does not change' do
             subgroup.parent = root_group
@@ -1868,7 +1870,7 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
         end
 
         context 'when the subgroup "Share with group lock" is disabled' do
-          let(:subgroup) { create(:group) }
+          let(:subgroup) { create(:group, organization: organization) }
 
           it 'the subgroup "Share with group lock" becomes enabled' do
             subgroup.parent = root_group
@@ -1880,10 +1882,10 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
       end
 
       context 'when the root group "Share with group lock" is disabled' do
-        let(:root_group) { create(:group) }
+        let(:root_group) { create(:group, organization: organization) }
 
         context 'when the subgroup "Share with group lock" is enabled' do
-          let(:subgroup) { create(:group, share_with_group_lock: true) }
+          let(:subgroup) { create(:group, share_with_group_lock: true, organization: organization) }
 
           it 'the subgroup "Share with group lock" does not change' do
             subgroup.parent = root_group
@@ -1894,7 +1896,7 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
         end
 
         context 'when the subgroup "Share with group lock" is disabled' do
-          let(:subgroup) { create(:group) }
+          let(:subgroup) { create(:group, organization: organization) }
 
           it 'the subgroup "Share with group lock" does not change' do
             subgroup.parent = root_group
@@ -2052,8 +2054,8 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
 
     context 'when a parent is assigned to a group with no previous parent' do
       it 'returns the path before last save' do
-        group = create(:group, parent: nil)
-        parent = create(:group)
+        group = create(:group, parent: nil, organization: organization)
+        parent = create(:group, organization: organization)
 
         group.update!(parent: parent)
 
@@ -2074,9 +2076,9 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
 
     context 'when changing parents' do
       it 'returns the previous parent full path' do
-        parent = create(:group)
+        parent = create(:group, organization: organization)
         group = create(:group, parent: parent)
-        new_parent = create(:group)
+        new_parent = create(:group, organization: organization)
 
         group.update!(parent: new_parent)
 
@@ -2502,10 +2504,10 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
   end
 
   context 'Namespaces::SyncEvent' do
-    let!(:namespace) { create(:group) }
+    let!(:namespace) { create(:group, organization: organization) }
 
-    let_it_be(:new_namespace1) { create(:group) }
-    let_it_be(:new_namespace2) { create(:group) }
+    let_it_be(:new_namespace1) { create(:group, organization: organization) }
+    let_it_be(:new_namespace2) { create(:group, organization: organization) }
 
     context 'when creating the namespace' do
       it 'creates a namespaces_sync_event record' do
@@ -2529,8 +2531,9 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
       end
 
       it 'creates a namespaces_sync_event for the parent and all the descendent namespaces' do
-        children_namespaces = create_list(:group, 2, parent_id: namespace.id)
-        grand_children_namespaces = create_list(:group, 2, parent_id: children_namespaces.first.id)
+        children_namespaces = create_list(:group, 2, parent_id: namespace.id, organization: organization)
+        grand_children_namespaces = create_list(:group, 2, parent_id: children_namespaces.first.id, organization:
+                                                organization)
         expect(Namespaces::ProcessSyncEventsWorker).to receive(:perform_async).exactly(:once)
         Namespaces::SyncEvent.delete_all
 

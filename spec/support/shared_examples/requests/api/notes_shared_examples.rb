@@ -198,7 +198,7 @@ RSpec.shared_examples 'noteable API' do |parent_type, noteable_type, id_name|
         context 'by a group owner' do
           it 'sets the creation time on the new note' do
             user2 = create(:user)
-            group = create(:group)
+            group = create(:group, organization: organization)
             group.add_owner(user2)
             parent.update!(namespace: group)
             user2.refresh_authorized_projects

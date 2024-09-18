@@ -116,7 +116,7 @@ FactoryBot.define do
 
           children.times do
             factory_name = parent.model_name.singular
-            child = FactoryBot.create(factory_name, parent: parent)
+            child = FactoryBot.create(factory_name, parent: parent, organization: parent.organization)
             create_graph(parent: child, children: children, depth: depth - 1)
           end
 
