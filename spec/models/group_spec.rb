@@ -2303,6 +2303,13 @@ RSpec.describe Group, feature_category: :groups_and_projects do
     let_it_be(:developer) { group.add_member(create(:user), GroupMember::DEVELOPER) }
     let_it_be(:other_developer) { group.add_member(create(:user), GroupMember::DEVELOPER) }
 
+    let_it_be(:ancestor_group_project) { create(:project, group: group) }
+    let_it_be(:ancestor_group_project_member) { ancestor_group_project.add_maintainer(create(:user)) }
+
+    let_it_be(:project) { create(:project, group: sub_group) }
+    let_it_be(:project_member) { project.add_maintainer(create(:user)) }
+    let_it_be(:blocked_project_member) { project.add_maintainer(create(:user, :blocked)) }
+
     describe '#hierarchy_members' do
       it 'returns parents members' do
         expect(group.hierarchy_members).to include(developer)
@@ -2329,15 +2336,20 @@ RSpec.describe Group, feature_category: :groups_and_projects do
     end
 
     describe '#descendant_project_members_with_inactive' do
-      let_it_be(:ancestor_group_project) { create(:project, group: group) }
-      let_it_be(:ancestor_group_project_member) { ancestor_group_project.add_maintainer(create(:user)) }
-
-      let_it_be(:project) { create(:project, group: sub_group) }
-      let_it_be(:project_member) { project.add_maintainer(create(:user)) }
-      let_it_be(:blocked_project_member) { project.add_maintainer(create(:user, :blocked)) }
-
       it 'returns members of descendant projects' do
         expect(sub_group.descendant_project_members_with_inactive).to contain_exactly(project_member, blocked_project_member)
+      end
+    end
+
+    describe '#descendant_project_members' do
+      it 'returns active members of descendant projects' do
+        expect(sub_group.descendant_project_members).to contain_exactly(project_member)
+      end
+    end
+
+    describe '#project_users' do
+      it 'returns active users of descendant projects' do
+        expect(sub_group.project_users).to contain_exactly(project_member.user)
       end
     end
   end

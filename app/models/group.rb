@@ -716,6 +716,18 @@ class Group < Namespace
       .non_invite
   end
 
+  def descendant_project_members
+    ProjectMember
+      .with_source_id(all_projects)
+      .active_without_invites_and_requests
+  end
+
+  def project_users
+    User
+      .where(id: descendant_project_members.select(:user_id))
+      .reorder(nil)
+  end
+
   def users_with_descendants
     User
       .where(id: members_with_descendants.select(:user_id))
