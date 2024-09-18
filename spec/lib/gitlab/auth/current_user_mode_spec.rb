@@ -408,5 +408,43 @@ RSpec.describe Gitlab::Auth::CurrentUserMode, :request_store, feature_category: 
         end
       end
     end
+
+    describe '.optionally_run_in_admin_mode' do
+      let(:admin) { build_stubbed(:admin) }
+
+      context 'when admin_mode is false' do
+        it 'yields without changing the admin mode' do
+          expect { |b| described_class.optionally_run_in_admin_mode(user, false, &b) }.to yield_control
+          expect(described_class.bypass_session_admin_id).to be_nil
+        end
+
+        it 'yields without changing the admin mode for admin users' do
+          expect { |b| described_class.optionally_run_in_admin_mode(admin, false, &b) }.to yield_control
+          expect(described_class.bypass_session_admin_id).to be_nil
+        end
+      end
+
+      context 'when admin_mode is true' do
+        before do
+          stub_application_setting(admin_mode: true)
+        end
+
+        it 'yields without changing the admin mode for non-admin users' do
+          expect { |b| described_class.optionally_run_in_admin_mode(user, true, &b) }.to yield_control
+          expect(described_class.bypass_session_admin_id).to be_nil
+        end
+
+        it 'runs in admin mode for admin users' do
+          described_class.optionally_run_in_admin_mode(admin, true) do
+            expect(described_class.bypass_session_admin_id).to eq(admin.id)
+          end
+        end
+
+        it 'resets the admin mode after yielding for admin users' do
+          described_class.optionally_run_in_admin_mode(admin, true) { -> {} }
+          expect(described_class.bypass_session_admin_id).to be_nil
+        end
+      end
+    end
   end
 end

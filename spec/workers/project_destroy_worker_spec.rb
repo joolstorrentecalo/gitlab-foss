@@ -27,6 +27,17 @@ RSpec.describe ProjectDestroyWorker, feature_category: :source_code_management d
       expect(repository).not_to exist
     end
 
+    it 'runs the destroy service in admin mode' do
+      params = { admin_mode: true }
+      destroy_service = instance_double(Projects::DestroyService)
+
+      expect(Projects::DestroyService).to receive(:new).with(project, user, params).and_return(destroy_service)
+      expect(destroy_service).to receive(:execute)
+      expect(Gitlab::Auth::CurrentUserMode).to receive(:optionally_run_in_admin_mode).with(user, true).and_yield
+
+      worker.perform(project.id, user.id, params)
+    end
+
     it 'does not raise error when project could not be found' do
       expect do
         worker.perform(-1, user.id, {})

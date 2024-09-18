@@ -84,6 +84,20 @@ module Gitlab
         def current_admin
           Gitlab::SafeRequestStore[CURRENT_REQUEST_ADMIN_MODE_USER_RS_KEY]
         end
+
+        # This method should only be used in the context of a Sidekiq worker otherwise it will
+        # bypass admin mode if it's enabled.
+        def optionally_run_in_admin_mode(user, admin_mode)
+          unless admin_mode && Gitlab::CurrentSettings.admin_mode && user.admin? # rubocop:disable Cop/UserAdmin -- policy checks should be enforced further down the stack
+            return yield
+          end
+
+          bypass_session!(user.id) do
+            with_current_admin(user) do
+              yield
+            end
+          end
+        end
       end
 
       def initialize(user, session = Gitlab::Session.current)

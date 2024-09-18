@@ -8411,7 +8411,6 @@
 - './spec/workers/post_receive_spec.rb'
 - './spec/workers/process_commit_worker_spec.rb'
 - './spec/workers/project_cache_worker_spec.rb'
-- './spec/workers/project_destroy_worker_spec.rb'
 - './spec/workers/project_export_worker_spec.rb'
 - './spec/workers/projects/after_import_worker_spec.rb'
 - './spec/workers/projects/git_garbage_collect_worker_spec.rb'
