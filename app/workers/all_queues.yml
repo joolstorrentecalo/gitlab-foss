@@ -1047,6 +1047,15 @@
   :weight: 1
   :idempotent: true
   :tags: []
+- :name: dependency_proxy_blob:virtual_registries_packages_destroy_orphan_cached_responses
+  :worker_name: VirtualRegistries::Packages::DestroyOrphanCachedResponsesWorker
+  :feature_category: :virtual_registry
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
 - :name: dependency_proxy_manifest:dependency_proxy_cleanup_manifest
   :worker_name: DependencyProxy::CleanupManifestWorker
   :feature_category: :virtual_registry
@@ -2904,6 +2913,15 @@
 - :name: ci_job_artifacts_expire_project_build_artifacts
   :worker_name: Ci::JobArtifacts::ExpireProjectBuildArtifactsWorker
   :feature_category: :job_artifacts
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+- :name: ci_job_token_log_authorization
+  :worker_name: Ci::JobToken::LogAuthorizationWorker
+  :feature_category: :secrets_management
   :has_external_dependencies: false
   :urgency: :low
   :resource_boundary: :unknown
