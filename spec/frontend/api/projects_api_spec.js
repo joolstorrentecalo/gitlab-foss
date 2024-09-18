@@ -219,4 +219,108 @@ describe('~/api/projects_api.js', () => {
       expect(mock.history.get[0].mockOption).toBe(axiosOptions.mockOption);
     });
   });
+
+  describe('uploadImageToProject', () => {
+    const mockProjectId = 123;
+    const mockProjectFullPath = 'group/project';
+    const mockFilename = 'test.jpg';
+    const mockBlobData = new Blob(['test']);
+
+    beforeEach(() => {
+      window.gon = { relative_url_root: '' };
+      jest.spyOn(axios, 'post');
+    });
+
+    it('should upload an image and return the share URL', async () => {
+      const mockResponse = {
+        link: {
+          url: '/uploads/abcd/test.jpg',
+        },
+      };
+
+      mock.onPost().replyOnce(HTTP_STATUS_OK, mockResponse);
+
+      const result = await projectsApi.uploadImageToProject({
+        filename: mockFilename,
+        blobData: mockBlobData,
+        projectFullPath: mockProjectFullPath,
+        projectId: mockProjectId,
+      });
+
+      expect(axios.post).toHaveBeenCalledWith(
+        `/${mockProjectFullPath}/uploads`,
+        expect.any(FormData),
+        expect.objectContaining({
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }),
+      );
+      expect(result).toBe('http://test.host/-/project/123/uploads/abcd/test.jpg');
+    });
+
+    it('should throw an error if filename is missing', async () => {
+      await expect(
+        projectsApi.uploadImageToProject({
+          blobData: mockBlobData,
+          projectFullPath: mockProjectFullPath,
+          projectId: mockProjectId,
+        }),
+      ).rejects.toThrow('filename is required');
+    });
+
+    it('should throw an error if blobData is missing', async () => {
+      await expect(
+        projectsApi.uploadImageToProject({
+          filename: mockFilename,
+          projectFullPath: mockProjectFullPath,
+          projectId: mockProjectId,
+        }),
+      ).rejects.toThrow('blobData is required');
+    });
+
+    it('should throw an error if projectFullPath is missing', async () => {
+      await expect(
+        projectsApi.uploadImageToProject({
+          filename: mockFilename,
+          blobData: mockBlobData,
+          projectId: mockProjectId,
+        }),
+      ).rejects.toThrow('projectFullPath is required');
+    });
+
+    it('should throw an error if projectId is missing', async () => {
+      await expect(
+        projectsApi.uploadImageToProject({
+          filename: mockFilename,
+          blobData: mockBlobData,
+          projectFullPath: mockProjectFullPath,
+        }),
+      ).rejects.toThrow('projectId is required');
+    });
+
+    it('should throw an error if the upload fails', async () => {
+      mock.onPost().replyOnce(500);
+
+      await expect(
+        projectsApi.uploadImageToProject({
+          filename: mockFilename,
+          blobData: mockBlobData,
+          projectFullPath: mockProjectFullPath,
+          projectId: mockProjectId,
+        }),
+      ).rejects.toThrow('Request failed with status code 500');
+    });
+
+    it('should throw an error if the response does not have a link', async () => {
+      mock.onPost().replyOnce(HTTP_STATUS_OK, {});
+
+      await expect(
+        projectsApi.uploadImageToProject({
+          filename: mockFilename,
+          blobData: mockBlobData,
+          projectFullPath: mockProjectFullPath,
+          projectId: mockProjectId,
+        }),
+      ).rejects.toThrow('Upload failed');
+    });
+  });
 });

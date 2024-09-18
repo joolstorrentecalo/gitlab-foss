@@ -1,4 +1,5 @@
 import { DEFAULT_PER_PAGE } from '~/api';
+import { joinPaths } from '~/lib/utils/url_utility';
 import axios from '../lib/utils/axios_utils';
 import { buildApiUrl } from './api_utils';
 
@@ -91,3 +92,51 @@ export const getProjectShareLocations = (projectId, params = {}, axiosOptions = 
 
   return axios.get(url, { params: { ...defaultParams, ...params }, ...axiosOptions });
 };
+
+/**
+ * Uploads an image to a project and returns the share URL.
+ *
+ * @param {Object} options - The options for uploading the image.
+ * @param {string} options.filename - The name of the file to be uploaded.
+ * @param {Blob} options.blobData - The blob data of the image to be uploaded.
+ * @param {string} options.projectFullPath - The full path of the project.
+ * @param {number} options.projectId - The ID of the project.
+ * @returns {Promise<string>} The share URL of the uploaded image
+ * @throws {Error} If any required parameter is missing or if the upload fails.
+ */
+
+export async function uploadImageToProject({ filename, blobData, projectFullPath, projectId }) {
+  if (!filename) {
+    // eslint-disable-next-line @gitlab/require-i18n-strings
+    throw new Error('filename is required');
+  }
+  if (!blobData) {
+    throw new Error('blobData is required');
+  }
+  if (!projectFullPath) {
+    throw new Error('projectFullPath is required');
+  }
+  if (!projectId) {
+    throw new Error('projectId is required');
+  }
+
+  const url = joinPaths(gon.relative_url_root || '/', projectFullPath, 'uploads');
+
+  const formData = new FormData();
+  formData.append('file', blobData, filename);
+
+  const result = await axios.post(url, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+  if (result.data?.link?.url) {
+    const uploadUrl = result.data.link.url;
+
+    const relativeUrl = joinPaths('/-/project/', `${projectId}`, uploadUrl);
+    const shareUrl = new URL(relativeUrl, document.baseURI).href;
+
+    return shareUrl;
+  }
+  // eslint-disable-next-line @gitlab/require-i18n-strings
+  throw new Error('Upload failed');
+}
