@@ -1125,15 +1125,6 @@ msgstr ""
 msgid "%{number_commits_behind} commits behind %{default_branch}, %{number_commits_ahead} commits ahead"
 msgstr ""
 
-msgid "%{oneMonthAgo} - %{today}"
-msgstr ""
-
-msgid "%{oneWeekAgo} - %{today}"
-msgstr ""
-
-msgid "%{oneYearAgo} - %{today}"
-msgstr ""
-
 msgid "%{openedEpics} open, %{closedEpics} closed"
 msgstr ""
 
@@ -32896,6 +32887,9 @@ msgstr ""
 msgid "Maximum allowed lifetime for SSH keys (days)"
 msgstr ""
 
+msgid "Maximum artifacts archive size (bytes)"
+msgstr ""
+
 msgid "Maximum artifacts size"
 msgstr ""
 
@@ -54697,6 +54691,9 @@ msgid "The maximum compute minutes that jobs in a namespace can use on instance 
 msgstr ""
 
 msgid "The maximum file size allowed is %{size}."
+msgstr ""
+
+msgid "The maximum file size for job artifacts archive."
 msgstr ""
 
 msgid "The maximum file size for job artifacts."
