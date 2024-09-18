@@ -8168,6 +8168,22 @@ CREATE SEQUENCE ci_job_artifacts_id_seq
 
 ALTER SEQUENCE ci_job_artifacts_id_seq OWNED BY p_ci_job_artifacts.id;
 
+CREATE TABLE ci_job_token_authorizations (
+    id bigint NOT NULL,
+    accessed_project_id bigint NOT NULL,
+    origin_project_id bigint NOT NULL,
+    last_authorized_at timestamp with time zone NOT NULL
+);
+
+CREATE SEQUENCE ci_job_token_authorizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE ci_job_token_authorizations_id_seq OWNED BY ci_job_token_authorizations.id;
+
 CREATE TABLE ci_job_token_group_scope_links (
     id bigint NOT NULL,
     source_project_id bigint NOT NULL,
@@ -9304,24 +9320,6 @@ CREATE SEQUENCE commit_user_mentions_id_seq
     CACHE 1;
 
 ALTER SEQUENCE commit_user_mentions_id_seq OWNED BY commit_user_mentions.id;
-
-CREATE TABLE compliance_checks (
-    id bigint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    requirement_id bigint NOT NULL,
-    namespace_id bigint NOT NULL,
-    check_name smallint NOT NULL
-);
-
-CREATE SEQUENCE compliance_checks_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE compliance_checks_id_seq OWNED BY compliance_checks.id;
 
 CREATE TABLE compliance_framework_security_policies (
     id bigint NOT NULL,
@@ -21564,6 +21562,8 @@ ALTER TABLE ONLY ci_group_variables ALTER COLUMN id SET DEFAULT nextval('ci_grou
 
 ALTER TABLE ONLY ci_instance_variables ALTER COLUMN id SET DEFAULT nextval('ci_instance_variables_id_seq'::regclass);
 
+ALTER TABLE ONLY ci_job_token_authorizations ALTER COLUMN id SET DEFAULT nextval('ci_job_token_authorizations_id_seq'::regclass);
+
 ALTER TABLE ONLY ci_job_token_group_scope_links ALTER COLUMN id SET DEFAULT nextval('ci_job_token_group_scope_links_id_seq'::regclass);
 
 ALTER TABLE ONLY ci_job_token_project_scope_links ALTER COLUMN id SET DEFAULT nextval('ci_job_token_project_scope_links_id_seq'::regclass);
@@ -21653,8 +21653,6 @@ ALTER TABLE ONLY clusters ALTER COLUMN id SET DEFAULT nextval('clusters_id_seq':
 ALTER TABLE ONLY clusters_kubernetes_namespaces ALTER COLUMN id SET DEFAULT nextval('clusters_kubernetes_namespaces_id_seq'::regclass);
 
 ALTER TABLE ONLY commit_user_mentions ALTER COLUMN id SET DEFAULT nextval('commit_user_mentions_id_seq'::regclass);
-
-ALTER TABLE ONLY compliance_checks ALTER COLUMN id SET DEFAULT nextval('compliance_checks_id_seq'::regclass);
 
 ALTER TABLE ONLY compliance_framework_security_policies ALTER COLUMN id SET DEFAULT nextval('compliance_framework_security_policies_id_seq'::regclass);
 
@@ -23564,6 +23562,9 @@ ALTER TABLE ONLY p_ci_job_artifacts
 ALTER TABLE ONLY ci_job_artifacts
     ADD CONSTRAINT ci_job_artifacts_pkey PRIMARY KEY (id, partition_id);
 
+ALTER TABLE ONLY ci_job_token_authorizations
+    ADD CONSTRAINT ci_job_token_authorizations_pkey PRIMARY KEY (id);
+
 ALTER TABLE ONLY ci_job_token_group_scope_links
     ADD CONSTRAINT ci_job_token_group_scope_links_pkey PRIMARY KEY (id);
 
@@ -23734,9 +23735,6 @@ ALTER TABLE ONLY clusters
 
 ALTER TABLE ONLY commit_user_mentions
     ADD CONSTRAINT commit_user_mentions_pkey PRIMARY KEY (id);
-
-ALTER TABLE ONLY compliance_checks
-    ADD CONSTRAINT compliance_checks_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY compliance_framework_security_policies
     ADD CONSTRAINT compliance_framework_security_policies_pkey PRIMARY KEY (id);
@@ -26711,6 +26709,8 @@ CREATE UNIQUE INDEX p_ci_job_artifacts_job_id_file_type_partition_id_idx ON ONLY
 
 CREATE UNIQUE INDEX idx_ci_job_artifacts_on_job_id_file_type_and_partition_id_uniq ON ci_job_artifacts USING btree (job_id, file_type, partition_id);
 
+CREATE UNIQUE INDEX idx_ci_job_token_authorizations_on_accessed_and_origin_project ON ci_job_token_authorizations USING btree (accessed_project_id, origin_project_id);
+
 CREATE INDEX p_ci_pipelines_ci_ref_id_id_idx ON ONLY p_ci_pipelines USING btree (ci_ref_id, id) WHERE (locked = 1);
 
 CREATE INDEX idx_ci_pipelines_artifacts_locked ON ci_pipelines USING btree (ci_ref_id, id) WHERE (locked = 1);
@@ -27609,6 +27609,8 @@ CREATE INDEX p_ci_job_artifacts_project_id_idx1 ON ONLY p_ci_job_artifacts USING
 
 CREATE INDEX index_ci_job_artifacts_on_project_id_for_security_reports ON ci_job_artifacts USING btree (project_id) WHERE (file_type = ANY (ARRAY[5, 6, 7, 8]));
 
+CREATE INDEX index_ci_job_token_authorizations_on_origin_project_id ON ci_job_token_authorizations USING btree (origin_project_id);
+
 CREATE INDEX index_ci_job_token_group_scope_links_on_added_by_id ON ci_job_token_group_scope_links USING btree (added_by_id);
 
 CREATE INDEX index_ci_job_token_group_scope_links_on_target_group_id ON ci_job_token_group_scope_links USING btree (target_group_id);
@@ -27970,8 +27972,6 @@ CREATE INDEX index_clusters_on_management_project_id ON clusters USING btree (ma
 CREATE INDEX index_clusters_on_user_id ON clusters USING btree (user_id);
 
 CREATE UNIQUE INDEX index_commit_user_mentions_on_note_id ON commit_user_mentions USING btree (note_id);
-
-CREATE INDEX index_compliance_checks_on_namespace_id ON compliance_checks USING btree (namespace_id);
 
 CREATE INDEX index_compliance_framework_security_policies_on_namespace_id ON compliance_framework_security_policies USING btree (namespace_id);
 
@@ -31205,8 +31205,6 @@ CREATE INDEX tmp_index_vulnerability_overlong_title_html ON vulnerabilities USIN
 
 CREATE INDEX tmp_index_vulnerability_reads_where_state_is_detected ON vulnerability_reads USING btree (id) WHERE (state = 1);
 
-CREATE UNIQUE INDEX u_compliance_checks_for_requirement ON compliance_checks USING btree (requirement_id, check_name);
-
 CREATE UNIQUE INDEX u_compliance_requirements_for_framework ON compliance_requirements USING btree (framework_id, name);
 
 CREATE UNIQUE INDEX u_project_compliance_standards_adherence_for_reporting ON project_compliance_standards_adherence USING btree (project_id, check_name, standard);
@@ -33615,9 +33613,6 @@ ALTER TABLE ONLY wiki_page_slugs
 ALTER TABLE ONLY security_orchestration_policy_rule_schedules
     ADD CONSTRAINT fk_3e78b9a150 FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
-ALTER TABLE ONLY compliance_checks
-    ADD CONSTRAINT fk_3fbfa4295c FOREIGN KEY (requirement_id) REFERENCES compliance_requirements(id) ON DELETE CASCADE;
-
 ALTER TABLE ONLY abuse_reports
     ADD CONSTRAINT fk_3fe6467b93 FOREIGN KEY (assignee_id) REFERENCES users(id) ON DELETE SET NULL;
 
@@ -34400,9 +34395,6 @@ ALTER TABLE ONLY bulk_import_exports
 
 ALTER TABLE ONLY personal_access_tokens
     ADD CONSTRAINT fk_c951fbf57e FOREIGN KEY (previous_personal_access_token_id) REFERENCES personal_access_tokens(id) ON DELETE SET NULL;
-
-ALTER TABLE ONLY compliance_checks
-    ADD CONSTRAINT fk_c9683a794f FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY jira_tracker_data
     ADD CONSTRAINT fk_c98abcd54c FOREIGN KEY (integration_id) REFERENCES integrations(id) ON DELETE CASCADE;
