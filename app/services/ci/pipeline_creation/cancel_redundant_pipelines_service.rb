@@ -21,19 +21,7 @@ module Ci
         return if pipeline.parent_pipeline? # skip if child pipeline
         return unless project.auto_cancel_pending_pipelines?
 
-        if Feature.enabled?(:cancel_redundant_pipelines_without_hierarchy_cte, @project)
-          auto_cancel_all_pipelines_with_cancelable_statuses
-
-          return
-        end
-
-        paginator.each do |ids|
-          pipelines = parent_and_child_pipelines(ids)
-
-          Gitlab::OptimisticLocking.retry_lock(pipelines, name: 'cancel_pending_pipelines') do |cancelables|
-            auto_cancel_pipelines(cancelables.ids)
-          end
-        end
+        auto_cancel_all_pipelines_with_cancelable_statuses
       end
 
       private
