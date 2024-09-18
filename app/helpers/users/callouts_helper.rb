@@ -29,9 +29,11 @@ module Users
       !user_dismissed?(GCP_SIGNUP_OFFER)
     end
 
-    def render_dashboard_ultimate_trial(user); end
+    def render_dashboard_ultimate_trial(user)
+    end
 
-    def render_two_factor_auth_recovery_settings_check; end
+    def render_two_factor_auth_recovery_settings_check
+    end
 
     def show_suggest_popover?
       !user_dismissed?(SUGGEST_POPOVER_DISMISSED)
@@ -62,7 +64,8 @@ module Users
         controller.controller_path.match?(%r{^admin(/\S*)?$})
     end
 
-    def dismiss_two_factor_auth_recovery_settings_check; end
+    def dismiss_two_factor_auth_recovery_settings_check
+    end
 
     def show_security_newsletter_user_callout?
       current_user&.can_admin_all_resources? &&

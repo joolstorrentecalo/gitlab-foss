@@ -300,20 +300,13 @@ export default {
           v-if="allCompleted"
           data-testid="clear-button"
           category="secondary"
-          class="gl-mt-3"
           @click="reset"
         >
           {{ $options.i18n.clearButtonText }}
         </gl-button>
       </div>
     </upload-dropzone>
-    <gl-alert
-      v-if="alert"
-      data-testid="alert"
-      :variant="alert.variant"
-      class="gl-mt-3"
-      @dismiss="reset"
-    >
+    <gl-alert v-if="alert" data-testid="alert" :variant="alert.variant" @dismiss="reset">
       {{ alert.message }}
     </gl-alert>
   </div>

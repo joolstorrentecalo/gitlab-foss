@@ -90,7 +90,6 @@ describe('ImportArtifactZone', () => {
       expect(formattedFileSizeDiv().text()).toBe('1.00 KiB');
       expect(fileNameDiv().exists()).toBe(true);
       expect(cancelButton().exists()).toBe(false);
-      expect(clearButton().exists()).toBe(true);
     });
 
     it('clears the loaded table', async () => {

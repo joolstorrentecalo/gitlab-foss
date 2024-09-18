@@ -14110,10 +14110,10 @@ msgstr ""
 msgid "ComplianceFrameworks|Policy name"
 msgstr ""
 
-msgid "ComplianceFrameworks|Project name"
+msgid "ComplianceFrameworks|Project description"
 msgstr ""
 
-msgid "ComplianceFrameworks|Project path"
+msgid "ComplianceFrameworks|Project name"
 msgstr ""
 
 msgid "ComplianceFrameworks|Projects"
@@ -16450,6 +16450,9 @@ msgstr ""
 msgid "Created a branch and a merge request to resolve this issue."
 msgstr ""
 
+msgid "Created at"
+msgstr ""
+
 msgid "Created branch '%{branch_name}' and a merge request to resolve this issue."
 msgstr ""
 
@@ -18303,6 +18306,9 @@ msgstr ""
 msgid "Dependencies|Error exporting the dependency list. Please reload the page."
 msgstr ""
 
+msgid "Dependencies|Error parsing SBOM reports"
+msgstr ""
+
 msgid "Dependencies|Export as CSV"
 msgstr ""
 
@@ -18345,6 +18351,9 @@ msgstr ""
 msgid "Dependencies|The component dependency path is based on the lock file. There may be several paths. In these cases, the longest path is displayed."
 msgstr ""
 
+msgid "Dependencies|The following SBOM reports could not be parsed, and the list of components may be incomplete. Please investigate the provided reports and ensure they conform to %{helpPageLinkStart}the requirements for SBOM documents%{helpPageLinkEnd}."
+msgstr ""
+
 msgid "Dependencies|There may be multiple paths"
 msgstr ""
 
@@ -18376,6 +18385,9 @@ msgid "Dependencies|Unknown path"
 msgstr ""
 
 msgid "Dependencies|Vulnerable components"
+msgstr ""
+
+msgid "Dependencies|report-%{index} (%{length})"
 msgstr ""
 
 msgid "Dependencies|unknown"
@@ -24495,6 +24507,9 @@ msgstr ""
 msgid "GitLab / Unsubscribe"
 msgstr ""
 
+msgid "GitLab 17.5 and later will require that all network connections use OpenSSL version 3. %{link_start}Learn more%{link_end}."
+msgstr ""
+
 msgid "GitLab API"
 msgstr ""
 
@@ -27192,6 +27207,9 @@ msgstr ""
 msgid "Hide host keys manual input"
 msgstr ""
 
+msgid "Hide list"
+msgstr ""
+
 msgid "Hide marketing-related entries from the Help page"
 msgstr ""
 
@@ -27587,9 +27605,6 @@ msgstr ""
 msgid "IdentityVerification|Enter a valid code."
 msgstr ""
 
-msgid "IdentityVerification|Enter a verified email address associated with this account. A new code will be sent to this address."
-msgstr ""
-
 msgid "IdentityVerification|For added security, you'll need to verify your identity."
 msgstr ""
 
@@ -27614,16 +27629,13 @@ msgstr ""
 msgid "IdentityVerification|Help us protect your account"
 msgstr ""
 
-msgid "IdentityVerification|If you don't have access to the primary email address, you can %{sendToSecondaryEmailButtonStart}%{sendToSecondaryEmailButtonEnd}, or you can %{supportLinkStart}try to verify another way.%{supportLinkEnd}"
-msgstr ""
-
 msgid "IdentityVerification|If you have not recently tried to sign into GitLab, we recommend %{password_link_start}changing your password%{link_end} and %{two_fa_link_start}setting up Two-Factor Authentication%{link_end} to keep your account safe. Your verification code expires after %{expires_in_minutes} minutes."
 msgstr ""
 
 msgid "IdentityVerification|If you have not recently tried to sign into GitLab, we recommend changing your password (%{password_link}) and setting up Two-Factor Authentication (%{two_fa_link}) to keep your account safe."
 msgstr ""
 
-msgid "IdentityVerification|If you've lost access to the email associated to this account or having trouble with the code, %{supportLinkStart}here are some other steps you can take.%{supportLinkEnd}"
+msgid "IdentityVerification|If you've lost access to the email associated to this account or having trouble with the code, %{link_start}here are some other steps you can take.%{link_end}"
 msgstr ""
 
 msgid "IdentityVerification|Maximum login attempts exceeded. Wait %{interval} and try again."
@@ -27755,9 +27767,6 @@ msgstr ""
 msgid "IdentityVerification|Your verification code expires after %{expires_in_minutes} minutes."
 msgstr ""
 
-msgid "IdentityVerification|send a code to another address associated with this account"
-msgstr ""
-
 msgid "Identity|Active"
 msgstr ""
 
@@ -27813,6 +27822,9 @@ msgid "If this was a mistake you can leave the %{source_type}."
 msgstr ""
 
 msgid "If using GitHub, you’ll see pipeline statuses on GitHub for your commits and pull requests. %{more_info_link}"
+msgstr ""
+
+msgid "If you add %{codeStart}needs%{codeEnd} to jobs in your pipeline you'll be able to view the %{codeStart}needs%{codeEnd} dependencies between jobs in this tab."
 msgstr ""
 
 msgid "If you are unable to sign in or recover your password, contact a GitLab administrator."
@@ -29519,9 +29531,6 @@ msgstr ""
 msgid "InviteMembersModal|Show more (%{count})"
 msgstr ""
 
-msgid "InviteMembersModal|Some requests have been sent for administrator approval"
-msgstr ""
-
 msgid "InviteMembersModal|Something went wrong"
 msgstr ""
 
@@ -30882,6 +30891,9 @@ msgstr ""
 msgid "Jobs|Jobs are the building blocks of a GitLab CI/CD pipeline. Each job has a specific task, like testing code. To set up jobs in a CI/CD pipeline, add a CI/CD configuration file to your project."
 msgstr ""
 
+msgid "Jobs|No jobs to show"
+msgstr ""
+
 msgid "Jobs|Raw text search is not currently supported for the jobs filtered search feature. Please use the available search tokens."
 msgstr ""
 
@@ -31338,9 +31350,6 @@ msgstr ""
 msgid "KubernetesDashboard|ReplicaSets"
 msgstr ""
 
-msgid "KubernetesDashboard|Resume reconciliation"
-msgstr ""
-
 msgid "KubernetesDashboard|Running"
 msgstr ""
 
@@ -31368,9 +31377,6 @@ msgstr ""
 msgid "KubernetesDashboard|Succeeded"
 msgstr ""
 
-msgid "KubernetesDashboard|Suspend reconciliation"
-msgstr ""
-
 msgid "KubernetesDashboard|Suspended"
 msgstr ""
 
@@ -31384,9 +31390,6 @@ msgid "KubernetesDashboard|View projects"
 msgstr ""
 
 msgid "KubernetesDashboard|You can select an agent from a project's environment page."
-msgstr ""
-
-msgid "KubernetesDashboard|unknown"
 msgstr ""
 
 msgid "KubernetesLogs|Agent ID"
@@ -31794,6 +31797,9 @@ msgstr ""
 msgid "Learn more about max seats used"
 msgstr ""
 
+msgid "Learn more about needs dependencies"
+msgstr ""
+
 msgid "Learn more about seats owed"
 msgstr ""
 
@@ -32115,9 +32121,6 @@ msgid "LicenseManagement|Denied"
 msgstr ""
 
 msgid "LicenseManagement|Uncategorized"
-msgstr ""
-
-msgid "LicenseScanningReport|The following SBOM reports could not be parsed. Therefore the list of components and their licenses may be incomplete."
 msgstr ""
 
 msgid "Licensed Enterprise Edition features can be used if the project namespace's plan includes the feature, or if the project is public."
@@ -35555,6 +35558,9 @@ msgid "Nav|Sign out and sign in with a different account"
 msgstr ""
 
 msgid "Needs attention"
+msgstr ""
+
+msgid "Needs visualization requires at least 3 dependent jobs."
 msgstr ""
 
 msgid "Network"
@@ -40320,6 +40326,9 @@ msgstr ""
 msgid "Pipelines|The GitLab CI configuration could not be updated."
 msgstr ""
 
+msgid "Pipelines|The visualization in this tab will be %{linkStart}removed%{linkEnd}. Instead, view %{codeStart}needs%{codeEnd} relationships with the %{strongStart}Job dependency%{strongEnd} option in the %{strongStart}Pipeline%{strongEnd} tab."
+msgstr ""
+
 msgid "Pipelines|There are currently no finished pipelines."
 msgstr ""
 
@@ -40390,6 +40399,9 @@ msgid "Pipelines|Unable to create pipeline"
 msgstr ""
 
 msgid "Pipelines|Unable to validate CI/CD configuration. See the %{linkStart}GitLab CI/CD troubleshooting guide%{linkEnd} for more details."
+msgstr ""
+
+msgid "Pipelines|Upcoming visualization change"
 msgstr ""
 
 msgid "Pipelines|Update Trigger"
@@ -45001,6 +45013,9 @@ msgstr ""
 msgid "Released"
 msgstr ""
 
+msgid "Released at"
+msgstr ""
+
 msgid "Released date"
 msgstr ""
 
@@ -45920,9 +45935,6 @@ msgstr ""
 msgid "Request for a Duo Code Review queued."
 msgstr ""
 
-msgid "Request queued for administrator approval."
-msgstr ""
-
 msgid "Request review from"
 msgstr ""
 
@@ -46298,7 +46310,7 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
-msgid "Roles and permissions"
+msgid "Roles and Permissions"
 msgstr ""
 
 msgid "Roll up totals may reflect child items you don’t have access to."
@@ -47652,18 +47664,6 @@ msgid "Saving"
 msgstr ""
 
 msgid "Saving project."
-msgstr ""
-
-msgid "SbomErrors|Error parsing SBOM reports"
-msgstr ""
-
-msgid "SbomErrors|Please investigate the provided reports and ensure they conform to %{helpPageLinkStart}the requirements for SBOM documents%{helpPageLinkEnd}."
-msgstr ""
-
-msgid "SbomErrors|The following SBOM reports could not be parsed. Therefore the list of components may be incomplete."
-msgstr ""
-
-msgid "SbomErrors|report-%{index} (%{length})"
 msgstr ""
 
 msgid "Scan pushed document contents for policy breaks. %{docs_link}"
@@ -50157,9 +50157,6 @@ msgstr ""
 msgid "SecurityReports|The Vulnerability Report shows results of successful scans on your project's default branch, manually added vulnerability records, and vulnerabilities found from scanning operational environments. %{linkStart}Learn more%{linkEnd}."
 msgstr ""
 
-msgid "SecurityReports|The following SBOM reports could not be parsed. Therefore the list of reported vulnerabilities may be incomplete."
-msgstr ""
-
 msgid "SecurityReports|The following security reports contain one or more vulnerability findings that could not be parsed and were not recorded. To investigate a report, download the artifacts in the job output. Ensure the security report conforms to the relevant %{helpPageLinkStart}JSON schema%{helpPageLinkEnd}."
 msgstr ""
 
@@ -51342,6 +51339,9 @@ msgstr ""
 msgid "Show less"
 msgstr ""
 
+msgid "Show list"
+msgstr ""
+
 msgid "Show more"
 msgstr ""
 
@@ -52469,6 +52469,9 @@ msgstr ""
 msgid "Specify an email address regex pattern to identify default internal users."
 msgstr ""
 
+msgid "Speed up your pipelines with Needs relationships"
+msgstr ""
+
 msgid "Spent at can't be a future date and time."
 msgstr ""
 
@@ -52616,9 +52619,6 @@ msgid "Started asynchronous removal of all repository check states."
 msgstr ""
 
 msgid "Started escalation for this incident."
-msgstr ""
-
-msgid "Starting with GitLab 17.5, OpenSSL 3 will be used. All TLS connections require TLS 1.2 or higher. Weaker ciphers are no longer supported. Encryption must have at least of 112 bits of security. %{link_start}Learn more%{link_end}."
 msgstr ""
 
 msgid "Starting..."
@@ -55263,6 +55263,9 @@ msgstr ""
 msgid "There was an error loading users activity calendar."
 msgstr ""
 
+msgid "There was an error parsing the data for this graph."
+msgstr ""
+
 msgid "There was an error removing the e-mail."
 msgstr ""
 
@@ -55561,6 +55564,9 @@ msgid "This epic cannot be added. You don't have access to perform this action."
 msgstr ""
 
 msgid "This epic does not exist or you don't have sufficient permission."
+msgstr ""
+
+msgid "This feature is not enabled yet."
 msgstr ""
 
 msgid "This feature requires local storage to be enabled"
@@ -57918,9 +57924,6 @@ msgstr ""
 msgid "Unable to schedule a pipeline to run immediately"
 msgstr ""
 
-msgid "Unable to send approval request to administrator."
-msgstr ""
-
 msgid "Unable to sign in to group with SAML: \"%{reason}\""
 msgstr ""
 
@@ -59653,6 +59656,9 @@ msgstr ""
 msgid "Using required encryption strategy when encrypted field is missing!"
 msgstr ""
 
+msgid "Using the %{codeStart}needs%{codeEnd} keyword makes jobs run before their stage is reached. Jobs run as soon as their %{codeStart}needs%{codeEnd} relationships are met, which speeds up your pipelines."
+msgstr ""
+
 msgid "Validate"
 msgstr ""
 
@@ -59964,6 +59970,9 @@ msgid "VersionCheck|You are currently on version %{currentVersion}! We strongly 
 msgstr ""
 
 msgid "Versions"
+msgstr ""
+
+msgid "View"
 msgstr ""
 
 msgid "View File Metadata"
@@ -60718,6 +60727,9 @@ msgid "We also use email for avatar detection if no avatar is uploaded."
 msgstr ""
 
 msgid "We are currently unable to fetch data for the pipeline header."
+msgstr ""
+
+msgid "We are currently unable to fetch data for this graph."
 msgstr ""
 
 msgid "We could not determine the path to remove the epic"
