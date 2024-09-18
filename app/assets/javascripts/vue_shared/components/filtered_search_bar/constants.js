@@ -63,6 +63,7 @@ export const TOKEN_EMPTY_SEARCH_TERM = {
 
 export const TOKEN_TITLE_APPROVED_BY = __('Approved-By');
 export const TOKEN_TITLE_MERGE_USER = __('Merged-By');
+export const TOKEN_TITLE_APPROVER = __('Approver');
 export const TOKEN_TITLE_ASSIGNEE = s__('SearchToken|Assignee');
 export const TOKEN_TITLE_AUTHOR = __('Author');
 export const TOKEN_TITLE_CONFIDENTIAL = __('Confidential');
@@ -87,6 +88,7 @@ export const TOKEN_TITLE_SEARCH_WITHIN = __('Search Within');
 export const TOKEN_TITLE_CREATED = __('Created date');
 export const TOKEN_TITLE_CLOSED = __('Closed date');
 
+export const TOKEN_TYPE_APPROVER = 'approver';
 export const TOKEN_TYPE_APPROVED_BY = 'approved-by';
 export const TOKEN_TYPE_MERGE_USER = 'merge-user';
 export const TOKEN_TYPE_ASSIGNEE = 'assignee';
