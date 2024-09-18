@@ -119,3 +119,5 @@ HEALTHCHECK --interval=10s --timeout=1s --start-period=5s --retries=17 \
     CMD curl --fail http://gdk.test:3000/users/sign_in || exit 1
 
 EXPOSE 3000
+EXPOSE 3333
+EXPOSE 9393
