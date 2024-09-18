@@ -57,6 +57,15 @@ RSpec.describe Notes::DestroyService, feature_category: :team_planning do
       described_class.new(project, user).execute(note)
     end
 
+    it 'triggers merge_request_merge_status_updated for merge request' do
+      mr = create(:merge_request, source_project: project)
+      note = create(:note, project: project, noteable: mr)
+
+      expect(GraphqlTriggers).to receive(:merge_request_merge_status_updated).with(mr)
+
+      described_class.new(project, user).execute(note)
+    end
+
     context 'in a merge request' do
       let_it_be(:repo_project) { create(:project, :repository) }
       let_it_be(:merge_request) do

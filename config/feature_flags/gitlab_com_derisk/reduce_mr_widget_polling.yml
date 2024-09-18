@@ -1,0 +1,9 @@
+---
+name: reduce_mr_widget_polling
+feature_issue_url: https://gitlab.com/gitlab-org/gitlab/-/issues/473971
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/165816
+rollout_issue_url:
+milestone: '17.5'
+group: group::code review
+type: gitlab_com_derisk
+default_enabled: false

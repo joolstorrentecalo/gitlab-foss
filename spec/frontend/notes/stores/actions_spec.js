@@ -554,12 +554,26 @@ describe('Actions Notes Store', () => {
   });
 
   describe('updateMergeRequestWidget', () => {
-    it('calls mrWidget checkStatus', () => {
-      jest.spyOn(mrWidgetEventHub, '$emit').mockImplementation(() => {});
+    describe.each`
+      enabled
+      ${true}
+      ${false}
+    `('when feature flag mrWidgetPolling is $enabled', ({ enabled }) => {
+      beforeEach(() => {
+        window.gon = { features: { mrWidgetPolling: enabled } };
+      });
 
-      actions.updateMergeRequestWidget();
+      it('calls mrWidget checkStatus', () => {
+        jest.spyOn(mrWidgetEventHub, '$emit').mockImplementation(() => {});
 
-      expect(mrWidgetEventHub.$emit).toHaveBeenCalledWith('mr.discussion.updated');
+        actions.updateMergeRequestWidget();
+
+        if (enabled) {
+          expect(mrWidgetEventHub.$emit).toHaveBeenCalledWith('mr.discussion.updated');
+        } else {
+          expect(mrWidgetEventHub.$emit).not.toHaveBeenCalledWith('mr.discussion.updated');
+        }
+      });
     });
   });
 

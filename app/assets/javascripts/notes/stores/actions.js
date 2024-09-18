@@ -641,7 +641,9 @@ export const fetchDiscussionDiffLines = ({ commit }, discussion) =>
   });
 
 export const updateMergeRequestWidget = () => {
-  mrWidgetEventHub.$emit('mr.discussion.updated');
+  if (window.gon?.features?.mrWidgetPolling) {
+    mrWidgetEventHub.$emit('mr.discussion.updated');
+  }
 };
 
 export const setLoadingState = ({ commit }, data) => {

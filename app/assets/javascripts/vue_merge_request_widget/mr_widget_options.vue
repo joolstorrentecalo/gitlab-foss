@@ -104,7 +104,7 @@ export default {
           this.loading = false;
         }
 
-        this.checkStatus(undefined, undefined, false);
+        if (this.pollingEnabled) this.checkStatus(undefined, undefined, false);
       },
       error() {
         this.pollInterval = null;
@@ -131,6 +131,8 @@ export default {
         ) {
           if (mergeRequestMergeStatusUpdated) {
             this.mr.setGraphqlSubscriptionData(mergeRequestMergeStatusUpdated);
+
+            if (!this.pollingEnabled) this.checkStatus();
           }
         },
       },
@@ -164,6 +166,10 @@ export default {
       return this.startingPollInterval + FOUR_MINUTES_IN_MS;
     },
     apolloStateQueryPollingInterval() {
+      if (!this.pollingEnabled) {
+        return null;
+      }
+
       if (this.startingPollInterval < 0) {
         return 0;
       }
@@ -250,6 +256,9 @@ export default {
     },
     autoMergeEnabled() {
       return this.mr.autoMergeEnabled;
+    },
+    pollingEnabled() {
+      return !window.gon?.features?.reduceMrWidgetPolling;
     },
   },
   watch: {
@@ -450,9 +459,13 @@ export default {
       notify.notifyMe(title, message, this.mr.gitlabLogo);
     },
     resumePolling() {
+      if (!this.pollingEnabled) return;
+
       this.$apollo.queries.state.startPolling(this.pollInterval);
     },
     stopPolling() {
+      if (!this.pollingEnabled) return;
+
       this.$apollo.queries.state.stopPolling();
     },
     checkRebasedStatus(cb) {

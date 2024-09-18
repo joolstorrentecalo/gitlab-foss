@@ -136,7 +136,12 @@ module MergeRequests
 
     def handle_merge_error(log_message:, save_message_on_model: false)
       log_error("MergeService ERROR: #{merge_request_info}:#{merge_status} - #{log_message}")
-      @merge_request.update(merge_error: log_message) if save_message_on_model
+
+      if save_message_on_model
+        @merge_request.update(merge_error: log_message)
+
+        trigger_merge_request_merge_status_updated(@merge_request)
+      end
     end
 
     def log_info(message)

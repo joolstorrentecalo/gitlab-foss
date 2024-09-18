@@ -11,6 +11,7 @@ module Notes
       track_note_removal_usage_for_issues(note) if note.for_issue?
       track_note_removal_usage_for_merge_requests(note) if note.for_merge_request?
       track_note_removal_usage_for_design(note) if note.for_design?
+      GraphqlTriggers.merge_request_merge_status_updated(note.noteable) if note.for_merge_request?
     end
 
     private

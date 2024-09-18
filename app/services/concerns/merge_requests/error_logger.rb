@@ -26,6 +26,8 @@ module MergeRequests
       Gitlab::GitLogger.error(data)
 
       merge_request.update(merge_error: message) if save_message_on_model
+
+      GraphqlTriggers.merge_request_merge_status_updated(merge_request)
     end
   end
 end

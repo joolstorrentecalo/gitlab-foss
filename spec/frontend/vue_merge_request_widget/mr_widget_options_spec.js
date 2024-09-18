@@ -559,6 +559,14 @@ describe('MrWidgetOptions', () => {
         const mockSetGraphqlData = jest.fn();
         const mockSetData = jest.fn();
 
+        beforeEach(() => {
+          window.gon.features = { mrWidgetPolling: true };
+        });
+
+        afterEach(() => {
+          window.gon.features = {};
+        });
+
         describe('when request is successful', () => {
           beforeEach(() => {
             wrapper.destroy();
