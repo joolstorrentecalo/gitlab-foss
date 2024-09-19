@@ -2642,6 +2642,7 @@ Input type: `BoardListCreateInput`
 | <a id="mutationboardlistcreateiterationid"></a>`iterationId` | [`IterationID`](#iterationid) | Global ID of an existing iteration. |
 | <a id="mutationboardlistcreatelabelid"></a>`labelId` | [`LabelID`](#labelid) | Global ID of an existing label. |
 | <a id="mutationboardlistcreatemilestoneid"></a>`milestoneId` | [`MilestoneID`](#milestoneid) | Global ID of an existing milestone. |
+| <a id="mutationboardlistcreateposition"></a>`position` | [`Int`](#int) | Position of the list. |
 
 #### Fields
 
@@ -19628,14 +19629,14 @@ GitLab CI/CD configuration template.
 | <a id="clusteragentisreceptive"></a>`isReceptive` | [`Boolean`](#boolean) | Whether the cluster agent is receptive or not. |
 | <a id="clusteragentname"></a>`name` | [`String`](#string) | Name of the cluster agent. |
 | <a id="clusteragentproject"></a>`project` | [`Project`](#project) | Project the cluster agent is associated with. |
-| <a id="clusteragentremotedevelopmentagentconfig"></a>`remoteDevelopmentAgentConfig` **{warning-solid}** | [`RemoteDevelopmentAgentConfig`](#remotedevelopmentagentconfig) | **Deprecated** in GitLab 17.10. Use workspaces_agent_config field instead. |
+| <a id="clusteragentremotedevelopmentagentconfig"></a>`remoteDevelopmentAgentConfig` **{warning-solid}** | [`RemoteDevelopmentAgentConfig`](#remotedevelopmentagentconfig) | **Introduced** in GitLab 17.4. **Status**: Experiment. Remote development agent config for the cluster agent. |
 | <a id="clusteragenttokens"></a>`tokens` | [`ClusterAgentTokenConnection`](#clusteragenttokenconnection) | Tokens associated with the cluster agent. (see [Connections](#connections)) |
 | <a id="clusteragentupdatedat"></a>`updatedAt` | [`Time`](#time) | Timestamp the cluster agent was updated. |
 | <a id="clusteragenturlconfigurations"></a>`urlConfigurations` | [`ClusterAgentUrlConfigurationConnection`](#clusteragenturlconfigurationconnection) | URL configurations for the cluster agent in case it is a receptive agent. (see [Connections](#connections)) |
 | <a id="clusteragentuseraccessauthorizations"></a>`userAccessAuthorizations` | [`ClusterAgentAuthorizationUserAccess`](#clusteragentauthorizationuseraccess) | User access config for the cluster agent. |
 | <a id="clusteragentvulnerabilityimages"></a>`vulnerabilityImages` | [`VulnerabilityContainerImageConnection`](#vulnerabilitycontainerimageconnection) | Container images reported on the agent vulnerabilities. (see [Connections](#connections)) |
 | <a id="clusteragentwebpath"></a>`webPath` | [`String`](#string) | Web path of the cluster agent. |
-| <a id="clusteragentworkspacesagentconfig"></a>`workspacesAgentConfig` | [`WorkspacesAgentConfig`](#workspacesagentconfig) | Workspaces agent config for the cluster agent. |
+| <a id="clusteragentworkspacesagentconfig"></a>`workspacesAgentConfig` **{warning-solid}** | [`WorkspacesAgentConfig`](#workspacesagentconfig) | **Introduced** in GitLab 17.4. **Status**: Experiment. Workspaces agent config for the cluster agent. |
 
 #### Fields with arguments
 

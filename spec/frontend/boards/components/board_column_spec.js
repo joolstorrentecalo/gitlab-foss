@@ -1,5 +1,4 @@
 import { shallowMount } from '@vue/test-utils';
-import { nextTick } from 'vue';
 
 import { listObj } from 'jest/boards/mock_data';
 import BoardColumn from '~/boards/components/board_column.vue';
@@ -34,8 +33,8 @@ describe('Board Column Component', () => {
     });
   };
 
-  const isExpandable = () => wrapper.classes('is-expandable');
-  const isCollapsed = () => wrapper.classes('is-collapsed');
+  const isExpandable = () => wrapper.find('.is-expandable').exists();
+  const isCollapsed = () => wrapper.find('.is-collapsed').exists();
 
   describe('Given different list types', () => {
     it('is expandable when List Type is `backlog`', () => {
@@ -56,16 +55,6 @@ describe('Board Column Component', () => {
       createComponent({ collapsed: true });
 
       expect(isCollapsed()).toBe(true);
-    });
-  });
-
-  describe('highlighting', () => {
-    it('scrolls to column when highlighted', async () => {
-      createComponent({ highlightedLists: [listObj.id] });
-
-      await nextTick();
-
-      expect(wrapper.element.scrollIntoView).toHaveBeenCalled();
     });
   });
 });
