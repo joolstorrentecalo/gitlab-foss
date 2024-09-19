@@ -50,6 +50,8 @@ export const WORK_ITEM_TYPE_VALUE_REQUIREMENTS = 'Requirements';
 export const WORK_ITEM_TYPE_VALUE_KEY_RESULT = 'Key Result';
 export const WORK_ITEM_TYPE_VALUE_OBJECTIVE = 'Objective';
 
+export const WORK_ITEM_TYPE_ROUTE_EPIC = 'epics';
+
 export const WORK_ITEM_TITLE_MAX_LENGTH = 255;
 
 export const SEARCH_DEBOUNCE = 500;

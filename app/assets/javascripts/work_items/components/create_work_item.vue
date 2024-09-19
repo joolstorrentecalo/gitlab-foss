@@ -149,7 +149,11 @@ export default {
         };
       },
       update(data) {
-        return data.workspace?.workItemTypes?.nodes;
+        const { type } = this.$route.params;
+        const types = data.workspace?.workItemTypes?.nodes;
+        const filteredType = types.filter((t) => `${t.name.toLowerCase()}s` === type.toLowerCase());
+
+        return filteredType.length ? filteredType : types;
       },
       async result() {
         if (!this.workItemTypes?.length) {

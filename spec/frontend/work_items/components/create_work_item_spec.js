@@ -12,7 +12,7 @@ import WorkItemAssignees from '~/work_items/components/work_item_assignees.vue';
 import WorkItemLabels from '~/work_items/components/work_item_labels.vue';
 import WorkItemCrmContacts from '~/work_items/components/work_item_crm_contacts.vue';
 import WorkItemProjectsListbox from '~/work_items/components/work_item_links/work_item_projects_listbox.vue';
-import { WORK_ITEM_TYPE_ENUM_EPIC } from '~/work_items/constants';
+import { WORK_ITEM_TYPE_ENUM_EPIC, WORK_ITEM_TYPE_ROUTE_EPIC } from '~/work_items/constants';
 import namespaceWorkItemTypesQuery from '~/work_items/graphql/namespace_work_item_types.query.graphql';
 import createWorkItemMutation from '~/work_items/graphql/create_work_item.mutation.graphql';
 import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
@@ -68,6 +68,7 @@ describe('Create work item component', () => {
     mutationHandler = createWorkItemSuccessHandler,
     singleWorkItemType = false,
     workItemTypeName = WORK_ITEM_TYPE_ENUM_EPIC,
+    workItemTypeRoute = '',
   } = {}) => {
     mockApollo = createMockApollo(
       [
@@ -93,6 +94,13 @@ describe('Create work item component', () => {
       propsData: {
         workItemTypeName,
         ...props,
+      },
+      mocks: {
+        $route: {
+          params: {
+            type: workItemTypeRoute,
+          },
+        },
       },
       provide: {
         fullPath: 'full-path',
@@ -220,6 +228,14 @@ describe('Create work item component', () => {
 
       expect(findFormTitle().exists()).toBe(false);
     });
+
+    it('filters work item type based on route parameter', async () => {
+      createComponent({ workItemTypeRoute: WORK_ITEM_TYPE_ROUTE_EPIC });
+      await waitForPromises();
+
+      expect(findSelect().exists()).toBe(false);
+      expect(findFormTitle().text()).toBe('New epic');
+    });
   });
 
   describe('Create work item', () => {
@@ -331,7 +347,8 @@ describe('Create work item component', () => {
   describe('Create work item widgets for epic work item type', () => {
     describe('default', () => {
       beforeEach(async () => {
-        await initialiseComponentAndSelectWorkItem();
+        await createComponent({ workItemTypeRoute: WORK_ITEM_TYPE_ROUTE_EPIC });
+        await waitForPromises();
       });
 
       it('renders the work item title widget', () => {
@@ -357,14 +374,19 @@ describe('Create work item component', () => {
 
     it('uses the description prop as the initial description value when defined', async () => {
       const description = 'i am a description';
-      await initialiseComponentAndSelectWorkItem({ props: { description } });
+      await createComponent({
+        workItemTypeRoute: WORK_ITEM_TYPE_ROUTE_EPIC,
+        props: { description },
+      });
+      await waitForPromises();
 
       expect(findDescriptionWidget().props('description')).toBe(description);
     });
 
     it('uses the title prop as the initial title value when defined', async () => {
       const title = 'i am a title';
-      await initialiseComponentAndSelectWorkItem({ props: { title } });
+      await createComponent({ workItemTypeRoute: WORK_ITEM_TYPE_ROUTE_EPIC, props: { title } });
+      await waitForPromises();
 
       expect(findTitleInput().props('title')).toBe(title);
     });
