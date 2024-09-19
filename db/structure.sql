@@ -20660,6 +20660,7 @@ CREATE TABLE workspaces (
     url_prefix text,
     url_query_string text,
     dns_zone text,
+    desired_config_generator_version integer DEFAULT 3 NOT NULL,
     CONSTRAINT check_15543fb0fa CHECK ((char_length(name) <= 64)),
     CONSTRAINT check_157d5f955c CHECK ((char_length(namespace) <= 64)),
     CONSTRAINT check_2b401b0034 CHECK ((char_length(deployment_resource_version) <= 64)),
