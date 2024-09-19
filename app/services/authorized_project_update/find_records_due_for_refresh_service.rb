@@ -17,43 +17,44 @@ module AuthorizedProjectUpdate
     end
 
     def execute
-      current = current_authorizations_per_project
       fresh = fresh_access_levels_per_project
 
       # Projects that have more than one authorizations associated with
       # the user needs to be deleted.
       # The correct authorization is added to the ``add`` array in the
       # next stage.
-      remove = projects_with_duplicates
-      current.except!(*projects_with_duplicates)
 
-      remove |= current.each_with_object([]) do |(project_id, row), array|
-        next if fresh[project_id] && fresh[project_id] == row.access_level
+      remove = projects_with_duplicates || []
 
-        # rows not in the new list or with a different access level should be
-        # removed.
+      current = current_authorizations_per_project
+
+      # rows not in the `fresh` list or with a different access level should be
+      # removed.
+      current.each do |project_id, access_level|
+        next if fresh[project_id] && fresh[project_id] == access_level
 
         if incorrect_auth_found_callback
-          incorrect_auth_found_callback.call(project_id, row.access_level)
+          incorrect_auth_found_callback.call(project_id, access_level)
         end
 
-        array << row.project_id
+        remove << project_id
       end
 
-      add = fresh.each_with_object([]) do |(project_id, level), array|
-        next if current[project_id] && current[project_id].access_level == level
+      # rows not in the `current` list or with a different access level should be
+      # added.
+      add = []
 
-        # rows not in the old list or with a different access level should be
-        # added.
+      fresh.each do |project_id, access_level|
+        next if current[project_id] && current[project_id] == access_level
 
         if missing_auth_found_callback
-          missing_auth_found_callback.call(project_id, level)
+          missing_auth_found_callback.call(project_id, access_level)
         end
 
-        array << {
+        add << {
           user_id: user.id,
           project_id: project_id,
-          access_level: level
+          access_level: access_level
         }
       end
 
@@ -72,12 +73,14 @@ module AuthorizedProjectUpdate
       end
     end
 
+    # Returns a hash, { project_id => access_level }
     def current_authorizations_per_project
-      current_authorizations.index_by(&:project_id)
+      get_current_authorizations_per_project_using_sql || \
+        get_current_authorizations_per_project_using_rails
     end
 
     def current_authorizations
-      @current_authorizations ||= user.project_authorizations.select(:project_id, :access_level)
+      @current_authorizations ||= user.project_authorizations
     end
 
     def fresh_authorizations
@@ -89,10 +92,44 @@ module AuthorizedProjectUpdate
     attr_reader :user, :source, :incorrect_auth_found_callback, :missing_auth_found_callback
 
     def projects_with_duplicates
-      @projects_with_duplicates ||= current_authorizations
-                                      .group_by(&:project_id)
-                                      .select { |project_id, authorizations| authorizations.count > 1 }
-                                      .keys
+      @projects_with_duplicates ||= get_projects_with_duplicates_using_sql || \
+        get_projects_with_duplicates_using_rails
     end
+
+    def get_current_authorizations_per_project_using_rails
+      current_authorizations
+        .select(:project_id, :access_level)
+        .each_with_object({}) { |row, result| result[row.project_id] = row.access_level }
+        .except!(*projects_with_duplicates)
+    end
+
+    def get_projects_with_duplicates_using_rails
+      current_authorizations
+        .select(:project_id, :access_level)
+        .group_by(&:project_id)
+        .select { |project_id, authorizations| authorizations.count > 1 }
+        .keys
+    end
+
+    # rubocop: disable CodeReuse/ActiveRecord -- query unique to this service
+    def get_current_authorizations_per_project_using_sql
+      return unless Feature.enabled?(:improve_find_records_for_refresh_service, user)
+
+      current_authorizations
+        .having('COUNT(project_id) = 1')
+        .group(:project_id)
+        .maximum(:access_level)
+    end
+
+    def get_projects_with_duplicates_using_sql
+      return unless Feature.enabled?(:improve_find_records_for_refresh_service, user)
+
+      current_authorizations
+        .select(:project_id)
+        .group(:project_id)
+        .having('COUNT(project_id) > 1')
+        .map(&:project_id)
+    end
+    # rubocop: enable CodeReuse/ActiveRecord
   end
 end
