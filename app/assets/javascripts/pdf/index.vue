@@ -1,13 +1,15 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script>
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf';
-
+import glFeatureFlagsMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import Page from './page/index.vue';
 
-GlobalWorkerOptions.workerSrc = '/assets/webpack/pdfjs/pdf.worker.min.js';
+let pdfjs;
+let getDocument;
+let GlobalWorkerOptions;
 
 export default {
   components: { Page },
+  mixins: [glFeatureFlagsMixin()],
   props: {
     pdf: {
       type: [String, Uint8Array],
@@ -35,13 +37,26 @@ export default {
     if (this.hasPDF) this.load();
   },
   methods: {
-    load() {
+    async loadPDFJS() {
+      pdfjs = this.glFeatures.upgradePdfjs
+        ? // eslint-disable-next-line import/extensions
+          await import('pdfjs-dist-v4/legacy/build/pdf.mjs')
+        : await import('pdfjs-dist-v3/legacy/build/pdf');
+      ({ getDocument, GlobalWorkerOptions } = pdfjs);
+      GlobalWorkerOptions.workerSrc = this.glFeatures.upgradePdfjs
+        ? '/assets/webpack/pdfjs-v4/pdf.worker.min.mjs'
+        : '/assets/webpack/pdfjs-v3/pdf.worker.min.js';
+    },
+    async load() {
+      await this.loadPDFJS();
       this.pages = [];
       return getDocument({
         url: this.document,
-        cMapUrl: '/assets/webpack/pdfjs/cmaps/',
+        cMapUrl: this.glFeatures.upgradePdfjs
+          ? '/assets/webpack/pdfjs-v4/cmaps/'
+          : '/assets/webpack/pdfjs-v3/cmaps/',
         cMapPacked: true,
-        isEvalSupported: false,
+        isEvalSupported: this.glFeatures.upgradePdfjs,
       })
         .promise.then(this.renderPages)
         .then((pages) => {

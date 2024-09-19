@@ -293,7 +293,7 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.js'],
+    extensions: ['.mjs', '.js'],
     alias,
   },
 
@@ -302,20 +302,25 @@ module.exports = {
     rules: [
       {
         type: 'javascript/auto',
-        exclude: /pdfjs-dist/,
+        exclude: /pdfjs-dist-v[34]/,
         test: /\.mjs$/,
         use: [],
       },
       {
-        test: /(pdfjs).*\.js?$/,
+        test: /(pdfjs).*\.m?js?$/,
+        type: 'javascript/auto',
         include: /node_modules/,
         use: [
           {
             loader: 'babel-loader',
             options: {
+              presets: [
+                ['@babel/preset-env', { targets: { esmodules: true }, modules: 'commonjs' }],
+              ],
               plugins: [
                 '@babel/plugin-transform-optional-chaining',
                 '@babel/plugin-transform-logical-assignment-operators',
+                '@babel/plugin-transform-classes',
               ],
               ...defaultJsOptions,
             },
@@ -727,6 +732,14 @@ module.exports = {
           }
         }
       });
+    }),
+
+    new webpack.ContextReplacementPlugin(/^\.$/, (context) => {
+      if (/\/node_modules\/pdfjs-dist-v[34]/.test(context.context)) {
+        for (const d of context.dependencies) {
+          if (d.critical) d.critical = false;
+        }
+      }
     }),
 
     !IS_JH &&

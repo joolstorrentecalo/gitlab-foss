@@ -12,7 +12,7 @@ const dllPublicPath = `/assets/webpack/dll.${dllHash}/`;
 module.exports = {
   mode: 'development',
   resolve: {
-    extensions: ['.js'],
+    extensions: ['.mjs', '.js'],
     alias: {
       jquery$: 'jquery/dist/jquery.slim.js',
     },
@@ -43,6 +43,8 @@ module.exports = {
       'three',
       'vue',
       'vuex',
+      'pdfjs-dist-v4',
+      'pdfjs-dist-v3',
     ],
   },
 

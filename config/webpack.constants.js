@@ -23,12 +23,20 @@ const GITLAB_WEB_IDE_PACKAGE = '@gitlab/web-ide';
 
 const copyFilesPatterns = [
   {
-    from: path.join(ROOT_PATH, 'node_modules/pdfjs-dist/cmaps/'),
-    to: path.join(WEBPACK_OUTPUT_PATH, 'pdfjs/cmaps/'),
+    from: path.join(ROOT_PATH, 'node_modules/pdfjs-dist-v4/cmaps/'),
+    to: path.join(WEBPACK_OUTPUT_PATH, 'pdfjs-v4/cmaps/'),
   },
   {
-    from: path.join(ROOT_PATH, 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.js'),
-    to: path.join(WEBPACK_OUTPUT_PATH, 'pdfjs/'),
+    from: path.join(ROOT_PATH, 'node_modules/pdfjs-dist-v3/cmaps/'),
+    to: path.join(WEBPACK_OUTPUT_PATH, 'pdfjs-v3/cmaps/'),
+  },
+  {
+    from: path.join(ROOT_PATH, 'node_modules/pdfjs-dist-v4/legacy/build/pdf.worker.min.mjs'),
+    to: path.join(WEBPACK_OUTPUT_PATH, 'pdfjs-v4/'),
+  },
+  {
+    from: path.join(ROOT_PATH, 'node_modules/pdfjs-dist-v3/legacy/build/pdf.worker.min.js'),
+    to: path.join(WEBPACK_OUTPUT_PATH, 'pdfjs-v3/'),
   },
   {
     from: path.join(ROOT_PATH, 'node_modules', SOURCEGRAPH_PACKAGE, '/'),
