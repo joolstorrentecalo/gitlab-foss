@@ -7505,6 +7505,7 @@ CREATE TABLE bulk_import_entities (
     migrate_projects boolean DEFAULT true NOT NULL,
     has_failures boolean DEFAULT false,
     CONSTRAINT check_13f279f7da CHECK ((char_length(source_full_path) <= 255)),
+    CONSTRAINT check_47f255ede8 CHECK ((num_nonnulls(namespace_id, project_id) = 1)),
     CONSTRAINT check_715d725ea2 CHECK ((char_length(destination_name) <= 255)),
     CONSTRAINT check_796a4d9cc6 CHECK ((char_length(jid) <= 255)),
     CONSTRAINT check_b834fff4d9 CHECK ((char_length(destination_namespace) <= 255))
@@ -11765,7 +11766,8 @@ CREATE TABLE import_export_uploads (
     group_id bigint,
     remote_import_url text,
     user_id bigint,
-    CONSTRAINT check_58f0d37481 CHECK ((char_length(remote_import_url) <= 2048))
+    CONSTRAINT check_58f0d37481 CHECK ((char_length(remote_import_url) <= 2048)),
+    CONSTRAINT check_e54579866d CHECK ((num_nonnulls(group_id, project_id) = 1))
 );
 
 CREATE SEQUENCE import_export_uploads_id_seq
@@ -11790,7 +11792,8 @@ CREATE TABLE import_failures (
     group_id bigint,
     source character varying(128),
     external_identifiers jsonb DEFAULT '{}'::jsonb NOT NULL,
-    user_id bigint
+    user_id bigint,
+    CONSTRAINT check_0691c43873 CHECK ((num_nonnulls(group_id, project_id) = 1))
 );
 
 CREATE SEQUENCE import_failures_id_seq
@@ -16612,7 +16615,8 @@ CREATE TABLE project_import_data (
     data text,
     encrypted_credentials text,
     encrypted_credentials_iv character varying,
-    encrypted_credentials_salt character varying
+    encrypted_credentials_salt character varying,
+    CONSTRAINT check_218645ef7a CHECK ((project_id IS NOT NULL))
 );
 
 CREATE SEQUENCE project_import_data_id_seq
@@ -29600,7 +29604,7 @@ CREATE INDEX index_packages_maven_metadata_on_project_id ON packages_maven_metad
 
 CREATE UNIQUE INDEX index_packages_npm_metadata_caches_on_object_storage_key ON packages_npm_metadata_caches USING btree (object_storage_key);
 
-CREATE INDEX index_packages_npm_metadata_caches_on_project_id ON packages_npm_metadata_caches USING btree (project_id);
+CREATE INDEX index_packages_npm_metadata_caches_on_project_id_status ON packages_npm_metadata_caches USING btree (project_id, status);
 
 CREATE INDEX index_packages_nuget_dl_metadata_on_dependency_link_id ON packages_nuget_dependency_link_metadata USING btree (dependency_link_id);
 
@@ -34221,6 +34225,9 @@ ALTER TABLE ONLY identities
 ALTER TABLE ONLY boards
     ADD CONSTRAINT fk_ab0a250ff6 FOREIGN KEY (iteration_cadence_id) REFERENCES iterations_cadences(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY import_failures
+    ADD CONSTRAINT fk_ab7859bdc5 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE NOT VALID;
+
 ALTER TABLE ONLY audit_events_streaming_http_instance_namespace_filters
     ADD CONSTRAINT fk_abe44125bc FOREIGN KEY (audit_events_instance_external_audit_event_destination_id) REFERENCES audit_events_instance_external_audit_event_destinations(id) ON DELETE CASCADE;
 
@@ -34232,9 +34239,6 @@ ALTER TABLE ONLY merge_requests
 
 ALTER TABLE ONLY ml_experiments
     ADD CONSTRAINT fk_ad89c59858 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
-
-ALTER TABLE ONLY packages_npm_metadata_caches
-    ADD CONSTRAINT fk_ada23b1d30 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY merge_request_metrics
     ADD CONSTRAINT fk_ae440388cc FOREIGN KEY (latest_closed_by_id) REFERENCES users(id) ON DELETE SET NULL;
