@@ -156,10 +156,10 @@ module Issues
 
     def rewrite_related_issues
       source_issue_links = IssueLink.for_source(original_entity)
-      source_issue_links.update_all(source_id: new_entity.id)
+      source_issue_links.update_all(source_id: new_entity.id, namespace_id: new_entity.namespace_id)
 
       target_issue_links = IssueLink.for_target(original_entity)
-      target_issue_links.update_all(target_id: new_entity.id)
+      target_issue_links.update_all(target_id: new_entity.id, namespace_id: new_entity.namespace_id)
     end
 
     def copy_contacts
