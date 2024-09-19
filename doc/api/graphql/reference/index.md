@@ -1336,6 +1336,22 @@ Returns [`Vulnerability`](#vulnerability).
 | ---- | ---- | ----------- |
 | <a id="queryvulnerabilityid"></a>`id` | [`VulnerabilityID!`](#vulnerabilityid) | Global ID of the Vulnerability. |
 
+### `Query.wikiPage`
+
+Find a wiki page.
+
+DETAILS:
+**Introduced** in GitLab 17.5.
+**Status**: Experiment.
+
+Returns [`WikiPage`](#wikipage).
+
+#### Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="querywikipageid"></a>`id` | [`WikiPageMetaID!`](#wikipagemetaid) | ID of the wiki page. |
+
 ### `Query.workItem`
 
 Find a work item.
@@ -35000,6 +35016,38 @@ Represents vulnerability letter grades with associated projects.
 | <a id="vulnerableprojectsbygradegrade"></a>`grade` | [`VulnerabilityGrade!`](#vulnerabilitygrade) | Grade based on the highest severity vulnerability present. |
 | <a id="vulnerableprojectsbygradeprojects"></a>`projects` | [`ProjectConnection!`](#projectconnection) | Projects within this grade. (see [Connections](#connections)) |
 
+### `WikiPage`
+
+A wiki page.
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="wikipagecommenters"></a>`commenters` | [`UserCoreConnection!`](#usercoreconnection) | All commenters on this noteable. (see [Connections](#connections)) |
+| <a id="wikipagediscussions"></a>`discussions` | [`DiscussionConnection!`](#discussionconnection) | All discussions on this noteable. (see [Connections](#connections)) |
+| <a id="wikipageid"></a>`id` | [`WikiPageMetaID!`](#wikipagemetaid) | Global ID of the wiki page metadata record. |
+| <a id="wikipagetitle"></a>`title` | [`String!`](#string) | Wiki page title. |
+| <a id="wikipageuserpermissions"></a>`userPermissions` | [`ProjectPermissions!`](#projectpermissions) | Permissions for the current user on the resource. |
+
+#### Fields with arguments
+
+##### `WikiPage.notes`
+
+All notes on this noteable.
+
+Returns [`NoteConnection!`](#noteconnection).
+
+This field returns a [connection](#connections). It accepts the
+four standard [pagination arguments](#pagination-arguments):
+`before: String`, `after: String`, `first: Int`, and `last: Int`.
+
+###### Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="wikipagenotesfilter"></a>`filter` | [`NotesFilterType`](#notesfiltertype) | Type of notes collection: ALL_NOTES, ONLY_COMMENTS, ONLY_ACTIVITY. |
+
 ### `WorkItem`
 
 #### Fields
@@ -40122,6 +40170,12 @@ A `VulnerabilityID` is a global ID. It is encoded as a string.
 
 An example `VulnerabilityID` is: `"gid://gitlab/Vulnerability/1"`.
 
+### `WikiPageMetaID`
+
+A `WikiPageMetaID` is a global ID. It is encoded as a string.
+
+An example `WikiPageMetaID` is: `"gid://gitlab/WikiPage::Meta/1"`.
+
 ### `WorkItemID`
 
 A `WorkItemID` is a global ID. It is encoded as a string.
@@ -40625,6 +40679,7 @@ Implementations:
 - [`MergeRequest`](#mergerequest)
 - [`Snippet`](#snippet)
 - [`Vulnerability`](#vulnerability)
+- [`WikiPage`](#wikipage)
 
 ##### Fields
 

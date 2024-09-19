@@ -1,0 +1,26 @@
+#import "./notes/wiki_page_note.fragment.graphql"
+
+query wikiPageQuery($id: WikiPageMetaID!) {
+  wikiPage(id: $id) {
+    id
+    title
+    discussions {
+      nodes {
+        id
+        replyId
+        resolvable
+        resolved
+        resolvedAt
+        resolvedBy {
+          id
+          name
+        }
+        notes {
+          nodes {
+            ...WikiPageNote
+          }
+        }
+      }
+    }
+  }
+}

@@ -101,7 +101,8 @@
     "Issue",
     "MergeRequest",
     "Snippet",
-    "Vulnerability"
+    "Vulnerability",
+    "WikiPage"
   ],
   "NoteableType": [
     "Design",
