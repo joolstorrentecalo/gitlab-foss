@@ -7,6 +7,7 @@ RSpec.describe Gitlab::Ci::Badge::Coverage::Report do
   let_it_be(:success_pipeline) { create(:ci_pipeline, :success, project: project) }
   let_it_be(:running_pipeline) { create(:ci_pipeline, :running, project: project) }
   let_it_be(:failure_pipeline) { create(:ci_pipeline, :failed, project: project) }
+  let_it_be(:daily_coverage_report) { create(:ci_daily_build_group_report_result, project: project, last_pipeline: success_pipeline) }
 
   let_it_be(:builds) do
     [
@@ -41,8 +42,8 @@ RSpec.describe Gitlab::Ci::Badge::Coverage::Report do
 
   describe '#status' do
     context 'with no job specified' do
-      it 'returns the most recent successful pipeline coverage value' do
-        expect(badge.status).to eq(50.00)
+      it 'returns the most recent daily build group report result coverage value' do
+        expect(badge.status).to eq(77.00)
       end
 
       context 'and no successful pipelines' do
@@ -59,12 +60,12 @@ RSpec.describe Gitlab::Ci::Badge::Coverage::Report do
     context 'with a blank job name' do
       let(:job_name) { ' ' }
 
-      it 'returns the latest successful pipeline coverage value' do
-        expect(badge.status).to eq(50.00)
+      it 'returns the most recent daily build group report result coverage value' do
+        expect(badge.status).to eq(77.00)
       end
     end
 
-    context 'with an unmatching job name specified' do
+    context 'with an unmatched job name specified' do
       let(:job_name) { 'incorrect name' }
 
       it 'returns nil' do

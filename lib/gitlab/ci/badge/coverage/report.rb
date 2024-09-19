@@ -67,7 +67,10 @@ module Gitlab::Ci
 
               builds.max_by(&:created_at)
             else
-              successful_pipeline
+              @project.daily_build_group_report_results
+                .with_default_branch
+                .with_coverage
+                .recent_results({}, limit: 1).first
             end
 
           latest&.coverage
