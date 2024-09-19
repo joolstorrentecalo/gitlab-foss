@@ -10,7 +10,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
 
-This document describes how to configure runners in the GitLab UI.
+If you have installed your own runners, you can configure and secure them in GitLab.
 
 If you need to configure runners on the machine where you installed GitLab Runner, see
 [the GitLab Runner documentation](https://docs.gitlab.com/runner/configuration/).
@@ -467,9 +467,6 @@ globally or for individual jobs:
 - [`ARTIFACT_COMPRESSION_LEVEL`](#artifact-and-cache-settings) (artifact archiver compression level)
 - [`CACHE_COMPRESSION_LEVEL`](#artifact-and-cache-settings) (cache archiver compression level)
 - [`CACHE_REQUEST_TIMEOUT`](#artifact-and-cache-settings) (cache request timeout)
-- [`RUNNER_SCRIPT_TIMEOUT`](#set-script-and-after_script-timeouts)
-- [`RUNNER_AFTER_SCRIPT_TIMEOUT`](#set-script-and-after_script-timeouts)
-- [`AFTER_SCRIPT_IGNORE_ERRORS`](#Ignore errors in `after_script`)
 
 You can also use variables to configure how many times a runner
 [attempts certain stages of job execution](#job-stages-attempts).
@@ -864,21 +861,6 @@ variables:
 The value of `GIT_CLONE_PATH` is expanded once into
 `$CI_BUILDS_DIR/go/src/namespace/project`, and results in failure
 because `$CI_BUILDS_DIR` is not expanded.
-
-### Ignore errors in `after_script`
-
-You can use [`after_script`](../yaml/index.md#after_script) in a job to define an array of commands
-that should run after the job's `before_script` and `script` sections. The `after_script` commands
-run regardless of the script termination status (failure or success).
-
-By default, GitLab Runner ignores any errors that happen when `after_script` runs.
-To set the job to fail immediately on errors when `after_script` runs, set the
-`AFTER_SCRIPT_IGNORE_ERRORS` CI/CD variable to `false`. For example:
-
-```yaml
-variables:
-  AFTER_SCRIPT_IGNORE_ERRORS: false
-```
 
 ### Job stages attempts
 

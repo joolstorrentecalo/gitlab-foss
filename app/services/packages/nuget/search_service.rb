@@ -109,7 +109,11 @@ module Packages
       def project_ids_cte
         return unless use_project_ids_cte?
 
-        query = projects_visible_to_user_including_public_registries(@current_user, within_group: @project_or_group)
+        query = if Feature.enabled?(:allow_anyone_to_pull_public_nuget_packages_on_group_level, @project_or_group)
+                  projects_visible_to_user_including_public_registries(@current_user, within_group: @project_or_group)
+                else
+                  projects_visible_to_user(@current_user, within_group: @project_or_group)
+                end
 
         Gitlab::SQL::CTE.new(:project_ids, query.select(:id))
       end
