@@ -3571,7 +3571,6 @@
 - './spec/features/tags/developer_creates_tag_spec.rb'
 - './spec/features/tags/developer_deletes_tag_spec.rb'
 - './spec/features/tags/developer_views_tags_spec.rb'
-- './spec/features/tags/maintainer_deletes_protected_tag_spec.rb'
 - './spec/features/task_lists_spec.rb'
 - './spec/features/topic_show_spec.rb'
 - './spec/features/triggers_spec.rb'

@@ -53842,7 +53842,7 @@ msgstr ""
 msgid "TagsPage|New tag"
 msgstr ""
 
-msgid "TagsPage|Only a project maintainer or owner can delete a protected tag"
+msgid "TagsPage|Only a project owner can delete a protected tag"
 msgstr ""
 
 msgid "TagsPage|Optionally, add a message to the tag. Leaving this blank creates a %{link_start}lightweight tag.%{link_end}"

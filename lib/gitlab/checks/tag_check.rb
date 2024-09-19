@@ -7,7 +7,7 @@ module Gitlab
         change_existing_tags: 'You are not allowed to change existing tags on this project.',
         update_protected_tag: 'Protected tags cannot be updated.',
         delete_protected_tag: 'You are not allowed to delete protected tags from this project. ' \
-                              'Only a project maintainer or owner can delete a protected tag.',
+                              'Only a project owner can delete a protected tag.',
         delete_protected_tag_non_web: 'You can only delete protected tags using the web interface.',
         create_protected_tag: 'You are not allowed to create this tag as it is protected.',
         default_branch_collision: 'You cannot use default branch name to create a tag',
@@ -94,7 +94,7 @@ module Gitlab
       def validate_protected_tag_deletion!
         return unless deletion?
 
-        unless user_access.user.can?(:maintainer_access, project)
+        unless user_access.user.can?(:owner_access, project)
           raise(GitAccess::ForbiddenError, ERROR_MESSAGES[:delete_protected_tag])
         end
 

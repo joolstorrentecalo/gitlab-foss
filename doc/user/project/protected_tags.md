@@ -142,7 +142,7 @@ GitLab user interface.
 
 Prerequisites:
 
-- You must have at least the Maintainer role in your project.
+- You must have the Owner role in your project.
 
 To do this:
 

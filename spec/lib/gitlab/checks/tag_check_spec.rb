@@ -161,8 +161,12 @@ RSpec.describe Gitlab::Checks::TagCheck, feature_category: :source_code_manageme
           context 'when deleting via web interface' do
             let(:protocol) { 'web' }
 
-            it 'is allowed' do
-              expect { change_check.validate! }.not_to raise_error
+            it 'is prevented' do
+              expect { change_check.validate! }.to raise_error(
+                Gitlab::GitAccess::ForbiddenError,
+                'You are not allowed to delete protected tags from this project. ' \
+                'Only a project owner can delete a protected tag.'
+              )
             end
           end
 
@@ -170,7 +174,8 @@ RSpec.describe Gitlab::Checks::TagCheck, feature_category: :source_code_manageme
             it 'is prevented' do
               expect { change_check.validate! }.to raise_error(
                 Gitlab::GitAccess::ForbiddenError,
-                'You can only delete protected tags using the web interface.'
+                'You are not allowed to delete protected tags from this project. ' \
+                'Only a project owner can delete a protected tag.'
               )
             end
           end
@@ -201,7 +206,7 @@ RSpec.describe Gitlab::Checks::TagCheck, feature_category: :source_code_manageme
             expect { change_check.validate! }.to raise_error(
               Gitlab::GitAccess::ForbiddenError,
               'You are not allowed to delete protected tags from this project. ' \
-              'Only a project maintainer or owner can delete a protected tag.'
+              'Only a project owner can delete a protected tag.'
             )
           end
         end

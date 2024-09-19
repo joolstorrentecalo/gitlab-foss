@@ -31,7 +31,7 @@ RSpec.describe 'Developer deletes tag', :js, feature_category: :source_code_mana
         expect(page).to have_content 'v1.1.1'
 
         container = find_by_testid('tag-row', text: 'v1.1.1')
-        expect(container).to have_button('Only a project maintainer or owner can delete a protected tag',
+        expect(container).to have_button('Only a project owner can delete a protected tag',
           disabled: true)
       end
     end
