@@ -55,7 +55,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqClientMiddleware, feature
         run_middleware
 
         expect(job['wal_locations']).to be_nil
-        expect(job['wal_location_source']).to be_nil
+        expect(job['wal_location_sources']).to be_nil
       end
 
       include_examples 'job data consistency'
@@ -80,22 +80,24 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqClientMiddleware, feature
         context 'when replica hosts are available' do
           it 'passes database_replica_location' do
             expected_locations = expect_tracked_locations_when_replicas_available
+            expected_sources = expected_locations.keys.index_with { |_| :replica }
 
             run_middleware
 
             expect(job['wal_locations']).to eq(expected_locations)
-            expect(job['wal_location_source']).to eq(:replica)
+            expect(job['wal_location_sources']).to eq(expected_sources)
           end
         end
 
         context 'when no replica hosts are available' do
           it 'passes primary_write_location' do
             expected_locations = expect_tracked_locations_when_no_replicas_available
+            expected_sources = expected_locations.keys.index_with { |_| :replica }
 
             run_middleware
 
             expect(job['wal_locations']).to eq(expected_locations)
-            expect(job['wal_location_source']).to eq(:replica)
+            expect(job['wal_location_sources']).to eq(expected_sources)
           end
         end
 
@@ -109,11 +111,12 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqClientMiddleware, feature
 
         it 'passes primary write location', :aggregate_failures do
           expected_locations = expect_tracked_locations_from_primary_only
+          expected_sources = expected_locations.keys.index_with { |_| :primary }
 
           run_middleware
 
           expect(job['wal_locations']).to eq(expected_locations)
-          expect(job['wal_location_source']).to eq(:primary)
+          expect(job['wal_location_sources']).to eq(expected_sources)
         end
 
         include_examples 'job data consistency'
@@ -173,7 +176,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqClientMiddleware, feature
           run_middleware
 
           expect(job['wal_locations']).to eq(wal_locations)
-          expect(job['wal_location_source']).to be_nil
+          expect(job['wal_location_sources']).to be_nil
         end
       end
 

@@ -35,7 +35,7 @@ module Gitlab
                      !use_primary_on_empty_location
                    end
 
-          ::Gitlab::Database::LoadBalancing::Session.current.use_primary! if !result && use_primary_on_failure
+          ::Gitlab::Database::LoadBalancing::Session.current.use_primary!(lb_name) if !result && use_primary_on_failure
 
           result
         end
@@ -46,7 +46,7 @@ module Gitlab
           with_primary_write_location do |location|
             set_write_location_for(namespace, id, location)
           end
-          ::Gitlab::Database::LoadBalancing::Session.current.use_primary!
+          ::Gitlab::Database::LoadBalancing::Session.current.use_primary!(lb_name)
         end
 
         def bulk_stick(namespace, ids)
@@ -56,7 +56,7 @@ module Gitlab
             end
           end
 
-          ::Gitlab::Database::LoadBalancing::Session.current.use_primary!
+          ::Gitlab::Database::LoadBalancing::Session.current.use_primary!(lb_name)
         end
 
         private
@@ -99,6 +99,10 @@ module Gitlab
 
         def with_redis(&block)
           Gitlab::Redis::DbLoadBalancing.with(&block)
+        end
+
+        def lb_name
+          @load_balancer.name
         end
       end
     end

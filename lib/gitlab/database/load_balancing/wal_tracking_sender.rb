@@ -18,7 +18,7 @@ module Gitlab
           # When only using the primary there's no need for any WAL queries.
           return if load_balancer.primary_only?
 
-          if Session.current.use_primary?
+          if Session.current.use_primary?(load_balancer.name)
             load_balancer.primary_write_location
           else
             load_balancer.host&.database_replica_location || load_balancer.primary_write_location

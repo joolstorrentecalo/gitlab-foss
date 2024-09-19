@@ -48,7 +48,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::Sticking, :redis do
           expect(load_balancer).not_to receive(:select_up_to_date_host)
 
           expect(redis).not_to receive(:del)
-          expect(::Gitlab::Database::LoadBalancing::Session.current).to receive(:use_primary!)
+          expect(::Gitlab::Database::LoadBalancing::Session.current).to receive(:use_primary!).with(load_balancer.name)
 
           expect(sticking.find_caught_up_replica(:user, 42, use_primary_on_empty_location: true)).to eq(false)
         end
@@ -87,7 +87,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::Sticking, :redis do
 
       it 'returns false, does not unstick and calls use_primary!' do
         expect(redis).not_to receive(:del)
-        expect(::Gitlab::Database::LoadBalancing::Session.current).to receive(:use_primary!)
+        expect(::Gitlab::Database::LoadBalancing::Session.current).to receive(:use_primary!).with(load_balancer.name)
 
         expect(sticking.find_caught_up_replica(:user, 42)).to eq(false)
       end
@@ -116,7 +116,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::Sticking, :redis do
       end
 
       expect(Gitlab::Database::LoadBalancing::Session.current)
-        .to receive(:use_primary!)
+        .to receive(:use_primary!).with(load_balancer.name)
 
       subject
     end

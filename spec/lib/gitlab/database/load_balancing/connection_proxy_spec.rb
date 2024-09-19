@@ -110,7 +110,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
       it 'upserts a record and marks the session to stick to the primary' do
         expect { 2.times { model_class.upsert({ name: 'test' }, unique_by: :name) } }
           .to change { model_class.count }.from(0).to(1)
-          .and change { session.use_primary? }.from(false).to(true)
+          .and change { session.use_primary?(:main) }.from(false).to(true)
       end
     end
 
@@ -118,7 +118,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
       it 'inserts multiple records and marks the session to stick to the primary' do
         expect { model_class.insert_all([{ name: 'one' }, { name: 'two' }]) }
           .to change { model_class.count }.from(0).to(2)
-          .and change { session.use_primary? }.from(false).to(true)
+          .and change { session.use_primary?(:main) }.from(false).to(true)
       end
     end
 
@@ -126,7 +126,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
       it 'inserts a single record and marks the session to stick to the primary' do
         expect { model_class.insert({ name: 'single' }) }
           .to change { model_class.count }.from(0).to(1)
-          .and change { session.use_primary? }.from(false).to(true)
+          .and change { session.use_primary?(:main) }.from(false).to(true)
       end
     end
   end
@@ -145,8 +145,8 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
       let(:replica) { double(:connection) }
 
       before do
-        allow(session).to receive(:fallback_to_replicas_for_ambiguous_queries?).and_return(true)
-        allow(session).to receive(:use_primary?).and_return(false)
+        allow(session).to receive(:fallback_to_replicas_for_ambiguous_queries?).with(:main).and_return(true)
+        allow(session).to receive(:use_primary?).with(:main).and_return(false)
         allow(replica).to receive(:transaction).and_yield
         allow(replica).to receive(:select)
       end
@@ -178,9 +178,9 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
       let(:primary) { double(:connection) }
 
       before do
-        allow(session).to receive(:fallback_to_replicas_for_ambiguous_queries?).and_return(false)
+        allow(session).to receive(:fallback_to_replicas_for_ambiguous_queries?).with(:main).and_return(false)
+        allow(session).to receive(:use_primary?).with(:main).and_return(true)
         allow(session).to receive(:use_replicas_for_read_queries?).and_return(false)
-        allow(session).to receive(:use_primary?).and_return(true)
         allow(primary).to receive(:transaction).and_yield
         allow(primary).to receive(:select)
         allow(primary).to receive(:insert)
@@ -233,8 +233,8 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
       before do
         allow(Gitlab::Database::LoadBalancing::Session).to receive(:current)
           .and_return(session)
-        allow(session).to receive(:fallback_to_replicas_for_ambiguous_queries?).and_return(true)
-        allow(session).to receive(:use_primary?).and_return(false)
+        allow(session).to receive(:fallback_to_replicas_for_ambiguous_queries?).with(:main).and_return(true)
+        allow(session).to receive(:use_primary?).with(:main).and_return(false)
       end
 
       it 'runs the query on the replica' do
@@ -265,7 +265,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
 
     context 'with a regular session' do
       it 'uses a secondary' do
-        allow(session).to receive(:use_primary?).and_return(false)
+        allow(session).to receive(:use_primary?).with(:main).and_return(false)
         allow(session).to receive(:use_replicas_for_read_queries?).and_return(false)
 
         expect(connection).to receive(:foo).with('foo')
@@ -277,7 +277,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
 
     context 'with a regular session and forcing all reads to replicas' do
       it 'uses a secondary' do
-        allow(session).to receive(:use_primary?).and_return(false)
+        allow(session).to receive(:use_primary?).with(:main).and_return(false)
         allow(session).to receive(:use_replicas_for_read_queries?).and_return(true)
 
         expect(connection).to receive(:foo).with('foo')
@@ -289,7 +289,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
 
     context 'with a session using the primary but forcing all reads to replicas' do
       it 'uses a secondary' do
-        allow(session).to receive(:use_primary?).and_return(true)
+        allow(session).to receive(:use_primary?).with(:main).and_return(true)
         allow(session).to receive(:use_replicas_for_read_queries?).and_return(true)
 
         expect(connection).to receive(:foo).with('foo')
@@ -301,7 +301,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::ConnectionProxy do
 
     describe 'with a session using the primary' do
       it 'uses the primary' do
-        allow(session).to receive(:use_primary?).and_return(true)
+        allow(session).to receive(:use_primary?).with(:main).and_return(true)
         allow(session).to receive(:use_replicas_for_read_queries?).and_return(false)
 
         expect(connection).to receive(:foo).with('foo')

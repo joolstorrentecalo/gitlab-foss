@@ -57,7 +57,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqServerMiddleware, :clean_
     shared_examples_for 'stick to the primary' do |expected_strategy|
       it 'sticks to the primary' do
         run_middleware do
-          expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?).to be_truthy
+          expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?(nil)).to be_truthy
         end
       end
 
@@ -72,7 +72,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqServerMiddleware, :clean_
           .and_return(any_caught_up)
 
         run_middleware do
-          expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?).not_to be_truthy
+          expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?(nil)).not_to be_truthy
         end
       end
 
