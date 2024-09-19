@@ -6,8 +6,10 @@ module Ci
     ErasedJobError = Class.new(AuthError)
     DeletedProjectError = Class.new(AuthError)
 
-    def initialize(token:)
+    def initialize(token:, target_job: nil, allow_canceling: false)
       @token = token
+      @target = target_job
+      @allow_canceling = allow_canceling
     end
 
     def execute!
@@ -34,6 +36,7 @@ module Ci
     end
 
     def validate_job!(job)
+      validate_target_job!(job, @target_job) if @target_job
       validate_running_job!(job)
       validate_job_not_erased!(job)
       validate_project_presence!(job)
@@ -43,8 +46,12 @@ module Ci
       true
     end
 
+    def validate_target_job!(job, target)
+      raise AuthError, 'Token is invalid' unless job == target
+    end
+
     def validate_running_job!(job)
-      raise NotRunningJobError, 'Job is not running' unless job.running?
+      raise NotRunningJobError, 'Job is not running' unless job.running? || (@allow_canceling && job.canceling?)
     end
 
     def validate_job_not_erased!(job)
