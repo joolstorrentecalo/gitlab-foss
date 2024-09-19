@@ -192,7 +192,7 @@ module Ci
     end
 
     def manual_playable?
-      blocked? || skipped?
+      builds.playable.any?
     end
 
     # We only check jobs that are played by `Ci::PlayManualStageService`.

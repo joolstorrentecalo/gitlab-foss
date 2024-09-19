@@ -490,6 +490,29 @@ module Ci
       action? && !archived? && (manual? || scheduled? || retryable?)
     end
 
+    scope :playable, -> { actionable_configuration.not_archived.manual_or_scheduled_or_retryable }
+
+    scope :actionable_configuration, -> { where(when: %w[manual delayed]) }
+
+    scope :manual_or_scheduled_or_retryable, -> { where(status: %w[manual scheduled]).or(Ci::Build.retryable) }
+
+    scope :retryable, -> do
+      where(retried: [false, nil], status: %w[success failed canceled canceling])
+        .not_archived
+        .not_deployment_rejected
+    end
+
+    scope :not_archived, -> do
+      archive_cutoff = Gitlab::CurrentSettings.current_application_settings.archive_builds_older_than
+
+      relation = where.not(options: nil)
+      relation = relation.where(created_at: archive_cutoff..Time.current) if archive_cutoff.present?
+
+      relation
+    end
+
+    scope :not_deployment_rejected, -> { where.not(failure_reason: :deployment_rejected) }
+
     def schedulable?
       self.when == 'delayed' && options[:start_in].present?
     end
