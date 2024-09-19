@@ -2,16 +2,15 @@
 import { GlFilteredSearchToken, GlButton, GlLink, GlIcon, GlTooltipDirective } from '@gitlab/ui';
 import { isEmpty } from 'lodash';
 import ApprovalCount from 'ee_else_ce/merge_requests/components/approval_count.vue';
-import { createAlert } from '~/alert';
 import Api from '~/api';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { STATUS_ALL, STATUS_CLOSED, STATUS_OPEN, STATUS_MERGED } from '~/issues/constants';
 import { fetchPolicies } from '~/lib/graphql';
 import { isPositiveInteger } from '~/lib/utils/number_utils';
 import { scrollUp } from '~/lib/utils/scroll_utils';
-import { getParameterByName } from '~/lib/utils/url_utility';
+import { getParameterByName, mergeUrlParams } from '~/lib/utils/url_utility';
 import { TYPENAME_USER } from '~/graphql_shared/constants';
-import { convertToGraphQLId } from '~/graphql_shared/utils';
+import { convertToGraphQLId, getIdFromGraphQLId } from '~/graphql_shared/utils';
 import IssuableList from '~/vue_shared/issuable/list/components/issuable_list_root.vue';
 import { DEFAULT_PAGE_SIZE, mergeRequestListTabs } from '~/vue_shared/issuable/list/constants';
 import {
@@ -67,7 +66,7 @@ import {
 } from '~/issues/list/constants';
 import CiIcon from '~/vue_shared/components/ci_icon/ci_icon.vue';
 import setSortPreferenceMutation from '~/issues/list/queries/set_sort_preference.mutation.graphql';
-import { i18n } from '../constants';
+import { i18n, BRANCH_LIST_REFRESH_INTERVAL } from '../constants';
 import getMergeRequestsQuery from '../queries/get_merge_requests.query.graphql';
 import getMergeRequestsCountsQuery from '../queries/get_merge_requests_counts.query.graphql';
 import searchLabelsQuery from '../queries/search_labels.query.graphql';
@@ -118,6 +117,8 @@ export default {
   ],
   data() {
     return {
+      projectId: null,
+      branchRefreshTimer: null,
       filterTokens: [],
       mergeRequests: [],
       mergeRequestCounts: {},
@@ -145,6 +146,7 @@ export default {
         if (!data) {
           return;
         }
+        this.projectId = getIdFromGraphQLId(data.project.id);
         this.pageInfo = data.project.mergeRequests?.pageInfo ?? {};
       },
       error(error) {
@@ -311,7 +313,7 @@ export default {
           operators: OPERATORS_IS,
           fullPath: this.fullPath,
           isProject: true,
-          fetchBranches: this.fetchBranches,
+          fetchBranches: this.fetchTargetBranches,
         },
         {
           type: TOKEN_TYPE_SOURCE_BRANCH,
@@ -321,7 +323,7 @@ export default {
           operators: OPERATORS_IS,
           fullPath: this.fullPath,
           isProject: true,
-          fetchBranches: this.fetchBranches,
+          fetchBranches: this.fetchSourceBranches,
         },
         {
           type: TOKEN_TYPE_LABEL,
@@ -428,16 +430,44 @@ export default {
     this.autocompleteCache = new AutocompleteCache();
   },
   methods: {
-    fetchBranches(search) {
-      return Api.branches(this.fullPath, search)
-        .then((response) => {
-          return response;
-        })
-        .catch(() => {
-          createAlert({
-            message: this.$options.i18n.errorFetchingBranches,
-          });
-        });
+    fetchBranches(type, search) {
+      const cacheName = `${type}Branches`; // eslint-disable-line @gitlab/require-i18n-strings
+      const typeUrls = {
+        source: '/-/autocomplete/merge_request_source_branches.json',
+        target: '/-/autocomplete/merge_request_target_branches.json',
+        '*': Api.buildUrl(Api.createBranchPath).replace(':id', encodeURIComponent(this.fullPath)),
+      };
+      const branchPath = mergeUrlParams(
+        {
+          project_id: this.projectId,
+        },
+        typeUrls[type] || typeUrls['*'],
+      );
+
+      if (this.branchRefreshTimer) {
+        clearInterval(this.branchRefreshTimer);
+      }
+
+      this.branchRefreshTimer = setInterval(
+        () => this.autocompleteCache.updateLocalCache(cacheName),
+        BRANCH_LIST_REFRESH_INTERVAL,
+      );
+
+      return this.autocompleteCache.fetch({
+        mutator: (branchList) =>
+          branchList.map((branch, index) => ({ ...branch, name: branch.title, id: index })),
+        formatter: (results) => ({ data: results }),
+        url: branchPath,
+        searchProperty: 'name',
+        cacheName,
+        search,
+      });
+    },
+    fetchTargetBranches(search) {
+      return this.fetchBranches('target', search);
+    },
+    fetchSourceBranches(search) {
+      return this.fetchBranches('source', search);
     },
     fetchEmojis(search) {
       return this.autocompleteCache.fetch({
