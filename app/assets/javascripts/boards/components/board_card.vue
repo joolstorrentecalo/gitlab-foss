@@ -40,6 +40,16 @@ export default {
       required: false,
       default: true,
     },
+    columnIndex: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    rowIndex: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
   },
   apollo: {
     // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
@@ -95,6 +105,7 @@ export default {
       if (isMultiSelect && gon?.features?.boardMultiSelect) {
         this.toggleBoardItemMultiSelection(this.item);
       } else {
+        e.currentTarget.focus();
         this.toggleItem();
         this.track('click_card', { label: 'right_sidebar' });
       }
@@ -132,6 +143,51 @@ export default {
         },
       });
     },
+    changeFocusInColumn(currentCard, i) {
+      // Building a list using data-col-index instead of just traversing the ul is necessary for swimlanes
+      const columnCards = [
+        ...document.querySelectorAll(`li.board-card[data-col-index="${this.columnIndex}"]`),
+      ];
+      const currentIndex = columnCards.indexOf(currentCard);
+      if (currentIndex + i < 0 || currentIndex + i > columnCards.length - 1) {
+        return;
+      }
+      columnCards[currentIndex + i].focus();
+    },
+    focusNext(e) {
+      this.changeFocusInColumn(e.target, 1);
+    },
+    focusPrev(e) {
+      this.changeFocusInColumn(e.target, -1);
+    },
+    changeFocusInRow(currentList, i) {
+      // Find next in line list/cell with cards. If none, don't move.
+      let listSelector = 'board-list';
+      // Account for swimlanes using different structure. Swimlanes traverse within their lane.
+      if (currentList.classList.contains('board-cell')) {
+        listSelector = `board-cell[data-row-index="${this.rowIndex}"]`;
+      }
+      const lists = [
+        ...document.querySelectorAll(`ul.${listSelector}:not(.list-empty):not(.list-collapsed)`),
+      ];
+      const currentIndex = lists.indexOf(currentList);
+      if (currentIndex + i < 0 || currentIndex + i > lists.length - 1) {
+        return;
+      }
+      // Focus the same index if possible, or last card
+      const targetCards = lists[currentIndex + i].querySelectorAll('li.board-card');
+      if (targetCards.length <= this.index) {
+        targetCards[targetCards.length - 1].focus();
+      } else {
+        targetCards[this.index].focus();
+      }
+    },
+    focusLeft(e) {
+      this.changeFocusInRow(e.target.parentElement, -1);
+    },
+    focusRight(e) {
+      this.changeFocusInRow(e.target.parentElement, 1);
+    },
   },
 };
 </script>
@@ -146,6 +202,7 @@ export default {
         'is-active gl-bg-blue-50': isActive,
         'gl-cursor-not-allowed gl-bg-gray-10': item.isLoading,
         'gl-border-l-4 gl-pl-4 gl-border-l-solid': itemColor,
+        'hover:gl-bg-gray-10 focus:gl-bg-gray-10': !isActive,
       },
     ]"
     :index="index"
@@ -153,9 +210,20 @@ export default {
     :data-item-iid="item.iid"
     :data-item-path="item.referencePath"
     :style="cardStyle"
+    :aria-label="item.title"
     data-testid="board-card"
-    class="board-card gl-border gl-relative gl-mb-3 gl-rounded-base gl-p-4 gl-leading-normal"
-    @click="toggleIssue($event)"
+    :data-col-index="columnIndex"
+    :data-row-index="rowIndex"
+    class="board-card gl-border gl-relative gl-mb-3 gl-rounded-base gl-p-4 gl-leading-normal focus:gl-focus"
+    role="button"
+    tabindex="0"
+    @click="toggleIssue"
+    @keydown.enter="toggleIssue"
+    @keydown.space.prevent="toggleIssue"
+    @keydown.left.exact.prevent="focusLeft"
+    @keydown.right.exact.prevent="focusRight"
+    @keydown.down.exact.prevent="focusNext"
+    @keydown.up.exact.prevent="focusPrev"
   >
     <board-card-inner
       :list="list"

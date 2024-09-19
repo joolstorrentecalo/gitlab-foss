@@ -27,6 +27,10 @@ export default {
       required: false,
       default: () => [],
     },
+    columnIndex: {
+      type: Number,
+      required: true,
+    },
   },
   data() {
     return {
@@ -89,6 +93,7 @@ export default {
         :list="list"
         :filter-params="filters"
         :show-new-form="showNewForm"
+        :column-index="columnIndex"
         @toggleNewForm="toggleNewForm"
         @setFilters="$emit('setFilters', $event)"
       />

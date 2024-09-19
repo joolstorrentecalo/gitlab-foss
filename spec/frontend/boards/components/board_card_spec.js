@@ -34,6 +34,7 @@ describe('Board card', () => {
     item = mockIssue,
     selectedBoardItems = [],
     activeBoardItem = {},
+    mountOptions = {},
   } = {}) => {
     mockApollo.clients.defaultClient.cache.writeQuery({
       query: isShowingLabelsQuery,
@@ -78,6 +79,7 @@ describe('Board card', () => {
         allowSubEpics: false,
         ...provide,
       },
+      ...mountOptions,
     });
   };
 
@@ -215,6 +217,35 @@ describe('Board card', () => {
         expect.arrayContaining(['gl-pl-4', 'gl-border-l-solid', 'gl-border-l-4']),
       );
       expect(wrapper.attributes('style')).toBe(undefined);
+    });
+  });
+
+  describe('when focusing board cards', () => {
+    beforeEach(() => {
+      mountComponent({ mountOptions: { attachTo: document.body } });
+    });
+
+    it('gets focus on click', () => {
+      wrapper.trigger('click');
+
+      expect(document.activeElement).toEqual(wrapper.element);
+    });
+
+    it('opens drawer via keyboard', async () => {
+      wrapper.trigger('focusin');
+      wrapper.trigger('keydown.enter');
+
+      await waitForPromises();
+
+      expect(mockSetActiveBoardItemResolver).toHaveBeenCalledWith(
+        {},
+        {
+          boardItem: mockIssue,
+          listId: 'gid://gitlab/List/2',
+        },
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 });

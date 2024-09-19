@@ -264,6 +264,7 @@ export default {
         v-for="(list, index) in boardListsToUse"
         :key="index"
         ref="board"
+        :column-index="index"
         :board-id="boardId"
         :list="list"
         :filters="filterParams"

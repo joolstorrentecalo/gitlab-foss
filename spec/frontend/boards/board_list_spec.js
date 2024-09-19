@@ -21,6 +21,7 @@ describe('Board list component', () => {
   const findMoveToPositionComponent = () => wrapper.findComponent(BoardCardMoveToPosition);
   const findIntersectionObserver = () => wrapper.findComponent(GlIntersectionObserver);
   const findBoardListCount = () => wrapper.find('.board-list-count');
+  const findBoardCards = () => wrapper.findAllComponents(BoardCard);
 
   const maxIssueCountWarningClass = '.gl-bg-red-50';
 
@@ -311,6 +312,35 @@ describe('Board list component', () => {
       it('Board card move to position is not visible', () => {
         expect(findMoveToPositionComponent().exists()).toBe(false);
       });
+    });
+  });
+
+  describe('when using keyboard', () => {
+    beforeEach(async () => {
+      wrapper = createComponent({
+        apolloQueryHandlers: [
+          [
+            listIssuesQuery,
+            jest
+              .fn()
+              .mockResolvedValue(mockGroupIssuesResponse('gid://gitlab/List/1', mockIssuesMore)),
+          ],
+        ],
+        mountOptions: { attachTo: document.body },
+      });
+      await waitForPromises();
+    });
+
+    it('traverses to next card on down key', async () => {
+      findBoardCards().at(0).trigger('focusin');
+      await findBoardCards().at(0).trigger('keydown.down');
+      expect(document.activeElement).toEqual(findBoardCards().at(1).element);
+    });
+
+    it('traverses to previous card on up key', async () => {
+      findBoardCards().at(1).trigger('focusin');
+      await findBoardCards().at(1).trigger('keydown.up');
+      expect(document.activeElement).toEqual(findBoardCards().at(0).element);
     });
   });
 });
