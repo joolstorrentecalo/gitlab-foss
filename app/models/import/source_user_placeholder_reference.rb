@@ -16,7 +16,6 @@ module Import
       json_schema: { filename: 'import_source_user_placeholder_reference_composite_key' },
       allow_nil: true
     validate :validate_numeric_or_composite_key_present
-    validate :validate_model_is_not_member
 
     attribute :composite_key, :ind_jsonb
 
@@ -139,16 +138,7 @@ module Import
     def validate_numeric_or_composite_key_present
       return if numeric_key.present? ^ composite_key.present?
 
-      errors.add(:base, :blank, message: 'one of numeric_key or composite_key must be present')
-    end
-
-    # Membership data is handled in `Import::Placeholders::Membership` records instead.
-    # Use `Import::PlaceholderMemberships::CreateService` to save the membership data.
-    def validate_model_is_not_member
-      model_class = model&.safe_constantize
-      return unless model_class.present? && model_class.new.is_a?(Member)
-
-      errors.add(:model, :invalid, message: 'cannot be a Member')
+      errors.add(:base, :blank, message: 'numeric_key or composite_key must be present')
     end
   end
 end

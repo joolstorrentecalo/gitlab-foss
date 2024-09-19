@@ -46,11 +46,7 @@ export default {
       return this.todo.note.bodyFirstLineHtml.replace(/(<\/?)p>/g, '$1span>');
     },
     showAuthorOnNote() {
-      return (
-        this.todo.action !== TODO_ACTION_TYPE_BUILD_FAILED &&
-        this.todo.action !== TODO_ACTION_TYPE_MERGE_TRAIN_REMOVED &&
-        this.todo.action !== TODO_ACTION_TYPE_UNMERGEABLE
-      );
+      return this.todo.action !== TODO_ACTION_TYPE_BUILD_FAILED && !this.todo.unmergeable;
     },
     userIsAuthor() {
       return this.todo.author.id === this.currentUserId;

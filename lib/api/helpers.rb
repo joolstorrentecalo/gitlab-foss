@@ -91,9 +91,18 @@ module API
         load_balancer_stick_request(::ApplicationRecord, :user, @current_user.id)
       end
 
+      set_current_organization(@current_user) unless ::Current.lock_organization
+
       @current_user
     end
     # rubocop:enable Gitlab/ModuleWithInstanceVariables
+
+    def set_current_organization(with_user = nil)
+      ::Current.organization = Gitlab::Current::Organization.new(
+        params: {},
+        user: with_user
+      ).organization
+    end
 
     def save_current_user_in_env(user)
       env[API_USER_ENV] = { user_id: user.id, username: user.username }
@@ -149,12 +158,11 @@ module API
       project = find_project(id)
 
       return forbidden!("This project's CI/CD job token cannot be used to authenticate with the container registry of a different project.") unless authorized_project_scope?(project)
-      return not_found!('Project') if project.nil?
 
       unless can?(current_user, read_project_ability, project)
         return unauthorized! if authenticate_non_public?
 
-        return handle_job_token_failure!(project)
+        return not_found!('Project')
       end
 
       if project_moved?(id, project)
@@ -947,17 +955,6 @@ module API
       Rack::Request.new(env).tap do |r|
         r.path_info = "/#{new_path}"
       end.url
-    end
-
-    def handle_job_token_failure!(project)
-      if current_user&.from_ci_job_token? && current_user&.ci_job_token_scope
-        source_project = current_user.ci_job_token_scope.current_project
-        error_message = format("Authentication by CI/CD job token not allowed from %{source_project_path} to %{target_project_path}.", source_project_path: source_project.path, target_project_path: project.path)
-
-        forbidden!(error_message)
-      else
-        not_found!('Project')
-      end
     end
   end
 end

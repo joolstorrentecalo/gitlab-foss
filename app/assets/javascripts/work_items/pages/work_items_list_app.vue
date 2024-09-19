@@ -563,7 +563,6 @@ export default {
       :active-item="activeItem"
       :open="isItemSelected"
       :issuable-type="activeWorkItemType"
-      click-outside-exclude-selector=".issuable-list"
       @close="activeItem = null"
       @addChild="refetchItems"
       @workItemDeleted="deleteItem"

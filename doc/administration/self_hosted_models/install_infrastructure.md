@@ -25,10 +25,10 @@ DISCLAIMER:
 This page contains information related to upcoming products, features, and functionality.
 It is important to note that the information presented is for informational purposes only.
 Please do not rely on this information for purchasing or planning purposes.
-The development, release, and timing of any products, features, or functionality may be subject to change or delay and remain at the sole discretion of GitLab Inc.
+The development, release, and timing of any products, features, or functionality may be subject to change or delay and remain at the
+sole discretion of GitLab Inc.
 
-By self-hosting the model, AI Gateway, and GitLab instance, there are no calls to
-external architecture, ensuring maximum levels of security.
+By self-hosting the model, AI Gateway, and GitLab instance, there are no calls to external architecture, ensuring maximum levels of security.
 
 To set up your self-hosted model deployment infrastructure:
 
@@ -36,15 +36,10 @@ To set up your self-hosted model deployment infrastructure:
 1. Configure your GitLab instance.
 1. Install the GitLab AI Gateway.
 
-<i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
-For an installation video guide, see [Self-Hosted Models Deployment](https://youtu.be/UNmD9-sgUvw).
-<!-- Video published on 2024-05-30 -->
+- [Installation video guide](https://youtu.be/UNmD9-sgUvw)
+- [Installation video guide (French version)](https://www.youtube.com/watch?v=aU5vnzO-MSM)
 
-<i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
-For an installation video guide in French, see [Self-Hosted Models Deployment (French Language version)](https://youtu.be/UNmD9-sgUvw).
-<!-- Video published on 2024-05-30 -->
-
-## Install large language model serving infrastructure
+## Step 1: Install LLM serving infrastructure
 
 Install one of the following GitLab-approved LLM models:
 
@@ -60,10 +55,9 @@ Install one of the following GitLab-approved LLM models:
 | [Mixtral 8x22B](https://huggingface.co/mistral-community/Mixtral-8x22B-v0.1)       | **{dotted-circle}** No                | **{check-circle}** Yes               | **{check-circle}** Yes        |
 | [Mixtral 8x7B](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1)        | **{dotted-circle}** No                | **{check-circle}** Yes               | **{check-circle}** Yes        |
 
-### Use a serving architecture
+### Recommended serving architectures
 
-You should use one of the following serving architectures with your
-installed LLM:
+You should use one of the following architectures:
 
 - [vLLM](https://docs.vllm.ai/en/stable/)
 - [TensorRT-LLM](https://docs.mistral.ai/deployment/self-deployment/overview/)
@@ -115,9 +109,9 @@ model_list:
       api_base: YOUR_HOSTING_SERVER
 ```
 
-## Configure your GitLab instance
+## Step 2: Configure your GitLab instance
 
-1. For the GitLab instance to know where the AI Gateway is located so it can access
+1. For the GitLab instance to know where AI Gateway is located so it can access
    the gateway, set the environment variable `AI_GATEWAY_URL` inside your GitLab
    instance environment variables:
 
@@ -125,8 +119,7 @@ model_list:
    AI_GATEWAY_URL=https://<your_ai_gitlab_domain>
    ```
 
-1. Where your GitLab instance is installed, [run the following Rake task](../../raketasks/index.md)
-   to activate GitLab Duo features:
+1. Where your GitLab instance is installed, [run the following Rake task](../../raketasks/index.md) to activate GitLab Duo features:
 
    ```shell
    sudo gitlab-rake gitlab:duo:enable_feature_flags
@@ -146,7 +139,7 @@ model_list:
 
    Exit the Rails console.
 
-## Install the GitLab AI Gateway
+## Step 3: Install the GitLab AI Gateway
 
 ### Install by using Docker
 
@@ -155,8 +148,7 @@ Prerequisites:
 - Install a Docker container engine, such as [Docker](https://docs.docker.com/engine/install/#server).
 - Use a valid hostname accessible within your network. Do not use `localhost`.
 
-The GitLab AI Gateway Docker image contains all necessary code and dependencies
-in a single container.
+The GitLab AI Gateway Docker image contains all necessary code and dependencies in a single container.
 
 #### Find the AI Gateway release
 
@@ -166,9 +158,7 @@ Find the GitLab official Docker image at:
 - [AI Gateway Docker image on DockerHub](https://hub.docker.com/repository/docker/gitlab/model-gateway/tags).
 - [Release process for self-hosted AI Gateway](https://gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/-/blob/main/docs/release.md).
 
-Use the image tag that corresponds to your GitLab version. For example, if the
-GitLab version is `v17.4.0`, use `self-hosted-v17.4.0-ee` tag.
-
+Use the image tag that corresponds to your GitLab version. For example, if the GitLab version is `v17.4.0`, use `self-hosted-v17.4.0-ee` tag.
 For version `v17.3.0-ee`, use image tag `gitlab-v17.3.0`.
 
 WARNING:
@@ -179,9 +169,8 @@ to community resources (such as IRC or forums) to seek help from other users.
 
 #### Set up the volumes location
 
-Create a directory where the logs will reside on the Docker host. It can be under
-your user's home directory (for example `~/gitlab-agw`), or in a directory like
-`/srv/gitlab-agw`. To create that directory, run:
+Create a directory where the logs will reside on the Docker host. It can be under your user's home directory (for example
+`~/gitlab-agw`), or in a directory like `/srv/gitlab-agw`. To create that directory, run:
 
 ```shell
 sudo mkdir -p /srv/gitlab-agw
@@ -198,7 +187,7 @@ This only applies to AI Gateway image tag `gitlab-17.3.0-ee` and earlier. For im
 To improve results when asking GitLab Duo Chat questions about GitLab, you can
 index GitLab documentation and provide it as a file to the AI Gateway.
 
-To index the documentation in your local installation, run:
+To index the documentation in your local installation,run:
 
 ```shell
 pip install requests langchain langchain_text_splitters
@@ -221,7 +210,7 @@ For Docker images with version `self-hosted-17.4.0-ee` and later, run the follow
 docker run -e AIGW_GITLAB_URL=<your_gitlab_instance> <image>
 ```
 
-For Docker images with version `gitlab-17.3.0-ee` and `gitlab-17.2.0`, run:
+For Docker images with version `gitlab-17.3.0-ee` and `gitlab-17.2.0`:
 
 ```shell
 docker run -e AIGW_CUSTOM_MODELS__ENABLED=true \
@@ -248,7 +237,7 @@ should open the AI Gateway API documentation.
    AIGW_GITLAB_API_URL=https://<your_gitlab_domain>/api/v4/
    ```
 
-1. [Configure the GitLab instance](#configure-your-gitlab-instance).
+1. [Configure the GitLab instance](#step-2-configure-your-gitlab-instance).
 
 1. After you've set up the environment variables, [run the image](#start-a-container-from-the-image).
 
@@ -261,15 +250,36 @@ should open the AI Gateway API documentation.
 After starting the container, visit `gitlab-aigw.example.com`. It might take
 a while before the Docker container starts to respond to queries.
 
+### Upgrade the AI Gateway Docker image
+
+To upgrade the AI Gateway, download the newest Docker image tag.
+
+1. Stop the running container:
+
+   ```shell
+   sudo docker stop gitlab-aigw
+   ```
+
+1. Remove the existing container:
+
+   ```shell
+   sudo docker rm gitlab-aigw
+   ```
+
+1. Pull and [run the new image](#start-a-container-from-the-image).
+
+1. Ensure that the environment variables are all set correctly
+
 ### Install by using the AI Gateway Helm chart
 
-Prerequisites:
+#### Prerequisites
 
-- You must have a:
-  - Domain you own, that you can add a DNS record to.
-  - Kubernetes cluster.
-  - Working installation of `kubectl`.
-  - Working installation of Helm, version v3.11.0 or later.
+To complete this guide, you must have the following:
+
+- A domain you own, that you can add a DNS record to.
+- A Kubernetes cluster.
+- A working installation of `kubectl`.
+- A working installation of Helm, version v3.11.0 or later.
 
 For more information, see [Test the GitLab chart on GKE or EKS](https://docs.gitlab.com/charts/quickstart/index.html).
 
@@ -298,8 +308,8 @@ https://gitlab.com/api/v4/projects/gitlab-org%2fcharts%2fai-gateway-helm-chart/p
    ```
 
 1. For the AI Gateway to access the API, it must know where the GitLab instance
-   is located. To do this, set the `gitlab.url` and `gitlab.apiUrl` together with
-   the `ingress.hosts` and `ingress.tls` values as follows:
+is located. To do this, set the `gitlab.url` and
+`gitlab.apiUrl` together with the `ingress.hosts` and `ingress.tls` values as follows:
 
    ```shell
    helm repo add ai-gateway \
@@ -322,8 +332,7 @@ https://gitlab.com/api/v4/projects/gitlab-org%2fcharts%2fai-gateway-helm-chart/p
      --timeout=300s --wait --wait-for-jobs
    ```
 
-This step can take will take a few seconds in order for all resources to be allocated
-and the AI Gateway to start.
+This step can take will take a few seconds in order for all resources to be allocated and the AI Gateway to start.
 
 Wait for your pods to get up and running:
 
@@ -335,43 +344,30 @@ kubectl wait pod \
   --timeout=300s
 ```
 
-When your pods are up and running, you can set up your IP ingresses and DNS records.
+When it's done, you can proceed with setting up your IP ingresses and DNS records.
 
-#### Configure the GitLab instance
+#### Installation steps in the GitLab instance
 
-[Configure the GitLab instance](#configure-your-gitlab-instance).
+[Configure the GitLab instance](#step-2-configure-your-gitlab-instance).
 
 With those steps completed, your Helm chart installation is complete.
 
-## Upgrade the AI Gateway Docker image
-
-To upgrade the AI Gateway, download the newest Docker image tag.
-
-1. Stop the running container:
-
-   ```shell
-   sudo docker stop gitlab-aigw
-   ```
-
-1. Remove the existing container:
-
-   ```shell
-   sudo docker rm gitlab-aigw
-   ```
-
-1. Pull and [run the new image](#start-a-container-from-the-image).
-
-1. Ensure that the environment variables are all set correctly.
-
 ## Alternative installation methods
 
-For information on alternative ways to install the AI Gateway, see
-[issue 463773](https://gitlab.com/gitlab-org/gitlab/-/issues/463773).
+For information on alternative ways to install the AI Gateway, see [issue 463773](https://gitlab.com/gitlab-org/gitlab/-/issues/463773).
 
 ## Troubleshooting
 
-First, run the [debugging scripts](troubleshooting.md#use-debugging-scripts) to
-verify your self-hosted model setup.
+First, run the [debugging scripts](troubleshooting.md#use-debugging-scripts) to verify your self-hosted model setup.
 
-For more information on other actions to take, see the
-[troubleshooting documentation](troubleshooting.md).
+For more information on other actions to take, see the [troubleshooting documentation](troubleshooting.md).
+
+### The image's platform does not match the host
+
+When [finding the AI Gateway release](#find-the-ai-gateway-release), you might get an error that states `The requested image’s platform (linux/amd64) does not match the detected host`.
+
+To work around this error, add `--platform linux/amd64` to the `docker run` command:
+
+```shell
+docker run --platform linux/amd64 -e AIGW_GITLAB_URL=<your-gitlab-endpoint> <image>
+```

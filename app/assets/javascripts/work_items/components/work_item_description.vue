@@ -80,11 +80,6 @@ export default {
       required: false,
       default: '',
     },
-    withoutHeadingAnchors: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
   },
   markdownDocsPath: helpPagePath('user/markdown'),
   data() {
@@ -121,7 +116,7 @@ export default {
         return data?.workspace?.workItem || {};
       },
       result() {
-        if (this.isEditing && !this.createFlow) {
+        if (this.isEditing) {
           this.checkForConflicts();
         }
       },
@@ -384,7 +379,6 @@ export default {
       :disable-truncation="disableTruncation"
       :is-group="isGroup"
       :is-updating="isSubmitting"
-      :without-heading-anchors="withoutHeadingAnchors"
       @startEditing="startEditing"
       @descriptionUpdated="handleDescriptionTextUpdated"
     />

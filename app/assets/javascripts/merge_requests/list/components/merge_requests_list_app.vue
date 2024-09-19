@@ -6,6 +6,7 @@ import { createAlert } from '~/alert';
 import Api from '~/api';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { STATUS_ALL, STATUS_CLOSED, STATUS_OPEN, STATUS_MERGED } from '~/issues/constants';
+import axios from '~/lib/utils/axios_utils';
 import { fetchPolicies } from '~/lib/graphql';
 import { isPositiveInteger } from '~/lib/utils/number_utils';
 import { scrollUp } from '~/lib/utils/scroll_utils';
@@ -41,12 +42,7 @@ import {
   TOKEN_TYPE_LABEL,
   TOKEN_TITLE_RELEASE,
   TOKEN_TYPE_RELEASE,
-  TOKEN_TITLE_DEPLOYED_BEFORE,
-  TOKEN_TYPE_DEPLOYED_BEFORE,
-  TOKEN_TITLE_DEPLOYED_AFTER,
-  TOKEN_TYPE_DEPLOYED_AFTER,
 } from '~/vue_shared/components/filtered_search_bar/constants';
-import { AutocompleteCache } from '~/issues/dashboard/utils';
 import {
   convertToApiParams,
   convertToSearchQuery,
@@ -73,7 +69,6 @@ import getMergeRequestsCountsQuery from '../queries/get_merge_requests_counts.qu
 import searchLabelsQuery from '../queries/search_labels.query.graphql';
 import MergeRequestStatistics from './merge_request_statistics.vue';
 import MergeRequestMoreActionsDropdown from './more_actions_dropdown.vue';
-import EmptyState from './empty_state.vue';
 
 const UserToken = () => import('~/vue_shared/components/filtered_search_bar/tokens/user_token.vue');
 const BranchToken = () =>
@@ -85,7 +80,6 @@ const LabelToken = () =>
 const ReleaseToken = () => import('./tokens/release_client_search_token.vue');
 const EmojiToken = () =>
   import('~/vue_shared/components/filtered_search_bar/tokens/emoji_token.vue');
-const DateToken = () => import('~/vue_shared/components/filtered_search_bar/tokens/date_token.vue');
 
 export default {
   name: 'MergeRequestsListApp',
@@ -100,7 +94,6 @@ export default {
     MergeRequestStatistics,
     MergeRequestMoreActionsDropdown,
     ApprovalCount,
-    EmptyState,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -340,20 +333,6 @@ export default {
           operators: OPERATORS_IS_NOT,
           releasesEndpoint: this.releasesEndpoint,
         },
-        {
-          type: TOKEN_TYPE_DEPLOYED_BEFORE,
-          title: TOKEN_TITLE_DEPLOYED_BEFORE,
-          icon: 'clock',
-          token: DateToken,
-          operators: OPERATORS_IS,
-        },
-        {
-          type: TOKEN_TYPE_DEPLOYED_AFTER,
-          title: TOKEN_TITLE_DEPLOYED_AFTER,
-          icon: 'clock',
-          token: DateToken,
-          operators: OPERATORS_IS,
-        },
       ];
 
       if (gon.current_user_id) {
@@ -419,13 +398,9 @@ export default {
         })
       );
     },
-    isOpenTab() {
-      return this.state === STATUS_OPEN;
-    },
   },
   created() {
     this.updateData(this.initialSort);
-    this.autocompleteCache = new AutocompleteCache();
   },
   methods: {
     fetchBranches(search) {
@@ -439,13 +414,8 @@ export default {
           });
         });
     },
-    fetchEmojis(search) {
-      return this.autocompleteCache.fetch({
-        url: this.autocompleteAwardEmojisPath,
-        cacheName: 'emojis',
-        searchProperty: 'name',
-        search,
-      });
+    fetchEmojis() {
+      return axios.get(this.autocompleteAwardEmojisPath);
     },
     fetchLabelsWithFetchPolicy(search, fetchPolicy = fetchPolicies.CACHE_FIRST) {
       return this.$apollo
@@ -638,10 +608,5 @@ export default {
         <ci-icon :status="issuable.headPipeline.detailedStatus" use-link show-tooltip />
       </li>
     </template>
-
-    <template #empty-state>
-      <empty-state :has-search="hasSearch" :is-open-tab="isOpenTab" />
-    </template>
   </issuable-list>
-  <empty-state v-else :has-merge-requests="false" />
 </template>

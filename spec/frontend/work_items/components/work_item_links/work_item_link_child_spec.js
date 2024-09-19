@@ -142,7 +142,7 @@ describe('WorkItemLinkChild', () => {
         '!gl-border-b-1',
         '!gl-border-t-0',
         '!gl-border-solid',
-        'gl-border-default',
+        '!gl-border-gray-50',
         '!gl-pb-2',
       ]);
     });

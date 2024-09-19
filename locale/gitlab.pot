@@ -3621,9 +3621,6 @@ msgstr ""
 msgid "AdminAiPoweredFeatures|%{feature_name}"
 msgstr ""
 
-msgid "AdminAiPoweredFeatures|%{selected_model} is incompatible with the %{title} feature"
-msgstr ""
-
 msgid "AdminAiPoweredFeatures|AI vendor"
 msgstr ""
 
@@ -14110,10 +14107,10 @@ msgstr ""
 msgid "ComplianceFrameworks|Policy name"
 msgstr ""
 
-msgid "ComplianceFrameworks|Project name"
+msgid "ComplianceFrameworks|Project description"
 msgstr ""
 
-msgid "ComplianceFrameworks|Project path"
+msgid "ComplianceFrameworks|Project name"
 msgstr ""
 
 msgid "ComplianceFrameworks|Projects"
@@ -15280,9 +15277,6 @@ msgstr ""
 msgid "Continue with overages"
 msgstr ""
 
-msgid "Continue with:"
-msgstr ""
-
 msgid "Continue…"
 msgstr ""
 
@@ -16282,9 +16276,6 @@ msgstr ""
 msgid "CreateValueStreamForm|'%{name}' Value Stream has been successfully created."
 msgstr ""
 
-msgid "CreateValueStreamForm|'%{name}' Value Stream has been successfully saved."
-msgstr ""
-
 msgid "CreateValueStreamForm|'%{name}' Value Stream saved"
 msgstr ""
 
@@ -16448,6 +16439,9 @@ msgid "Created On"
 msgstr ""
 
 msgid "Created a branch and a merge request to resolve this issue."
+msgstr ""
+
+msgid "Created at"
 msgstr ""
 
 msgid "Created branch '%{branch_name}' and a merge request to resolve this issue."
@@ -18303,6 +18297,9 @@ msgstr ""
 msgid "Dependencies|Error exporting the dependency list. Please reload the page."
 msgstr ""
 
+msgid "Dependencies|Error parsing SBOM reports"
+msgstr ""
+
 msgid "Dependencies|Export as CSV"
 msgstr ""
 
@@ -18345,6 +18342,9 @@ msgstr ""
 msgid "Dependencies|The component dependency path is based on the lock file. There may be several paths. In these cases, the longest path is displayed."
 msgstr ""
 
+msgid "Dependencies|The following SBOM reports could not be parsed, and the list of components may be incomplete. Please investigate the provided reports and ensure they conform to %{helpPageLinkStart}the requirements for SBOM documents%{helpPageLinkEnd}."
+msgstr ""
+
 msgid "Dependencies|There may be multiple paths"
 msgstr ""
 
@@ -18376,6 +18376,9 @@ msgid "Dependencies|Unknown path"
 msgstr ""
 
 msgid "Dependencies|Vulnerable components"
+msgstr ""
+
+msgid "Dependencies|report-%{index} (%{length})"
 msgstr ""
 
 msgid "Dependencies|unknown"
@@ -22632,7 +22635,7 @@ msgid_plural "Failed jobs"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Failed jobs"
+msgid "Failed jobs (%{count})"
 msgstr ""
 
 msgid "Failed on"
@@ -24493,6 +24496,9 @@ msgid "GitLab (self-managed)"
 msgstr ""
 
 msgid "GitLab / Unsubscribe"
+msgstr ""
+
+msgid "GitLab 17.5 and later will require that all network connections use OpenSSL version 3. %{link_start}Learn more%{link_end}."
 msgstr ""
 
 msgid "GitLab API"
@@ -26357,6 +26363,9 @@ msgstr ""
 msgid "GroupSelect|Select a group"
 msgstr ""
 
+msgid "GroupSettings| %{link_start}What do experiment and beta mean?%{link_end}"
+msgstr ""
+
 msgid "GroupSettings|'%{name}' has been scheduled for removal on %{date}."
 msgstr ""
 
@@ -26451,6 +26460,9 @@ msgid "GroupSettings|Enable overview background aggregation for Value Streams Da
 msgstr ""
 
 msgid "GroupSettings|Enable sending email notifications for this group and all its subgroups and projects"
+msgstr ""
+
+msgid "GroupSettings|Enabling these features is your acceptance of the %{link_start}GitLab Testing Agreement%{link_end}."
 msgstr ""
 
 msgid "GroupSettings|Enforce SSH Certificates"
@@ -26562,6 +26574,9 @@ msgid "GroupSettings|There was a problem updating Auto DevOps pipeline: %{error_
 msgstr ""
 
 msgid "GroupSettings|There was a problem updating the group CI/CD settings: %{error_messages}."
+msgstr ""
+
+msgid "GroupSettings|These features are being developed and might be unstable."
 msgstr ""
 
 msgid "GroupSettings|This setting is applied on %{ancestor_group} and has been overridden on this subgroup."
@@ -27192,6 +27207,9 @@ msgstr ""
 msgid "Hide host keys manual input"
 msgstr ""
 
+msgid "Hide list"
+msgstr ""
+
 msgid "Hide marketing-related entries from the Help page"
 msgstr ""
 
@@ -27587,9 +27605,6 @@ msgstr ""
 msgid "IdentityVerification|Enter a valid code."
 msgstr ""
 
-msgid "IdentityVerification|Enter a verified email address associated with this account. A new code will be sent to this address."
-msgstr ""
-
 msgid "IdentityVerification|For added security, you'll need to verify your identity."
 msgstr ""
 
@@ -27614,16 +27629,13 @@ msgstr ""
 msgid "IdentityVerification|Help us protect your account"
 msgstr ""
 
-msgid "IdentityVerification|If you don't have access to the primary email address, you can %{sendToSecondaryEmailButtonStart}%{sendToSecondaryEmailButtonEnd}, or you can %{supportLinkStart}try to verify another way.%{supportLinkEnd}"
-msgstr ""
-
 msgid "IdentityVerification|If you have not recently tried to sign into GitLab, we recommend %{password_link_start}changing your password%{link_end} and %{two_fa_link_start}setting up Two-Factor Authentication%{link_end} to keep your account safe. Your verification code expires after %{expires_in_minutes} minutes."
 msgstr ""
 
 msgid "IdentityVerification|If you have not recently tried to sign into GitLab, we recommend changing your password (%{password_link}) and setting up Two-Factor Authentication (%{two_fa_link}) to keep your account safe."
 msgstr ""
 
-msgid "IdentityVerification|If you've lost access to the email associated to this account or having trouble with the code, %{supportLinkStart}here are some other steps you can take.%{supportLinkEnd}"
+msgid "IdentityVerification|If you've lost access to the email associated to this account or having trouble with the code, %{link_start}here are some other steps you can take.%{link_end}"
 msgstr ""
 
 msgid "IdentityVerification|Maximum login attempts exceeded. Wait %{interval} and try again."
@@ -27755,9 +27767,6 @@ msgstr ""
 msgid "IdentityVerification|Your verification code expires after %{expires_in_minutes} minutes."
 msgstr ""
 
-msgid "IdentityVerification|send a code to another address associated with this account"
-msgstr ""
-
 msgid "Identity|Active"
 msgstr ""
 
@@ -27813,6 +27822,9 @@ msgid "If this was a mistake you can leave the %{source_type}."
 msgstr ""
 
 msgid "If using GitHub, you’ll see pipeline statuses on GitHub for your commits and pull requests. %{more_info_link}"
+msgstr ""
+
+msgid "If you add %{codeStart}needs%{codeEnd} to jobs in your pipeline you'll be able to view the %{codeStart}needs%{codeEnd} dependencies between jobs in this tab."
 msgstr ""
 
 msgid "If you are unable to sign in or recover your password, contact a GitLab administrator."
@@ -29519,9 +29531,6 @@ msgstr ""
 msgid "InviteMembersModal|Show more (%{count})"
 msgstr ""
 
-msgid "InviteMembersModal|Some requests have been sent for administrator approval"
-msgstr ""
-
 msgid "InviteMembersModal|Something went wrong"
 msgstr ""
 
@@ -30882,6 +30891,9 @@ msgstr ""
 msgid "Jobs|Jobs are the building blocks of a GitLab CI/CD pipeline. Each job has a specific task, like testing code. To set up jobs in a CI/CD pipeline, add a CI/CD configuration file to your project."
 msgstr ""
 
+msgid "Jobs|No jobs to show"
+msgstr ""
+
 msgid "Jobs|Raw text search is not currently supported for the jobs filtered search feature. Please use the available search tokens."
 msgstr ""
 
@@ -31338,9 +31350,6 @@ msgstr ""
 msgid "KubernetesDashboard|ReplicaSets"
 msgstr ""
 
-msgid "KubernetesDashboard|Resume reconciliation"
-msgstr ""
-
 msgid "KubernetesDashboard|Running"
 msgstr ""
 
@@ -31368,9 +31377,6 @@ msgstr ""
 msgid "KubernetesDashboard|Succeeded"
 msgstr ""
 
-msgid "KubernetesDashboard|Suspend reconciliation"
-msgstr ""
-
 msgid "KubernetesDashboard|Suspended"
 msgstr ""
 
@@ -31384,9 +31390,6 @@ msgid "KubernetesDashboard|View projects"
 msgstr ""
 
 msgid "KubernetesDashboard|You can select an agent from a project's environment page."
-msgstr ""
-
-msgid "KubernetesDashboard|unknown"
 msgstr ""
 
 msgid "KubernetesLogs|Agent ID"
@@ -31794,6 +31797,9 @@ msgstr ""
 msgid "Learn more about max seats used"
 msgstr ""
 
+msgid "Learn more about needs dependencies"
+msgstr ""
+
 msgid "Learn more about seats owed"
 msgstr ""
 
@@ -32117,9 +32123,6 @@ msgstr ""
 msgid "LicenseManagement|Uncategorized"
 msgstr ""
 
-msgid "LicenseScanningReport|The following SBOM reports could not be parsed. Therefore the list of components and their licenses may be incomplete."
-msgstr ""
-
 msgid "Licensed Enterprise Edition features can be used if the project namespace's plan includes the feature, or if the project is public."
 msgstr ""
 
@@ -32175,6 +32178,9 @@ msgid "Limit the number of project or group members a user can delete per minute
 msgstr ""
 
 msgid "Limit the size of Sidekiq jobs stored in Redis."
+msgstr ""
+
+msgid "Limitation on this view"
 msgstr ""
 
 msgid "Limiting mode"
@@ -32894,9 +32900,6 @@ msgid "Maximum allowable lifetime for access token (days)"
 msgstr ""
 
 msgid "Maximum allowed lifetime for SSH keys (days)"
-msgstr ""
-
-msgid "Maximum artifacts archive size (bytes)"
 msgstr ""
 
 msgid "Maximum artifacts size"
@@ -35560,6 +35563,9 @@ msgstr ""
 msgid "Needs attention"
 msgstr ""
 
+msgid "Needs visualization requires at least 3 dependent jobs."
+msgstr ""
+
 msgid "Network"
 msgstr ""
 
@@ -35681,9 +35687,6 @@ msgid "New issue"
 msgid_plural "New issues"
 msgstr[0] ""
 msgstr[1] ""
-
-msgid "New issue look"
-msgstr ""
 
 msgid "New issue title"
 msgstr ""
@@ -36148,12 +36151,6 @@ msgid "No ref selected"
 msgstr ""
 
 msgid "No regions configured"
-msgstr ""
-
-msgid "No related branches found"
-msgstr ""
-
-msgid "No related tags found"
 msgstr ""
 
 msgid "No repository"
@@ -37967,6 +37964,9 @@ msgid "Optionally, you can %{link_to_customize} how FogBugz email addresses and 
 msgstr ""
 
 msgid "Options"
+msgstr ""
+
+msgid "Or create your own GitLab account"
 msgstr ""
 
 msgid "Ordered list"
@@ -40134,9 +40134,6 @@ msgstr ""
 msgid "Pipelines settings for '%{project_name}' were successfully updated."
 msgstr ""
 
-msgid "Pipelines| The list can only display 100 jobs. To view all jobs, %{linkStart}go to this pipeline's details page.%{linkEnd}"
-msgstr ""
-
 msgid "Pipelines|\"Hello world\" with GitLab CI"
 msgstr ""
 
@@ -40248,9 +40245,6 @@ msgstr ""
 msgid "Pipelines|Loading pipelines"
 msgstr ""
 
-msgid "Pipelines|Maximum list size reached"
-msgstr ""
-
 msgid "Pipelines|Merge train"
 msgstr ""
 
@@ -40321,6 +40315,9 @@ msgid "Pipelines|The CI configuration was not loaded, please try again."
 msgstr ""
 
 msgid "Pipelines|The GitLab CI configuration could not be updated."
+msgstr ""
+
+msgid "Pipelines|The visualization in this tab will be %{linkStart}removed%{linkEnd}. Instead, view %{codeStart}needs%{codeEnd} relationships with the %{strongStart}Job dependency%{strongEnd} option in the %{strongStart}Pipeline%{strongEnd} tab."
 msgstr ""
 
 msgid "Pipelines|There are currently no finished pipelines."
@@ -40395,6 +40392,9 @@ msgstr ""
 msgid "Pipelines|Unable to validate CI/CD configuration. See the %{linkStart}GitLab CI/CD troubleshooting guide%{linkEnd} for more details."
 msgstr ""
 
+msgid "Pipelines|Upcoming visualization change"
+msgstr ""
+
 msgid "Pipelines|Update Trigger"
 msgstr ""
 
@@ -40423,6 +40423,9 @@ msgid "Pipelines|We'll continuously validate your pipeline configuration. The va
 msgstr ""
 
 msgid "Pipelines|You should review the code thoroughly before running this pipeline with the parent project's CI/CD resources."
+msgstr ""
+
+msgid "Pipelines|You will see a maximum of 100 jobs in this list. To view all failed jobs, %{linkStart}go to the details page%{linkEnd} of this pipeline."
 msgstr ""
 
 msgid "Pipelines|Your changes have been successfully committed. Now redirecting to the new merge request page."
@@ -40516,6 +40519,9 @@ msgid "Pipeline|Merged result pipeline"
 msgstr ""
 
 msgid "Pipeline|Merged result pipeline runs on the contents of the merge request combined with the contents of the target branch."
+msgstr ""
+
+msgid "Pipeline|No failed jobs in this pipeline 🎉"
 msgstr ""
 
 msgid "Pipeline|Only the first 100 jobs per stage are displayed"
@@ -41299,9 +41305,6 @@ msgid "Preview diagram"
 msgstr ""
 
 msgid "Preview payload"
-msgstr ""
-
-msgid "Preview the new issues experience, with real time updates and refreshed design. Some features are not yet supported, see feedback issue for details."
 msgstr ""
 
 msgid "Previous commit"
@@ -44649,18 +44652,6 @@ msgstr ""
 msgid "Random"
 msgstr ""
 
-msgid "RapidDiffs|Diff line"
-msgstr ""
-
-msgid "RapidDiffs|Diff line number"
-msgstr ""
-
-msgid "RapidDiffs|Original line"
-msgstr ""
-
-msgid "RapidDiffs|Original line number"
-msgstr ""
-
 msgid "Rate Limits"
 msgstr ""
 
@@ -44867,6 +44858,9 @@ msgstr ""
 msgid "Register with two-factor app"
 msgstr ""
 
+msgid "Register with:"
+msgstr ""
+
 msgid "RegistrationFeatures|Enable Service Ping and register for this feature."
 msgstr ""
 
@@ -45002,6 +44996,9 @@ msgid "ReleaseAssetLinkType|Runbooks"
 msgstr ""
 
 msgid "Released"
+msgstr ""
+
+msgid "Released at"
 msgstr ""
 
 msgid "Released date"
@@ -45923,9 +45920,6 @@ msgstr ""
 msgid "Request for a Duo Code Review queued."
 msgstr ""
 
-msgid "Request queued for administrator approval."
-msgstr ""
-
 msgid "Request review from"
 msgstr ""
 
@@ -46301,7 +46295,7 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
-msgid "Roles and permissions"
+msgid "Roles and Permissions"
 msgstr ""
 
 msgid "Roll up totals may reflect child items you don’t have access to."
@@ -47657,18 +47651,6 @@ msgstr ""
 msgid "Saving project."
 msgstr ""
 
-msgid "SbomErrors|Error parsing SBOM reports"
-msgstr ""
-
-msgid "SbomErrors|Please investigate the provided reports and ensure they conform to %{helpPageLinkStart}the requirements for SBOM documents%{helpPageLinkEnd}."
-msgstr ""
-
-msgid "SbomErrors|The following SBOM reports could not be parsed. Therefore the list of components may be incomplete."
-msgstr ""
-
-msgid "SbomErrors|report-%{index} (%{length})"
-msgstr ""
-
 msgid "Scan pushed document contents for policy breaks. %{docs_link}"
 msgstr ""
 
@@ -48827,33 +48809,6 @@ msgid "SecurityConfiguration|Vulnerability details and statistics in the merge r
 msgstr ""
 
 msgid "SecurityDescription|The linked group refers to the groups that are linked to security policy projects. Security policy projects store your organization's security policies. They are identified when policies are created, or when a project is linked as a security policy project. %{linkStart}Learn more%{linkEnd}."
-msgstr ""
-
-msgid "SecurityExclusions|Add exclusion"
-msgstr ""
-
-msgid "SecurityExclusions|Enforcement"
-msgstr ""
-
-msgid "SecurityExclusions|Modified"
-msgstr ""
-
-msgid "SecurityExclusions|Secret push protection"
-msgstr ""
-
-msgid "SecurityExclusions|Specify file paths, raw values, and regex that should be excluded by secret detection in this project."
-msgstr ""
-
-msgid "SecurityExclusions|Status"
-msgstr ""
-
-msgid "SecurityExclusions|Toggle exclusion"
-msgstr ""
-
-msgid "SecurityExclusions|Type"
-msgstr ""
-
-msgid "SecurityExclusions|Value"
 msgstr ""
 
 msgid "SecurityOrchestration| and "
@@ -50187,9 +50142,6 @@ msgstr ""
 msgid "SecurityReports|The Vulnerability Report shows results of successful scans on your project's default branch, manually added vulnerability records, and vulnerabilities found from scanning operational environments. %{linkStart}Learn more%{linkEnd}."
 msgstr ""
 
-msgid "SecurityReports|The following SBOM reports could not be parsed. Therefore the list of reported vulnerabilities may be incomplete."
-msgstr ""
-
 msgid "SecurityReports|The following security reports contain one or more vulnerability findings that could not be parsed and were not recorded. To investigate a report, download the artifacts in the job output. Ensure the security report conforms to the relevant %{helpPageLinkStart}JSON schema%{helpPageLinkEnd}."
 msgstr ""
 
@@ -51372,6 +51324,9 @@ msgstr ""
 msgid "Show less"
 msgstr ""
 
+msgid "Show list"
+msgstr ""
+
 msgid "Show more"
 msgstr ""
 
@@ -51498,6 +51453,9 @@ msgid "Sign out"
 msgstr ""
 
 msgid "Sign up"
+msgstr ""
+
+msgid "Sign up for your free trial with:"
 msgstr ""
 
 msgid "Sign-in count:"
@@ -52499,6 +52457,9 @@ msgstr ""
 msgid "Specify an email address regex pattern to identify default internal users."
 msgstr ""
 
+msgid "Speed up your pipelines with Needs relationships"
+msgstr ""
+
 msgid "Spent at can't be a future date and time."
 msgstr ""
 
@@ -52646,9 +52607,6 @@ msgid "Started asynchronous removal of all repository check states."
 msgstr ""
 
 msgid "Started escalation for this incident."
-msgstr ""
-
-msgid "Starting with GitLab 17.5, OpenSSL 3 will be used. All TLS connections require TLS 1.2 or higher. Weaker ciphers are no longer supported. Encryption must have at least of 112 bits of security. %{link_start}Learn more%{link_end}."
 msgstr ""
 
 msgid "Starting..."
@@ -54729,9 +54687,6 @@ msgstr ""
 msgid "The maximum file size allowed is %{size}."
 msgstr ""
 
-msgid "The maximum file size for job artifacts archive."
-msgstr ""
-
 msgid "The maximum file size for job artifacts."
 msgstr ""
 
@@ -55296,6 +55251,9 @@ msgstr ""
 msgid "There was an error loading users activity calendar."
 msgstr ""
 
+msgid "There was an error parsing the data for this graph."
+msgstr ""
+
 msgid "There was an error removing the e-mail."
 msgstr ""
 
@@ -55341,7 +55299,7 @@ msgstr ""
 msgid "There was an error while fetching value stream analytics duration data."
 msgstr ""
 
-msgid "There was an error while running this job again"
+msgid "There was an error while retrying this job"
 msgstr ""
 
 msgid "There was an error with the reCAPTCHA. Please solve the reCAPTCHA again."
@@ -55594,6 +55552,9 @@ msgid "This epic cannot be added. You don't have access to perform this action."
 msgstr ""
 
 msgid "This epic does not exist or you don't have sufficient permission."
+msgstr ""
+
+msgid "This feature is not enabled yet."
 msgstr ""
 
 msgid "This feature requires local storage to be enabled"
@@ -57951,9 +57912,6 @@ msgstr ""
 msgid "Unable to schedule a pipeline to run immediately"
 msgstr ""
 
-msgid "Unable to send approval request to administrator."
-msgstr ""
-
 msgid "Unable to sign in to group with SAML: \"%{reason}\""
 msgstr ""
 
@@ -59686,6 +59644,9 @@ msgstr ""
 msgid "Using required encryption strategy when encrypted field is missing!"
 msgstr ""
 
+msgid "Using the %{codeStart}needs%{codeEnd} keyword makes jobs run before their stage is reached. Jobs run as soon as their %{codeStart}needs%{codeEnd} relationships are met, which speeds up your pipelines."
+msgstr ""
+
 msgid "Validate"
 msgstr ""
 
@@ -59997,6 +59958,9 @@ msgid "VersionCheck|You are currently on version %{currentVersion}! We strongly 
 msgstr ""
 
 msgid "Versions"
+msgstr ""
+
+msgid "View"
 msgstr ""
 
 msgid "View File Metadata"
@@ -60751,6 +60715,9 @@ msgid "We also use email for avatar detection if no avatar is uploaded."
 msgstr ""
 
 msgid "We are currently unable to fetch data for the pipeline header."
+msgstr ""
+
+msgid "We are currently unable to fetch data for this graph."
 msgstr ""
 
 msgid "We could not determine the path to remove the epic"
@@ -62182,9 +62149,6 @@ msgid "WorkItem|Work items"
 msgstr ""
 
 msgid "WorkItem|Yes, close %{workItemType}"
-msgstr ""
-
-msgid "WorkItem|You cannot add another child %{workItemType}. You’ve reached the maximum number of nested levels."
 msgstr ""
 
 msgid "WorkItem|You don't have the necessary permission to view the ancestor."
