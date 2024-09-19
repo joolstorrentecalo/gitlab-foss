@@ -37048,6 +37048,9 @@ msgstr ""
 msgid "OKRs|An update is due on: %{update_due_date}"
 msgstr ""
 
+msgid "OR"
+msgstr ""
+
 msgid "OWASP Top 10 2017"
 msgstr ""
 
