@@ -65349,6 +65349,15 @@ msgstr ""
 msgid "must be an array of hash containing 'allow' attribute of type string"
 msgstr ""
 
+msgid "must be an array of hashes"
+msgstr ""
+
+msgid "must be an array of hashes containing attribute 'name' of type string"
+msgstr ""
+
+msgid "must be an array of hashes containing attribute 'namespace' of type string"
+msgstr ""
+
 msgid "must be an email you have verified"
 msgstr ""
 
@@ -65731,6 +65740,9 @@ msgid "seat"
 msgid_plural "seats"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "secret names must be unique"
+msgstr ""
 
 msgid "security policy bot users cannot be added to other projects"
 msgstr ""
