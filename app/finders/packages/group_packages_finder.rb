@@ -50,9 +50,13 @@ module Packages
                    current_user.accessible_projects
                  else
                    ::Project
-                     .in_namespace(groups)
                      .public_or_visible_to_user(current_user, Gitlab::Access::REPORTER)
+                     .then do |rel|
+                       rel = rel.or(with_public_package_registry) if params[:within_public_package_registry]
+                       rel
+                     end
                      .with_feature_available_for_user(:repository, current_user)
+                     .in_namespace(groups)
                  end
 
       projects = projects.with_package_registry_enabled if params[:with_package_registry_enabled]
@@ -75,6 +79,10 @@ module Packages
 
     def packages_class
       params.fetch(:packages_class, ::Packages::Package)
+    end
+
+    def with_public_package_registry
+      ::ProjectFeature.with_feature_access_level(:package_registry, ::ProjectFeature::PUBLIC)
     end
   end
 end

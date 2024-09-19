@@ -78,6 +78,7 @@ RSpec.describe API::Terraform::Modules::V1::NamespacePackages, feature_category:
     end
 
     it_behaves_like 'accessing a public/internal project with another project\'s job token'
+    it_behaves_like 'allowing anyone to pull public terraform modules', 'returns terraform module packages'
   end
 
   describe 'GET /api/v4/packages/terraform/modules/v1/:module_namespace/:module_name/:module_system/download' do
@@ -153,6 +154,11 @@ RSpec.describe API::Terraform::Modules::V1::NamespacePackages, feature_category:
     end
 
     it_behaves_like 'accessing a public/internal project with another project\'s job token', :found
+    it_behaves_like 'allowing anyone to pull public terraform modules', 'redirects to version download', :found do
+      before_all do
+        create(:terraform_module_package, project: project, name: package.name, version: '1.0.1')
+      end
+    end
   end
 
   describe 'GET /api/v4/packages/terraform/modules/v1/:module_namespace/:module_name/:module_system' do
@@ -222,6 +228,7 @@ RSpec.describe API::Terraform::Modules::V1::NamespacePackages, feature_category:
     end
 
     it_behaves_like 'accessing a public/internal project with another project\'s job token'
+    it_behaves_like 'allowing anyone to pull public terraform modules', 'returns terraform module version'
   end
 
   describe 'GET /api/v4/packages/terraform/modules/v1/:module_namespace/:module_name/:module_system/:module_version' do
@@ -293,6 +300,7 @@ RSpec.describe API::Terraform::Modules::V1::NamespacePackages, feature_category:
     end
 
     it_behaves_like 'accessing a public/internal project with another project\'s job token'
+    it_behaves_like 'allowing anyone to pull public terraform modules', 'returns terraform module version'
   end
 
   describe 'GET /api/v4/packages/terraform/modules/v1/:module_namespace/:module_name/:module_system/:module_version/download' do
@@ -351,6 +359,7 @@ RSpec.describe API::Terraform::Modules::V1::NamespacePackages, feature_category:
     end
 
     it_behaves_like 'accessing a public/internal project with another project\'s job token'
+    it_behaves_like 'allowing anyone to pull public terraform modules', 'grants terraform module download'
   end
 
   describe 'GET /api/v4/packages/terraform/modules/v1/:module_namespace/:module_name/:module_system/:module_version/file' do
@@ -457,6 +466,17 @@ RSpec.describe API::Terraform::Modules::V1::NamespacePackages, feature_category:
 
     it_behaves_like 'accessing a public/internal project with another project\'s job token', :success do
       let(:token) { tokens[:job_token] }
+    end
+
+    it_behaves_like 'allowing anyone to pull public terraform modules', 'grants terraform module package file access' do
+      let(:token) { nil }
+      let(:snowplow_gitlab_standard_context) do
+        {
+          project: project,
+          namespace: project.namespace,
+          property: 'i_package_terraform_module_user'
+        }
+      end
     end
   end
 end
