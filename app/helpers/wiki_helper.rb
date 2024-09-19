@@ -130,7 +130,13 @@ module WikiHelper
   private
 
   def wiki_page_render_api_endpoint_params(page)
-    { id: page.container.id, slug: ERB::Util.url_encode(page.slug), params: { version: page.version.id } }
+    {
+      id: page.container.id,
+      slug: page.slug.split('/')
+              .map { |uri_component| ERB::Util.url_encode(uri_component) }
+              .join('/'),
+      params: { version: page.version.id }
+    }
   end
 
   def wiki_page_info(page, uploads_path: '')
