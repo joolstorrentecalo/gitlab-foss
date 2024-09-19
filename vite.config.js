@@ -115,6 +115,7 @@ export default defineConfig({
     IS_JH: IS_JH
       ? JSON.stringify('typeof window !== "undefined" && window.gon && window.gon.jh')
       : JSON.stringify(false),
+    IS_VITE: JSON.stringify(true),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.SOURCEGRAPH_PUBLIC_PATH': JSON.stringify(SOURCEGRAPH_PUBLIC_PATH),
     'process.env.GITLAB_WEB_IDE_PUBLIC_PATH': JSON.stringify(GITLAB_WEB_IDE_PUBLIC_PATH),
