@@ -116,7 +116,7 @@ export default {
         return data?.workspace?.workItem || {};
       },
       result() {
-        if (this.isEditing && !this.createFlow) {
+        if (this.isEditing) {
           this.checkForConflicts();
         }
       },

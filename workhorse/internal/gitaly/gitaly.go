@@ -152,8 +152,8 @@ func getOrCreateConnection(server api.GitalyServer) (*grpc.ClientConn, error) {
 	cache.Lock()
 	defer cache.Unlock()
 
-	if cachedConn := cache.connections[key]; cachedConn != nil {
-		return cachedConn, nil
+	if conn := cache.connections[key]; conn != nil {
+		return conn, nil
 	}
 
 	conn, err := newConnection(server)

@@ -47,12 +47,11 @@ FactoryBot.define do
   factory :project_snippet, parent: :snippet, class: :ProjectSnippet do
     project
     author { project.creator }
-    organization { project.organization }
   end
 
   factory :personal_snippet, parent: :snippet, class: :PersonalSnippet do
     author { association(:author, :with_namespace) }
-    organization { author&.namespace&.organization || association(:organization) }
+    organization { association :organization, :default }
     project { nil }
 
     trait :secret do

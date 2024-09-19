@@ -242,7 +242,7 @@
 .discussion-header,
 .note-header-info {
   a {
-    color: var(--gl-text-color-default);
+    color: inherit;
 
     &:hover,
     &.hover {

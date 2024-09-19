@@ -2981,7 +2981,7 @@ In this example, a new pipeline causes a running pipeline to cancel `step-1` and
 ### `needs`
 
 Use `needs` to execute jobs out-of-order. Relationships between jobs
-that use `needs` can be visualized as a [directed acyclic graph](../yaml/needs.md).
+that use `needs` can be visualized as a [directed acyclic graph](../directed_acyclic_graph/index.md).
 
 You can ignore stage ordering and run some jobs without waiting for others to complete.
 Jobs in multiple stages can run concurrently.
@@ -3173,8 +3173,8 @@ build_job:
   or the group/project must have public visibility.
 - You can't use `needs:project` in the same job as [`trigger`](#trigger).
 - When using `needs:project` to download artifacts from another pipeline, the job does not wait for
-  the needed job to complete. [Using `needs` to wait for jobs to complete](../yaml/needs.md)
-  is limited to jobs in the same pipeline. Make sure that the needed job in the other
+  the needed job to complete. [Directed acyclic graph](../directed_acyclic_graph/index.md)
+  behavior is limited to jobs in the same pipeline. Make sure that the needed job in the other
   pipeline completes before the job that needs it tries to download the artifacts.
 - You can't download artifacts from jobs that run in [`parallel`](#parallel).
 - Support [CI/CD variables](../variables/index.md) in `project`, `job`, and `ref`.
@@ -4488,12 +4488,14 @@ if reached when evaluating a job's rules.
 
 **Possible inputs**:
 
-- `on_success` (default): Run the job only when no jobs in earlier stages fail.
+- `on_success` (default): Run the job only when no jobs in earlier stages fail
+  or are allowed to fail with [`allow_failure: true`](#allow_failure). `on_success`
+  is the default behavior when you combine `when` with `if`, `changes`, or `exists`.
 - `on_failure`: Run the job only when at least one job in an earlier stage fails.
 - `never`: Don't run the job regardless of the status of jobs in earlier stages.
 - `always`: Run the job regardless of the status of jobs in earlier stages.
 - `manual`: Add the job to the pipeline as a [manual job](../jobs/job_control.md#create-a-job-that-must-be-run-manually).
-  The default value for [`allow_failure`](#allow_failure) changes to `false`.
+  When using `rules:when` with `manual`, `allow_failure` defaults to `false`.
 - `delayed`: Add the job to the pipeline as a [delayed job](../jobs/job_control.md#run-a-job-after-a-delay).
 
 **Example of `rules:when`**:
@@ -4515,17 +4517,6 @@ In this example, `job1` is added to pipelines:
   when `when` is not defined.
 - For feature branches as a delayed job.
 - In all other cases as a manual job.
-
-**Additional details**:
-
-- When evaluating the status of jobs for `on_success` and `on_failure`:
-  - Jobs with [`allow_failure: true`](#allow_failure) in earlier stages are considered successful, even if they failed.
-  - Skipped jobs in earlier stages, for example [manual jobs that have not been started](../jobs/job_control.md#create-a-job-that-must-be-run-manually),
-    are considered successful.
-- When using `rules:when: manual` to [add a manual job](../jobs/job_control.md#create-a-job-that-must-be-run-manually):
-  - [`allow_failure`](#allow_failure) becomes `false` by default. This default is the opposite of
-    using [`when: manual`](#when) to add a manual job.
-  - To achieve the same behavior as `when: manual` defined outside of `rules`, set [`rules: allow_failure`](#rulesallow_failure) to `true`.
 
 #### `rules:allow_failure`
 
@@ -5675,13 +5666,16 @@ the default value is `when: on_success`.
 
 **Possible inputs**:
 
-- `on_success` (default): Run the job only when no jobs in earlier stages fail.
-- `on_failure`: Run the job only when at least one job in an earlier stage fails.
+- `on_success` (default): Run the job only when no jobs in earlier stages fail
+  or have `allow_failure: true`.
+- `on_failure`: Run the job only when at least one job in an earlier stage fails. A job in an earlier stage
+  with `allow_failure: true` is always considered successful.
 - `never`: Don't run the job regardless of the status of jobs in earlier stages.
-  Can only be used in a [`rules`](#ruleswhen) section or [`workflow: rules`](#workflowrules).
-- `always`: Run the job regardless of the status of jobs in earlier stages.
-- `manual`: Add the job to the pipeline as a [manual job](../jobs/job_control.md#create-a-job-that-must-be-run-manually).
-- `delayed`: Add the job to the pipeline as a [delayed job](../jobs/job_control.md#run-a-job-after-a-delay).
+  Can only be used in a [`rules`](#rules) section or `workflow: rules`.
+- `always`: Run the job regardless of the status of jobs in earlier stages. Can also be used in `workflow:rules`.
+- `manual`: Run the job only when [triggered manually](../jobs/job_control.md#create-a-job-that-must-be-run-manually).
+- `delayed`: [Delay the execution of a job](../jobs/job_control.md#run-a-job-after-a-delay)
+  for a specified duration.
 
 **Example of `when`**:
 
@@ -5732,12 +5726,9 @@ In this example, the script:
 
 **Additional details**:
 
-- When evaluating the status of jobs for `on_success` and `on_failure`:
-  - Jobs with [`allow_failure: true`](#allow_failure) in earlier stages are considered successful, even if they failed.
-  - Skipped jobs in earlier stages, for example [manual jobs that have not been started](../jobs/job_control.md#create-a-job-that-must-be-run-manually),
-    are considered successful.
-- The default value for [`allow_failure`](#allow_failure) is `true` with `when: manual`. The default value
-  changes to `false` with [`rules:when: manual`](#ruleswhen).
+- The default behavior of `allow_failure` changes to `true` with `when: manual`.
+  However, if you use `when: manual` with [`rules`](#rules), `allow_failure` defaults
+  to `false`.
 
 **Related topics**:
 

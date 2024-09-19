@@ -86,8 +86,7 @@ module QA
     "fips" => "FIPS",
     "ci_cd_settings" => "CICDSettings",
     "cli" => "CLI",
-    "webgoat" => "Webgoat",
-    "securityandcompliance" => "Securityandcompliance"
+    "webgoat" => "Webgoat"
   )
 
   loader.setup

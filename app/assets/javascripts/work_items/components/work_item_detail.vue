@@ -214,7 +214,10 @@ export default {
         return !this.workItem?.id;
       },
       update(data) {
-        return findHierarchyWidgetDefinition(data.workItem)?.allowedChildTypes?.nodes || [];
+        return (
+          findHierarchyWidgetDefinition(data.workItem.workItemType.widgetDefinitions)
+            ?.allowedChildTypes?.nodes || []
+        );
       },
     },
   },
@@ -368,7 +371,7 @@ export default {
       return !isEmpty(this.workItem);
     },
     isGroupWorkItem() {
-      return Boolean(this.modalIsGroup ?? this.workItem.namespace?.id.includes(TYPENAME_GROUP));
+      return this.modalIsGroup ?? this.workItem.namespace?.id.includes(TYPENAME_GROUP);
     },
   },
   mounted() {

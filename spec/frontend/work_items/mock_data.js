@@ -1603,7 +1603,6 @@ export const workItemHierarchyNoUpdatePermissionResponse = {
         id: '1',
         fullPath: 'test-project-path',
         name: 'Project name',
-        fullName: 'Project name',
       },
       confidential: false,
       reference: 'test-project-path#1',
@@ -1612,7 +1611,6 @@ export const workItemHierarchyNoUpdatePermissionResponse = {
           type: 'HIERARCHY',
           parent: null,
           hasChildren: true,
-          rolledUpCountsByType: [],
           children: {
             pageInfo: {
               hasNextPage: false,
@@ -1633,17 +1631,9 @@ export const workItemHierarchyNoUpdatePermissionResponse = {
                   __typename: 'WorkItemType',
                 },
                 title: 'xyz',
-                reference: 'test-project-path#2',
                 state: 'OPEN',
                 confidential: false,
                 createdAt: '2022-08-03T12:41:54Z',
-                namespace: {
-                  __typename: 'Project',
-                  id: '1',
-                  fullPath: 'test-project-path',
-                  name: 'Project name',
-                  fullName: 'Project name',
-                },
                 closedAt: null,
                 webUrl: '/gitlab-org/gitlab-test/-/work_items/2',
                 widgets: [
@@ -4498,36 +4488,6 @@ export const allowedChildrenTypesResponse = {
   },
 };
 
-export const allowedParentTypesResponse = {
-  data: {
-    workItem: {
-      id: 'gid://gitlab/WorkItem/1',
-      workItemType: {
-        id: 'gid://gitlab/WorkItems::Type/6',
-        name: 'Objective',
-        widgetDefinitions: [
-          {
-            type: 'HIERARCHY',
-            allowedParentTypes: {
-              nodes: [
-                {
-                  id: 'gid://gitlab/WorkItems::Type/6',
-                  name: 'Objective',
-                  __typename: 'WorkItemType',
-                },
-              ],
-              __typename: 'WorkItemTypeConnection',
-            },
-            __typename: 'WorkItemWidgetDefinitionHierarchy',
-          },
-        ],
-        __typename: 'WorkItemType',
-      },
-      __typename: 'WorkItem',
-    },
-  },
-};
-
 export const generateWorkItemsListWithId = (count) =>
   Array.from({ length: count }, (_, i) => ({ id: `gid://gitlab/WorkItem/${i + 1}` }));
 
@@ -4944,17 +4904,6 @@ export const mockMoveWorkItemMutationResponse = ({ error = undefined } = {}) => 
         userPermissions: mockUserPermissions,
       },
       errors: [error],
-    },
-  },
-});
-
-export const mockUserPreferences = (useWorkItemsView = true) => ({
-  data: {
-    currentUser: {
-      id: '1',
-      userPreferences: {
-        useWorkItemsView,
-      },
     },
   },
 });

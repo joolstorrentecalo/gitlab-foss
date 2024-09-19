@@ -120,7 +120,6 @@ type K8sLogsData {
 
 type K8sEvent {
   lastTimestamp: String
-  eventTime: String
   message: String
   reason: String
   source: JSON

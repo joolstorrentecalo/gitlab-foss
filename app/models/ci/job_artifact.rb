@@ -253,10 +253,12 @@ module Ci
     end
 
     # method overridden in EE
-    def file_stored_after_transaction_hooks; end
+    def file_stored_after_transaction_hooks
+    end
 
     # method overridden in EE
-    def file_stored_in_transaction_hooks; end
+    def file_stored_in_transaction_hooks
+    end
 
     def set_size
       self.size = file.size

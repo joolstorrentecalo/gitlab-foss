@@ -133,10 +133,10 @@ describe('tags list row', () => {
       expect(getTooltipFor(findName()).value).toBe(tag.name);
     });
 
-    it('on mobile has gl-max-w-20 class', () => {
+    it('on mobile has mw-s class', () => {
       mountComponent({ ...defaultProps, isMobile: true });
 
-      expect(findName().classes('gl-max-w-20')).toBe(true);
+      expect(findName().classes('mw-s')).toBe(true);
     });
   });
 
