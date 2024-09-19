@@ -19,6 +19,7 @@ class Namespace < ApplicationRecord
   include Referable
   include CrossDatabaseIgnoredTables
   include IgnorableColumns
+  include Gitlab::CachePrimaryKeyLookupResult
   include UseSqlFunctionForPrimaryKeyLookups
   include Todoable
 

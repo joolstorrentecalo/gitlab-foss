@@ -1,0 +1,9 @@
+---
+name: cache_primary_key_lookup_result
+feature_issue_url: https://gitlab.com/gitlab-org/gitlab/-/issues/480374
+# introduced_by_url:
+# rollout_issue_url:
+milestone: '17.4'
+group: group::database
+type: gitlab_com_derisk
+default_enabled: false
