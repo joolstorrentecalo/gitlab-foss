@@ -102,10 +102,16 @@ However, the following exclusions apply.
 Secret push protection does not check a file in a commit when:
 
 - The file is a binary file.
-- The file is larger than 1 MiB.
+- The diff patch for the file is larger than 1 MiB.
 - The file was renamed, deleted, or moved without changes to the content.
 - The content of the file is identical to the content of another file in the source code.
 - The file is contained in the initial push that created the repository.
+
+## Diff scanning
+
+Secret Push Protection scans all contents of modified files by default. This can cause [unintended situations](#push-blocked-unexpectedly).
+You can enable the `spp_scan_diffs` feature flag for your project, which modifies Secret Push Protection
+to only scan newly committed content, or the diff, and not the rest of the file.
 
 ## Resolve a blocked push
 
@@ -196,12 +202,10 @@ When working with secret push protection, you may encounter the following situat
 
 ### Push blocked unexpectedly
 
-Secret Push Protection scans all contents of modified files. This can cause a push to be
-unexpectedly blocked if a modified file contains a secret, even if the secret is not part of the diff.
+Secret Push Protection scans all contents of modified files. This can cause a push to be unexpectedly blocked
+if a modified file contains a secret, even if the secret is not part of the diff.
 
-To push a change to a file that contains a secret, you need to [skip secret push protection](#skip-secret-push-protection).
-
-[Issue 469161](https://gitlab.com/gitlab-org/gitlab/-/issues/469161) proposes to change the scanning logic to scan only diffs.
+You can [enable the `spp_scan_diffs` feature flag](#diff-scanning) so that only the newly committed content is scanned.
 
 ### File was not scanned
 
