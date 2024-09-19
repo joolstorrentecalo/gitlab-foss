@@ -226,7 +226,14 @@ module Auth
       return if path.has_repository?
       return unless actions.include?('push')
 
-      ContainerRepository.find_or_create_from_path!(path)
+      repository = ContainerRepository.find_or_create_from_path!(path)
+      audit_repository_created(repository)
+
+      repository
+    end
+
+    def audit_repository_created(repository)
+      # Overridden in EE
     end
 
     # Overridden in EE
