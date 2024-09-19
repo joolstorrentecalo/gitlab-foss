@@ -6,9 +6,14 @@
 -#    per_page:      number of items to fetch per page
 -#    remote:        data-remote
 
-- page_url = current_page.last? ? '#' : url
+- is_last_page = current_page.last?
 
-%li.page-item.js-next-button{ class: ('disabled' if current_page.last?) }
-  = link_to page_url, rel: 'next', remote: remote, class: 'page-link' do
-    = s_('Pagination|Next')
-    = sprite_icon('chevron-lg-right', size: 8)
+%li{ class: ('disabled' if is_last_page), 'aria-disabled': ('true' if is_last_page), 'aria-hidden': ('true' if is_last_page) }
+  - if is_last_page
+    %span.gl-pagination-item{ data: { testid: 'kaminari-pagination-next' } }
+      = s_('Pagination|Next')
+      = sprite_icon('chevron-right')
+  - else
+    = link_to url, rel: 'next', remote: remote, class: 'gl-pagination-item', data: { testid: 'kaminari-pagination-next' } do
+      = s_('Pagination|Next')
+      = sprite_icon('chevron-right')

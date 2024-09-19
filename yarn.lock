@@ -1362,10 +1362,9 @@
   resolved "https://registry.yarnpkg.com/@gitlab/svgs/-/svgs-3.116.0.tgz#281b8c4f12843172f460028b6e624e57d65496a2"
   integrity sha512-mbOu8mI/vDqGbo+HGyZ0a4F1g/TGRbRlxBqAXNtz42KX8P8rrLERxRjjV1P/vrLCIC744hhrZ8zSTCNGGcyQPA==
 
-"@gitlab/ui@93.0.0":
-  version "93.0.0"
-  resolved "https://registry.yarnpkg.com/@gitlab/ui/-/ui-93.0.0.tgz#f559e229031f8afd13743dc7c789e0d062cf8944"
-  integrity sha512-tZdvMJCPhlkOQt+mwrHxLqddd6kNiuCNhppLQbDwHdrvpcoPW4T3pdrnnH7AK5KWj0UVauwC8fL1Rb74XmtycA==
+"@gitlab/ui@https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/7862246482/artifacts/raw/gitlab-ui.2719-use-design-tokens-in-glpaginatedlist.tgz":
+  version "93.1.0"
+  resolved "https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/7862246482/artifacts/raw/gitlab-ui.2719-use-design-tokens-in-glpaginatedlist.tgz#6427713f470da21513ca8e1db5e8e7896606d307"
   dependencies:
     "@floating-ui/dom" "1.4.3"
     echarts "^5.3.2"
