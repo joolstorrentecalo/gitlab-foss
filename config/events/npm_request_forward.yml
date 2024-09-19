@@ -1,0 +1,13 @@
+---
+description: TODO
+action: npm_request_forward
+indentifiers:
+product_group: package_registry
+milestone: 14.0
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/166618
+distributions:
+- ce
+tiers:
+- free
+- premium
+- ultimate

@@ -1,0 +1,17 @@
+---
+description: TODO
+action: bitbucket_sso
+indentifiers:
+- user
+product_group: authentication
+milestone: 15.7
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/166618
+distributions:
+- ce
+tiers:
+- free
+- premium
+- ultimate
+additional_properties:
+  label:
+    description: 'invite_registration', 'subscription_registration' or 'free_registration'

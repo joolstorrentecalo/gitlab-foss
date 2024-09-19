@@ -1,0 +1,18 @@
+---
+description: TODO
+action: failed_attempt
+indentifiers:
+- user
+product_group: anti-abuse
+milestone: 15.9
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/166618
+distributions:
+- ce
+- ee
+tiers:
+- free
+- premium
+- ultimate
+additional_properties:
+  property:
+    description: TODO (986 unique values)

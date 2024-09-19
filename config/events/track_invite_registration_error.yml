@@ -1,0 +1,16 @@
+---
+description: TODO
+action: track_invite_registration_error
+indentifiers:
+product_group: acquisition
+milestone: 17.1
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/166618
+distributions:
+- ce
+tiers:
+- free
+- premium
+- ultimate
+additional_properties:
+  label:
+    description: TODO (828 unique values)

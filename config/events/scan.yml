@@ -1,0 +1,21 @@
+---
+description: TODO
+action: scan
+indentifiers:
+- project
+- user
+product_group: security_policies
+milestone: 14.1
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/166618
+distributions:
+- ce
+- ee
+tiers:
+- free
+- premium
+- ultimate
+additional_properties:
+  label:
+    description: TODO (302 unique values)
+  property:
+    description: TODO (8 unique values)
