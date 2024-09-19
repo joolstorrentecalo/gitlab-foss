@@ -30,6 +30,10 @@ module Gitlab
             issuable_finder.cache_database_id(mr.id)
             set_merge_request_assignees(mr)
             insert_git_data(mr, already_exists)
+
+            if Feature.enabled?(:github_user_mapping, project.creator) && Feature.enabled?(:importer_user_mapping, project.creator)
+              push_references(mr, pull_request)
+            end
           end
         end
 
@@ -78,6 +82,29 @@ module Gitlab
           # populated to ensure the merge request is in the right state
           # when the branch is created.
           create_source_branch_if_not_exists(merge_request)
+        end
+
+        def push_references(mr, pull_request)
+          source_user_identifiers = []
+
+          author_id = user_finder.source_user(pull_request.author).source_user_identifier
+          source_user_identifiers << [author_id, :author_id]
+
+          if pull_request.assignee
+            assignee_id = user_finder.source_user(pull_request.assignee).source_user_identifier
+            source_user_identifiers << [assignee_id, :assignee_id]
+          end
+
+          source_user_identifiers.each do |id, ref|
+            Gitlab::Import::PushPlaceholderReferences.push_references(
+              source_user_identifier: id,
+              namespace: project.namespace,
+              source_hostname: URI.parse(project.import_url).host,
+              import_type: ::Import::SOURCE_GITHUB,
+              object: mr,
+              user_reference: ref
+            )
+          end
         end
 
         # An imported merge request will not be mergeable unless the

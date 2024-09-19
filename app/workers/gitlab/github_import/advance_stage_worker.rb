@@ -41,10 +41,28 @@ module Gitlab
         ProjectImportState.find(id)
       end
 
+      def proceed_to_next_stage(import_state_jid, next_stage, project_id)
+        project = Project.find_by_id(project_id)
+
+        if Feature.enabled?(:github_user_mapping, project.creator) &&
+            Feature.enabled?(:importer_user_mapping, project.creator)
+          load_references(project)
+        end
+
+        super
+      end
+
       private
 
       def next_stage_worker(next_stage)
         STAGES.fetch(next_stage.to_sym)
+      end
+
+      def load_references(project)
+        ::Import::LoadPlaceholderReferencesWorker.perform_async(
+          ::Import::SOURCE_GITHUB,
+          project.import_state.id,
+          'current_user_id' => project.creator.id)
       end
     end
   end

@@ -80,7 +80,25 @@ module Gitlab
       #
       # user - An instance of `Gitlab::GithubImport::Representation::User` or `Hash`.
       def user_id_for(user)
-        find(user[:id], user[:login]) if user.present?
+        return unless user.present?
+
+        if Feature.enabled?(:github_user_mapping, project.creator) &&
+            Feature.enabled?(:importer_user_mapping, project.creator)
+          source_user(user).mapped_user_id
+        else
+          find(user[:id], user[:login])
+        end
+      end
+
+      # Returns the GitLab user ID from placeholder or reassigned_to user.
+      def source_user(user)
+        return unless user.present?
+
+        source_user_mapper.find_or_create_source_user(
+          source_name: nil,
+          source_username: user[:login],
+          source_user_identifier: user[:id]
+        )
       end
 
       # Returns the GitLab ID for the given GitHub ID or username.
@@ -226,6 +244,15 @@ module Gitlab
       end
 
       private
+
+      # Retrieves either the Placeholder User or the reassigned to user
+      def source_user_mapper
+        @source_user_mapper ||= Gitlab::Import::SourceUserMapper.new(
+          namespace: project.root_ancestor,
+          import_type: ::Import::SOURCE_GITHUB.to_s,
+          source_hostname: URI.parse(project.import_url).host
+        )
+      end
 
       def lease_key(username)
         "gitlab:github_import:user_finder:#{username}"

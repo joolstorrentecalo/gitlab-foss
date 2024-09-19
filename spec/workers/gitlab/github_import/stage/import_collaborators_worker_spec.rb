@@ -15,34 +15,10 @@ RSpec.describe Gitlab::GithubImport::Stage::ImportCollaboratorsWorker, feature_c
   it_behaves_like Gitlab::GithubImport::StageMethods
 
   describe '#import' do
-    let(:push_rights_granted) { true }
-
-    before do
-      settings.write({ optional_stages: { collaborators_import: stage_enabled } })
-      allow(client).to receive(:repository).with(project.import_source)
-        .and_return({ permissions: { push: push_rights_granted } })
-    end
-
-    context 'when user has push access for this repo' do
-      it 'imports all collaborators' do
-        waiter = Gitlab::JobWaiter.new(2, '123')
-
-        expect(Gitlab::GithubImport::Importer::CollaboratorsImporter)
-          .to receive(:new)
-          .with(project, client)
-          .and_return(importer)
-        expect(importer).to receive(:execute).and_return(waiter)
-
-        expect(Gitlab::GithubImport::AdvanceStageWorker)
-          .to receive(:perform_async)
-          .with(project.id, { '123' => 2 }, 'issues_and_diff_notes')
-
-        worker.import(client, project)
+    context 'when user mapping is enabled' do
+      before do
+        stub_feature_flags(github_user_mapping: true, importer_user_mapping: true)
       end
-    end
-
-    context 'when user do not have push access for this repo' do
-      let(:push_rights_granted) { false }
 
       it 'skips stage' do
         expect(Gitlab::GithubImport::Importer::CollaboratorsImporter).not_to receive(:new)
@@ -55,17 +31,60 @@ RSpec.describe Gitlab::GithubImport::Stage::ImportCollaboratorsWorker, feature_c
       end
     end
 
-    context 'when stage is disabled' do
-      let(:stage_enabled) { false }
+    context 'when user mapping is disabled' do
+      let(:push_rights_granted) { true }
 
-      it 'skips collaborators import and calls next stage' do
-        expect(Gitlab::GithubImport::Importer::CollaboratorsImporter).not_to receive(:new)
+      before do
+        stub_feature_flags(github_user_mapping: false)
+        settings.write({ optional_stages: { collaborators_import: stage_enabled } })
+        allow(client).to receive(:repository).with(project.import_source)
+          .and_return({ permissions: { push: push_rights_granted } })
+      end
 
-        expect(Gitlab::GithubImport::AdvanceStageWorker)
-          .to receive(:perform_async)
-          .with(project.id, {}, 'issues_and_diff_notes')
+      context 'when user has push access for this repo' do
+        it 'imports all collaborators' do
+          waiter = Gitlab::JobWaiter.new(2, '123')
 
-        worker.import(client, project)
+          expect(Gitlab::GithubImport::Importer::CollaboratorsImporter)
+            .to receive(:new)
+            .with(project, client)
+            .and_return(importer)
+          expect(importer).to receive(:execute).and_return(waiter)
+
+          expect(Gitlab::GithubImport::AdvanceStageWorker)
+            .to receive(:perform_async)
+            .with(project.id, { '123' => 2 }, 'issues_and_diff_notes')
+
+          worker.import(client, project)
+        end
+      end
+
+      context 'when user do not have push access for this repo' do
+        let(:push_rights_granted) { false }
+
+        it 'skips stage' do
+          expect(Gitlab::GithubImport::Importer::CollaboratorsImporter).not_to receive(:new)
+
+          expect(Gitlab::GithubImport::AdvanceStageWorker)
+            .to receive(:perform_async)
+            .with(project.id, {}, 'issues_and_diff_notes')
+
+          worker.import(client, project)
+        end
+      end
+
+      context 'when stage is disabled' do
+        let(:stage_enabled) { false }
+
+        it 'skips collaborators import and calls next stage' do
+          expect(Gitlab::GithubImport::Importer::CollaboratorsImporter).not_to receive(:new)
+
+          expect(Gitlab::GithubImport::AdvanceStageWorker)
+            .to receive(:perform_async)
+            .with(project.id, {}, 'issues_and_diff_notes')
+
+          worker.import(client, project)
+        end
       end
     end
   end

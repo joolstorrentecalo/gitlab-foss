@@ -3,13 +3,12 @@
 require 'spec_helper'
 
 RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redis_shared_state, feature_category: :importers do
-  let(:project) { create(:project, :repository) }
+  let_it_be(:project) { create(:project, :repository, :with_import_url) }
   let(:client) { double(:client) }
   let(:user) { create(:user) }
   let(:created_at) { Time.new(2017, 1, 1, 12, 00) }
   let(:updated_at) { Time.new(2017, 1, 1, 12, 15) }
   let(:merged_at) { Time.new(2017, 1, 1, 12, 17) }
-
   let(:source_commit) { project.repository.commit('feature') }
   let(:target_commit) { project.repository.commit('master') }
   let(:milestone) { create(:milestone, project: project) }
@@ -43,6 +42,10 @@ RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitla
   let(:importer) { described_class.new(pull_request, project, client) }
 
   describe '#execute' do
+    before do
+      stub_feature_flags(github_user_mapping: false)
+    end
+
     let(:mr) { double(:merge_request, id: 10, merged?: false) }
 
     it 'imports the pull request' do
@@ -57,6 +60,9 @@ RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitla
       expect(importer)
         .to receive(:insert_git_data)
         .with(mr, false)
+
+      expect(importer)
+       .not_to receive(:push_references)
 
       expect_any_instance_of(Gitlab::GithubImport::IssuableFinder)
         .to receive(:cache_database_id)
@@ -247,6 +253,7 @@ RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitla
     let_it_be(:merge_request) { create(:merge_request) }
 
     before do
+      stub_feature_flags(github_user_mapping: false)
       allow(importer.user_finder)
         .to receive(:assignee_id_for)
         .with(pull_request)
@@ -374,6 +381,25 @@ RSpec.describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitla
       mr, exists = importer.create_merge_request
       importer.insert_git_data(mr, exists)
       mr
+    end
+  end
+
+  describe '#push_references' do
+    let(:merge_request) { create(:merge_request) }
+    let(:import_state) { create(:import_state, :started, jid: '1abbb28af5c704f4c334eca2') }
+    let(:source_user) { create(:import_source_user, source_user_identifier: pull_request[:author][:id]) }
+
+    before do
+      allow(merge_request.project).to receive(:import_state).and_return(import_state)
+    end
+
+    it 'pushes the references' do
+      expect(Gitlab::Import::PushPlaceholderReferences)
+        .to receive(:push_references)
+        .twice
+        .and_call_original
+
+      importer.push_references(merge_request, pull_request)
     end
   end
 end

@@ -100,15 +100,83 @@ RSpec.describe Gitlab::GithubImport::UserFinder, :clean_gitlab_redis_shared_stat
   end
 
   describe '#user_id_for' do
-    it 'returns the user ID for the given user' do
-      user = { id: 4, login: 'kittens' }
+    let(:user) { { id: 4, login: 'kittens' } }
+    let(:created_user) { User.last }
+    let(:import_source_user) { Import::SourceUser.last }
 
-      expect(finder).to receive(:find).with(user[:id], user[:login]).and_return(42)
-      expect(finder.user_id_for(user)).to eq(42)
+    it 'creates an import_source user, a placeholder_user, and returns the user ID for the given user' do
+      expect(finder.user_id_for(user)).to eq(created_user.id)
+      expect(created_user.placeholder?).to be(true)
+      expect(import_source_user.source_username).to eq(user[:login])
+      expect(import_source_user.source_name).to eq(user[:name])
     end
 
     it 'does not fail with empty input' do
       expect(finder.user_id_for(nil)).to eq(nil)
+    end
+
+    context 'when github_user_mapping feature flag is disabled' do
+      before do
+        stub_feature_flags(github_user_mapping: false)
+      end
+
+      it 'returns the user ID for the given user' do
+        expect(finder).to receive(:find).with(user[:id], user[:login]).and_return(42)
+        expect(finder.user_id_for(user)).to eq(42)
+      end
+
+      it 'does not fail with empty input' do
+        expect(finder.user_id_for(nil)).to eq(nil)
+      end
+    end
+  end
+
+  describe '#source_user' do
+    context 'when the source user does not exist' do
+      let(:user) { { id: 4, login: 'kittens' } }
+      let(:created_user) { User.last }
+      let(:import_source_user) { Import::SourceUser.last }
+
+      it 'creates an import_source user and a placeholder_user' do
+        expect { finder.source_user(user) }.to change { Import::SourceUser.count }.by(1)
+
+        expect(created_user.placeholder?).to be(true)
+        expect(import_source_user.source_username).to eq(user[:login])
+        expect(import_source_user.source_name).to eq(nil)
+        expect(import_source_user.source_user_identifier).to eq(user[:id].to_s)
+      end
+    end
+
+    context 'when the source user exists' do
+      let(:gh_user) { { id: 4, login: 'kittens' } }
+      let(:gl_placeholder) { create(:user) }
+
+      let(:existing_source_user) do
+        create(
+          :import_source_user,
+          source_username: gh_user[:login],
+          source_user_identifier: gh_user[:id].to_s,
+          placeholder_user_id: gl_placeholder.id)
+      end
+
+      it 'finds the import_source user' do
+        gl_placeholder.save!
+        existing_source_user.save!
+
+        result = finder.source_user(gh_user)
+
+        expect { result }.not_to change { Import::SourceUser.count }
+
+        expect(result.source_username).to eq(gh_user[:login])
+        expect(result.source_name).to eq(nil)
+        expect(result.source_user_identifier).to eq(gh_user[:id].to_s)
+      end
+    end
+
+    context 'when input is empty' do
+      it 'does not fail' do
+        expect(finder.source_user(nil)).to eq(nil)
+      end
     end
   end
 
