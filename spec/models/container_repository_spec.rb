@@ -782,7 +782,7 @@ RSpec.describe ContainerRepository, :aggregate_failures, feature_category: :cont
   end
 
   describe '#set_delete_ongoing_status', :freeze_time do
-    let_it_be(:repository) { create(:container_repository) }
+    let_it_be(:repository) { create(:container_repository, next_delete_attempt_at: Time.zone.now) }
 
     subject { repository.set_delete_ongoing_status }
 
@@ -790,6 +790,7 @@ RSpec.describe ContainerRepository, :aggregate_failures, feature_category: :cont
       expect { subject }.to change(repository, :status).from(nil).to('delete_ongoing')
                               .and change(repository, :delete_started_at).from(nil).to(Time.zone.now)
                               .and change(repository, :status_updated_at).from(nil).to(Time.zone.now)
+                              .and change(repository, :next_delete_attempt_at).to(nil)
     end
   end
 
@@ -802,6 +803,21 @@ RSpec.describe ContainerRepository, :aggregate_failures, feature_category: :cont
       expect { subject }.to change(repository, :status).from('delete_ongoing').to('delete_scheduled')
                               .and change(repository, :delete_started_at).to(nil)
                               .and change(repository, :status_updated_at).to(Time.zone.now)
+                              .and change(repository, :failed_deletion_count).by(1)
+                              .and change(repository, :next_delete_attempt_at).to(Time.zone.now + 2.minutes)
+    end
+  end
+
+  describe '#set_delete_failed_status', :freeze_time do
+    let_it_be(:repository) { create(:container_repository, :status_delete_ongoing, delete_started_at: 3.minutes.ago) }
+
+    subject { repository.set_delete_failed_status }
+
+    it 'updates delete attributes' do
+      expect { subject }.to change(repository, :status).from('delete_ongoing').to('delete_failed')
+                              .and change(repository, :delete_started_at).to(nil)
+                              .and change(repository, :status_updated_at).to(Time.zone.now)
+                              .and change(repository, :failed_deletion_count).by(1)
     end
   end
 
@@ -822,6 +838,26 @@ RSpec.describe ContainerRepository, :aggregate_failures, feature_category: :cont
 
         expect { repository.save! }.not_to change(repository, :status_updated_at)
       end
+    end
+  end
+
+  describe '.pending_destruction' do
+    it 'returns repositories that are delete_scheduled and next_delete_attempt_at is nil or has_passed' do
+      delete_failed_repository = create(:container_repository, :status_delete_failed)
+      delete_ongoing_repository = create(:container_repository, :status_delete_ongoing)
+      delete_scheduled_in_the_future = create(:container_repository, :status_delete_scheduled, next_delete_attempt_at: 2.hours.from_now)
+      delete_scheduled_in_the_past = create(:container_repository, :status_delete_scheduled, next_delete_attempt_at: 2.hours.ago)
+      delete_scheduled_no_next_delete_attempt_at = create(:container_repository, :status_delete_scheduled, next_delete_attempt_at: nil)
+
+      expect(described_class.pending_destruction).to include(
+        delete_scheduled_in_the_past,
+        delete_scheduled_no_next_delete_attempt_at
+      )
+      expect(described_class.pending_destruction).not_to include(
+        delete_failed_repository,
+        delete_ongoing_repository,
+        delete_scheduled_in_the_future
+      )
     end
   end
 

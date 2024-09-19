@@ -12,6 +12,7 @@ class ContainerRepository < ApplicationRecord
   REQUIRING_CLEANUP_STATUSES = %i[cleanup_unscheduled cleanup_scheduled].freeze
 
   MAX_TAGS_PAGES = 2000
+  MAX_DELETION_FAILURES = 10
 
   # The Registry client uses JWT token to authenticate to Registry. We cache the client using expiration
   # time of JWT token. However it's possible that the token is valid but by the time the request is made to
@@ -82,8 +83,9 @@ class ContainerRepository < ApplicationRecord
     (Gitlab::CurrentSettings.container_registry_token_expire_delay * 60) - AUTH_TOKEN_USAGE_RESERVED_TIME_IN_SECS
   end
 
-  class << self
-    alias_method :pending_destruction, :delete_scheduled # needed by Packages::Destructible
+  # needed by Packages::Destructible
+  def self.pending_destruction
+    delete_scheduled.where('next_delete_attempt_at IS NULL OR next_delete_attempt_at < ?', Time.zone.now)
   end
 
   # rubocop: disable CodeReuse/ServiceClass
@@ -256,14 +258,27 @@ class ContainerRepository < ApplicationRecord
     update_columns(
       status: :delete_ongoing,
       delete_started_at: now,
-      status_updated_at: now
+      status_updated_at: now,
+      next_delete_attempt_at: nil
     )
   end
 
   def set_delete_scheduled_status
+    now = Time.zone.now
     update_columns(
       status: :delete_scheduled,
       delete_started_at: nil,
+      status_updated_at: now,
+      failed_deletion_count: failed_deletion_count + 1,
+      next_delete_attempt_at: now + (2 ^ failed_deletion_count).minutes
+    )
+  end
+
+  def set_delete_failed_status
+    update_columns(
+      status: :delete_failed,
+      delete_started_at: nil,
+      failed_deletion_count: failed_deletion_count + 1,
       status_updated_at: Time.zone.now
     )
   end

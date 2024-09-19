@@ -9460,7 +9460,9 @@ CREATE TABLE container_repositories (
     expiration_policy_completed_at timestamp with time zone,
     last_cleanup_deleted_tags_count integer,
     delete_started_at timestamp with time zone,
-    status_updated_at timestamp with time zone
+    status_updated_at timestamp with time zone,
+    failed_deletion_count integer DEFAULT 0 NOT NULL,
+    next_delete_attempt_at timestamp with time zone
 );
 
 CREATE SEQUENCE container_repositories_id_seq
@@ -26627,6 +26629,8 @@ CREATE INDEX code_owner_approval_required ON protected_branches USING btree (pro
 CREATE UNIQUE INDEX commit_user_mentions_on_commit_id_and_note_id_unique_index ON commit_user_mentions USING btree (commit_id, note_id);
 
 CREATE INDEX composer_cache_files_index_on_deleted_at ON packages_composer_cache_files USING btree (delete_at, id);
+
+CREATE INDEX container_repositories_next_delete_attempt_at ON container_repositories USING btree (next_delete_attempt_at) WHERE (status = 0);
 
 CREATE UNIQUE INDEX custom_email_unique_constraint ON service_desk_settings USING btree (custom_email);
 
