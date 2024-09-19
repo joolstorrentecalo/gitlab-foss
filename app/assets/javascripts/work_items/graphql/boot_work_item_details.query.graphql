@@ -1,0 +1,39 @@
+query workItemClient($fullPath: ID) {
+  clientProvider(fullPath: $fullPath) {
+    isSignedIn
+    defaultBranch
+    issueInitialSort
+
+    paths {
+      autocompleteAwardEmojisPath
+      epicsListPath
+      labelsFetchPath
+      groupIssuesPath
+      reportAbusePath
+      newCommentTemplatePaths
+      signInPath
+      issuesListPath
+      labelsManagePath
+      registerPath
+      groupPath
+    }
+
+    permissions {
+      showNewIssueLink
+      canBulkEditEpics
+      canAdminLabel
+      canCreateEpic
+    }
+
+    licensedFeatures {
+      hasIssueWeightsFeature
+      hasOkrsFeature
+      hasEpicsFeature
+      hasIterationsFeature
+      hasIssuableHealthStatusFeature
+      hasScopedLabelsFeature
+      hasQualityManagementFeature
+      hasSubepicsFeature
+    }
+  }
+}

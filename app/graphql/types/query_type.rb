@@ -240,6 +240,12 @@ module Types
       description: 'Check if a feature flag is enabled',
       resolver: Resolvers::FeatureFlagResolver
 
+    field :client_provider, Providers::ClientProviderType,
+      null: true,
+      alpha: { milestone: '17.4' },
+      description: 'Provides data to vue applications to initialize with the right configuration.',
+      resolver: Resolvers::Providers::ClientProviderResolver
+
     def design_management
       DesignManagementObject.new(nil)
     end

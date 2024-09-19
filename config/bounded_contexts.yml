@@ -30,7 +30,7 @@ domains:
       - duo_chat
       - ai_abstraction_layer
       - code_suggestions # Also in CodeSuggestions
-      - cloud_connector  # Also in CloudConnector
+      - cloud_connector # Also in CloudConnector
       - duo_workflow
 
   Analytics:
@@ -356,6 +356,11 @@ domains:
     feature_categories:
       - team_planning
       - portfolio_management
+
+  Providers:
+    description: Aggregates data for clients (Vue SPAs)
+    feature_catogires:
+      - team_planning
 
 ######################
 # Platform layer

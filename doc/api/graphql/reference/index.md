@@ -356,6 +356,22 @@ four standard [pagination arguments](#pagination-arguments):
 | ---- | ---- | ----------- |
 | <a id="querycivariablessort"></a>`sort` | [`CiVariableSort`](#civariablesort) | Sort order of results. |
 
+### `Query.clientProvider`
+
+Provides data to vue applications to initialize with the right configuration.
+
+DETAILS:
+**Introduced** in GitLab 17.4.
+**Status**: Experiment.
+
+Returns [`ClientProvider`](#clientprovider).
+
+#### Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="queryclientproviderfullpath"></a>`fullPath` | [`ID`](#id) | Full path of the Namespace. For example, `gitlab-org/gitlab-foss`. |
+
 ### `Query.cloudConnectorStatus`
 
 Run a series of status checks for Cloud Connector features.
@@ -19594,6 +19610,88 @@ GitLab CI/CD configuration template.
 | ---- | ---- | ----------- |
 | <a id="citemplatecontent"></a>`content` | [`String!`](#string) | Contents of the CI template. |
 | <a id="citemplatename"></a>`name` | [`String!`](#string) | Name of the CI template. |
+
+### `ClientFeature`
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="clientfeatureenabled"></a>`enabled` | [`Boolean!`](#boolean) | Indicates if the feature is enabled. |
+| <a id="clientfeaturename"></a>`name` | [`String!`](#string) | Identifier of the feature. |
+
+### `ClientLicensedFeatures`
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="clientlicensedfeatureshasepicsfeature"></a>`hasEpicsFeature` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for has_epics_feature. |
+| <a id="clientlicensedfeatureshasissuablehealthstatusfeature"></a>`hasIssuableHealthStatusFeature` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for has_issuable_health_status_feature. |
+| <a id="clientlicensedfeatureshasissueweightsfeature"></a>`hasIssueWeightsFeature` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for has_issue_weights_feature. |
+| <a id="clientlicensedfeatureshasiterationsfeature"></a>`hasIterationsFeature` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for has_iterations_feature. |
+| <a id="clientlicensedfeatureshasokrsfeature"></a>`hasOkrsFeature` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for has_okrs_feature. |
+| <a id="clientlicensedfeatureshasqualitymanagementfeature"></a>`hasQualityManagementFeature` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for has_quality_management_feature. |
+| <a id="clientlicensedfeatureshasscopedlabelsfeature"></a>`hasScopedLabelsFeature` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for has_scoped_labels_feature. |
+| <a id="clientlicensedfeatureshassubepicsfeature"></a>`hasSubepicsFeature` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for has_subepics_feature. |
+
+### `ClientPaths`
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="clientpathsautocompleteawardemojispath"></a>`autocompleteAwardEmojisPath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for autocomplete_award_emojis_path. |
+| <a id="clientpathsepicslistpath"></a>`epicsListPath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for epics_list_path. |
+| <a id="clientpathsgroupissuespath"></a>`groupIssuesPath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for group_issues_path. |
+| <a id="clientpathsgrouppath"></a>`groupPath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for group_path. |
+| <a id="clientpathsissueslistpath"></a>`issuesListPath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for issues_list_path. |
+| <a id="clientpathslabelsfetchpath"></a>`labelsFetchPath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for labels_fetch_path. |
+| <a id="clientpathslabelsmanagepath"></a>`labelsManagePath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for labels_manage_path. |
+| <a id="clientpathsnewcommenttemplatepaths"></a>`newCommentTemplatePaths` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for new_comment_template_paths. |
+| <a id="clientpathsregisterpath"></a>`registerPath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for register_path. |
+| <a id="clientpathsreportabusepath"></a>`reportAbusePath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for report_abuse_path. |
+| <a id="clientpathssigninpath"></a>`signInPath` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for sign_in_path. |
+
+### `ClientPermissions`
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="clientpermissionscanadminlabel"></a>`canAdminLabel` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for can_admin_label. |
+| <a id="clientpermissionscanbulkeditepics"></a>`canBulkEditEpics` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for can_bulk_edit_epics. |
+| <a id="clientpermissionscancreateepic"></a>`canCreateEpic` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for can_create_epic. |
+| <a id="clientpermissionsshownewissuelink"></a>`showNewIssueLink` **{warning-solid}** | [`String`](#string) | **Introduced** in GitLab 17.5. **Status**: Experiment. Path for show_new_issue_link. |
+
+### `ClientProvider`
+
+Provides data to vue applications to initialize with the right configuration.
+
+#### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="clientproviderdefaultbranch"></a>`defaultBranch` | [`String`](#string) | Default branch of the project. |
+| <a id="clientproviderissignedin"></a>`isSignedIn` | [`Boolean`](#boolean) | Indicates if the user is signed in. |
+| <a id="clientproviderissueinitialsort"></a>`issueInitialSort` | [`String`](#string) | Default sort for issues. |
+| <a id="clientproviderlicensedfeatures"></a>`licensedFeatures` | [`ClientLicensedFeatures`](#clientlicensedfeatures) | feature flags. |
+| <a id="clientproviderpaths"></a>`paths` | [`ClientPaths`](#clientpaths) | paths. |
+| <a id="clientproviderpermissions"></a>`permissions` | [`ClientPermissions`](#clientpermissions) | permission. |
+
+#### Fields with arguments
+
+##### `ClientProvider.features`
+
+feature flags.
+
+Returns [`[ClientFeature!]`](#clientfeature).
+
+###### Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="clientproviderfeaturesnames"></a>`names` | [`[String!]!`](#string) | feature flags to return. |
 
 ### `CloudConnectorProbeResult`
 
