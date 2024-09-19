@@ -11444,6 +11444,29 @@ The edge type for [`BoardList`](#boardlist).
 | <a id="boardlistedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
 | <a id="boardlistedgenode"></a>`node` | [`BoardList`](#boardlist) | The item at the end of the edge. |
 
+#### `BranchConnection`
+
+The connection type for [`Branch`](#branch).
+
+##### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="branchconnectionedges"></a>`edges` | [`[BranchEdge]`](#branchedge) | A list of edges. |
+| <a id="branchconnectionnodes"></a>`nodes` | [`[Branch]`](#branch) | A list of nodes. |
+| <a id="branchconnectionpageinfo"></a>`pageInfo` | [`PageInfo!`](#pageinfo) | Information to aid in pagination. |
+
+#### `BranchEdge`
+
+The edge type for [`Branch`](#branch).
+
+##### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="branchedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
+| <a id="branchedgenode"></a>`node` | [`Branch`](#branch) | The item at the end of the edge. |
+
 #### `BranchRuleConnection`
 
 The connection type for [`BranchRule`](#branchrule).
@@ -18739,6 +18762,7 @@ four standard [pagination arguments](#pagination-arguments):
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | <a id="branchcommit"></a>`commit` | [`Commit`](#commit) | Commit for the branch. |
+| <a id="branchlink"></a>`link` | [`String`](#string) | URL of branch. |
 | <a id="branchname"></a>`name` | [`String!`](#string) | Name of the branch. |
 
 ### `BranchProtection`
@@ -35205,6 +35229,7 @@ Represents a development widget.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
+| <a id="workitemwidgetdevelopmentbranches"></a>`branches` | [`BranchConnection`](#branchconnection) | Branches associated with work item. (see [Connections](#connections)) |
 | <a id="workitemwidgetdevelopmentclosingmergerequests"></a>`closingMergeRequests` | [`WorkItemClosingMergeRequestConnection`](#workitemclosingmergerequestconnection) | Merge requests that will close the work item when merged. (see [Connections](#connections)) |
 | <a id="workitemwidgetdevelopmentfeatureflags"></a>`featureFlags` | [`FeatureFlagConnection`](#featureflagconnection) | Feature flags associated with the work item. (see [Connections](#connections)) |
 | <a id="workitemwidgetdevelopmenttype"></a>`type` | [`WorkItemWidgetType`](#workitemwidgettype) | Widget type. |

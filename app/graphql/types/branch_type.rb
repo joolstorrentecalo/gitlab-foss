@@ -13,6 +13,8 @@ module Types
     field :commit, Types::CommitType,
       null: true, resolver: Resolvers::BranchCommitResolver,
       description: 'Commit for the branch.'
+
+    field :link, GraphQL::Types::String, null: true, description: 'URL of branch.'
   end
   # rubocop: enable Graphql/AuthorizeTypes
 end
