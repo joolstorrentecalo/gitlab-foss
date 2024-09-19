@@ -938,32 +938,27 @@ rspec migration pg15:
   extends:
     - .rspec-base-pg15
     - .rspec-base-migration
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-migration-parallel
 
 rspec background_migration pg15:
   extends:
     - .rspec-base-pg15
     - .rspec-base-migration
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-background-migration-parallel
 
 rspec unit pg15:
   extends:
     - .rspec-base-pg15
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-unit-parallel
 
 rspec integration pg15:
   extends:
     - .rspec-base-pg15
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-integration-parallel
 
 rspec system pg15:
   extends:
     - .rspec-base-pg15
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-system-parallel
 
 # PG16
@@ -971,32 +966,27 @@ rspec migration pg16:
   extends:
     - .rspec-base-pg16
     - .rspec-base-migration
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-migration-parallel
 
 rspec background_migration pg16:
   extends:
     - .rspec-base-pg16
     - .rspec-base-migration
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-background-migration-parallel
 
 rspec unit pg16:
   extends:
     - .rspec-base-pg16
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-unit-parallel
 
 rspec integration pg16:
   extends:
     - .rspec-base-pg16
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-integration-parallel
 
 rspec system pg16:
   extends:
     - .rspec-base-pg16
-    - .rails:rules:default-branch-schedule-nightly--code-backstage
     - .rspec-system-parallel
 # EE/FOSS: default branch nightly scheduled jobs #
 ##########################################
