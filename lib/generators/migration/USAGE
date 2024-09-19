@@ -1,0 +1,8 @@
+Description:
+    Adds bigint columns for all integer ID columns in the given table
+
+Example:
+    rails g migration:add_bigint_columns users --migration_number=20240828110635
+
+    This will create:
+        db/migrate/20240828110634_initialize_conversion_of_users_to_bigint.rb

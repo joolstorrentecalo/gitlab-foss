@@ -1,0 +1,18 @@
+# frozen_string_literal: true
+
+class InitializeConversionOf<%= table_name.camelize %>ToBigint < Gitlab::Database::Migration[2.2]
+  disable_ddl_transaction!
+
+  milestone '<%= current_milestone %>'
+
+  TABLE = :<%= table_name %>
+  COLUMNS = %i[<%= integer_columns %>]
+
+  def up
+    initialize_conversion_of_integer_to_bigint(TABLE, COLUMNS)
+  end
+
+  def down
+    revert_initialize_conversion_of_integer_to_bigint(TABLE, COLUMNS)
+  end
+end
