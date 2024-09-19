@@ -8,8 +8,11 @@ import { setUrlParams, getParameterByName } from '~/lib/utils/url_utility';
 import { i18n, PAGE_SIZE, DEFAULT_SORT } from '~/releases/constants';
 import { convertAllReleasesGraphQLResponse } from '~/releases/util';
 import { popDeleteReleaseNotification } from '~/releases/release_notification_service';
+
 import getCiCatalogSettingsQuery from '~/ci/catalog/graphql/queries/get_ci_catalog_settings.query.graphql';
 import allReleasesQuery from '../graphql/queries/all_releases.query.graphql';
+import catalogReleasesQuery from '../graphql/queries/catalog_releases.query.graphql';
+
 import ReleaseBlock from './release_block.vue';
 import ReleaseSkeletonLoader from './release_skeleton_loader.vue';
 import ReleasesEmptyState from './releases_empty_state.vue';
@@ -96,7 +99,6 @@ export default {
         });
       },
     },
-    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     isCatalogResource: {
       query: getCiCatalogSettingsQuery,
       variables() {
@@ -111,9 +113,28 @@ export default {
         createAlert({ message: this.$options.i18n.catalogResourceQueryError });
       },
     },
+    catalogReleases: {
+      query: catalogReleasesQuery,
+      variables() {
+        return {
+          fullPath: this.projectPath,
+        };
+      },
+      skip() {
+        return !this.isCatalogResource;
+      },
+      update({ ciCatalogResource }) {
+        return ciCatalogResource?.versions?.nodes.map((version) => version.path) || [];
+      },
+      error() {
+        createAlert({ message: this.$options.i18n.catalogReleasesQueryError });
+      },
+    },
   },
   data() {
     return {
+      isCatalogResource: false,
+      catalogReleases: [],
       singleRequestError: false,
       fullRequestError: false,
       cursors: {
@@ -228,6 +249,9 @@ export default {
     getReleaseKey(release, index) {
       return [release.tagName, release.name, index].join('|');
     },
+    isCatalogRelease(path) {
+      return this.isCatalogResource ? this.catalogReleases.includes(path) : false;
+    },
     updateQueryParamsFromUrl() {
       this.cursors.before = getParameterByName('before');
       this.cursors.after = getParameterByName('after');
@@ -329,9 +353,10 @@ export default {
     <release-block
       v-for="(release, index) in releases"
       :key="getReleaseKey(release, index)"
+      :class="{ 'linked-card gl-relative': releases.length > 1 && index !== releases.length - 1 }"
+      :is-catalog-release="isCatalogRelease(release.tagPath)"
       :release="release"
       :sort="sort"
-      :class="{ 'linked-card gl-relative': releases.length > 1 && index !== releases.length - 1 }"
     />
 
     <release-skeleton-loader v-if="shouldRenderLoadingIndicator" class="gl-mt-5" />

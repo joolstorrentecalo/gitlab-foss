@@ -32,6 +32,10 @@ export default {
   },
   mixins: [glFeatureFlagsMixin()],
   props: {
+    isCatalogRelease: {
+      type: Boolean,
+      required: true,
+    },
     release: {
       type: Object,
       required: true,
@@ -120,7 +124,7 @@ export default {
     data-testid="release-block"
   >
     <template #title>
-      <release-block-title :release="release" />
+      <release-block-title :is-catalog-release="isCatalogRelease" :release="release" />
     </template>
 
     <template #actions>

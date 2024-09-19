@@ -64,6 +64,9 @@ export const i18n = {
   catalogResourceQueryError: s__(
     'CiCatalog|There was a problem fetching the CI/CD Catalog setting.',
   ),
+  catalogReleasesQueryError: s__(
+    'CiCatalog|There was a problem fetching the CI/CD Catalog releases.',
+  ),
   errorMessage: __('An error occurred while fetching the releases. Please try again.'),
   newRelease: __('New release'),
   tagNameIsRequiredMessage: __('Tag name is required.'),

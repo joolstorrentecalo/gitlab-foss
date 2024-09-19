@@ -19,6 +19,10 @@ export default {
     GlTooltip: GlTooltipDirective,
   },
   props: {
+    isCatalogRelease: {
+      type: Boolean,
+      required: true,
+    },
     release: {
       type: Object,
       required: true,
@@ -34,7 +38,7 @@ export default {
 
 <template>
   <div class="gl-contents">
-    <gl-link v-if="selfLink" class="gl-text-default" :href="selfLink">
+    <gl-link v-if="selfLink" class="gl-self-center gl-text-default" :href="selfLink">
       {{ release.name }}
     </gl-link>
     <template v-else>
@@ -50,14 +54,14 @@ export default {
         class="gl-text-secondary"
       />
     </template>
-    <gl-badge v-if="release.upcomingRelease" variant="warning" class="gl-self-center">{{
-      __('Upcoming Release')
-    }}</gl-badge>
+    <gl-badge v-if="isCatalogRelease" variant="info">{{ __('CI/CD Catalog') }}</gl-badge>
+    <gl-badge v-if="release.upcomingRelease" variant="warning">
+      {{ __('Upcoming Release') }}
+    </gl-badge>
     <gl-badge
       v-else-if="release.historicalRelease"
       v-gl-tooltip
       :title="$options.i18n.historicalTooltip"
-      class="gl-self-center"
     >
       {{ $options.i18n.historical }}
     </gl-badge>
