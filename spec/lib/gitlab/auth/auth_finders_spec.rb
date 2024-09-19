@@ -953,6 +953,16 @@ RSpec.describe Gitlab::Auth::AuthFinders, feature_category: :system_access do
 
       expect { subject }.to raise_error(Gitlab::Auth::UnauthorizedError)
     end
+
+    context 'when the last_used_at timestamp is nil' do
+      let_it_be(:personal_access_token) { create(:personal_access_token, last_used_at: nil, user: user) }
+
+      it 'updates the last_used_at timestamp' do
+        allow_any_instance_of(described_class).to receive(:access_token).and_return(personal_access_token)
+
+        expect { subject }.to change { personal_access_token.last_used_at }
+      end
+    end
   end
 
   describe '#validate_access_token!' do

@@ -107,6 +107,8 @@ module Gitlab
 
         validate_and_save_access_token!
 
+        ::PersonalAccessTokens::LastUsedService.new(access_token).execute
+
         access_token&.user || raise(UnauthorizedError)
       end
 
