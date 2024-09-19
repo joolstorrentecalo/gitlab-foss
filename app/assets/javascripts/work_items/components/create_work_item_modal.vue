@@ -135,14 +135,6 @@ export default {
     hideModal() {
       this.$emit('hideModal');
       this.isVisible = false;
-      if (this.workItemTypes && this.workItemTypes[0]) {
-        setNewWorkItemCache(
-          this.fullPath,
-          this.workItemTypes[0]?.widgetDefinitions,
-          this.workItemTypeName,
-          this.workItemTypes[0]?.id,
-        );
-      }
     },
     showModal() {
       this.isVisible = true;
@@ -157,6 +149,14 @@ export default {
         },
       });
       this.$emit('workItemCreated', workItem);
+      if (this.workItemTypes && this.workItemTypes[0]) {
+        setNewWorkItemCache(
+          this.fullPath,
+          this.workItemTypes[0]?.widgetDefinitions,
+          this.workItemTypeName,
+          this.workItemTypes[0]?.id,
+        );
+      }
       this.hideModal();
     },
   },

@@ -2,6 +2,7 @@ import { set } from 'lodash';
 import { produce } from 'immer';
 import { findWidget } from '~/issues/list/utils';
 import { pikadayToString } from '~/lib/utils/datetime_utility';
+import { updateDraft } from '~/lib/utils/autosave';
 import { newWorkItemFullPath } from '../utils';
 import {
   WIDGET_TYPE_ASSIGNEES,
@@ -116,6 +117,12 @@ export const updateNewWorkItemCache = (input, cache) => {
       if (confidential !== undefined) draftData.workspace.workItem.confidential = confidential;
     }),
   );
+
+  const newData = cache.readQuery({ query, variables });
+
+  const autosaveKey = `new-${fullPath}-${workItemType.toLowerCase()}-draft`;
+
+  updateDraft(autosaveKey, JSON.stringify(newData));
 };
 
 export const workItemBulkEdit = (input) => {

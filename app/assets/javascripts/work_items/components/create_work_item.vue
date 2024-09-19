@@ -14,6 +14,7 @@ import { fetchPolicies } from '~/lib/graphql';
 import { addHierarchyChild, setNewWorkItemCache } from '~/work_items/graphql/cache_utils';
 import { findWidget } from '~/issues/list/utils';
 import { newWorkItemFullPath } from '~/work_items/utils';
+import { clearDraft } from '~/lib/utils/autosave';
 import {
   I18N_WORK_ITEM_CREATE_BUTTON_LABEL,
   I18N_WORK_ITEM_ERROR_CREATING,
@@ -416,6 +417,9 @@ export default {
         });
 
         this.$emit('workItemCreated', response.data.workItemCreate.workItem);
+        const workItemTypeName = this.selectedWorkItemTypeName || this.workItemTypeName;
+        const autosaveKey = `new-${this.fullPath}-${workItemTypeName.toLowerCase()}-draft`;
+        clearDraft(autosaveKey);
       } catch {
         this.error = this.createErrorText;
         this.loading = false;

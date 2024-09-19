@@ -119,6 +119,9 @@ export default {
         if (this.isEditing && !this.createFlow) {
           this.checkForConflicts();
         }
+        if (this.isEditing && this.createFlow) {
+          this.startEditing();
+        }
       },
       error() {
         this.$emit('error', i18n.fetchError);
@@ -230,7 +233,9 @@ export default {
       this.isEditing = true;
       this.disableTruncation = true;
 
-      this.descriptionText = getDraft(this.autosaveKey) || this.workItemDescription?.description;
+      this.descriptionText = this.createFlow
+        ? this.workItemDescription?.description
+        : getDraft(this.autosaveKey) || this.workItemDescription?.description;
       this.initialDescriptionText = this.descriptionText;
 
       await this.$nextTick();
