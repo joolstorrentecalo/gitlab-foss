@@ -7,6 +7,7 @@ FactoryBot.define do
     size { 100.bytes }
     sequence(:signature) { |n| "b91a152048fc4b3883bf3cf73fbc03f#{n}FFFFFFFF" }
     file_sha256 { 'dd1aaf26c557685cc37f93f53a2b6befb2c2e679f5ace6ec7a26d12086f358be' }
+    status { :default }
 
     transient do
       file_fixture { 'spec/fixtures/packages/nuget/symbol/package.pdb' }
@@ -14,12 +15,6 @@ FactoryBot.define do
 
     after(:build) do |symbol, evaluator|
       symbol.file = fixture_file_upload(evaluator.file_fixture)
-    end
-
-    trait :stale do
-      after(:create) do |entry|
-        entry.update_attribute(:package_id, nil)
-      end
     end
 
     trait(:object_storage) do

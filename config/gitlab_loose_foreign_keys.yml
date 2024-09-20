@@ -427,6 +427,12 @@ packages_npm_metadata_caches:
     on_delete: update_column_to
     target_column: status
     target_value: 2
+packages_nuget_symbols:
+  - table: projects
+    column: project_id
+    on_delete: update_column_to
+    target_column: status
+    target_value: 2
 packages_package_file_build_infos:
   - table: ci_pipelines
     column: pipeline_id

@@ -81,7 +81,7 @@ RSpec.describe Packages::CleanupPackageRegistryWorker, feature_category: :packag
     end
 
     context 'with nuget symbols pending destruction' do
-      let_it_be(:nuget_symbol) { create(:nuget_symbol, :stale) }
+      let_it_be(:nuget_symbol) { create(:nuget_symbol, :pending_destruction) }
 
       it_behaves_like 'an idempotent worker' do
         it 'queues the cleanup job' do

@@ -8,7 +8,7 @@ module Packages
       include Packages::Destructible
 
       # Used in destroying stale symbols in worker
-      enum :status, default: 0, processing: 1, error: 3
+      enum :status, default: 0, processing: 1, pending_destruction: 2, error: 3
 
       belongs_to :package, -> { where(package_type: :nuget) }, inverse_of: :nuget_symbols
 
@@ -24,8 +24,6 @@ module Packages
 
       before_validation :set_object_storage_key, on: :create
 
-      scope :stale, -> { where(package_id: nil) }
-      scope :pending_destruction, -> { stale.default }
       scope :with_file_name, ->(file_name) { where(arel_table[:file].lower.eq(file_name.downcase)) }
       scope :with_signature, ->(signature) { where(arel_table[:signature].lower.eq(signature.downcase)) }
       scope :with_file_sha256, ->(checksums) { where(file_sha256: Array.wrap(checksums).map(&:downcase)) }

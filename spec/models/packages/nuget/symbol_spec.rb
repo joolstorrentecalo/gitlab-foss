@@ -9,6 +9,14 @@ RSpec.describe Packages::Nuget::Symbol, type: :model, feature_category: :package
   it { is_expected.to be_a ShaAttribute }
   it { is_expected.to be_a Packages::Destructible }
 
+  describe 'loose foreign keys' do
+    it_behaves_like 'update by a loose foreign key' do
+      let_it_be(:model) { create(:npm_metadata_cache, status: :default) }
+
+      let!(:parent) { model.project }
+    end
+  end
+
   describe 'relationships' do
     it { is_expected.to belong_to(:package).inverse_of(:nuget_symbols) }
   end
@@ -29,22 +37,13 @@ RSpec.describe Packages::Nuget::Symbol, type: :model, feature_category: :package
   end
 
   describe 'scopes' do
-    describe '.stale' do
-      subject { described_class.stale }
-
-      let_it_be(:symbol) { create(:nuget_symbol) }
-      let_it_be(:stale_symbol) { create(:nuget_symbol, :stale) }
-
-      it { is_expected.to contain_exactly(stale_symbol) }
-    end
-
     describe '.pending_destruction' do
       subject { described_class.pending_destruction }
 
-      let_it_be(:symbol) { create(:nuget_symbol, :stale, :processing) }
-      let_it_be(:stale_symbol) { create(:nuget_symbol, :stale) }
+      let_it_be(:symbol_processing) { create(:nuget_symbol, :processing) }
+      let_it_be(:symbol_pending_destruction) { create(:nuget_symbol, :pending_destruction) }
 
-      it { is_expected.to contain_exactly(stale_symbol) }
+      it { is_expected.to contain_exactly(symbol_pending_destruction) }
     end
 
     describe '.with_signature' do
