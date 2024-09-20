@@ -56,6 +56,20 @@ To enable [exact code search](../../user/search/exact_code_search.md) in GitLab:
 1. Select the **Enable indexing for exact code search** and **Enable exact code search** checkboxes.
 1. Select **Save changes**.
 
+## Delete lost nodes automatically
+
+Prerequisites:
+
+- You must have administrator access to the instance.
+
+You can automatically delete `zoekt_nodes` and it's related data(`zoekt_indices`, `zoekt_repositories` and `zoekt_tasks`) for all the nodes which are offline for more than 12 hours.
+
+1. On the left sidebar, at the bottom, select **Admin**.
+1. Select **Settings > Search**.
+1. Expand **Exact code search configuration**.
+1. Select the **Automatically delete lost nodes** checkbox.
+1. Select **Save changes**.
+
 ## Index root namespaces automatically
 
 Prerequisites:
