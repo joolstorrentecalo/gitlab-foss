@@ -30624,6 +30624,8 @@ CREATE INDEX index_subscriptions_on_project_id ON subscriptions USING btree (pro
 
 CREATE UNIQUE INDEX index_subscriptions_on_subscribable_and_user_id_and_project_id ON subscriptions USING btree (subscribable_id, subscribable_type, user_id, project_id);
 
+CREATE INDEX index_subscriptions_on_user_and_project ON subscriptions USING btree (user_id, project_id);
+
 CREATE INDEX index_successful_authentication_events_for_metrics ON authentication_events USING btree (user_id, provider, created_at) WHERE (result = 1);
 
 CREATE UNIQUE INDEX index_suggestions_on_note_id_and_relative_order ON suggestions USING btree (note_id, relative_order);
@@ -34043,9 +34045,6 @@ ALTER TABLE ONLY subscription_user_add_on_assignments
 ALTER TABLE ONLY packages_conan_metadata
     ADD CONSTRAINT fk_7302a29cd9 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
-ALTER TABLE ONLY approval_merge_request_rules
-    ADD CONSTRAINT fk_73fec3d7e5 FOREIGN KEY (approval_policy_rule_id) REFERENCES approval_policy_rules(id) ON DELETE CASCADE;
-
 ALTER TABLE ONLY index_statuses
     ADD CONSTRAINT fk_74b2492545 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
@@ -34393,6 +34392,9 @@ ALTER TABLE ONLY dast_profile_schedules
 
 ALTER TABLE ONLY analytics_cycle_analytics_group_stages
     ADD CONSTRAINT fk_analytics_cycle_analytics_group_stages_group_value_stream_id FOREIGN KEY (group_value_stream_id) REFERENCES analytics_cycle_analytics_group_value_streams(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY approval_merge_request_rules
+    ADD CONSTRAINT fk_approval_merge_request_rules_on_approval_policy_rule_id FOREIGN KEY (approval_policy_rule_id) REFERENCES approval_policy_rules(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY approval_merge_request_rules
     ADD CONSTRAINT fk_approval_merge_request_rules_on_scan_result_policy_id FOREIGN KEY (scan_result_policy_id) REFERENCES scan_result_policies(id) ON DELETE SET NULL;
