@@ -35,6 +35,7 @@ const getTrialStatusWidgetData = (sidebarData) => {
     return {
       showTrialStatusWidget: true,
       showDuoProTrialStatusWidget: false,
+      showTrialWidget: false,
       trialDaysUsed: Number(trialDaysUsed),
       trialDuration: Number(trialDuration),
       navIconImagePath,
@@ -66,6 +67,7 @@ const getTrialStatusWidgetData = (sidebarData) => {
     return {
       showDuoProTrialStatusWidget: true,
       showTrialStatusWidget: false,
+      showTrialWidget: false,
       trialDaysUsed: Number(trialDaysUsed),
       trialDuration: Number(trialDuration),
       percentageComplete: Number(percentageComplete),
@@ -79,7 +81,45 @@ const getTrialStatusWidgetData = (sidebarData) => {
     };
   }
 
-  return { showTrialStatusWidget: false, showDuoProTrialStatusWidget: false };
+  if (sidebarData.trial_widget_data_attrs) {
+    const {
+      planName,
+      trialType,
+      isActive,
+      daysRemaining,
+      trialDuration,
+      percentageComplete,
+      groupId,
+      featureId,
+      dismissEndpoint,
+      learnAboutButtonUrl,
+    } = convertObjectPropsToCamelCase(sidebarData.trial_widget_data_attrs);
+
+    console.log(planName)
+    console.log(isActive)
+    console.log(daysRemaining)
+    console.log(groupId)
+
+    return {
+      showTrialWidget: true,
+      showTrialStatusWidget: false,
+      showDuoProTrialStatusWidget: false,
+      trialType,
+      isActive: Boolean(isActive),
+      daysRemaining: Number(daysRemaining),
+      percentageComplete: Number(percentageComplete),
+      groupId,
+      featureId,
+      dismissEndpoint,
+      learnAboutButtonUrl,
+    };
+  }
+
+  return {
+    showTrialWidget: true,
+    showTrialStatusWidget: false,
+    showDuoProTrialStatusWidget: false
+  };
 };
 
 export const initSuperSidebar = () => {
