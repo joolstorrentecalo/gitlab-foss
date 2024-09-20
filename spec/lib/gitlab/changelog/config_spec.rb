@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe Gitlab::Changelog::Config do
+RSpec.describe Gitlab::Changelog::Config, feature_category: :source_code_management do
   include ProjectForksHelper
 
   let(:project) { build_stubbed(:project) }
@@ -57,7 +57,7 @@ RSpec.describe Gitlab::Changelog::Config do
       end
     end
 
-    context 'when changelog is empty' do
+    context 'when changelog config is empty' do
       it 'returns the default configuration' do
         allow(project.repository)
           .to receive(:changelog_config)
@@ -68,6 +68,20 @@ RSpec.describe Gitlab::Changelog::Config do
           .with(project)
 
         described_class.from_git(project)
+      end
+
+      context 'when changelog config contains a header' do
+        it 'returns the default configuration' do
+          allow(project.repository)
+            .to receive(:changelog_config)
+            .and_return("---\n\n")
+
+          expect(described_class)
+            .to receive(:new)
+            .with(project)
+
+          described_class.from_git(project)
+        end
       end
     end
   end
