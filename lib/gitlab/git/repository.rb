@@ -905,7 +905,7 @@ module Gitlab
       def fetch_remote( # rubocop:disable Metrics/ParameterLists
         url,
         refmap: nil, ssh_auth: nil, forced: false, no_tags: false, prune: true,
-        check_tags_changed: false, http_authorization_header: "", resolved_address: "")
+        check_tags_changed: false, check_repo_changed: false, http_authorization_header: "", resolved_address: "", lfs_sync_before_branch_updates: false)
         wrapped_gitaly_errors do
           gitaly_repository_client.fetch_remote(
             url,
@@ -915,6 +915,8 @@ module Gitlab
             no_tags: no_tags,
             prune: prune,
             check_tags_changed: check_tags_changed,
+            lfs_sync_before_branch_updates: lfs_sync_before_branch_updates,
+            check_repo_changed: check_repo_changed,
             timeout: GITLAB_PROJECTS_TIMEOUT,
             http_authorization_header: http_authorization_header,
             resolved_address: resolved_address
