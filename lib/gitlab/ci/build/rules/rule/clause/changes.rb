@@ -47,7 +47,7 @@ module Gitlab
           return paths unless context
 
           paths.map do |glob|
-            ExpandVariables.expand_existing(glob, -> { context.variables_hash })
+            expand_value(glob, context)
           end
         end
 
@@ -70,11 +70,21 @@ module Gitlab
         def find_compare_to_sha(pipeline, context)
           return unless @globs.include?(:compare_to)
 
-          compare_to = ExpandVariables.expand(@globs[:compare_to], -> { context.variables_hash })
+          compare_to = expand_value(@globs[:compare_to], context)
           commit = pipeline.project.commit(compare_to)
           raise Rules::Rule::Clause::ParseError, 'rules:changes:compare_to is not a valid ref' unless commit
 
           commit.sha
+        end
+
+        def expand_value(value, context)
+          context_user = context.is_a?(Gitlab::Ci::Config::External::Context) ? context.user : context.pipeline.user
+
+          if Feature.enabled?(:nested_variable_expansion_in_rules_changes_exists, context_user)
+            ExpandVariables.expand_existing(value, -> { context.variables.sort_and_expand_all })
+          else
+            ExpandVariables.expand_existing(value, -> { context.variables_hash })
+          end
         end
       end
     end

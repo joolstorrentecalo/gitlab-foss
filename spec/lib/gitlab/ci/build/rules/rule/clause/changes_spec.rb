@@ -49,17 +49,19 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
 
     context 'when multiple rules have the same glob paths' do
       let(:pipeline) { build(:ci_pipeline) }
+      let(:context) { instance_double(Gitlab::Ci::Build::Context::Base) }
       let(:globs) { { paths: ['some/glob/*'] } }
 
       before do
         allow(pipeline).to receive(:modified_paths).and_return(['some/modified/file'])
         allow(pipeline).to receive(:modified_paths_since).and_return(['some/modified/file'])
         allow(pipeline.project).to receive(:commit).and_return(build_stubbed(:commit, sha: 'sha'))
+        allow(context).to receive(:pipeline).and_return(pipeline)
       end
 
       subject(:call_twice) do
-        described_class.new(globs).satisfied_by?(pipeline, {})
-        described_class.new(globs).satisfied_by?(pipeline, {})
+        described_class.new(globs).satisfied_by?(pipeline, context)
+        described_class.new(globs).satisfied_by?(pipeline, context)
       end
 
       def expect_fnmatch_call_count(count)
@@ -89,8 +91,8 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
 
         context 'when compare_to differs' do
           subject(:call_twice) do
-            described_class.new(globs).satisfied_by?(pipeline, {})
-            described_class.new(globs.merge(compare_to: 'other')).satisfied_by?(pipeline, {})
+            described_class.new(globs).satisfied_by?(pipeline, context)
+            described_class.new(globs.merge(compare_to: 'other')).satisfied_by?(pipeline, context)
           end
 
           it 'calls #fnmatch? each time' do
@@ -102,9 +104,9 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
 
         context 'when pipeline sha differs' do
           subject(:call_twice) do
-            described_class.new(globs).satisfied_by?(pipeline, {})
+            described_class.new(globs).satisfied_by?(pipeline, context)
             pipeline.sha = 'other'
-            described_class.new(globs).satisfied_by?(pipeline, {})
+            described_class.new(globs).satisfied_by?(pipeline, context)
           end
 
           it 'calls #fnmatch? each time' do
@@ -116,9 +118,9 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
 
         context 'when project_id differs' do
           subject(:call_twice) do
-            described_class.new(globs).satisfied_by?(pipeline, {})
+            described_class.new(globs).satisfied_by?(pipeline, context)
             pipeline.project_id = -1
-            described_class.new(globs).satisfied_by?(pipeline, {})
+            described_class.new(globs).satisfied_by?(pipeline, context)
           end
 
           it 'calls #fnmatch? each time' do
@@ -138,6 +140,7 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
 
       before do
         allow(pipeline).to receive(:modified_paths).and_return(modified_paths)
+        allow(context).to receive(:pipeline).and_return(pipeline)
       end
 
       context 'when context is nil' do
@@ -153,15 +156,41 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
       end
 
       context 'when context has the specified variables' do
-        let(:variables_hash) do
-          { 'HELM_DIR' => 'helm' }
+        let(:variables) do
+          Gitlab::Ci::Variables::Collection.new([
+            { key: 'HELM_DIR', value: 'helm' }
+          ])
         end
 
         before do
-          allow(context).to receive(:variables_hash).and_return(variables_hash)
+          allow(context).to receive(:variables).and_return(variables)
         end
 
         it { is_expected.to be_truthy }
+
+        context 'when the variable is nested' do
+          let(:variables) do
+            Gitlab::Ci::Variables::Collection.new([
+              { key: 'HELM_DIR', value: 'he$SUFFIX' },
+              { key: 'SUFFIX', value: 'lm' }
+            ])
+          end
+
+          before do
+            allow(context).to receive(:variables).and_return(variables)
+          end
+
+          it { is_expected.to be_truthy }
+
+          context 'when nested_variable_expansion_in_rules_changes_exists is disabled' do
+            before do
+              stub_feature_flags(nested_variable_expansion_in_rules_changes_exists: false)
+              allow(context).to receive(:variables_hash).and_return(variables)
+            end
+
+            it { is_expected.to be_falsey }
+          end
+        end
       end
 
       context 'when variable expansion does not match' do
@@ -169,7 +198,7 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
         let(:modified_paths) { ['path/with/$in/it/file.txt'] }
 
         before do
-          allow(context).to receive(:variables_hash).and_return({})
+          allow(context).to receive(:variables).and_return(Gitlab::Ci::Variables::Collection.new)
         end
 
         it { is_expected.to be_truthy }
@@ -228,6 +257,10 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
             build(:ci_pipeline, project: project, ref: pipeline_ref, sha: project.commit(pipeline_ref).sha)
           end
 
+          before do
+            allow(context).to receive(:pipeline).and_return(pipeline)
+          end
+
           it { is_expected.to eq(result) }
         end
       end
@@ -237,6 +270,10 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
 
         let(:pipeline) do
           build(:ci_pipeline, project: project, ref: 'feature_2', sha: project.commit('feature_2').sha)
+        end
+
+        before do
+          allow(context).to receive(:pipeline).and_return(pipeline)
         end
 
         it { is_expected.to be_truthy }
@@ -249,6 +286,10 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
           build(:ci_pipeline, project: project, ref: 'feature_2', sha: project.commit('feature_2').sha)
         end
 
+        before do
+          allow(context).to receive(:pipeline).and_return(pipeline)
+        end
+
         it 'raises ParseError' do
           expect { satisfied_by }.to raise_error(
             ::Gitlab::Ci::Build::Rules::Rule::Clause::ParseError, 'rules:changes:compare_to is not a valid ref'
@@ -258,15 +299,64 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Changes, feature_category
 
       context 'when using variable expansion' do
         let(:context) { instance_double(Gitlab::Ci::Build::Context::Base) }
-        let(:variables_hash) { { 'FEATURE_BRANCH_NAME_PREFIX' => 'feature_' } }
+        let(:variables) do
+          Gitlab::Ci::Variables::Collection.new([
+            { key: 'FEATURE_BRANCH_NAME_PREFIX', value: 'feature_' }
+          ])
+        end
+
         let(:globs) { { paths: ['file2.txt'], compare_to: '${FEATURE_BRANCH_NAME_PREFIX}1' } }
         let(:pipeline) { build(:ci_pipeline, project: project, ref: 'feature_2', sha: project.commit('feature_2').sha) }
 
         before do
-          allow(context).to receive(:variables_hash).and_return(variables_hash)
+          allow(context).to receive(:variables).and_return(variables)
+          allow(context).to receive(:pipeline).and_return(pipeline)
         end
 
         it { is_expected.to be_truthy }
+
+        context 'when nested_variable_expansion_in_rules_changes_exists is disabled' do
+          before do
+            stub_feature_flags(nested_variable_expansion_in_rules_changes_exists: false)
+            allow(context).to receive(:variables_hash).and_return(variables)
+          end
+
+          it { is_expected.to be_truthy }
+        end
+
+        context 'when the variable is nested' do
+          let(:context) { instance_double(Gitlab::Ci::Build::Context::Base) }
+          let(:variables) do
+            Gitlab::Ci::Variables::Collection.new([
+              { key: 'FEATURE_BRANCH_NAME_PREFIX', value: 'feature_' },
+              { key: 'NESTED_REF_VAR', value: '${FEATURE_BRANCH_NAME_PREFIX}1' }
+            ])
+          end
+
+          let(:globs) { { paths: ['file2.txt'], compare_to: '$NESTED_REF_VAR' } }
+          let(:pipeline) do
+            build(:ci_pipeline, project: project, ref: 'feature_2', sha: project.commit('feature_2').sha)
+          end
+
+          before do
+            allow(context).to receive(:variables).and_return(variables)
+          end
+
+          it { is_expected.to be_truthy }
+
+          context 'when nested_variable_expansion_in_rules_changes_exists is disabled' do
+            before do
+              stub_feature_flags(nested_variable_expansion_in_rules_changes_exists: false)
+              allow(context).to receive(:variables_hash).and_return(variables)
+            end
+
+            it 'raises ParseError' do
+              expect { satisfied_by }.to raise_error(
+                ::Gitlab::Ci::Build::Rules::Rule::Clause::ParseError, 'rules:changes:compare_to is not a valid ref'
+              )
+            end
+          end
+        end
       end
     end
   end

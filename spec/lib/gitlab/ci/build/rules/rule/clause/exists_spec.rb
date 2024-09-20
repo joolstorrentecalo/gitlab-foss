@@ -13,6 +13,7 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Exists, feature_category:
       { key: 'FILE_TXT', value: 'file.txt' },
       { key: 'FULL_PATH_VALID', value: 'subdir/my_file.txt' },
       { key: 'FULL_PATH_INVALID', value: 'subdir/does_not_exist.txt' },
+      { key: 'NESTED_FULL_PATH_VALID', value: '$SUBDIR/my_file.txt' },
       { key: 'NEW_BRANCH', value: 'new_branch' },
       { key: 'MASKED_VAR', value: 'masked_value', masked: true }
     ])
@@ -64,6 +65,20 @@ RSpec.describe Gitlab::Ci::Build::Rules::Rule::Clause::Exists, feature_category:
           let(:globs) { ['$FULL_PATH_INVALID'] }
 
           it { is_expected.to be_falsey }
+        end
+
+        context 'when the variable is nested and matches' do
+          let(:globs) { ['$NESTED_FULL_PATH_VALID'] }
+
+          it { is_expected.to be_truthy }
+
+          context 'when nested_variable_expansion_in_rules_changes_exists is disabled' do
+            before do
+              stub_feature_flags(nested_variable_expansion_in_rules_changes_exists: false)
+            end
+
+            it { is_expected.to be_falsey }
+          end
         end
       end
 

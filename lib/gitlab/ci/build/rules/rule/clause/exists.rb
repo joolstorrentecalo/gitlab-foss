@@ -182,7 +182,11 @@ module Gitlab
         end
 
         def expand_value(value, context)
-          ExpandVariables.expand_existing(value, -> { context.variables_hash })
+          if Feature.enabled?(:nested_variable_expansion_in_rules_changes_exists, find_context_user(context))
+            ExpandVariables.expand_existing(value, -> { context.variables.sort_and_expand_all })
+          else
+            ExpandVariables.expand_existing(value, -> { context.variables_hash })
+          end
         end
       end
     end
