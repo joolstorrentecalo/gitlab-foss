@@ -1166,6 +1166,7 @@ Style/InlineDisableAnnotation:
     - 'ee/app/finders/geo/framework_registry_finder.rb'
     - 'ee/app/finders/geo/registry_finder.rb'
     - 'ee/app/finders/gitlab_subscriptions/add_on_eligible_users_finder.rb'
+    - 'ee/app/finders/gitlab_subscriptions/self_managed/add_on_eligible_users_finder.rb'
     - 'ee/app/finders/group_saml_identity_finder.rb'
     - 'ee/app/finders/groups_with_templates_finder.rb'
     - 'ee/app/finders/iterations_finder.rb'

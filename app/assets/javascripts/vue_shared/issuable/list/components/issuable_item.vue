@@ -245,14 +245,10 @@ export default {
       return '';
     },
     handleIssuableItemClick(e) {
-      if (e.metaKey || e.ctrlKey || this.showCheckbox) {
+      if (e.metaKey || e.ctrlKey || !this.preventRedirect || this.showCheckbox) {
         return;
       }
       e.preventDefault();
-      if (!this.preventRedirect) {
-        this.navigateToIssuable();
-        return;
-      }
       this.$emit('select-issuable', {
         iid: this.issuableIid,
         webUrl: this.issuable.webUrl,
@@ -280,11 +276,6 @@ export default {
         visitUrl(this.issuableLinkHref);
       }
     },
-    handleRowClick(e) {
-      if (this.preventRedirect) {
-        this.handleIssuableItemClick(e);
-      }
-    },
   },
 };
 </script>
@@ -296,13 +287,13 @@ export default {
     :class="{
       closed: issuable.closedAt,
       'gl-bg-blue-50': isActive,
-      'gl-cursor-pointer': preventRedirect && !showCheckbox,
-      'hover:gl-bg-subtle': preventRedirect && !isActive && !showCheckbox,
+      'gl-cursor-pointer': preventRedirect,
+      'hover:gl-bg-subtle': preventRedirect && !isActive,
     }"
     :data-labels="labelIdsString"
     :data-qa-issue-id="issuableId"
     data-testid="issuable-item-wrapper"
-    @click="handleRowClick"
+    @click="handleIssuableItemClick"
   >
     <gl-form-checkbox
       v-if="showCheckbox"

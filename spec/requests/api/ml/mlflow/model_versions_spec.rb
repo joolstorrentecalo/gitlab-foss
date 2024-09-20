@@ -44,7 +44,7 @@ RSpec.describe API::Ml::Mlflow::ModelVersions, feature_category: :mlops do
       is_expected.to have_gitlab_http_status(:ok)
       expect(json_response['model_version']).not_to be_nil
       expect(json_response['model_version']['name']).to eq(name)
-      expect(json_response['model_version']['version']).to eq(model_version.id.to_s)
+      expect(json_response['model_version']['version']).to eq(version)
     end
 
     describe 'Error States' do
@@ -96,7 +96,7 @@ RSpec.describe API::Ml::Mlflow::ModelVersions, feature_category: :mlops do
       is_expected.to have_gitlab_http_status(:ok)
       expect(json_response['model_version']).not_to be_nil
       expect(json_response['model_version']['name']).to eq(name)
-      expect(json_response['model_version']['version']).to eq(model_version.id.to_s)
+      expect(json_response['model_version']['version']).to eq(version)
     end
 
     describe 'Error States' do
@@ -151,10 +151,10 @@ RSpec.describe API::Ml::Mlflow::ModelVersions, feature_category: :mlops do
     end
 
     it 'increments the version if a model version already exists' do
-      m = create(:ml_model_versions, model: model, version: '1.0.0')
+      create(:ml_model_versions, model: model, version: '1.0.0')
 
       is_expected.to have_gitlab_http_status(:ok)
-      expect(json_response["model_version"]["version"]).to eq((m.id + 1).to_s)
+      expect(json_response["model_version"]["version"]).to eq('2.0.0')
     end
 
     describe 'user assigned version' do
@@ -168,6 +168,7 @@ RSpec.describe API::Ml::Mlflow::ModelVersions, feature_category: :mlops do
 
       it 'assigns the supplied version string via the gitlab tag' do
         is_expected.to have_gitlab_http_status(:ok)
+        expect(json_response["model_version"]["version"]).to eq('1.2.3')
         expect(json_response["model_version"]["tags"]).to match_array([{ "key" => 'gitlab.version',
                                                                          "value" => '1.2.3' }])
       end

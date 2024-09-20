@@ -1092,7 +1092,9 @@ four standard [pagination arguments](#pagination-arguments):
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
+| <a id="queryselfmanagedaddoneligibleusersaddonpurchaseids"></a>`addOnPurchaseIds` | [`[GitlabSubscriptionsAddOnPurchaseID!]!`](#gitlabsubscriptionsaddonpurchaseid) | Global IDs of the add on purchases to find assignments for. |
 | <a id="queryselfmanagedaddoneligibleusersaddontype"></a>`addOnType` | [`GitlabSubscriptionsAddOnType!`](#gitlabsubscriptionsaddontype) | Type of add on to filter the eligible users by. |
+| <a id="queryselfmanagedaddoneligibleusersfilterbyassignedseat"></a>`filterByAssignedSeat` | [`String`](#string) | Filter users list by assigned seat. |
 | <a id="queryselfmanagedaddoneligibleuserssearch"></a>`search` | [`String`](#string) | Search the user list. |
 | <a id="queryselfmanagedaddoneligibleuserssort"></a>`sort` | [`GitlabSubscriptionsUserSort`](#gitlabsubscriptionsusersort) | Sort the user list. |
 
@@ -23265,7 +23267,9 @@ four standard [pagination arguments](#pagination-arguments):
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
+| <a id="groupaddoneligibleusersaddonpurchaseids"></a>`addOnPurchaseIds` | [`[GitlabSubscriptionsAddOnPurchaseID!]!`](#gitlabsubscriptionsaddonpurchaseid) | Global IDs of the add on purchases to find assignments for. |
 | <a id="groupaddoneligibleusersaddontype"></a>`addOnType` | [`GitlabSubscriptionsAddOnType!`](#gitlabsubscriptionsaddontype) | Type of add on to filter the eligible users by. |
+| <a id="groupaddoneligibleusersfilterbyassignedseat"></a>`filterByAssignedSeat` | [`String`](#string) | Filter users list by assigned seat. |
 | <a id="groupaddoneligibleuserssearch"></a>`search` | [`String`](#string) | Search the user list. |
 | <a id="groupaddoneligibleuserssort"></a>`sort` | [`GitlabSubscriptionsUserSort`](#gitlabsubscriptionsusersort) | Sort the user list. |
 
@@ -27967,7 +27971,9 @@ four standard [pagination arguments](#pagination-arguments):
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
+| <a id="namespaceaddoneligibleusersaddonpurchaseids"></a>`addOnPurchaseIds` | [`[GitlabSubscriptionsAddOnPurchaseID!]!`](#gitlabsubscriptionsaddonpurchaseid) | Global IDs of the add on purchases to find assignments for. |
 | <a id="namespaceaddoneligibleusersaddontype"></a>`addOnType` | [`GitlabSubscriptionsAddOnType!`](#gitlabsubscriptionsaddontype) | Type of add on to filter the eligible users by. |
+| <a id="namespaceaddoneligibleusersfilterbyassignedseat"></a>`filterByAssignedSeat` | [`String`](#string) | Filter users list by assigned seat. |
 | <a id="namespaceaddoneligibleuserssearch"></a>`search` | [`String`](#string) | Search the user list. |
 | <a id="namespaceaddoneligibleuserssort"></a>`sort` | [`GitlabSubscriptionsUserSort`](#gitlabsubscriptionsusersort) | Sort the user list. |
 
