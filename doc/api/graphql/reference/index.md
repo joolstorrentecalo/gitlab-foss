@@ -24521,6 +24521,7 @@ Returns [`WorkItemStateCountsType`](#workitemstatecountstype).
 | <a id="groupworkitemstatecountsassigneewildcardid"></a>`assigneeWildcardId` | [`AssigneeWildcardId`](#assigneewildcardid) | Filter by assignee wildcard. Incompatible with `assigneeUsernames`. |
 | <a id="groupworkitemstatecountsauthorusername"></a>`authorUsername` | [`String`](#string) | Filter work items by author username. |
 | <a id="groupworkitemstatecountsconfidential"></a>`confidential` | [`Boolean`](#boolean) | Filter for confidential work items. If `false`, excludes confidential work items. If `true`, returns only confidential work items. |
+| <a id="groupworkitemstatecountsexcludeprojects"></a>`excludeProjects` | [`Boolean`](#boolean) | Exclude work items from projects within the group. |
 | <a id="groupworkitemstatecountsiid"></a>`iid` | [`String`](#string) | IID of the work item. For example, "1". |
 | <a id="groupworkitemstatecountsiids"></a>`iids` | [`[String!]`](#string) | List of IIDs of work items. For example, `["1", "2"]`. |
 | <a id="groupworkitemstatecountsin"></a>`in` | [`[IssuableSearchableField!]`](#issuablesearchablefield) | Specify the fields to perform the search in. Defaults to `[TITLE, DESCRIPTION]`. Requires the `search` argument.'. |
@@ -24577,6 +24578,7 @@ four standard [pagination arguments](#pagination-arguments):
 | <a id="groupworkitemsassigneewildcardid"></a>`assigneeWildcardId` | [`AssigneeWildcardId`](#assigneewildcardid) | Filter by assignee wildcard. Incompatible with `assigneeUsernames`. |
 | <a id="groupworkitemsauthorusername"></a>`authorUsername` | [`String`](#string) | Filter work items by author username. |
 | <a id="groupworkitemsconfidential"></a>`confidential` | [`Boolean`](#boolean) | Filter for confidential work items. If `false`, excludes confidential work items. If `true`, returns only confidential work items. |
+| <a id="groupworkitemsexcludeprojects"></a>`excludeProjects` | [`Boolean`](#boolean) | Exclude work items from projects within the group. |
 | <a id="groupworkitemsiid"></a>`iid` | [`String`](#string) | IID of the work item. For example, "1". |
 | <a id="groupworkitemsiids"></a>`iids` | [`[String!]`](#string) | List of IIDs of work items. For example, `["1", "2"]`. |
 | <a id="groupworkitemsin"></a>`in` | [`[IssuableSearchableField!]`](#issuablesearchablefield) | Specify the fields to perform the search in. Defaults to `[TITLE, DESCRIPTION]`. Requires the `search` argument.'. |
@@ -25814,7 +25816,7 @@ Defines which user roles, users, or groups can merge into a protected branch.
 | <a id="mergerequestiid"></a>`iid` | [`String!`](#string) | Internal ID of the merge request. |
 | <a id="mergerequestinprogressmergecommitsha"></a>`inProgressMergeCommitSha` | [`String`](#string) | Commit SHA of the merge request if merge is in progress. |
 | <a id="mergerequestlabels"></a>`labels` | [`LabelConnection`](#labelconnection) | Labels of the merge request. (see [Connections](#connections)) |
-| <a id="mergerequestmergeafter"></a>`mergeAfter` **{warning-solid}** | [`Time`](#time) | **Introduced** in GitLab 17.4. **Status**: Experiment. Date after which the merge request can be merged. |
+| <a id="mergerequestmergeafter"></a>`mergeAfter` **{warning-solid}** | [`Time`](#time) | **Introduced** in GitLab 17.5. **Status**: Experiment. Date after which the merge request can be merged. |
 | <a id="mergerequestmergecommitsha"></a>`mergeCommitSha` | [`String`](#string) | SHA of the merge request commit (set once merged). |
 | <a id="mergerequestmergeerror"></a>`mergeError` | [`String`](#string) | Error message due to a merge error. |
 | <a id="mergerequestmergeongoing"></a>`mergeOngoing` | [`Boolean!`](#boolean) | Indicates if a merge is currently occurring. |
