@@ -140,6 +140,14 @@ class Projects::IssuesController < Projects::ApplicationController
   end
 
   def show
+    if issue.state == 'closed'
+      if issue.duplicated_to_id.present?
+        return redirect_to project_issue_path(issue.duplicated_to.project, issue.duplicated_to.iid)
+      elsif issue.promoted_to_epic_id.present?
+        return redirect_to group_epic_path(issue.promoted_to_epic.group, issue.promoted_to_epic.iid)
+      end
+    end
+
     return super unless show_work_item? && request.format.html?
 
     @right_sidebar = false
