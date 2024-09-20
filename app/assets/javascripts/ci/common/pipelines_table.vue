@@ -169,9 +169,7 @@ export default {
       this.$emit('retry-pipeline', pipeline);
     },
     rowClass(item) {
-      return this.displayFailedJobsWidget(item) && this.failedJobsCount(item) > 0
-        ? ''
-        : '!gl-border-b';
+      return this.failedJobsCount(item) > 0 ? '' : '!gl-border-b';
     },
     setLoaderPosition(ref) {
       if (this.isMobile) {

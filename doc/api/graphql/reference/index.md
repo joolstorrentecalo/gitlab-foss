@@ -955,9 +955,7 @@ four standard [pagination arguments](#pagination-arguments):
 | <a id="queryprojectsincludehidden"></a>`includeHidden` | [`Boolean`](#boolean) | Include hidden projects. |
 | <a id="queryprojectsmarkedfordeletionon"></a>`markedForDeletionOn` | [`Date`](#date) | Date when the project was marked for deletion. |
 | <a id="queryprojectsmembership"></a>`membership` | [`Boolean`](#boolean) | Return only projects that the current user is a member of. |
-| <a id="queryprojectsminaccesslevel"></a>`minAccessLevel` | [`AccessLevelEnum`](#accesslevelenum) | Return only projects where current user has at least the specified access level. |
 | <a id="queryprojectspersonal"></a>`personal` | [`Boolean`](#boolean) | Return only personal projects. |
-| <a id="queryprojectsprogramminglanguagename"></a>`programmingLanguageName` | [`String`](#string) | Filter projects by programming language name (case insensitive). For example: "css" or "ruby". |
 | <a id="queryprojectssearch"></a>`search` | [`String`](#string) | Search query, which can be for the project name, a path, or a description. |
 | <a id="queryprojectssearchnamespaces"></a>`searchNamespaces` | [`Boolean`](#boolean) | Include namespace in project search. |
 | <a id="queryprojectssort"></a>`sort` | [`String`](#string) | Sort order of results. Format: `<field_name>_<sort_direction>`, for example: `id_desc` or `name_asc`. |
@@ -3341,29 +3339,6 @@ Input type: `CorpusCreateInput`
 | ---- | ---- | ----------- |
 | <a id="mutationcorpuscreateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
 | <a id="mutationcorpuscreateerrors"></a>`errors` | [`[String!]!`](#string) | Errors encountered during execution of the mutation. |
-
-### `Mutation.createAbuseReportNote`
-
-Creates an abuse report Note.
-
-Input type: `CreateAbuseReportNoteInput`
-
-#### Arguments
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationcreateabusereportnoteabusereportid"></a>`abuseReportId` | [`AbuseReportID!`](#abusereportid) | ID of the abuse report. |
-| <a id="mutationcreateabusereportnotebody"></a>`body` | [`String!`](#string) | Content of the note. |
-| <a id="mutationcreateabusereportnoteclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationcreateabusereportnotediscussionid"></a>`discussionId` | [`DiscussionID`](#discussionid) | Global ID of the abuse report discussion the note is in reply to. |
-
-#### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationcreateabusereportnoteclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationcreateabusereportnoteerrors"></a>`errors` | [`[String!]!`](#string) | Errors encountered during execution of the mutation. |
-| <a id="mutationcreateabusereportnotenote"></a>`note` | [`AbuseReportNote`](#abusereportnote) | Abuse report note after mutation. |
 
 ### `Mutation.createAlertIssue`
 
@@ -8079,72 +8054,6 @@ Input type: `ProjectSecretsManagerInitializeInput`
 | <a id="mutationprojectsecretsmanagerinitializeclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
 | <a id="mutationprojectsecretsmanagerinitializeerrors"></a>`errors` | [`[String!]!`](#string) | Errors encountered during execution of the mutation. |
 | <a id="mutationprojectsecretsmanagerinitializeprojectsecretsmanager"></a>`projectSecretsManager` | [`ProjectSecretsManager`](#projectsecretsmanager) | Project secrets manager. |
-
-### `Mutation.projectSecurityExclusionCreate`
-
-Input type: `ProjectSecurityExclusionCreateInput`
-
-#### Arguments
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationprojectsecurityexclusioncreateactive"></a>`active` | [`Boolean!`](#boolean) | Whether the exclusion is active. |
-| <a id="mutationprojectsecurityexclusioncreateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationprojectsecurityexclusioncreatedescription"></a>`description` | [`String`](#string) | Optional description for the exclusion. |
-| <a id="mutationprojectsecurityexclusioncreateprojectpath"></a>`projectPath` | [`ID!`](#id) | Full path of the project the exclusion will be associated with. |
-| <a id="mutationprojectsecurityexclusioncreatescanner"></a>`scanner` | [`ExclusionScannerEnum!`](#exclusionscannerenum) | Scanner to ignore values for based on the exclusion. |
-| <a id="mutationprojectsecurityexclusioncreatetype"></a>`type` | [`ExclusionTypeEnum!`](#exclusiontypeenum) | Type of the exclusion. |
-| <a id="mutationprojectsecurityexclusioncreatevalue"></a>`value` | [`String!`](#string) | Value of the exclusion. |
-
-#### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationprojectsecurityexclusioncreateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationprojectsecurityexclusioncreateerrors"></a>`errors` | [`[String!]!`](#string) | Errors encountered during execution of the mutation. |
-| <a id="mutationprojectsecurityexclusioncreatesecurityexclusion"></a>`securityExclusion` | [`ProjectSecurityExclusion`](#projectsecurityexclusion) | Project security exclusion created. |
-
-### `Mutation.projectSecurityExclusionDelete`
-
-Input type: `ProjectSecurityExclusionDeleteInput`
-
-#### Arguments
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationprojectsecurityexclusiondeleteclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationprojectsecurityexclusiondeleteid"></a>`id` | [`SecurityProjectSecurityExclusionID!`](#securityprojectsecurityexclusionid) | Global ID of the exclusion to be deleted. |
-
-#### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationprojectsecurityexclusiondeleteclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationprojectsecurityexclusiondeleteerrors"></a>`errors` | [`[String!]!`](#string) | Errors encountered during execution of the mutation. |
-
-### `Mutation.projectSecurityExclusionUpdate`
-
-Input type: `ProjectSecurityExclusionUpdateInput`
-
-#### Arguments
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationprojectsecurityexclusionupdateactive"></a>`active` | [`Boolean`](#boolean) | Whether the exclusion is active. |
-| <a id="mutationprojectsecurityexclusionupdateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationprojectsecurityexclusionupdatedescription"></a>`description` | [`String`](#string) | Optional description for the exclusion. |
-| <a id="mutationprojectsecurityexclusionupdateid"></a>`id` | [`SecurityProjectSecurityExclusionID!`](#securityprojectsecurityexclusionid) | Global ID of the exclusion to be updated. |
-| <a id="mutationprojectsecurityexclusionupdatescanner"></a>`scanner` | [`ExclusionScannerEnum`](#exclusionscannerenum) | Scanner to ignore values for based on the exclusion. |
-| <a id="mutationprojectsecurityexclusionupdatetype"></a>`type` | [`ExclusionTypeEnum`](#exclusiontypeenum) | Type of the exclusion. |
-| <a id="mutationprojectsecurityexclusionupdatevalue"></a>`value` | [`String`](#string) | Value of the exclusion. |
-
-#### Fields
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="mutationprojectsecurityexclusionupdateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
-| <a id="mutationprojectsecurityexclusionupdateerrors"></a>`errors` | [`[String!]!`](#string) | Errors encountered during execution of the mutation. |
-| <a id="mutationprojectsecurityexclusionupdatesecurityexclusion"></a>`securityExclusion` | [`ProjectSecurityExclusion`](#projectsecurityexclusion) | Project security exclusion updated. |
 
 ### `Mutation.projectSetComplianceFramework`
 
@@ -19629,14 +19538,14 @@ GitLab CI/CD configuration template.
 | <a id="clusteragentisreceptive"></a>`isReceptive` | [`Boolean`](#boolean) | Whether the cluster agent is receptive or not. |
 | <a id="clusteragentname"></a>`name` | [`String`](#string) | Name of the cluster agent. |
 | <a id="clusteragentproject"></a>`project` | [`Project`](#project) | Project the cluster agent is associated with. |
-| <a id="clusteragentremotedevelopmentagentconfig"></a>`remoteDevelopmentAgentConfig` **{warning-solid}** | [`RemoteDevelopmentAgentConfig`](#remotedevelopmentagentconfig) | **Introduced** in GitLab 17.4. **Status**: Experiment. Remote development agent config for the cluster agent. |
+| <a id="clusteragentremotedevelopmentagentconfig"></a>`remoteDevelopmentAgentConfig` **{warning-solid}** | [`RemoteDevelopmentAgentConfig`](#remotedevelopmentagentconfig) | **Deprecated** in GitLab 17.10. Use workspaces_agent_config field instead. |
 | <a id="clusteragenttokens"></a>`tokens` | [`ClusterAgentTokenConnection`](#clusteragenttokenconnection) | Tokens associated with the cluster agent. (see [Connections](#connections)) |
 | <a id="clusteragentupdatedat"></a>`updatedAt` | [`Time`](#time) | Timestamp the cluster agent was updated. |
 | <a id="clusteragenturlconfigurations"></a>`urlConfigurations` | [`ClusterAgentUrlConfigurationConnection`](#clusteragenturlconfigurationconnection) | URL configurations for the cluster agent in case it is a receptive agent. (see [Connections](#connections)) |
 | <a id="clusteragentuseraccessauthorizations"></a>`userAccessAuthorizations` | [`ClusterAgentAuthorizationUserAccess`](#clusteragentauthorizationuseraccess) | User access config for the cluster agent. |
 | <a id="clusteragentvulnerabilityimages"></a>`vulnerabilityImages` | [`VulnerabilityContainerImageConnection`](#vulnerabilitycontainerimageconnection) | Container images reported on the agent vulnerabilities. (see [Connections](#connections)) |
 | <a id="clusteragentwebpath"></a>`webPath` | [`String`](#string) | Web path of the cluster agent. |
-| <a id="clusteragentworkspacesagentconfig"></a>`workspacesAgentConfig` **{warning-solid}** | [`WorkspacesAgentConfig`](#workspacesagentconfig) | **Introduced** in GitLab 17.4. **Status**: Experiment. Workspaces agent config for the cluster agent. |
+| <a id="clusteragentworkspacesagentconfig"></a>`workspacesAgentConfig` | [`WorkspacesAgentConfig`](#workspacesagentconfig) | Workspaces agent config for the cluster agent. |
 
 #### Fields with arguments
 
@@ -23272,10 +23181,6 @@ four standard [pagination arguments](#pagination-arguments):
 ##### `Group.addOnPurchase`
 
 AddOnPurchase associated with the namespace.
-
-DETAILS:
-**Deprecated** in GitLab 17.5.
-Use root addOnPurchases instead.
 
 Returns [`AddOnPurchase`](#addonpurchase).
 
@@ -27975,10 +27880,6 @@ four standard [pagination arguments](#pagination-arguments):
 
 AddOnPurchase associated with the namespace.
 
-DETAILS:
-**Deprecated** in GitLab 17.5.
-Use root addOnPurchases instead.
-
 Returns [`AddOnPurchase`](#addonpurchase).
 
 ###### Arguments
@@ -28437,9 +28338,7 @@ four standard [pagination arguments](#pagination-arguments):
 | <a id="organizationprojectsincludehidden"></a>`includeHidden` | [`Boolean`](#boolean) | Include hidden projects. |
 | <a id="organizationprojectsmarkedfordeletionon"></a>`markedForDeletionOn` | [`Date`](#date) | Date when the project was marked for deletion. |
 | <a id="organizationprojectsmembership"></a>`membership` | [`Boolean`](#boolean) | Return only projects that the current user is a member of. |
-| <a id="organizationprojectsminaccesslevel"></a>`minAccessLevel` | [`AccessLevelEnum`](#accesslevelenum) | Return only projects where current user has at least the specified access level. |
 | <a id="organizationprojectspersonal"></a>`personal` | [`Boolean`](#boolean) | Return only personal projects. |
-| <a id="organizationprojectsprogramminglanguagename"></a>`programmingLanguageName` | [`String`](#string) | Filter projects by programming language name (case insensitive). For example: "css" or "ruby". |
 | <a id="organizationprojectssearch"></a>`search` | [`String`](#string) | Search query, which can be for the project name, a path, or a description. |
 | <a id="organizationprojectssearchnamespaces"></a>`searchNamespaces` | [`Boolean`](#boolean) | Include namespace in project search. |
 | <a id="organizationprojectssort"></a>`sort` | [`String`](#string) | Sort order of results. Format: `<field_name>_<sort_direction>`, for example: `id_desc` or `name_asc`. |
@@ -31658,12 +31557,10 @@ Represents a project-level security scanner exclusion.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | <a id="projectsecurityexclusionactive"></a>`active` | [`Boolean!`](#boolean) | Whether the exclusion is active. |
-| <a id="projectsecurityexclusioncreatedat"></a>`createdAt` | [`Time!`](#time) | Timestamp of when the exclusion was created. |
 | <a id="projectsecurityexclusiondescription"></a>`description` | [`String`](#string) | Optional description for the exclusion. |
 | <a id="projectsecurityexclusionid"></a>`id` | [`SecurityProjectSecurityExclusionID!`](#securityprojectsecurityexclusionid) | ID of the exclusion. |
 | <a id="projectsecurityexclusionscanner"></a>`scanner` | [`ExclusionScannerEnum!`](#exclusionscannerenum) | Security scanner the exclusion will be used for. |
 | <a id="projectsecurityexclusiontype"></a>`type` | [`ExclusionTypeEnum!`](#exclusiontypeenum) | Type of the exclusion. |
-| <a id="projectsecurityexclusionupdatedat"></a>`updatedAt` | [`Time!`](#time) | Timestamp of when the exclusion was updated. |
 | <a id="projectsecurityexclusionvalue"></a>`value` | [`String!`](#string) | Value of the exclusion. |
 
 ### `ProjectSecurityPolicySource`

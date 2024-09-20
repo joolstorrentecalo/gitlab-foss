@@ -26,6 +26,26 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqServerMiddleware, :clean_
   end
 
   describe '#call' do
+    shared_context 'mixed data consistency worker class' do |data_consistency, overrides, feature_flag|
+      let(:worker_class) do
+        Class.new do
+          def self.name
+            'TestMixedDataConsistencyWorker'
+          end
+
+          include ApplicationWorker
+
+          data_consistency data_consistency, feature_flag: feature_flag, overrides: overrides
+
+          def perform(*args); end
+        end
+      end
+
+      before do
+        stub_const('TestMixedDataConsistencyWorker', worker_class)
+      end
+    end
+
     shared_context 'data consistency worker class' do |data_consistency, feature_flag|
       let(:worker_class) do
         Class.new do
@@ -57,7 +77,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqServerMiddleware, :clean_
     shared_examples_for 'stick to the primary' do |expected_strategy|
       it 'sticks to the primary' do
         run_middleware do
-          expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?).to be_truthy
+          expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?(nil)).to be_truthy
         end
       end
 
@@ -72,7 +92,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqServerMiddleware, :clean_
           .and_return(any_caught_up)
 
         run_middleware do
-          expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?).not_to be_truthy
+          expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?(nil)).not_to be_truthy
         end
       end
 
@@ -274,6 +294,54 @@ RSpec.describe Gitlab::Database::LoadBalancing::SidekiqServerMiddleware, :clean_
         end
 
         include_examples 'stick to the primary', 'primary'
+      end
+    end
+
+    context 'when mixed data consistency' do
+      using RSpec::Parameterized::TableSyntax
+
+      where(:consistency, :overrides, :ci_use_primary, :main_use_primary) do
+        :always  | { ci: :always }  | true  | true
+        :always  | { ci: :sticky }  | false | true
+        :always  | { ci: :delayed } | false | true
+        # Omit test cases with { ci: :always } where default is not :always as CI may not run with a decomposed db.
+        :delayed | { ci: :delayed } | false | false
+        :delayed | { ci: :sticky }  | false | false
+        :sticky  | { ci: :delayed } | false | false
+        :sticky  | { ci: :sticky }  | false | false
+      end
+
+      with_them do
+        let(:worker_class) do
+          Class.new do
+            def self.name
+              'TestMixedDataConsistencyWorker'
+            end
+
+            include ApplicationWorker
+
+            def perform(*args); end
+          end
+        end
+
+        before do
+          stub_const('TestMixedDataConsistencyWorker', worker_class)
+
+          if TestMixedDataConsistencyWorker.instance_variable_defined?(:@class_attributes)
+            TestMixedDataConsistencyWorker.remove_instance_variable(:@class_attributes)
+          end
+
+          TestMixedDataConsistencyWorker.data_consistency(
+            consistency, overrides: overrides, feature_flag: :load_balancing_for_test_data_consistency_worker
+          )
+        end
+
+        it do
+          run_middleware do
+            expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?(:ci)).to eq(ci_use_primary)
+            expect(Gitlab::Database::LoadBalancing::Session.current.use_primary?(:main)).to eq(main_use_primary)
+          end
+        end
       end
     end
   end

@@ -11,6 +11,8 @@ module Gitlab
       class Session
         CACHE_KEY = :gitlab_load_balancer_session
 
+        DEFAULT_KEY = :default
+
         def self.current
           RequestStore[CACHE_KEY] ||= new
         end
@@ -24,29 +26,39 @@ module Gitlab
         end
 
         def initialize
-          @use_primary = false
-          @performed_write = false
           @ignore_writes = false
-          @fallback_to_replicas_for_ambiguous_queries = false
           @use_replicas_for_read_queries = false
+          @fallback_to_replicas_for_ambiguous_queries = false
+
+          @use_primary_map = { DEFAULT_KEY => false }
+          @performed_write_map = { DEFAULT_KEY => false }
         end
 
-        def use_primary?
-          @use_primary
+        def use_primary?(db)
+          lookup_map(@use_primary_map, db)
         end
 
         alias_method :using_primary?, :use_primary?
 
-        def use_primary!
-          @use_primary = true
+        def use_primary!(db = nil)
+          @use_primary_map[key(db)] = true
         end
 
         def use_primary(&blk)
-          used_primary = @use_primary
-          @use_primary = true
+          used_primary = @use_primary_map[DEFAULT_KEY]
+          @use_primary_map[DEFAULT_KEY] = true
+
           yield
         ensure
-          @use_primary = used_primary || @performed_write
+          @use_primary_map[DEFAULT_KEY] = used_primary || performed_write?(DEFAULT_KEY)
+
+          # We need to update use_primary status of indvidual db as a db-specific .write! call
+          # could be performed within the use_primary(&blk) scope.
+          @performed_write_map.each do |k, v|
+            next if k == DEFAULT_KEY || v.nil?
+
+            @use_primary_map[k] = @use_primary_map.fetch(k, false) || v
+          end
         end
 
         def ignore_writes(&block)
@@ -71,6 +83,7 @@ module Gitlab
           @use_replicas_for_read_queries = true
           yield
         ensure
+
           @use_replicas_for_read_queries = previous_flag
         end
 
@@ -97,20 +110,32 @@ module Gitlab
           @fallback_to_replicas_for_ambiguous_queries = previous_flag
         end
 
-        def fallback_to_replicas_for_ambiguous_queries?
-          @fallback_to_replicas_for_ambiguous_queries == true && !use_primary? && !performed_write?
+        def fallback_to_replicas_for_ambiguous_queries?(db)
+          @fallback_to_replicas_for_ambiguous_queries == true && !use_primary?(db) && !performed_write?(db)
         end
 
-        def write!
-          @performed_write = true
+        def write!(db)
+          @performed_write_map[key(db)] = true
 
           return if @ignore_writes
 
-          use_primary!
+          use_primary!(db)
         end
 
-        def performed_write?
-          @performed_write
+        def performed_write?(db = nil)
+          lookup_map(@performed_write_map, db)
+        end
+
+        def lookup_map(hash, db)
+          return hash[DEFAULT_KEY] unless db
+
+          # checks default key is db is specified since the
+          # default key may have been set at a outer scope
+          hash.fetch(db, false) || hash[DEFAULT_KEY]
+        end
+
+        def key(db)
+          db || DEFAULT_KEY
         end
       end
     end

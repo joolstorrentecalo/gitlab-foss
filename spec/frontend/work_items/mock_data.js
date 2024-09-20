@@ -1343,7 +1343,6 @@ export const workItemResponseFactory = ({
               __typename: 'WorkItemWidgetHierarchy',
               type: 'HIERARCHY',
               hasChildren: true,
-              rolledUpCountsByType: [],
               hasParent,
               children: {
                 nodes: [
@@ -1613,7 +1612,6 @@ export const workItemHierarchyNoUpdatePermissionResponse = {
           type: 'HIERARCHY',
           parent: null,
           hasChildren: true,
-          depthLimitReachedByType: [],
           rolledUpCountsByType: [],
           children: {
             pageInfo: {
@@ -2152,7 +2150,6 @@ export const workItemHierarchyTreeEmptyResponse = {
           type: 'HIERARCHY',
           parent: null,
           hasChildren: true,
-          depthLimitReachedByType: [],
           rolledUpCountsByType: [],
           children: {
             pageInfo: {
@@ -2209,18 +2206,6 @@ export const mockHierarchyChildren = [
   },
 ];
 
-export const mockDepthLimitReachedByType = [
-  {
-    workItemType: {
-      id: 'gid://gitlab/WorkItems::Type/8',
-      name: 'Epic',
-      __typename: 'WorkItemType',
-    },
-    depthLimitReached: false,
-    __typename: 'WorkItemTypeDepthLimitReachedByType',
-  },
-];
-
 export const mockRolledUpCountsByType = [
   {
     countsByState: {
@@ -2270,7 +2255,6 @@ export const mockHierarchyWidget = {
   type: 'HIERARCHY',
   parent: null,
   hasChildren: true,
-  depthLimitReachedByType: mockDepthLimitReachedByType,
   rolledUpCountsByType: mockRolledUpCountsByType,
   children: {
     pageInfo: {
@@ -4703,7 +4687,6 @@ export const createWorkItemQueryResponse = {
             hasChildren: false,
             parent: null,
             hasParent: false,
-            rolledUpCountsByType: [],
             children: {
               nodes: [],
               __typename: 'WorkItemConnection',

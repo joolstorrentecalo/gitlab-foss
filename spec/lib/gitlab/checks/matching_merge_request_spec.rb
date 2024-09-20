@@ -66,7 +66,7 @@ RSpec.describe Gitlab::Checks::MatchingMergeRequest, feature_category: :source_c
         let(:load_balancer_result) { ::Gitlab::Database::LoadBalancing::LoadBalancer::ANY_CAUGHT_UP }
 
         it 'continues to use the secondary' do
-          expect(session.use_primary?).to be false
+          expect(session.use_primary?(::ApplicationRecord.load_balancer.name)).to be false
           expect(subject.match?).to be true
         end
 
@@ -82,7 +82,7 @@ RSpec.describe Gitlab::Checks::MatchingMergeRequest, feature_category: :source_c
 
         it 'sticks to the primary' do
           expect(subject.match?).to be true
-          expect(session.use_primary?).to be true
+          expect(session.use_primary?(::ApplicationRecord.load_balancer.name)).to be true
         end
 
         it 'increments both total and stale counters' do

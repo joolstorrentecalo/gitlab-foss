@@ -14,7 +14,7 @@ module Gitlab
           resolved_class = job['wrapped'].to_s.safe_constantize || worker_class
 
           if load_balancing_enabled?(resolved_class)
-            job['worker_data_consistency'] = resolved_class.get_data_consistency
+            job['worker_data_consistency'] = resolved_class.get_least_restrictive_data_consistency
             set_data_consistency_locations!(job) unless job['wal_locations']
           else
             job['worker_data_consistency'] = ::WorkerAttributes::DEFAULT_DATA_CONSISTENCY
@@ -33,20 +33,21 @@ module Gitlab
         end
 
         def set_data_consistency_locations!(job)
-          job['wal_locations'] = wal_locations_by_db_name
-          job['wal_location_source'] = wal_location_source
+          wal_loc = wal_locations_by_db_name
+          job['wal_locations'] = wal_loc
+          job['wal_location_sources'] = wal_loc.to_h { |k, _| [k, wal_location_source(k)] }
         end
 
-        def wal_location_source
-          if ::Gitlab::Database::LoadBalancing.primary_only? || uses_primary?
+        def wal_location_source(lb_name)
+          if ::Gitlab::Database::LoadBalancing.primary?(lb_name) || uses_primary?(lb_name)
             ::Gitlab::Database::LoadBalancing::ROLE_PRIMARY
           else
             ::Gitlab::Database::LoadBalancing::ROLE_REPLICA
           end
         end
 
-        def uses_primary?
-          ::Gitlab::Database::LoadBalancing::Session.current.use_primary?
+        def uses_primary?(lb_name)
+          ::Gitlab::Database::LoadBalancing::Session.current.use_primary?(lb_name)
         end
       end
     end

@@ -100,7 +100,7 @@ module ApplicationWorker
     end
 
     override :data_consistency
-    def data_consistency(data_consistency, feature_flag: nil)
+    def data_consistency(default, overrides: nil, feature_flag: nil)
       super
 
       validate_worker_attributes!

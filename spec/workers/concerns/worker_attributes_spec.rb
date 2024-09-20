@@ -25,26 +25,32 @@ RSpec.describe WorkerAttributes, feature_category: :shared do
 
   describe 'class attributes' do
     # rubocop: disable Layout/LineLength
-    where(:getter, :setter, :default, :values, :expected) do
-      :get_feature_category              | :feature_category                  | nil              | [:foo]                             | :foo
-      :get_urgency                       | :urgency                           | :low             | [:high]                            | :high
-      :get_data_consistency              | :data_consistency                  | :always          | [:sticky]                          | :sticky
-      :get_worker_resource_boundary      | :worker_resource_boundary          | :unknown         | [:cpu]                             | :cpu
-      :get_weight                        | :weight                            | 1                | [3]                                | 3
-      :get_tags                          | :tags                              | []               | [:foo, :bar]                       | [:foo, :bar]
-      :get_deduplicate_strategy          | :deduplicate                       | :until_executing | [:none]                            | :none
-      :get_deduplication_options         | :deduplicate                       | {}               | [:none, { including_scheduled: true }] | { including_scheduled: true }
-      :worker_has_external_dependencies? | :worker_has_external_dependencies! | false            | []                                 | true
-      :idempotent?                       | :idempotent!                       | false            | []                                 | true
-      :big_payload?                      | :big_payload!                      | false            | []                                 | true
-      :database_health_check_attrs       | :defer_on_database_health_signal   | nil              | [:gitlab_main, [:users], 1.minute] | { gitlab_schema: :gitlab_main, tables: [:users], delay_by: 1.minute, block: nil }
+    where(:getter, :setter, :default, :values, :kwargs, :expected) do
+      :worker_has_external_dependencies?      | :worker_has_external_dependencies! | false            | [] | {} | true
+      :idempotent?                            | :idempotent!                       | false            | [] | {} | true
+      :big_payload?                           | :big_payload!                      | false            | [] | {} | true
+
+      :get_feature_category                   | :feature_category                  | nil              | [:foo]       | {} | :foo
+      :get_urgency                            | :urgency                           | :low             | [:high]      | {} | :high
+      :get_data_consistency                   | :data_consistency                  | :always          | [:sticky]    | {} | :sticky
+      :get_worker_resource_boundary           | :worker_resource_boundary          | :unknown         | [:cpu]       | {} | :cpu
+      :get_weight                             | :weight                            | 1                | [3]          | {} | 3
+      :get_tags                               | :tags                              | []               | [:foo, :bar] | {} | [:foo, :bar]
+      :get_deduplicate_strategy               | :deduplicate                       | :until_executing | [:none]      | {} | :none
+
+      :get_data_consistency                   | :data_consistency                  | :always          | [:sticky] | { overrides: { ci: :delayed } }                | :sticky
+      :get_data_consistency_per_database      | :data_consistency                  | {}               | [:sticky] | { overrides: { ci: :delayed } }                | { ci: :delayed }
+      :get_least_restrictive_data_consistency | :data_consistency                  | :always          | [:always] | { overrides: { ci: :delayed, main: :sticky } } | :delayed
+
+      :get_deduplication_options              | :deduplicate                       | {}               | [:none, { including_scheduled: true }] | {} | { including_scheduled: true }
+      :database_health_check_attrs            | :defer_on_database_health_signal   | nil              | [:gitlab_main, [:users], 1.minute]     | {} | { gitlab_schema: :gitlab_main, tables: [:users], delay_by: 1.minute, block: nil }
     end
     # rubocop: enable Layout/LineLength
 
     with_them do
       context 'when the attribute is set' do
         before do
-          worker.public_send(setter, *values)
+          worker.public_send(setter, *values, **kwargs)
         end
 
         it 'returns the expected value' do
@@ -62,7 +68,7 @@ RSpec.describe WorkerAttributes, feature_category: :shared do
 
       context 'when the attribute is set in the child worker' do
         before do
-          child_worker.public_send(setter, *values)
+          child_worker.public_send(setter, *values, **kwargs)
         end
 
         it 'returns the default value for the parent, and the expected value for the child' do
@@ -81,6 +87,13 @@ RSpec.describe WorkerAttributes, feature_category: :shared do
       end
     end
 
+    context 'with invalid data_consistency in overrides' do
+      it 'raises exception' do
+        expect { worker.data_consistency(:always, overrides: { ci: :invalid }) }
+          .to raise_error('Invalid data consistency: {:ci=>:invalid}')
+      end
+    end
+
     context 'when feature_flag is provided' do
       before do
         stub_feature_flags(test_feature_flag: false)
@@ -92,6 +105,40 @@ RSpec.describe WorkerAttributes, feature_category: :shared do
 
         expect(worker.get_data_consistency_feature_flag_enabled?).not_to be(true)
         expect(child_worker.get_data_consistency_feature_flag_enabled?).not_to be(true)
+      end
+    end
+
+    context 'when overrides are provided' do
+      it 'returns correct feature flag value' do
+        worker.data_consistency(:always, overrides: { ci: :delayed })
+
+        expect(worker.get_data_consistency_per_database).to eq({ ci: :delayed })
+      end
+
+      context 'when feature_flag is provided' do
+        before do
+          skip_default_enabled_yaml_check
+        end
+
+        context 'when feature_flag is disable' do
+          before do
+            stub_feature_flags(test_feature_flag: false)
+          end
+
+          it 'returns correct feature flag value' do
+            worker.data_consistency(:always, feature_flag: :test_feature_flag, overrides: { ci: :delayed })
+
+            expect(worker.get_data_consistency_per_database).to eq({})
+            expect(worker.get_least_restrictive_data_consistency).to eq(:always)
+          end
+        end
+
+        it 'returns correct feature flag value' do
+          worker.data_consistency(:always, feature_flag: :test_feature_flag, overrides: { ci: :delayed })
+
+          expect(worker.get_data_consistency_per_database).to eq({ ci: :delayed })
+          expect(worker.get_least_restrictive_data_consistency).to eq(:delayed)
+        end
       end
     end
   end

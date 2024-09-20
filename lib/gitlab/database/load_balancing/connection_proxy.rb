@@ -42,7 +42,7 @@ module Gitlab
         def select_all(arel, name = nil, binds = [], preparable: nil, async: false)
           if arel.respond_to?(:locked) && arel.locked
             # SELECT ... FOR UPDATE queries should be sent to the primary.
-            current_session.write!
+            current_session.write!(lb_name)
             write_using_load_balancer(:select_all, arel, name, binds)
           else
             read_using_load_balancer(:select_all, arel, name, binds)
@@ -57,7 +57,7 @@ module Gitlab
 
         STICKY_WRITES.each do |name|
           define_method(name) do |*args, **kwargs, &block|
-            current_session.write!
+            current_session.write!(lb_name)
             write_using_load_balancer(name, *args, **kwargs, &block)
           end
         end
@@ -70,11 +70,11 @@ module Gitlab
         end
 
         def transaction(*args, **kwargs, &block)
-          if current_session.fallback_to_replicas_for_ambiguous_queries?
+          if current_session.fallback_to_replicas_for_ambiguous_queries?(lb_name)
             track_read_only_transaction!
             read_using_load_balancer(:transaction, *args, **kwargs, &block)
           else
-            current_session.write!
+            current_session.write!(lb_name)
             write_using_load_balancer(:transaction, *args, **kwargs, &block)
           end
 
@@ -90,7 +90,7 @@ module Gitlab
 
         # Delegates all unknown messages to a read-write connection.
         def method_missing(...)
-          if current_session.fallback_to_replicas_for_ambiguous_queries?
+          if current_session.fallback_to_replicas_for_ambiguous_queries?(lb_name)
             read_using_load_balancer(...)
           else
             write_using_load_balancer(...)
@@ -101,7 +101,7 @@ module Gitlab
         #
         # name - The name of the method to call on a connection object.
         def read_using_load_balancer(...)
-          if current_session.use_primary? &&
+          if current_session.use_primary?(lb_name) &&
               !current_session.use_replicas_for_read_queries?
             @load_balancer.read_write do |connection|
               connection.public_send(...)
@@ -144,6 +144,10 @@ module Gitlab
 
         def read_only_transaction?
           Thread.current[READ_ONLY_TRANSACTION_KEY] == true
+        end
+
+        def lb_name
+          @load_balancer.name
         end
       end
     end

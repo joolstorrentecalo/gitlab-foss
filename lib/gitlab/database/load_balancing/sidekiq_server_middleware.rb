@@ -22,8 +22,8 @@ module Gitlab
           elsif strategy == :retry
             raise JobReplicaNotUpToDate, "Sidekiq job #{resolved_class} JID-#{job['jid']} couldn't use the replica. "\
               "Replica was not up to date."
-          else
-            # this means we selected an up-to-date replica, but there is nothing to do in this case.
+          elsif !resolved_class.get_data_consistency_per_database.empty?
+            set_per_database_strategy(resolved_class)
           end
 
           yield
@@ -79,7 +79,7 @@ module Gitlab
         end
 
         def can_retry?(worker_class, job)
-          worker_class.get_data_consistency == :delayed && not_yet_requeued?(job)
+          worker_class.get_least_restrictive_data_consistency == :delayed && not_yet_requeued?(job)
         end
 
         def replica_strategy(worker_class, job)
@@ -87,7 +87,14 @@ module Gitlab
         end
 
         def retried_before?(worker_class, job)
-          worker_class.get_data_consistency == :delayed && !not_yet_requeued?(job)
+          worker_class.get_least_restrictive_data_consistency == :delayed && !not_yet_requeued?(job)
+        end
+
+        def set_per_database_strategy(worker_class)
+          ::Gitlab::Database::LoadBalancing.each_load_balancer do |lb|
+            dc = worker_class.get_data_consistency_per_database[lb.name] || worker_class.get_data_consistency
+            ::Gitlab::Database::LoadBalancing::Session.current.use_primary!(lb.name) if dc == :always
+          end
         end
 
         def not_yet_requeued?(job)

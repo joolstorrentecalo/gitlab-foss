@@ -102,6 +102,11 @@ msgid_plural "%d Approvals"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "%d Custom role"
+msgid_plural "%d Custom roles"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "%d Module"
 msgid_plural "%d Modules"
 msgstr[0] ""
@@ -3264,9 +3269,6 @@ msgid "Add email participants that don't have a GitLab account."
 msgstr ""
 
 msgid "Add environment"
-msgstr ""
-
-msgid "Add exclusion"
 msgstr ""
 
 msgid "Add exclusions"
@@ -7154,7 +7156,7 @@ msgstr ""
 msgid "Approvals|Rule cannot be approved"
 msgstr ""
 
-msgid "Approvals|Section: %{section}"
+msgid "Approvals|Section: %section"
 msgstr ""
 
 msgid "Approvals|The number of people who need to approve this is more than those who are allowed to. Please ask the project owner to update %{securityPolicy}."
@@ -14204,9 +14206,6 @@ msgstr ""
 msgid "ComplianceReport|Approved by committer"
 msgstr ""
 
-msgid "ComplianceReport|Avoid creating new compliance pipelines and use pipeline execution policies instead. %{linkStart}Pipeline execution policies%{linkEnd} provide the ability to enforce CI/CD jobs, execute security scans, and better manage compliance enforcement in pipelines."
-msgstr ""
-
 msgid "ComplianceReport|Avoid creating new compliance pipelines and use pipeline execution policy actions instead. %{linkStart}Pipeline execution policy%{linkEnd} actions provide the ability to enforce CI/CD jobs, execute security scans, and better manage compliance."
 msgstr ""
 
@@ -14232,9 +14231,6 @@ msgid "ComplianceReport|Do you want to refresh the filtered results to include y
 msgstr ""
 
 msgid "ComplianceReport|Edit the framework"
-msgstr ""
-
-msgid "ComplianceReport|For more information, see %{linkStart}how to migrate from compliance pipelines to pipeline execution policies%{linkEnd}."
 msgstr ""
 
 msgid "ComplianceReport|For more information, see %{linkStart}how to migrate from compliance pipelines to pipeline execution policy actions%{linkEnd}."
@@ -27415,7 +27411,7 @@ msgstr ""
 msgid "IDE|Confirm"
 msgstr ""
 
-msgid "IDE|Contact your administrator or try to open the Web IDE again with another domain. %{linkStart}How can an administrator resolve the issue%{linkEnd}?"
+msgid "IDE|Contact your administrator or try to open the Web IDE again with another domain."
 msgstr ""
 
 msgid "IDE|Could not find a callback URL entry for %{expectedCallbackUrl}."
@@ -30154,7 +30150,7 @@ msgstr ""
 msgid "Iterations|No closed iterations."
 msgstr ""
 
-msgid "Iterations|No iteration cadences to show"
+msgid "Iterations|No iteration cadences to show."
 msgstr ""
 
 msgid "Iterations|No iterations found"
@@ -33185,16 +33181,7 @@ msgstr ""
 msgid "MemberRole|%{requirement} has to be enabled in order to enable %{permission}"
 msgstr ""
 
-msgid "MemberRole|%{rolesStart}Roles:%{rolesEnd} %{customCount} Custom %{defaultCount} Default"
-msgstr ""
-
 msgid "MemberRole|Access level"
-msgstr ""
-
-msgid "MemberRole|Access level copied to clipboard"
-msgstr ""
-
-msgid "MemberRole|Access level: %{id}"
 msgstr ""
 
 msgid "MemberRole|Actions"
@@ -33219,6 +33206,12 @@ msgid "MemberRole|Could not fetch available permissions."
 msgstr ""
 
 msgid "MemberRole|Could not update role."
+msgstr ""
+
+msgid "MemberRole|Create a custom role with specific abilities by starting with a base role and adding custom permissions. %{linkStart}Learn more about custom roles.%{linkEnd}"
+msgstr ""
+
+msgid "MemberRole|Create custom roles"
 msgstr ""
 
 msgid "MemberRole|Create role"
@@ -33249,9 +33242,6 @@ msgid "MemberRole|Delete role"
 msgstr ""
 
 msgid "MemberRole|Description"
-msgstr ""
-
-msgid "MemberRole|Direct users assigned"
 msgstr ""
 
 msgid "MemberRole|Edit role"
@@ -33287,13 +33277,16 @@ msgstr ""
 msgid "MemberRole|Failed to save role: %{error}"
 msgstr ""
 
+msgid "MemberRole|ID"
+msgstr ""
+
 msgid "MemberRole|Learn more about %{linkStart}available custom permissions%{linkEnd}."
 msgstr ""
 
 msgid "MemberRole|Manage roles"
 msgstr ""
 
-msgid "MemberRole|Manage which actions users can take with %{linkStart}roles and permissions%{linkEnd}."
+msgid "MemberRole|Member count"
 msgstr ""
 
 msgid "MemberRole|Name"
@@ -33320,12 +33313,6 @@ msgstr ""
 msgid "MemberRole|Role ID"
 msgstr ""
 
-msgid "MemberRole|Role ID copied to clipboard"
-msgstr ""
-
-msgid "MemberRole|Role ID: %{id}"
-msgstr ""
-
 msgid "MemberRole|Role details"
 msgstr ""
 
@@ -33336,9 +33323,6 @@ msgid "MemberRole|Role successfully deleted."
 msgstr ""
 
 msgid "MemberRole|Role type"
-msgstr ""
-
-msgid "MemberRole|Roles and permissions"
 msgstr ""
 
 msgid "MemberRole|Save role"
@@ -33393,6 +33377,9 @@ msgid "MemberRole|Use LDAP sync role"
 msgstr ""
 
 msgid "MemberRole|View permissions"
+msgstr ""
+
+msgid "MemberRole|You can create a custom role by adding specific %{linkStart}permissions to a base role.%{linkEnd}"
 msgstr ""
 
 msgid "MemberRole|You must fill out all required fields."
@@ -44206,9 +44193,6 @@ msgstr ""
 msgid "ProtectedEnvironments|Set which groups, access levels, or users can deploy to this environment. Groups and users must be members of the project."
 msgstr ""
 
-msgid "ProtectedEnvironments|This environment has no approval rules set up. %{linkStart}Learn more about deployment approvals.%{linkEnd}"
-msgstr ""
-
 msgid "ProtectedEnvironments|This rule already exists."
 msgstr ""
 
@@ -48845,101 +48829,6 @@ msgstr ""
 msgid "SecurityDescription|The linked group refers to the groups that are linked to security policy projects. Security policy projects store your organization's security policies. They are identified when policies are created, or when a project is linked as a security policy project. %{linkStart}Learn more%{linkEnd}."
 msgstr ""
 
-msgid "SecurityExclusions|Add Exclusion"
-msgstr ""
-
-msgid "SecurityExclusions|Add exclusion"
-msgstr ""
-
-msgid "SecurityExclusions|Description"
-msgstr ""
-
-msgid "SecurityExclusions|Disable"
-msgstr ""
-
-msgid "SecurityExclusions|Enable"
-msgstr ""
-
-msgid "SecurityExclusions|Enforcement"
-msgstr ""
-
-msgid "SecurityExclusions|Enter one or more paths to exclude, separated by line breaks."
-msgstr ""
-
-msgid "SecurityExclusions|Enter one or more raw values to ignore, separated by line breaks."
-msgstr ""
-
-msgid "SecurityExclusions|Enter one or more rules to ignore, separated by line breaks."
-msgstr ""
-
-msgid "SecurityExclusions|Exclusion has been created successfully"
-msgstr ""
-
-msgid "SecurityExclusions|File or directory location"
-msgstr ""
-
-msgid "SecurityExclusions|Modified"
-msgstr ""
-
-msgid "SecurityExclusions|Path"
-msgstr ""
-
-msgid "SecurityExclusions|Provide context for why the content is being excluded."
-msgstr ""
-
-msgid "SecurityExclusions|Raw value"
-msgstr ""
-
-msgid "SecurityExclusions|Rule"
-msgstr ""
-
-msgid "SecurityExclusions|Scanner rule identifier"
-msgstr ""
-
-msgid "SecurityExclusions|Secret push protection"
-msgstr ""
-
-msgid "SecurityExclusions|Select the secret detection methods this exclusion should apply to."
-msgstr ""
-
-msgid "SecurityExclusions|Select which type of content to exclude"
-msgstr ""
-
-msgid "SecurityExclusions|Specify file paths, raw values, and regex that should be excluded by secret detection in this project."
-msgstr ""
-
-msgid "SecurityExclusions|Status"
-msgstr ""
-
-msgid "SecurityExclusions|The following error occured while saving the exclusion:"
-msgid_plural "SecurityExclusions|The following errors occured while saving the exclusion:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "SecurityExclusions|Toggle exclusion"
-msgstr ""
-
-msgid "SecurityExclusions|Type"
-msgstr ""
-
-msgid "SecurityExclusions|Unprocessed data"
-msgstr ""
-
-msgid "SecurityExclusions|Value"
-msgstr ""
-
-msgid "SecurityExclusions|ex: This secret is used for testing"
-msgstr ""
-
-msgid "SecurityExclusions|ex: gitlab_personal_access_token"
-msgstr ""
-
-msgid "SecurityExclusions|ex: glpat-1234567890"
-msgstr ""
-
-msgid "SecurityExclusions|ex: spec/**/*.rb"
-msgstr ""
-
 msgid "SecurityOrchestration| and "
 msgstr ""
 
@@ -52732,7 +52621,7 @@ msgstr ""
 msgid "Started escalation for this incident."
 msgstr ""
 
-msgid "Starting with GitLab 17.7, OpenSSL 3 will be used. All TLS connections require TLS 1.2 or higher. Weaker ciphers are no longer supported. Encryption must have at least of 112 bits of security. %{link_start}Learn more%{link_end}."
+msgid "Starting with GitLab 17.5, OpenSSL 3 will be used. All TLS connections require TLS 1.2 or higher. Weaker ciphers are no longer supported. Encryption must have at least of 112 bits of security. %{link_start}Learn more%{link_end}."
 msgstr ""
 
 msgid "Starting..."
@@ -57780,6 +57669,9 @@ msgstr ""
 msgid "Try all GitLab has to offer for 30 days. No credit card required."
 msgstr ""
 
+msgid "Try changing or removing filters."
+msgstr ""
+
 msgid "Try grouping with different labels"
 msgstr ""
 
@@ -57940,6 +57832,9 @@ msgid "Unable to collect CPU information"
 msgstr ""
 
 msgid "Unable to collect memory information"
+msgstr ""
+
+msgid "Unable to complete your request. Please enter a different email address and try again."
 msgstr ""
 
 msgid "Unable to connect to server: %{error}"
@@ -62262,9 +62157,6 @@ msgstr ""
 msgid "WorkItem|Yes, close %{workItemType}"
 msgstr ""
 
-msgid "WorkItem|You cannot add another child %{workItemType}. You’ve reached the maximum number of nested levels."
-msgstr ""
-
 msgid "WorkItem|You don't have the necessary permission to view the ancestor."
 msgstr ""
 
@@ -63678,6 +63570,9 @@ msgstr ""
 msgid "Your resource access tokens will expire in %{days_to_expire} or less"
 msgstr ""
 
+msgid "Your search didn't match any commits."
+msgstr ""
+
 msgid "Your search didn't match any commits. Try a different query."
 msgstr ""
 
@@ -64121,9 +64016,6 @@ msgstr[1] ""
 msgid "ci secure files"
 msgstr ""
 
-msgid "ciReport|%{criticalStart}critical%{criticalEnd}, %{highStart}high%{highEnd} and %{otherStart}other%{otherEnd} vulnerabilities detected."
-msgstr ""
-
 msgid "ciReport|%{criticalStart}critical%{criticalEnd}, %{highStart}high%{highEnd} and %{otherStart}others%{otherEnd}"
 msgstr ""
 
@@ -64332,9 +64224,6 @@ msgstr ""
 msgid "ciReport|Resolve with scanner suggestion"
 msgstr ""
 
-msgid "ciReport|Runs against latest tags only"
-msgstr ""
-
 msgid "ciReport|SAST"
 msgstr ""
 
@@ -64398,9 +64287,6 @@ msgid "ciReport|View all pipeline findings"
 msgstr ""
 
 msgid "ciReport|View full report"
-msgstr ""
-
-msgid "ciReport|View vulnerabilities"
 msgstr ""
 
 msgid "ciReport|in"
@@ -64714,9 +64600,6 @@ msgstr[1] ""
 msgid "has already been linked to another vulnerability"
 msgstr ""
 
-msgid "has already been published"
-msgstr ""
-
 msgid "has already been taken"
 msgstr ""
 
@@ -64855,9 +64738,6 @@ msgid "is not allowed for this project."
 msgstr ""
 
 msgid "is not allowed to point to itself"
-msgstr ""
-
-msgid "is not allowed. Please enter a different email address and try again."
 msgstr ""
 
 msgid "is not allowed. Please use your regular email address."

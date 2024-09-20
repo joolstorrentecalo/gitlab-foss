@@ -56,6 +56,24 @@ RSpec.describe Gitlab::Database::LoadBalancing, :suppress_gitlab_schemas_validat
     end
   end
 
+  describe '.primary?' do
+    it 'returns true selected' do
+      described_class.each_load_balancer do |lb|
+        allow(lb).to receive(:primary_only?).and_return(lb.name == :main)
+      end
+
+      expect(described_class.primary?(:main)).to eq(true)
+    end
+
+    it 'returns false if at least one has replicas' do
+      described_class.each_load_balancer do |lb|
+        allow(lb).to receive(:primary_only?).and_return(false)
+      end
+
+      expect(described_class.primary?(:main)).to eq(false)
+    end
+  end
+
   describe '.release_hosts' do
     it 'releases the host of every load balancer' do
       described_class.each_load_balancer do |lb|
@@ -332,7 +350,7 @@ RSpec.describe Gitlab::Database::LoadBalancing, :suppress_gitlab_schemas_validat
         # use_replicas_for_read_queries ignores a session already performed write
         [
           -> {
-            ::Gitlab::Database::LoadBalancing::Session.current.write!
+            ::Gitlab::Database::LoadBalancing::Session.current.write!(model.connection.load_balancer.name)
             ::Gitlab::Database::LoadBalancing::Session.current.use_replicas_for_read_queries do
               model.where(name: 'test1').to_a
             end

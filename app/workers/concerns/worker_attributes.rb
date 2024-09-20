@@ -11,7 +11,9 @@ module WorkerAttributes
   # Urgencies that workers can declare through the `urgencies` attribute
   VALID_URGENCIES = [:high, :low, :throttled].freeze
 
-  VALID_DATA_CONSISTENCIES = [:always, :sticky, :delayed].freeze
+  # Ordered in increasing restrictiveness
+  VALID_DATA_CONSISTENCIES = [:delayed, :sticky, :always].freeze
+  LOAD_BALANCED_DATA_CONSISTENCIES = [:delayed, :sticky].freeze
   DEFAULT_DATA_CONSISTENCY = :always
 
   NAMESPACE_WEIGHTS = {
@@ -91,21 +93,50 @@ module WorkerAttributes
     #      it will switch to the primary.
     #  - *feature_flag* - allows you to toggle a job's `data_consistency, which permits you to safely toggle load balancing capabilities for a specific job.
     #    If disabled, job will default to `:always`, which means that the job will always use the primary.
-    def data_consistency(data_consistency, feature_flag: nil)
-      raise ArgumentError, "Invalid data consistency: #{data_consistency}" unless VALID_DATA_CONSISTENCIES.include?(data_consistency)
+    def data_consistency(default, overrides: nil, feature_flag: nil)
+      validate_data_consistency(default, overrides)
       raise ArgumentError, 'Data consistency is already set' if class_attributes[:data_consistency]
 
       set_class_attribute(:data_consistency_feature_flag, feature_flag) if feature_flag
-      set_class_attribute(:data_consistency, data_consistency)
+      set_class_attribute(:data_consistency, default)
+      set_class_attribute(:data_consistency_per_database, overrides)
+    end
+
+    def validate_data_consistency(data_consistency, db_specific)
+      valid_default = VALID_DATA_CONSISTENCIES.include?(data_consistency)
+      raise ArgumentError, "Invalid data consistency: #{data_consistency}" unless valid_default
+
+      return unless db_specific
+
+      valid_db_specific_hash = db_specific.values.all? { |dc| VALID_DATA_CONSISTENCIES.include?(dc) }
+      raise ArgumentError, "Invalid data consistency: #{db_specific}" unless valid_db_specific_hash
     end
 
     # If data_consistency is not set to :always, worker will try to utilize load balancing capabilities and use the replica
     def utilizes_load_balancing_capabilities?
-      get_data_consistency != :always
+      get_data_consistency != :always ||
+        get_data_consistency_per_database.values.any? { |v| LOAD_BALANCED_DATA_CONSISTENCIES.include?(v) }
     end
 
-    def get_data_consistency
-      get_class_attribute(:data_consistency) || DEFAULT_DATA_CONSISTENCY
+    def get_least_restrictive_data_consistency
+      consistencies = [
+        get_class_attribute(:data_consistency),
+        *get_data_consistency_per_database.values
+      ]
+
+      VALID_DATA_CONSISTENCIES.find { |dc| consistencies.include?(dc) } || DEFAULT_DATA_CONSISTENCY # rubocop:disable Gitlab/NoFindInWorkers -- not ActiveRecordFind
+    end
+
+    def get_data_consistency(db = nil)
+      get_data_consistency_per_database[db] ||
+        get_class_attribute(:data_consistency) ||
+        DEFAULT_DATA_CONSISTENCY
+    end
+
+    def get_data_consistency_per_database
+      return {} unless get_data_consistency_feature_flag_enabled?
+
+      get_class_attribute(:data_consistency_per_database) || {}
     end
 
     def get_data_consistency_feature_flag_enabled?
