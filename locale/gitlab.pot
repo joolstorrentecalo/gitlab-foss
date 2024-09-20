@@ -40531,6 +40531,9 @@ msgstr ""
 msgid "Pipeline|Merged result pipeline runs on the contents of the merge request combined with the contents of the target branch."
 msgstr ""
 
+msgid "Pipeline|New pipeline"
+msgstr ""
+
 msgid "Pipeline|Only the first 100 jobs per stage are displayed"
 msgstr ""
 
@@ -44675,6 +44678,9 @@ msgid "RapidDiffs|Original line"
 msgstr ""
 
 msgid "RapidDiffs|Original line number"
+msgstr ""
+
+msgid "Rate Duo Code Review"
 msgstr ""
 
 msgid "Rate Limits"
