@@ -45,10 +45,6 @@ module Ci
           .close(new_job)
       end
 
-      # This method is called on the `drop!` state transition for Ci::Build which runs the retry in the
-      # `after_transition` block within a transaction.
-      # Ci::Pipelines::AddJobService then obtains the exclusive lease inside the same transaction.
-      # See issue: https://gitlab.com/gitlab-org/gitlab/-/issues/441525
       Gitlab::ExclusiveLease.skipping_transaction_check do
         ::Ci::Pipelines::AddJobService.new(job.pipeline).execute!(new_job) do |processable|
           BulkInsertableAssociations.with_bulk_insert do
