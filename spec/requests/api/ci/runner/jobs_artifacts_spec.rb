@@ -1101,6 +1101,7 @@ RSpec.describe API::Ci::Runner, :clean_gitlab_redis_shared_state, feature_catego
           it 'responds with not found' do
             download_artifact
 
+            expect(Audit::Ci::ArtifactDownloadAuditor).not_to receive(:new)
             expect(response).to have_gitlab_http_status(:not_found)
           end
         end
