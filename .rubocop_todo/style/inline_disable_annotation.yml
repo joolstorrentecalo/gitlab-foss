@@ -1586,7 +1586,6 @@ Style/InlineDisableAnnotation:
     - 'ee/app/workers/todos_destroyer/confidential_epic_worker.rb'
     - 'ee/app/workers/update_all_mirrors_worker.rb'
     - 'ee/app/workers/users/unconfirmed_users_deletion_cron_worker.rb'
-    - 'ee/app/workers/vulnerabilities/historical_statistics/deletion_worker.rb'
     - 'ee/app/workers/vulnerabilities/mark_dropped_as_resolved_worker.rb'
     - 'ee/app/workers/vulnerabilities/orphaned_remediations_cleanup_worker.rb'
     - 'ee/app/workers/vulnerabilities/statistics/adjustment_worker.rb'

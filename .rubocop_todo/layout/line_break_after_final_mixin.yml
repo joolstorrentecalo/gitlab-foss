@@ -91,7 +91,6 @@ Layout/LineBreakAfterFinalMixin:
     - 'ee/app/workers/okrs/checkin_reminder_emails_cron_worker.rb'
     - 'ee/app/workers/security/create_orchestration_policy_worker.rb'
     - 'ee/app/workers/sync_seat_link_worker.rb'
-    - 'ee/app/workers/vulnerabilities/historical_statistics/deletion_worker.rb'
     - 'ee/app/workers/vulnerabilities/statistics/schedule_worker.rb'
     - 'ee/app/workers/work_items/rolledup_dates/update_rolledup_dates_worker.rb'
     - 'ee/lib/api/dependency_proxy/packages/maven.rb'

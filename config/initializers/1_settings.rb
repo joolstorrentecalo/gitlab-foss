@@ -853,7 +853,7 @@ Gitlab.ee do
   Settings.cron_jobs['vulnerability_statistics_schedule_worker']['job_class'] = 'Vulnerabilities::Statistics::ScheduleWorker'
   Settings.cron_jobs['vulnerability_historical_statistics_deletion_worker'] ||= {}
   Settings.cron_jobs['vulnerability_historical_statistics_deletion_worker']['cron'] ||= '15 3 * * *'
-  Settings.cron_jobs['vulnerability_historical_statistics_deletion_worker']['job_class'] = 'Vulnerabilities::HistoricalStatistics::DeletionWorker'
+  Settings.cron_jobs['vulnerability_historical_statistics_deletion_worker']['job_class'] = 'Vulnerabilities::HistoricalDeletionWorker'
   Settings.cron_jobs['vulnerability_orphaned_remediations_cleanup_worker'] ||= {}
   Settings.cron_jobs['vulnerability_orphaned_remediations_cleanup_worker']['job_class'] = 'Vulnerabilities::OrphanedRemediationsCleanupWorker'
   Settings.cron_jobs['vulnerability_orphaned_remediations_cleanup_worker']['cron'] ||= '15 3 * * */6'
@@ -939,6 +939,9 @@ Gitlab.ee do
   Settings.cron_jobs['report_security_policies_metrics_worker.rb'] ||= {}
   Settings.cron_jobs['report_security_policies_metrics_worker.rb']['cron'] ||= '*/1 * * * *'
   Settings.cron_jobs['report_security_policies_metrics_worker.rb']['job_class'] = 'Security::Policies::ReportSecurityPoliciesMetricsWorker'
+  Settings.cron_jobs['usage_events_dump_write_buffer_cron_worker'] ||= {}
+  Settings.cron_jobs['usage_events_dump_write_buffer_cron_worker']['cron'] ||= "*/5 * * * *"
+  Settings.cron_jobs['usage_events_dump_write_buffer_cron_worker']['job_class'] = 'UsageEvents::DumpWriteBufferCronWorker'
 
   Gitlab.com do
     Settings.cron_jobs['disable_legacy_open_source_license_for_inactive_projects'] ||= {}

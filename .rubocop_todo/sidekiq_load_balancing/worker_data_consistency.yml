@@ -401,7 +401,6 @@ SidekiqLoadBalancing/WorkerDataConsistency:
     - 'ee/app/workers/sync_seat_link_request_worker.rb'
     - 'ee/app/workers/sync_seat_link_worker.rb'
     - 'ee/app/workers/todos_destroyer/confidential_epic_worker.rb'
-    - 'ee/app/workers/vulnerabilities/historical_statistics/deletion_worker.rb'
     - 'ee/app/workers/vulnerabilities/statistics/adjustment_worker.rb'
     - 'ee/app/workers/vulnerabilities/statistics/schedule_worker.rb'
     - 'ee/app/workers/vulnerability_exports/export_deletion_worker.rb'
