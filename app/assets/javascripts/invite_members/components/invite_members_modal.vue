@@ -474,7 +474,7 @@ export default {
         >
           <ul class="gl-mb-0 gl-pl-5">
             <li v-for="(warningMessage, user) in usersWithWarning" :key="user">
-              <strong>{{ tokenName(user) }}:</strong> {{ warningMessage }}
+              <strong>{{ tokenName(user) || user }}:</strong> {{ warningMessage }}
             </li>
           </ul>
         </gl-alert>
