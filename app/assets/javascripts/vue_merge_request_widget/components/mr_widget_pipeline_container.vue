@@ -82,7 +82,7 @@ export default {
       :pipeline="pipeline"
       :pipeline-coverage-delta="mr.pipelineCoverageDelta"
       :pipeline-etag="mr.pipelineEtag"
-      :pipeline-iid="mr.pipelineIid"
+      :pipeline-iid="mr.securityReportsPipelineIid"
       :builds-with-coverage="mr.buildsWithCoverage"
       :ci-status="ciStatus"
       :has-ci="mr.hasCI"
@@ -95,7 +95,6 @@ export default {
       :retargeted="mr.retargeted"
       :target-project-id="mr.targetProjectId"
       :iid="mr.iid"
-      :source-project-full-path="mr.sourceProjectFullPath"
       :target-project-full-path="mr.targetProjectFullPath"
     />
     <template #footer>

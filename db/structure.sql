@@ -1097,22 +1097,6 @@ RETURN NEW;
 END
 $$;
 
-CREATE FUNCTION trigger_30209d0fba3e() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-IF NEW."project_id" IS NULL THEN
-  SELECT "project_id"
-  INTO NEW."project_id"
-  FROM "alert_management_alerts"
-  WHERE "alert_management_alerts"."id" = NEW."alert_management_alert_id";
-END IF;
-
-RETURN NEW;
-
-END
-$$;
-
 CREATE FUNCTION trigger_3691f9f6a69f() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
@@ -1922,22 +1906,6 @@ IF NEW."project_id" IS NULL THEN
   INTO NEW."project_id"
   FROM "protected_tags"
   WHERE "protected_tags"."id" = NEW."protected_tag_id";
-END IF;
-
-RETURN NEW;
-
-END
-$$;
-
-CREATE FUNCTION trigger_b046dd50c711() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-IF NEW."project_id" IS NULL THEN
-  SELECT "project_id"
-  INTO NEW."project_id"
-  FROM "incident_management_oncall_schedules"
-  WHERE "incident_management_oncall_schedules"."id" = NEW."oncall_schedule_id";
 END IF;
 
 RETURN NEW;
@@ -5295,8 +5263,7 @@ CREATE TABLE alert_management_alert_user_mentions (
     note_id bigint,
     mentioned_users_ids bigint[],
     mentioned_projects_ids bigint[],
-    mentioned_groups_ids bigint[],
-    project_id bigint
+    mentioned_groups_ids bigint[]
 );
 
 CREATE SEQUENCE alert_management_alert_user_mentions_id_seq
@@ -12015,7 +11982,6 @@ CREATE TABLE incident_management_oncall_rotations (
     ends_at timestamp with time zone,
     active_period_start time without time zone,
     active_period_end time without time zone,
-    project_id bigint,
     CONSTRAINT check_5209fb5d02 CHECK ((char_length(name) <= 200))
 );
 
@@ -18824,51 +18790,6 @@ CREATE SEQUENCE suggestions_id_seq
 
 ALTER SEQUENCE suggestions_id_seq OWNED BY suggestions.id;
 
-CREATE TABLE system_access_instance_microsoft_applications (
-    id bigint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    enabled boolean DEFAULT false NOT NULL,
-    tenant_xid text NOT NULL,
-    client_xid text NOT NULL,
-    login_endpoint text DEFAULT 'https://login.microsoftonline.com'::text NOT NULL,
-    graph_endpoint text DEFAULT 'https://graph.microsoft.com'::text NOT NULL,
-    encrypted_client_secret bytea NOT NULL,
-    encrypted_client_secret_iv bytea NOT NULL,
-    CONSTRAINT check_75bf46c253 CHECK ((char_length(login_endpoint) <= 255)),
-    CONSTRAINT check_80a40c5b74 CHECK ((char_length(client_xid) <= 255)),
-    CONSTRAINT check_e00a5d3a61 CHECK ((char_length(graph_endpoint) <= 255)),
-    CONSTRAINT check_e63bb275fa CHECK ((char_length(tenant_xid) <= 255))
-);
-
-CREATE SEQUENCE system_access_instance_microsoft_applications_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE system_access_instance_microsoft_applications_id_seq OWNED BY system_access_instance_microsoft_applications.id;
-
-CREATE TABLE system_access_instance_microsoft_graph_access_tokens (
-    id bigint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    system_access_instance_microsoft_application_id bigint,
-    expires_in integer NOT NULL,
-    encrypted_token bytea NOT NULL,
-    encrypted_token_iv bytea NOT NULL
-);
-
-CREATE SEQUENCE system_access_instance_microsoft_graph_access_tokens_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE system_access_instance_microsoft_graph_access_tokens_id_seq OWNED BY system_access_instance_microsoft_graph_access_tokens.id;
-
 CREATE TABLE system_access_microsoft_applications (
     id bigint NOT NULL,
     created_at timestamp with time zone NOT NULL,
@@ -20155,26 +20076,6 @@ CREATE SEQUENCE vulnerability_issue_links_id_seq
     CACHE 1;
 
 ALTER SEQUENCE vulnerability_issue_links_id_seq OWNED BY vulnerability_issue_links.id;
-
-CREATE TABLE vulnerability_management_policy_rules (
-    id bigint NOT NULL,
-    security_policy_id bigint NOT NULL,
-    security_policy_management_project_id bigint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    rule_index smallint NOT NULL,
-    type smallint NOT NULL,
-    content jsonb DEFAULT '{}'::jsonb NOT NULL
-);
-
-CREATE SEQUENCE vulnerability_management_policy_rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE vulnerability_management_policy_rules_id_seq OWNED BY vulnerability_management_policy_rules.id;
 
 CREATE TABLE vulnerability_merge_request_links (
     id bigint NOT NULL,
@@ -22565,10 +22466,6 @@ ALTER TABLE ONLY subscriptions ALTER COLUMN id SET DEFAULT nextval('subscription
 
 ALTER TABLE ONLY suggestions ALTER COLUMN id SET DEFAULT nextval('suggestions_id_seq'::regclass);
 
-ALTER TABLE ONLY system_access_instance_microsoft_applications ALTER COLUMN id SET DEFAULT nextval('system_access_instance_microsoft_applications_id_seq'::regclass);
-
-ALTER TABLE ONLY system_access_instance_microsoft_graph_access_tokens ALTER COLUMN id SET DEFAULT nextval('system_access_instance_microsoft_graph_access_tokens_id_seq'::regclass);
-
 ALTER TABLE ONLY system_access_microsoft_applications ALTER COLUMN id SET DEFAULT nextval('system_access_microsoft_applications_id_seq'::regclass);
 
 ALTER TABLE ONLY system_access_microsoft_graph_access_tokens ALTER COLUMN id SET DEFAULT nextval('system_access_microsoft_graph_access_tokens_id_seq'::regclass);
@@ -22678,8 +22575,6 @@ ALTER TABLE ONLY vulnerability_historical_statistics ALTER COLUMN id SET DEFAULT
 ALTER TABLE ONLY vulnerability_identifiers ALTER COLUMN id SET DEFAULT nextval('vulnerability_identifiers_id_seq'::regclass);
 
 ALTER TABLE ONLY vulnerability_issue_links ALTER COLUMN id SET DEFAULT nextval('vulnerability_issue_links_id_seq'::regclass);
-
-ALTER TABLE ONLY vulnerability_management_policy_rules ALTER COLUMN id SET DEFAULT nextval('vulnerability_management_policy_rules_id_seq'::regclass);
 
 ALTER TABLE ONLY vulnerability_merge_request_links ALTER COLUMN id SET DEFAULT nextval('vulnerability_merge_request_links_id_seq'::regclass);
 
@@ -25280,12 +25175,6 @@ ALTER TABLE ONLY subscriptions
 ALTER TABLE ONLY suggestions
     ADD CONSTRAINT suggestions_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY system_access_instance_microsoft_applications
-    ADD CONSTRAINT system_access_instance_microsoft_applications_pkey PRIMARY KEY (id);
-
-ALTER TABLE ONLY system_access_instance_microsoft_graph_access_tokens
-    ADD CONSTRAINT system_access_instance_microsoft_graph_access_tokens_pkey PRIMARY KEY (id);
-
 ALTER TABLE ONLY system_access_microsoft_applications
     ADD CONSTRAINT system_access_microsoft_applications_pkey PRIMARY KEY (id);
 
@@ -25474,9 +25363,6 @@ ALTER TABLE ONLY vulnerability_identifiers
 
 ALTER TABLE ONLY vulnerability_issue_links
     ADD CONSTRAINT vulnerability_issue_links_pkey PRIMARY KEY (id);
-
-ALTER TABLE ONLY vulnerability_management_policy_rules
-    ADD CONSTRAINT vulnerability_management_policy_rules_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY vulnerability_merge_request_links
     ADD CONSTRAINT vulnerability_merge_request_links_pkey PRIMARY KEY (id);
@@ -27274,8 +27160,6 @@ CREATE INDEX index_alert_management_alert_metric_images_on_alert_id ON alert_man
 
 CREATE INDEX index_alert_management_alert_metric_images_on_project_id ON alert_management_alert_metric_images USING btree (project_id);
 
-CREATE INDEX index_alert_management_alert_user_mentions_on_project_id ON alert_management_alert_user_mentions USING btree (project_id);
-
 CREATE INDEX index_alert_management_alerts_on_domain ON alert_management_alerts USING btree (domain);
 
 CREATE INDEX index_alert_management_alerts_on_environment_id ON alert_management_alerts USING btree (environment_id) WHERE (environment_id IS NOT NULL);
@@ -28837,8 +28721,6 @@ CREATE UNIQUE INDEX index_inc_mgmnt_oncall_rotations_on_oncall_schedule_id_and_i
 CREATE UNIQUE INDEX index_inc_mgmnt_oncall_rotations_on_oncall_schedule_id_and_name ON incident_management_oncall_rotations USING btree (oncall_schedule_id, name);
 
 CREATE INDEX index_incident_management_escalation_rules_on_project_id ON incident_management_escalation_rules USING btree (project_id);
-
-CREATE INDEX index_incident_management_oncall_rotations_on_project_id ON incident_management_oncall_rotations USING btree (project_id);
 
 CREATE INDEX index_incident_management_oncall_schedules_on_project_id ON incident_management_oncall_schedules USING btree (project_id);
 
@@ -30936,10 +30818,6 @@ CREATE UNIQUE INDEX index_vuln_findings_on_uuid_including_vuln_id_1 ON vulnerabi
 
 CREATE UNIQUE INDEX index_vuln_historical_statistics_on_project_id_and_date ON vulnerability_historical_statistics USING btree (project_id, date);
 
-CREATE INDEX index_vuln_mgmt_policy_rules_on_policy_mgmt_project_id ON vulnerability_management_policy_rules USING btree (security_policy_management_project_id);
-
-CREATE UNIQUE INDEX index_vuln_mgmt_policy_rules_on_unique_policy_rule_index ON vulnerability_management_policy_rules USING btree (security_policy_id, rule_index);
-
 CREATE INDEX index_vuln_namespace_historical_statistics_on_namespace_id ON vulnerability_namespace_historical_statistics USING btree (namespace_id);
 
 CREATE UNIQUE INDEX index_vuln_namespace_historical_statistics_traversal_ids_date ON vulnerability_namespace_historical_statistics USING btree (traversal_ids, date);
@@ -31449,8 +31327,6 @@ CREATE UNIQUE INDEX unique_index_ci_build_pending_states_on_partition_id_build_i
 CREATE UNIQUE INDEX unique_index_for_credit_card_validation_payment_method_xid ON user_credit_card_validations USING btree (zuora_payment_method_xid) WHERE (zuora_payment_method_xid IS NOT NULL);
 
 CREATE UNIQUE INDEX unique_index_for_project_pages_unique_domain ON project_settings USING btree (pages_unique_domain) WHERE (pages_unique_domain IS NOT NULL);
-
-CREATE UNIQUE INDEX unique_index_instance_ms_access_tokens_on_ms_app_id ON system_access_instance_microsoft_graph_access_tokens USING btree (system_access_instance_microsoft_application_id);
 
 CREATE UNIQUE INDEX unique_index_ml_model_metadata_name ON ml_model_metadata USING btree (model_id, name);
 
@@ -33186,8 +33062,6 @@ CREATE TRIGGER trigger_25fe4f7da510 BEFORE INSERT OR UPDATE ON vulnerability_iss
 
 CREATE TRIGGER trigger_2b8fdc9b4a4e BEFORE INSERT OR UPDATE ON ml_experiment_metadata FOR EACH ROW EXECUTE FUNCTION trigger_2b8fdc9b4a4e();
 
-CREATE TRIGGER trigger_30209d0fba3e BEFORE INSERT OR UPDATE ON alert_management_alert_user_mentions FOR EACH ROW EXECUTE FUNCTION trigger_30209d0fba3e();
-
 CREATE TRIGGER trigger_3691f9f6a69f BEFORE INSERT OR UPDATE ON remote_development_agent_configs FOR EACH ROW EXECUTE FUNCTION trigger_3691f9f6a69f();
 
 CREATE TRIGGER trigger_3d1a58344b29 BEFORE INSERT OR UPDATE ON alert_management_alert_assignees FOR EACH ROW EXECUTE FUNCTION trigger_3d1a58344b29();
@@ -33287,8 +33161,6 @@ CREATE TRIGGER trigger_a4e4fb2451d9 BEFORE INSERT OR UPDATE ON epic_user_mention
 CREATE TRIGGER trigger_a7e0fb195210 BEFORE INSERT OR UPDATE ON vulnerability_finding_evidences FOR EACH ROW EXECUTE FUNCTION trigger_a7e0fb195210();
 
 CREATE TRIGGER trigger_af3f17817e4d BEFORE INSERT OR UPDATE ON protected_tag_create_access_levels FOR EACH ROW EXECUTE FUNCTION trigger_af3f17817e4d();
-
-CREATE TRIGGER trigger_b046dd50c711 BEFORE INSERT OR UPDATE ON incident_management_oncall_rotations FOR EACH ROW EXECUTE FUNCTION trigger_b046dd50c711();
 
 CREATE TRIGGER trigger_b2612138515d BEFORE INSERT OR UPDATE ON project_relation_exports FOR EACH ROW EXECUTE FUNCTION trigger_b2612138515d();
 
@@ -34139,9 +34011,6 @@ ALTER TABLE ONLY sprints
 ALTER TABLE ONLY alert_management_alert_metric_images
     ADD CONSTRAINT fk_80b75a6094 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
-ALTER TABLE ONLY alert_management_alert_user_mentions
-    ADD CONSTRAINT fk_8175238264 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
-
 ALTER TABLE ONLY related_epic_links
     ADD CONSTRAINT fk_8257080565 FOREIGN KEY (group_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
@@ -34612,9 +34481,6 @@ ALTER TABLE ONLY incident_management_escalation_rules
 
 ALTER TABLE ONLY packages_dependencies
     ADD CONSTRAINT fk_cea1124da7 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
-
-ALTER TABLE ONLY incident_management_oncall_rotations
-    ADD CONSTRAINT fk_cecf1b51f9 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY compliance_framework_security_policies
     ADD CONSTRAINT fk_cf3c0ac207 FOREIGN KEY (policy_configuration_id) REFERENCES security_orchestration_policy_configurations(id) ON DELETE CASCADE;
@@ -35618,9 +35484,6 @@ ALTER TABLE ONLY epic_issues
 ALTER TABLE ONLY packages_nuget_symbols
     ADD CONSTRAINT fk_rails_5df972da14 FOREIGN KEY (package_id) REFERENCES packages_packages(id) ON DELETE SET NULL;
 
-ALTER TABLE ONLY vulnerability_management_policy_rules
-    ADD CONSTRAINT fk_rails_5e6b6e1b2c FOREIGN KEY (security_policy_management_project_id) REFERENCES projects(id) ON DELETE CASCADE;
-
 ALTER TABLE ONLY resource_weight_events
     ADD CONSTRAINT fk_rails_5eb5cb92a1 FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE CASCADE;
 
@@ -35741,9 +35604,6 @@ ALTER TABLE ONLY ml_experiment_metadata
 ALTER TABLE ONLY error_tracking_errors
     ADD CONSTRAINT fk_rails_6b41f837ba FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
-ALTER TABLE ONLY vulnerability_management_policy_rules
-    ADD CONSTRAINT fk_rails_6b815ed813 FOREIGN KEY (security_policy_id) REFERENCES security_policies(id) ON DELETE CASCADE;
-
 ALTER TABLE ONLY ml_model_version_metadata
     ADD CONSTRAINT fk_rails_6b8fcb2af1 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
@@ -35821,9 +35681,6 @@ ALTER TABLE ONLY packages_debian_publications
 
 ALTER TABLE ONLY boards_epic_user_preferences
     ADD CONSTRAINT fk_rails_76c4e9732d FOREIGN KEY (epic_id) REFERENCES epics(id) ON DELETE CASCADE;
-
-ALTER TABLE ONLY system_access_instance_microsoft_graph_access_tokens
-    ADD CONSTRAINT fk_rails_76e46ea251 FOREIGN KEY (system_access_instance_microsoft_application_id) REFERENCES system_access_instance_microsoft_applications(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY packages_debian_group_distribution_keys
     ADD CONSTRAINT fk_rails_779438f163 FOREIGN KEY (distribution_id) REFERENCES packages_debian_group_distributions(id) ON DELETE CASCADE;
