@@ -7,6 +7,9 @@ module Gitlab
         def initialize(worker, job)
           @worker = worker
           @job = job
+
+          worker_class = worker.is_a?(Class) ? worker : worker.class
+          @worker_class = worker_class.name
         end
 
         # This will continue the middleware chain if the job should be scheduled
@@ -29,12 +32,35 @@ module Gitlab
             return
           end
 
+          track_execution(start: true)
+
           yield
+        ensure
+          track_execution(start: false)
         end
 
         private
 
-        attr_reader :job, :worker
+        attr_reader :job, :worker, :worker_class
+
+        def track_execution(start:)
+          Gitlab::Redis::SharedState.with do |r|
+            if start
+              r.set("gitlab:{#{sidekiq_process_id}}:#{tid}:job_class", worker_class, ex: 3600)
+            else
+              r.unlink("gitlab:{#{sidekiq_process_id}}:#{tid}:job_class")
+            end
+          end
+        end
+
+        def sidekiq_process_id
+          Thread.current[:sidekiq_capsule].identity
+        end
+
+        def tid
+          # https://github.com/sidekiq/sidekiq/blob/2451d70080db95cb5f69effcbd74381cf3b3f727/lib/sidekiq/logger.rb#L80
+          (Thread.current.object_id ^ ::Process.pid).to_s(36)
+        end
 
         def should_defer_schedule?
           return false if Feature.disabled?(:sidekiq_concurrency_limit_middleware, Feature.current_request, type: :ops)
@@ -62,8 +88,7 @@ module Gitlab
         end
 
         def has_jobs_in_queue?
-          worker_class = worker.is_a?(Class) ? worker : worker.class
-          concurrency_service.has_jobs_in_queue?(worker_class.name)
+          concurrency_service.has_jobs_in_queue?(worker_class)
         end
 
         def defer_job!
