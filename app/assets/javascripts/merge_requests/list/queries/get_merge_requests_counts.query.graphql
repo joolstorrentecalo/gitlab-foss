@@ -1,59 +1,114 @@
 query getMergeRequestsCount(
   $fullPath: ID!
-  $assigneeWildcardId: AssigneeWildcardId
+  $approvedBy: [String!]
   $assigneeUsernames: String
+  $assigneeWildcardId: AssigneeWildcardId
+  $reviewerUsername: String
+  $reviewerWildcardId: ReviewerWildcardId
+  $authorUsername: String
+  $draft: Boolean
+  $labelName: [String!]
+  $releaseTag: String
+  $mergeUser: String
   $milestoneTitle: String
   $milestoneWildcardId: MilestoneWildcardId
   $deployedBefore: Time
   $deployedAfter: Time
+  $myReactionEmoji: String
+  $sourceBranches: [String!]
+  $targetBranches: [String!]
   $not: MergeRequestsResolverNegatedParams
 ) {
   project(fullPath: $fullPath) {
     id
     openedMergeRequests: mergeRequests(
       state: opened
+      approvedBy: $approvedBy
       assigneeUsername: $assigneeUsernames
       assigneeWildcardId: $assigneeWildcardId
+      reviewerUsername: $reviewerUsername
+      reviewerWildcardId: $reviewerWildcardId
+      authorUsername: $authorUsername
+      draft: $draft
+      labelName: $labelName
+      releaseTag: $releaseTag
+      mergedBy: $mergeUser
       milestoneTitle: $milestoneTitle
       milestoneWildcardId: $milestoneWildcardId
       deployedBefore: $deployedBefore
       deployedAfter: $deployedAfter
+      myReactionEmoji: $myReactionEmoji
+      sourceBranches: $sourceBranches
+      targetBranches: $targetBranches
       not: $not
     ) {
       count
     }
     mergedMergeRequests: mergeRequests(
       state: merged
+      approvedBy: $approvedBy
       assigneeUsername: $assigneeUsernames
       assigneeWildcardId: $assigneeWildcardId
+      reviewerUsername: $reviewerUsername
+      reviewerWildcardId: $reviewerWildcardId
+      authorUsername: $authorUsername
+      draft: $draft
+      labelName: $labelName
+      releaseTag: $releaseTag
+      mergedBy: $mergeUser
       milestoneTitle: $milestoneTitle
       milestoneWildcardId: $milestoneWildcardId
       deployedBefore: $deployedBefore
       deployedAfter: $deployedAfter
+      myReactionEmoji: $myReactionEmoji
+      sourceBranches: $sourceBranches
+      targetBranches: $targetBranches
       not: $not
     ) {
       count
     }
     closedMergeRequests: mergeRequests(
       state: closed
+      approvedBy: $approvedBy
       assigneeUsername: $assigneeUsernames
       assigneeWildcardId: $assigneeWildcardId
+      reviewerUsername: $reviewerUsername
+      reviewerWildcardId: $reviewerWildcardId
+      authorUsername: $authorUsername
+      draft: $draft
+      labelName: $labelName
+      releaseTag: $releaseTag
+      mergedBy: $mergeUser
       milestoneTitle: $milestoneTitle
       milestoneWildcardId: $milestoneWildcardId
       deployedBefore: $deployedBefore
       deployedAfter: $deployedAfter
+      myReactionEmoji: $myReactionEmoji
+      sourceBranches: $sourceBranches
+      targetBranches: $targetBranches
       not: $not
     ) {
       count
     }
     allMergeRequests: mergeRequests(
       state: all
+      approvedBy: $approvedBy
       assigneeUsername: $assigneeUsernames
       assigneeWildcardId: $assigneeWildcardId
+      reviewerUsername: $reviewerUsername
+      reviewerWildcardId: $reviewerWildcardId
+      authorUsername: $authorUsername
+      draft: $draft
+      labelName: $labelName
+      releaseTag: $releaseTag
+      mergedBy: $mergeUser
       milestoneTitle: $milestoneTitle
       milestoneWildcardId: $milestoneWildcardId
       deployedBefore: $deployedBefore
       deployedAfter: $deployedAfter
+      myReactionEmoji: $myReactionEmoji
+      sourceBranches: $sourceBranches
+      targetBranches: $targetBranches
       not: $not
     ) {
       count

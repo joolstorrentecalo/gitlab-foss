@@ -184,13 +184,17 @@ module FilteredSearchHelpers
 
   ##
   # For use with gl-filtered-search
-  def select_tokens(*args, submit: false, input_text: 'Search')
+  def select_tokens(*args, submit: false, search_token: false, input_text: 'Search')
     within '[data-testid="filtered-search-input"]' do
       find_field(input_text).click
 
       args.each do |token|
         # Move mouse away to prevent invoking tooltips on usernames, which blocks the search input
         find_button('Search').hover
+
+        if search_token
+          find_by_testid('filtered-search-token-segment-input').send_keys token.to_s
+        end
 
         click_on token.to_s, match: :first
 

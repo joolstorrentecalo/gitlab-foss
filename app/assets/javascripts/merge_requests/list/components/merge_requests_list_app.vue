@@ -390,7 +390,7 @@ export default {
       );
     },
     sortOptions() {
-      return getSortOptions({ hasManualSort: false });
+      return getSortOptions({ hasManualSort: false, hasMergedDate: this.state === STATUS_MERGED });
     },
     tabCounts() {
       const { openedMergeRequests, closedMergeRequests, mergedMergeRequests, allMergeRequests } =
@@ -537,7 +537,7 @@ export default {
       this.$apollo
         .mutate({
           mutation: setSortPreferenceMutation,
-          variables: { input: { issuesSort: sortKey } },
+          variables: { input: { mergeRequestsSort: sortKey } },
         })
         .then(({ data }) => {
           if (data.userPreferencesUpdate.errors.length) {

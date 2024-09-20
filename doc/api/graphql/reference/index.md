@@ -10177,6 +10177,7 @@ Input type: `UserPreferencesUpdateInput`
 | <a id="mutationuserpreferencesupdateclientmutationid"></a>`clientMutationId` | [`String`](#string) | A unique identifier for the client performing the mutation. |
 | <a id="mutationuserpreferencesupdateextensionsmarketplaceoptinstatus"></a>`extensionsMarketplaceOptInStatus` | [`ExtensionsMarketplaceOptInStatus`](#extensionsmarketplaceoptinstatus) | Status of the Web IDE Extension Marketplace opt-in for the user. |
 | <a id="mutationuserpreferencesupdateissuessort"></a>`issuesSort` | [`IssueSort`](#issuesort) | Sort order for issue lists. |
+| <a id="mutationuserpreferencesupdatemergerequestssort"></a>`mergeRequestsSort` | [`MergeRequestSort`](#mergerequestsort) | Sort order for issue lists. |
 | <a id="mutationuserpreferencesupdateorganizationgroupsprojectsdisplay"></a>`organizationGroupsProjectsDisplay` **{warning-solid}** | [`OrganizationGroupProjectDisplay`](#organizationgroupprojectdisplay) | **Deprecated:** **Status**: Experiment. Introduced in GitLab 17.2. |
 | <a id="mutationuserpreferencesupdateorganizationgroupsprojectssort"></a>`organizationGroupsProjectsSort` **{warning-solid}** | [`OrganizationGroupProjectSort`](#organizationgroupprojectsort) | **Deprecated:** **Status**: Experiment. Introduced in GitLab 17.2. |
 | <a id="mutationuserpreferencesupdateusewebideextensionmarketplace"></a>`useWebIdeExtensionMarketplace` | [`Boolean`](#boolean) | Whether Web IDE Extension Marketplace is enabled for the user. |
@@ -37542,6 +37543,8 @@ Values for sorting merge requests.
 | <a id="mergerequestsortmerged_at_desc"></a>`MERGED_AT_DESC` | Merge time by descending order. |
 | <a id="mergerequestsortmilestone_due_asc"></a>`MILESTONE_DUE_ASC` | Milestone due date by ascending order. |
 | <a id="mergerequestsortmilestone_due_desc"></a>`MILESTONE_DUE_DESC` | Milestone due date by descending order. |
+| <a id="mergerequestsortpopularity_asc"></a>`POPULARITY_ASC` | Number of upvotes (awarded "thumbs up" emoji) by ascending order. |
+| <a id="mergerequestsortpopularity_desc"></a>`POPULARITY_DESC` | Number of upvotes (awarded "thumbs up" emoji) by descending order. |
 | <a id="mergerequestsortpriority_asc"></a>`PRIORITY_ASC` | Priority by ascending order. |
 | <a id="mergerequestsortpriority_desc"></a>`PRIORITY_DESC` | Priority by descending order. |
 | <a id="mergerequestsorttitle_asc"></a>`TITLE_ASC` | Title by ascending order. |

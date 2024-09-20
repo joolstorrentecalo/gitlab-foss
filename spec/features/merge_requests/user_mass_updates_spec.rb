@@ -80,7 +80,7 @@ RSpec.describe 'Merge requests > User mass updates', :js, feature_category: :cod
   end
 
   context 'milestone' do
-    let(:milestone) { create(:milestone, project: project) }
+    let!(:milestone) { create(:milestone, project: project) }
 
     describe 'set milestone' do
       before do
@@ -88,6 +88,7 @@ RSpec.describe 'Merge requests > User mass updates', :js, feature_category: :cod
       end
 
       it 'updates merge request with milestone' do
+        # live_debug
         change_milestone(milestone.title)
 
         expect(find('.merge-request')).to have_content milestone.title

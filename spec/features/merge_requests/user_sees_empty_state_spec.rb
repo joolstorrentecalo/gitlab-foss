@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Merge request > User sees empty state', feature_category: :code_review_workflow do
+RSpec.describe 'Merge request > User sees empty state', :js, feature_category: :code_review_workflow do
   include ProjectForksHelper
 
   let(:project) { create(:project, :public, :repository) }
@@ -54,7 +54,7 @@ RSpec.describe 'Merge request > User sees empty state', feature_category: :code_
 
       expect(page).to have_selector('.gl-empty-state')
       within('.gl-empty-state') do
-        expect(page).to have_link 'New merge request', href: project_new_merge_request_path(forked_project)
+        expect(page).to have_link 'New merge request', href: /#{project_new_merge_request_path(forked_project)}$/
       end
     end
   end

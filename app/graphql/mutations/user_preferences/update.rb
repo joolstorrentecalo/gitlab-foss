@@ -19,6 +19,9 @@ module Mutations
       argument :issues_sort, Types::IssueSortEnum,
         required: false,
         description: 'Sort order for issue lists.'
+      argument :merge_requests_sort, Types::MergeRequestSortEnum,
+        required: false,
+        description: 'Sort order for issue lists.'
       argument :use_web_ide_extension_marketplace, GraphQL::Types::Boolean,
         required: false,
         description: 'Whether Web IDE Extension Marketplace is enabled for the user.'
