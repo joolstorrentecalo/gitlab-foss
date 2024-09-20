@@ -18358,9 +18358,6 @@ msgstr ""
 msgid "Dependencies|There was a problem fetching vulnerabilities."
 msgstr ""
 
-msgid "Dependencies|There was an error fetching the components for this group. Please try again later."
-msgstr ""
-
 msgid "Dependencies|There was an error fetching the package managers for this group. Please try again later."
 msgstr ""
 
@@ -40529,6 +40526,9 @@ msgid "Pipeline|Merged result pipeline"
 msgstr ""
 
 msgid "Pipeline|Merged result pipeline runs on the contents of the merge request combined with the contents of the target branch."
+msgstr ""
+
+msgid "Pipeline|New pipeline"
 msgstr ""
 
 msgid "Pipeline|Only the first 100 jobs per stage are displayed"

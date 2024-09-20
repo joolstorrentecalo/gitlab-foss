@@ -366,22 +366,6 @@ DETAILS:
 
 Returns [`CloudConnectorStatus`](#cloudconnectorstatus).
 
-### `Query.components`
-
-Find software dependencies by name.
-
-DETAILS:
-**Introduced** in GitLab 17.4.
-**Status**: Experiment.
-
-Returns [`[Component!]`](#component).
-
-#### Arguments
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| <a id="querycomponentsname"></a>`name` | [`String`](#string) | Entire name or part of the name. |
-
 ### `Query.containerRepository`
 
 Find a container repository.
@@ -12392,6 +12376,29 @@ The edge type for [`ComplianceViolation`](#complianceviolation).
 | <a id="complianceviolationedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
 | <a id="complianceviolationedgenode"></a>`node` | [`ComplianceViolation`](#complianceviolation) | The item at the end of the edge. |
 
+#### `ComponentConnection`
+
+The connection type for [`Component`](#component).
+
+##### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="componentconnectionedges"></a>`edges` | [`[ComponentEdge]`](#componentedge) | A list of edges. |
+| <a id="componentconnectionnodes"></a>`nodes` | [`[Component]`](#component) | A list of nodes. |
+| <a id="componentconnectionpageinfo"></a>`pageInfo` | [`PageInfo!`](#pageinfo) | Information to aid in pagination. |
+
+#### `ComponentEdge`
+
+The edge type for [`Component`](#component).
+
+##### Fields
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="componentedgecursor"></a>`cursor` | [`String!`](#string) | A cursor for use in pagination. |
+| <a id="componentedgenode"></a>`node` | [`Component`](#component) | The item at the end of the edge. |
+
 #### `ConnectedAgentConnection`
 
 The connection type for [`ConnectedAgent`](#connectedagent).
@@ -23456,6 +23463,26 @@ four standard [pagination arguments](#pagination-arguments):
 | <a id="groupcomplianceframeworksid"></a>`id` | [`ComplianceManagementFrameworkID`](#compliancemanagementframeworkid) | Global ID of a specific compliance framework to return. |
 | <a id="groupcomplianceframeworksids"></a>`ids` | [`[ComplianceManagementFrameworkID!]`](#compliancemanagementframeworkid) | List of Global IDs of compliance frameworks to return. |
 | <a id="groupcomplianceframeworkssearch"></a>`search` | [`String`](#string) | Search framework with most similar names. |
+
+##### `Group.components`
+
+Find software dependencies by name.
+
+DETAILS:
+**Introduced** in GitLab 17.5.
+**Status**: Experiment.
+
+Returns [`ComponentConnection`](#componentconnection).
+
+This field returns a [connection](#connections). It accepts the
+four standard [pagination arguments](#pagination-arguments):
+`before: String`, `after: String`, `first: Int`, and `last: Int`.
+
+###### Arguments
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| <a id="groupcomponentsname"></a>`name` | [`String`](#string) | Entire name or part of the name. |
 
 ##### `Group.contactStateCounts`
 
