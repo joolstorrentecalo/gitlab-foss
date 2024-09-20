@@ -14,9 +14,11 @@ module Onboarding
     deduplicate :until_executing
     idempotent!
 
-    def perform(_namespace_id)
-      # Deprecating per guide: https://docs.gitlab.com/ee/development/sidekiq/compatibility_across_updates.html#removing-worker-classes
-      # TODO: cleanup in https://gitlab.com/gitlab-org/gitlab/-/issues/472664
+    def perform(namespace_id)
+      namespace = Namespace.find_by_id(namespace_id)
+      return unless namespace
+
+      Onboarding::ProgressService.new(namespace).execute(action: :issue_created)
     end
   end
 end

@@ -31,6 +31,7 @@ namespace :gitlab do
         add_pipeline_shas(project, refs)
         add_merge_request_shas(project, refs)
         add_merge_request_diff_shas(project, refs)
+        add_diff_note_shas(project, refs)
         add_note_shas(project, refs)
         add_sent_notification_shas(project, refs)
         add_todo_shas(project, refs)
@@ -80,31 +81,34 @@ namespace :gitlab do
       end
     end
 
-    def add_note_shas(project, refs)
-      logger.info "Checking note shas..."
-      logger.warn "System notes will not be included."
-      Note.where(project: project).where('NOT system').each_batch(of: 1000) do |b|
-        b.where.not(commit_id: nil).select(:commit_id).each do |note|
-          add_match(refs, note.commit_id)
-        end
-        b.where(type: DiffNote).select(:type, :position, :original_position).each do |note|
-          note.shas.each do |sha|
-            add_match(refs, sha)
-          end
+    def add_diff_note_shas(project, refs)
+      logger.info "Checking diff note shas..."
+      DiffNote.where(project: project).select(:id, :position, :original_position).find_each do |note|
+        note.shas.each do |sha|
+          add_match(refs, sha)
         end
       end
     end
 
-    def add_sent_notification_shas(_project, _refs)
-      logger.warn "Sent notifications will not be included."
+    def add_note_shas(project, refs)
+      logger.info "Checking note shas..."
+      Note.where(project: project).where.not(commit_id: nil).select(:id, :commit_id).find_each do |note|
+        add_match(refs, note.commit_id)
+      end
+    end
+
+    def add_sent_notification_shas(project, refs)
+      logger.info "Checking sent notification shas..."
+      notifications = SentNotification.where(project: project).where.not(commit_id: nil).select(:id, :commit_id)
+      notifications.find_each do |notification|
+        add_match(refs, notification.commit_id)
+      end
     end
 
     def add_todo_shas(project, refs)
       logger.info "Checking todo shas..."
-      Todo.where(project: project).each_batch(of: 1000) do |b|
-        b.where.not(commit_id: nil).select(:commit_id).each do |todo|
-          add_match(refs, todo.commit_id)
-        end
+      Todo.where(project: project).where.not(commit_id: nil).select(:id, :commit_id).find_each do |todo|
+        add_match(refs, todo.commit_id)
       end
     end
 

@@ -195,9 +195,6 @@
 .if-dot-com-gitlab-org-default-branch: &if-dot-com-gitlab-org-default-branch
   if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PROJECT_NAMESPACE == "gitlab-org" && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"'
 
-.if-not-dot-com-gitlab-org-default-branch: &if-not-dot-com-gitlab-org-default-branch
-  if: '$CI_SERVER_HOST != "gitlab.com" || $CI_PROJECT_NAMESPACE != "gitlab-org" || $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"'
-
 .if-dot-com-gitlab-org-merge-request: &if-dot-com-gitlab-org-merge-request
   if: '($CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE != "merge_train") && $CI_SERVER_HOST == "gitlab.com" && $CI_PROJECT_NAMESPACE == "gitlab-org"'
 
@@ -1306,13 +1303,6 @@
     - <<: *if-default-refs
       changes: *docs-patterns
 
-
-.frontend:rules:upload-graphql-schema-dump:
-  rules:
-    - <<: *if-not-dot-com-gitlab-org-default-branch
-      when: never
-    - !reference [.frontend:rules:default-frontend-jobs, rules]
-
 # .frontend:rules:default-frontend-jobs, with a additional rules when MR is not approved
 .frontend:rules:frontend_fixture:
   rules:
@@ -2002,8 +1992,6 @@
   rules:
     - if: '$DISABLE_DB_MULTI_VERSION_UPGRADE =~ /true|yes|1/i'
       when: never
-    - <<: *if-merge-request-targeting-stable-branch
-      when: manual
     - !reference [".rails:rules:ee-and-foss-migration", rules]
 
 .rails:rules:db-backup:

@@ -85,16 +85,13 @@ You can reference the instructions for running the demo app [here](https://opent
    ```
 
 1. Create a project in your local GDK instance. Take note of the project ID.
-1. In the newly created project, create a project access token with **Developer** role and **API** scope. Save the token for use in the next step.
-1. With an editor, edit the configuration in `src/otelcollector/otelcol-config-extras.yml`. Add the following YAML, replacing:
-
-   - `$GDK_HOST` with the host and `$GDK_PORT` with the port number of your GitLab instance.
-   - `$PROJECT_ID` with the project ID and `$TOKEN` with the token created in the previous steps.
+1. In the newly created project, create a project access token with **Developer** role and **API** scope. Save the token for use in the next step. 
+1. With an editor, edit the configuration in `src/otelcollector/otelcol-config-extras.yml`. Add the following YAML, replacing `gdk.test:3443` with the host of your GitLab instance, and replace `$PROJECT_ID` and `$TOKEN` with the respective project ID and token created in the previous steps:
 
    ```yaml
    exporters:
       otlphttp/gitlab:
-         endpoint: http://$GDK_HOST:$GDK_PORT/api/v4/projects/$PROJECT_ID/observability/
+         endpoint: http://gdk.test:3443/api/v4/$PROJECT_ID/observability/ 
          headers:
             "private-token": "$TOKEN"
 
@@ -108,10 +105,7 @@ You can reference the instructions for running the demo app [here](https://opent
             exporters: [otlphttp/gitlab]
    ```
 
-NOTE:
-For GDK and Docker to communicate you may need to set up a [loopback interface](https://gitlab.com/gitlab-org/gitlab-development-kit/-/blob/main/doc/howto/local_network.md#create-loopback-interface).
-
-1. Save the configuration and start the demo app:
+1. Save the config and start the demo app:
 
    ```shell
    docker compose up --force-recreate --remove-orphans --detach
@@ -122,8 +116,8 @@ For GDK and Docker to communicate you may need to set up a [loopback interface](
 
 ### Run GDK with mocked Observability data
 
-Apply the following [patch](https://gitlab.com/gitlab-org/opstrace/opstrace/-/snippets/3747939) to override Observability API calls with local mocks:
+Apply the following [patch](https://gitlab.com/gitlab-org/opstrace/opstrace/-/snippets/3744171) to override Observability API calls with local mocks:
 
 ```shell
-git apply < <(curl --silent "https://gitlab.com/gitlab-org/opstrace/opstrace/-/snippets/3747939/raw/main/mock.patch")
+git apply < <(curl --silent "https://gitlab.com/gitlab-org/opstrace/opstrace/-/snippets/3744171/raw/main/mock.patch")
 ```

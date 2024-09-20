@@ -311,17 +311,4 @@ describe('noteable_discussion component', () => {
       });
     });
   });
-
-  it('supports direct call on showReplyForm', async () => {
-    store = createStore();
-    const mock = jest.fn();
-    wrapper = mount(NoteableDiscussion, {
-      store,
-      propsData: { discussion: discussionMock },
-      stubs: { NoteForm: { methods: { append: mock }, render() {} } },
-    });
-    wrapper.vm.showReplyForm('foo');
-    await nextTick();
-    expect(mock).toHaveBeenCalledWith('foo');
-  });
 });

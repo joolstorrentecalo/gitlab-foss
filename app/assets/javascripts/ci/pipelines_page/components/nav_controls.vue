@@ -50,7 +50,7 @@ export default {
       class="js-run-pipeline"
       data-testid="run-pipeline-button"
     >
-      {{ s__('Pipeline|New pipeline') }}
+      {{ s__('Pipeline|Run pipeline') }}
     </gl-button>
   </div>
 </template>

@@ -49,53 +49,35 @@ RSpec.describe Gitlab::Database::LoadBalancing::Host, feature_category: :databas
   end
 
   describe '#disconnect!' do
-    shared_examples 'disconnects the pool' do
-      it 'disconnects the pool' do
-        connection = double(:connection, in_use?: false)
-        pool = double(:pool, connections: [connection])
+    it 'disconnects the pool' do
+      connection = double(:connection, in_use?: false)
+      pool = double(:pool, connections: [connection])
 
-        allow(host)
-          .to receive(:pool)
-                .and_return(pool)
+      allow(host)
+        .to receive(:pool)
+        .and_return(pool)
 
-        expect(host)
-          .not_to receive(:sleep)
+      expect(host)
+        .not_to receive(:sleep)
 
-        expect(host.pool)
-          .to receive(disconnect_method)
+      expect(host.pool)
+        .to receive(:disconnect!)
 
-        host.disconnect!
-      end
-
-      it 'disconnects the pool when waiting for connections takes too long' do
-        connection = double(:connection, in_use?: true)
-        pool = double(:pool, connections: [connection])
-
-        allow(host)
-          .to receive(:pool)
-                .and_return(pool)
-
-        expect(host.pool)
-          .to receive(disconnect_method)
-
-        host.disconnect!(timeout: 1)
-      end
+      host.disconnect!
     end
 
-    context 'with load_balancing_disconnect_without_verify feature flag disabled' do
-      let(:disconnect_method) { :disconnect! }
+    it 'disconnects the pool when waiting for connections takes too long' do
+      connection = double(:connection, in_use?: true)
+      pool = double(:pool, connections: [connection])
 
-      before do
-        stub_feature_flags(load_balancing_disconnect_without_verify: false)
-      end
+      allow(host)
+        .to receive(:pool)
+        .and_return(pool)
 
-      it_behaves_like 'disconnects the pool'
-    end
+      expect(host.pool)
+        .to receive(:disconnect!)
 
-    context 'with load_balancing_disconnect_without_verify feature flag enabled' do
-      let(:disconnect_method) { :disconnect_without_verify! }
-
-      it_behaves_like 'disconnects the pool'
+      host.disconnect!(timeout: 1)
     end
   end
 
@@ -109,7 +91,7 @@ RSpec.describe Gitlab::Database::LoadBalancing::Host, feature_category: :databas
 
   describe '#offline!' do
     it 'marks the host as offline' do
-      expect(host.pool).to receive(:disconnect_without_verify!)
+      expect(host.pool).to receive(:disconnect!)
 
       expect(Gitlab::Database::LoadBalancing::Logger).to receive(:warn)
         .with(hash_including(event: :host_offline))

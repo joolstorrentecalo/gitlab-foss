@@ -36,7 +36,6 @@ RSpec.describe 'keep-around tasks', :silence_stdout, feature_category: :source_c
 
       allow(logger).to receive(:info).at_least(:once)
       allow(logger).to receive(:debug).at_least(:once)
-      allow(logger).to receive(:warn).at_least(:once)
 
       stub_env('PROJECT_ID', project_id_env)
       stub_env('PROJECT_PATH', project_path_env)
@@ -132,6 +131,16 @@ RSpec.describe 'keep-around tasks', :silence_stdout, feature_category: :source_c
 
     context "for note keep-arounds" do
       let_it_be(:note) { create(:note_on_commit, project: project, commit_id: ::TestEnv::BRANCH_SHA['master']) }
+
+      it_behaves_like 'orphans found',
+        keep_around_count: 3,
+        orphan_count: 2
+    end
+
+    context "for sent notification keep-arounds" do
+      let_it_be(:sent_notification) do
+        create(:sent_notification, project: project, commit_id: ::TestEnv::BRANCH_SHA['master'])
+      end
 
       it_behaves_like 'orphans found',
         keep_around_count: 3,

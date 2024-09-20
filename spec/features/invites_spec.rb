@@ -194,6 +194,7 @@ RSpec.describe 'Group or Project invitations', :with_current_organization, :aggr
               category: 'RegistrationsController',
               action: 'accepted',
               label: 'invite_email',
+              property: group_invite.id.to_s,
               user: group_invite.reload.user
             )
           end
@@ -228,7 +229,7 @@ RSpec.describe 'Group or Project invitations', :with_current_organization, :aggr
 
         expect(page).to have_current_path(new_user_registration_path, ignore_query: true)
 
-        fill_in_sign_up_form(new_user, invite: true)
+        fill_in_sign_up_form(new_user, 'Register', invite: true)
 
         expect(page).to have_current_path(group_path(group))
         expect(page)

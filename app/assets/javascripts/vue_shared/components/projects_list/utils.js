@@ -40,5 +40,8 @@ export const formatGraphQLProjects = (projects) =>
       accessLevel,
       editPath,
       availableActions: availableGraphQLProjectActions(userPermissions),
+      actionLoadingStates: {
+        [ACTION_DELETE]: false,
+      },
     }),
   );

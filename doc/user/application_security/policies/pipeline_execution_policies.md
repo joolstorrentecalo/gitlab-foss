@@ -22,7 +22,7 @@ Use Pipeline execution policies to enforce CI/CD jobs for all applicable project
 
 ## Pipeline execution policies schema
 
-> - The `suffix` field was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/159858) in GitLab 17.4.
+> - The `suffix` field was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/159858) in GitLab 17.4 [with a flag](../../../administration/feature_flags.md) named `pipeline_execution_policy_suffix`. Disabled by default.
 
 The YAML file with pipeline execution policies consists of an array of objects matching pipeline execution
 policy schema nested under the `pipeline_execution_policy` key. You can configure a maximum of five
@@ -65,7 +65,11 @@ Note the following:
 
 ### Job naming best practice
 
-> - Naming conflict handling [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/473189) in GitLab 17.4.
+> - Naming conflict handling [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/473189) in GitLab 17.4 with a flag named `pipeline_execution_policy_suffix`. Disabled by default.
+
+FLAG:
+The availability of job naming conflict handling is controlled by a feature flag.
+For more information, see the history.
 
 There is no visible indicator for jobs coming from a security policy. Adding a unique prefix or suffix to job names makes it easier to identify them and avoid job name collisions.
 
@@ -128,20 +132,12 @@ These stages are always available, regardless of any project's CI/CD configurati
 | `file` | `string` | true | A full file path relative to the root directory (/). The YAML files must have the `.yml` or `.yaml` extension. |
 | `ref` | `string` | false | The ref to retrieve the file from. Defaults to the HEAD of the project when not specified. |
 
-To run pipelines with injected CI/CD configuration, users must have access to the project with the CI/CD configuration.
-
-Starting in GitLab 17.4, users can store the CI/CD configuration in a security policy project repository and grant pipeline execution access to the repository. Projects linked to the security policy project then have access to the repository as a source for security policies.
-You can configure this in the project's general settings for security policy projects.
-
 ### `policy_scope` scope type
-
-> - Scoping by group [introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/468384) in GitLab 17.4.
 
 | Field | Type | Possible values | Description |
 |-------|------|-----------------|-------------|
 | `compliance_frameworks` | `array` |  | List of IDs of the compliance frameworks in scope of enforcement, in an array of objects with key `id`. |
-| `projects` | `object` | `including`, `excluding` | Use `excluding:` or `including:` then list the IDs of the projects you wish to include or exclude, in an array of objects with key `id`. |
-| `groups` | `object` | `including` | Use `including:` then list the IDs of the groups you wish to include, in an array of objects with key `id`. |
+| `projects` | `object` |  `including`, `excluding` | Use `excluding:` or `including:` then list the IDs of the projects you wish to include or exclude, in an array of objects with key `id`. |
 
 For example:
 

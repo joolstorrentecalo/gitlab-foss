@@ -179,14 +179,7 @@ For more information, see [issue 480328](https://gitlab.com/gitlab-org/gitlab/-/
    agent_configs_to_remove.delete_all
    ```
 
-## 17.7.0
-
-- The [Linux Package](https://docs.gitlab.com/omnibus/) upgrades OpenSSL from v1.1.1w to v3.0.0.
-
-- Cloud Native GitLab (CNG) already upgraded to OpenSSL 3 in GitLab 16.7.0. If you are using Cloud Native GitLab, no
-  action is needed. However, note that [Cloud Native Hybrid](../../administration/reference_architectures/index.md#recommended-cloud-providers-and-services) installations
-  use the Linux packages for stateful components, such as Gitaly. For those components, you will need to verify
-  the TLS versions, ciphers, and certificates that are used work with the security level changes discussed below.
+## 17.5.0
 
 With the upgrade to OpenSSL version 3:
 
@@ -204,17 +197,8 @@ a certificate signed with an RSA key can use RSA-2048 but not RSA-1024. GitLab
 will fail to connect to a service that uses a certificate signed with insufficient
 bits with a `certificate key too weak` error message.
 
-SSH keys are not affected by this upgrade. OpenSSL sets
-security requirements for TLS, not SSH. [OpenSSH](https://www.openssh.com/) and
-[`gitlab-sshd`](../../administration/operations/gitlab_sshd.md) have their
-own configuration settings for the allowed cryptographic algorithms.
-
-Check the [GitLab documentation for the upgrade to OpenSSL 3](https://docs.gitlab.com/omnibus/settings/ssl/openssl_3.html) to ensure compatibility with your instance.
-
-## 17.5.0
-
-NOTE:
-The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
+Check the [GitLab documentation on securing your installation](../../security/index.md)
+for more details.
 
 ## 17.4.0
 
@@ -226,11 +210,6 @@ The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
     database migrations as your existing environments. This isn't necessary if you're restoring from backup into the
     new environment as the database restore removes the existing database schema definition and uses the definition
     that's stored as part of the backup.
-- Git 2.46.0 and later is required by Gitaly. For installations from source, you should use the [Git version provided by Gitaly](../../install/installation.md#git).
-- S3 object storage uploads in Workhorse are now handled by default using the [AWS SDK v2 for Go](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/164597). If you experience issues
-  with S3 object storage uploads, you can downgrade to v1 of by disabling the `workhorse_use_aws_sdk_v2` [feature flag](../../administration/feature_flags.md#enable-or-disable-the-feature).
-- GitLab Runner v17.4.0 also [switched from the MinIO S3 client to the AWS SDK v2 for Go](https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/4987) for distributed cache access.
-  The MinIO client can be enabled again by setting the `FF_USE_LEGACY_S3_CACHE_ADAPTER` [GitLab Runner feature flag](https://docs.gitlab.com/runner/configuration/feature-flags.html) to `true`.
 
 ## 17.3.0
 
@@ -244,10 +223,10 @@ The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
 
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-  | 17.3                    |  All                    | 17.3.1   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.3                    |  All                    | None     |
 
 ## 17.2.1
 
@@ -293,9 +272,9 @@ The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
   | 16.11                   |  All                    | None     |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.2                    |  All                    | None     |
 
 - Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
 
@@ -303,10 +282,10 @@ The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
 
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-  | 17.3                    |  All                    | 17.3.1   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.3                    |  All                    | None     |
 
 ## 17.1.0
 
@@ -330,9 +309,9 @@ The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
   | 16.11                   |  All                    | None     |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.2                    |  All                    | None     |
 
 - Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
 
@@ -340,10 +319,10 @@ The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
 
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-  | 17.3                    |  All                    | 17.3.1   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.3                    |  All                    | None     |
 
 ## 17.0.0
 
@@ -356,9 +335,9 @@ The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
   | 16.11                   |  All                    | None     |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.2                    |  All                    | None     |
 
 - Geo Replication Details pages for a secondary site appear to be empty even if Geo replication is working, see [issue 468509](https://gitlab.com/gitlab-org/gitlab/-/issues/468509). There is no known workaround. The bug is fixed in GitLab 17.4.
 
@@ -366,7 +345,7 @@ The OpenSSL 3 upgrade has been postponed to GitLab 17.7.0.
 
   | Affected minor releases | Affected patch releases | Fixed in |
   | ----------------------- | ----------------------- | -------- |
-  | 17.0                    |  All                    | 17.0.7   |
-  | 17.1                    |  All                    | 17.1.7   |
-  | 17.2                    |  All                    | 17.2.5   |
-  | 17.3                    |  All                    | 17.3.1   |
+  | 17.0                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.1                    |  All                    | None     |
+  | 17.3                    |  All                    | None     |

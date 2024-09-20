@@ -1,6 +1,6 @@
 ---
-stage: Mobile
-group: Mobile Devops
+stage: none
+group: unassigned
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
@@ -9,7 +9,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com, Self-managed, GitLab Dedicated
-**Status:** Generally Available
+**Status:** Experiment
 
 Use GitLab Mobile DevOps to quickly build, sign, and release native and cross-platform mobile apps
 for Android and iOS using GitLab CI/CD. Mobile DevOps is an experimental feature developed by

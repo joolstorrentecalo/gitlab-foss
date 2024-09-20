@@ -76,11 +76,11 @@ export default {
       :img-src="commit.author.avatarUrl"
       :img-alt="avatarLinkAltText"
       :img-size="32"
-      class="gl-my-2 gl-mr-3"
+      class="gl-my-2 gl-mr-4"
     />
     <user-avatar-image
       v-else
-      class="gl-my-2 gl-mr-3"
+      class="gl-my-2 gl-mr-4"
       :img-src="commit.authorGravatar || $options.defaultAvatarUrl"
       :size="32"
     />

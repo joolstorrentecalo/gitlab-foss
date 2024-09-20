@@ -18,9 +18,6 @@ RSpec.shared_examples 'desired sharding key backfill job' do
       vulnerability_merge_request_links: {
         vulnerabilities: 'https://gitlab.com/gitlab-org/gitlab/-/issues/475058'
       },
-      vulnerability_issue_links: {
-        vulnerabilities: 'https://gitlab.com/gitlab-org/gitlab/-/issues/475058'
-      },
       vulnerability_finding_evidences: {
         vulnerability_occurrences: 'https://gitlab.com/gitlab-org/gitlab/-/issues/480354'
       },
@@ -32,6 +29,18 @@ RSpec.shared_examples 'desired sharding key backfill job' do
       },
       vulnerability_flags: {
         vulnerability_occurrences: 'https://gitlab.com/gitlab-org/gitlab/-/issues/480354'
+      },
+      dast_site_validations: {
+        dast_site_tokens: 'https://gitlab.com/gitlab-org/gitlab/-/issues/474985'
+      },
+      dast_site_profile_secret_variables: {
+        dast_site_profiles: 'https://gitlab.com/gitlab-org/gitlab/-/issues/480014'
+      },
+      dast_site_profiles_builds: {
+        dast_site_profiles: 'https://gitlab.com/gitlab-org/gitlab/-/issues/480014'
+      },
+      dast_pre_scan_verifications: {
+        dast_profiles: 'https://gitlab.com/gitlab-org/gitlab/-/issues/480014'
       }
     }
   end

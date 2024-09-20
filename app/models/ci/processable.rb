@@ -256,7 +256,7 @@ module Ci
     end
 
     def manual_confirmation_message
-      metadata.manual_confirmation_message if manual_job?
+      options[:manual_confirmation] if manual_job?
     end
 
     private
@@ -268,3 +268,5 @@ module Ci
     end
   end
 end
+
+Ci::Processable.prepend_mod

@@ -5,7 +5,7 @@ import { ROUTES } from '../constants';
 function getRoutes(isGroup) {
   const routes = [
     {
-      path: '/:type(issues|epics|work_items)/:iid',
+      path: '/:iid',
       name: ROUTES.workItem,
       component: () => import('../pages/work_item_root.vue'),
       props: true,
@@ -27,7 +27,7 @@ function getRoutes(isGroup) {
 
   if (isGroup) {
     routes.unshift({
-      path: '/:type(issues|epics|work_items)',
+      path: '/',
       name: ROUTES.index,
       component: WorkItemList,
     });
@@ -35,7 +35,7 @@ function getRoutes(isGroup) {
 
   if (gon.features?.workItemsAlpha) {
     routes.unshift({
-      path: '/:type(issues|epics|work_items)/new',
+      path: '/new',
       name: ROUTES.new,
       component: () => import('../pages/create_work_item.vue'),
     });

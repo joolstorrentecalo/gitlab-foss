@@ -1,8 +1,8 @@
 <script>
 import { produce } from 'immer';
-import { GlAlert, GlButton, GlLink, GlBadge } from '@gitlab/ui';
+import { GlAlert, GlButton, GlLink } from '@gitlab/ui';
 
-import { s__, n__, sprintf } from '~/locale';
+import { s__ } from '~/locale';
 import { helpPagePath } from '~/helpers/help_page_helper';
 import CrudComponent from '~/vue_shared/components/crud_component.vue';
 
@@ -17,7 +17,6 @@ import {
   LINKED_CATEGORIES_MAP,
   LINKED_ITEMS_ANCHOR,
   WORKITEM_RELATIONSHIPS_SHOWLABELS_LOCALSTORAGEKEY,
-  sprintfWorkItem,
 } from '../../constants';
 
 import WorkItemMoreActions from '../shared/work_item_more_actions.vue';
@@ -30,7 +29,6 @@ export default {
     GlAlert,
     GlButton,
     GlLink,
-    GlBadge,
     CrudComponent,
     WorkItemRelationshipList,
     WorkItemAddRelationshipForm,
@@ -131,17 +129,6 @@ export default {
     isEmptyRelatedWorkItems() {
       return !this.error && this.linkedWorkItems.length === 0;
     },
-    countBadgeAriaLabel() {
-      const message = sprintf(
-        n__(
-          'WorkItem|%{workItemType} has 1 linked item',
-          'WorkItem|%{workItemType} has %{itemCount} linked items',
-          this.linkedWorkItemsCount,
-        ),
-        { itemCount: this.linkedWorkItemsCount },
-      );
-      return sprintfWorkItem(message, this.workItemType);
-    },
   },
   mounted() {
     this.showLabels = getShowLabelsFromLocalStorage(
@@ -237,20 +224,12 @@ export default {
     ref="widget"
     :anchor-id="widgetName"
     :title="$options.i18n.title"
+    :count="linkedWorkItemsCount"
+    icon="link"
     :is-loading="isLoading"
     is-collapsible
     data-testid="work-item-relationships"
   >
-    <template #count>
-      <gl-badge
-        :aria-label="countBadgeAriaLabel"
-        data-testid="linked-items-count-bage"
-        variant="muted"
-      >
-        {{ linkedWorkItemsCount }}
-      </gl-badge>
-    </template>
-
     <template #actions>
       <gl-button
         v-if="canAdminWorkItemLink"

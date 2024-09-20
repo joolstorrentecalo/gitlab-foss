@@ -67,7 +67,6 @@ describe('WorkItemAttributesWrapper component', () => {
         fullPath: 'group/project',
         workItem,
         groupPath,
-        isGroup: false,
       },
       provide: {
         hasSubepicsFeature: true,

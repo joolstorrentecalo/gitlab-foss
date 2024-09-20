@@ -16,7 +16,7 @@ use the `#docs-processes` channel.
 ## The GitLab voice
 
 The GitLab brand guidelines define the
-[voice used by the larger organization](https://design.gitlab.com/brand-overview/brand-voice).
+[voice used by the larger organization](https://design.gitlab.com/brand/overview/#tone-of-voice).
 
 Building on that guidance, the voice in the GitLab documentation strives to be concise,
 direct, and precise. The goal is to provide information that's easy to search and scan.
@@ -525,9 +525,10 @@ To stop the command, press <kbd>Control</kbd>+<kbd>C</kbd>.
 
 ### Italics and emphasis
 
-Avoid using [italics for emphasis](../../../user/markdown.md#emphasis) in product documentation.
-Instead, write content that is clear enough that emphasis is not needed. GitLab and
-<https://docs.gitlab.com> use a sans-serif font, but italic text [does not stand out in a page using sans-serif](https://practicaltypography.com/bold-or-italic.html).
+Avoid using [italics for emphasis](../../../user/markdown.md#emphasis).
+Instead, write content that is clear enough that emphasis is not needed.
+in product documentation. GitLab and <https://docs.gitlab.com> use a sans-serif font,
+but italic text [does not stand out in a page using sans-serif](https://practicaltypography.com/bold-or-italic.html).
 
 ## Lists
 

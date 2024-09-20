@@ -65,13 +65,10 @@ const PUSH_DROPDOWN_TESTID = 'protected-branch-allowed-to-push';
 const INIT_MERGE_DATA_TESTID = 'js-allowed-to-merge';
 const INIT_PUSH_DATA_TESTID = 'js-allowed-to-push';
 
-const selectMaintainerAccessLevel = [{ access_level: 40 }];
-
 const { bindInternalEventDocument } = useMockInternalEventsTracking();
 
 describe('ProtectedBranchEdit', () => {
   let mock;
-  let ProtectedBranchEditInstance;
 
   const findForcePushToggle = () =>
     document.querySelector(`div[data-testid="${FORCE_PUSH_TOGGLE_TESTID}"] button`);
@@ -81,12 +78,6 @@ describe('ProtectedBranchEdit', () => {
     document.querySelector(`div[data-testid="${MERGE_DROPDOWN_TESTID}"]`);
   const findPushDropdown = () =>
     document.querySelector(`div[data-testid="${PUSH_DROPDOWN_TESTID}"]`);
-
-  const selectDropdownValue = async (dropdown, selectedValue) => {
-    dropdown.$emit('select', selectedValue);
-    dropdown.$emit('hidden');
-    await waitForPromises();
-  };
 
   const create = ({
     forcePushToggleChecked = false,
@@ -158,14 +149,13 @@ describe('ProtectedBranchEdit', () => {
         abilities: { adminProject: true },
       };
 
-      ProtectedBranchEditInstance = create({});
-
       jest.spyOn(ProtectedBranchEdit.prototype, 'initToggles').mockImplementation();
     });
 
     describe('rendering', () => {
       describe('merge dropdown', () => {
         it('builds the merge dropdown when it has the proper class', () => {
+          create();
           expect(findMergeDropdown()).not.toBe(null);
         });
 
@@ -177,6 +167,7 @@ describe('ProtectedBranchEdit', () => {
 
       describe('push dropdown', () => {
         it('builds the push dropdown when it has the proper class', () => {
+          create();
           expect(findPushDropdown()).not.toBe(null);
         });
 
@@ -194,7 +185,7 @@ describe('ProtectedBranchEdit', () => {
 
       it('sets selected item on load', () => {
         const preselected = [{ id: 38, access_level: 40, type: 'role' }];
-        ProtectedBranchEditInstance = create({
+        const ProtectedBranchEditInstance = create({
           pushPreselected: JSON.stringify(preselected),
         });
         const dropdown = ProtectedBranchEditInstance.push_access_levels_dropdown;
@@ -202,15 +193,22 @@ describe('ProtectedBranchEdit', () => {
       });
 
       it('updates selected item on save for enabled dropdowns', async () => {
+        const selectedValue = [{ access_level: 40 }];
+        const ProtectedBranchEditInstance = create({});
         const dropdown = ProtectedBranchEditInstance.push_access_levels_dropdown;
-        await selectDropdownValue(dropdown, selectMaintainerAccessLevel);
+        dropdown.$emit('select', selectedValue);
+        dropdown.$emit('hidden');
+        await waitForPromises();
         expect(dropdown.preselected[0].id).toBe(response.push_access_levels[0].id);
       });
 
       it('updates deploy key on save for enabled dropdowns', async () => {
         const selectedValue = [{ deploy_key_id: 45 }];
+        const ProtectedBranchEditInstance = create({});
         const dropdown = ProtectedBranchEditInstance.push_access_levels_dropdown;
-        await selectDropdownValue(dropdown, selectedValue);
+        dropdown.$emit('select', selectedValue);
+        dropdown.$emit('hidden');
+        await waitForPromises();
         expect(dropdown.preselected[1]).toEqual({
           deploy_key_id: 45,
           id: 39,
@@ -220,9 +218,12 @@ describe('ProtectedBranchEdit', () => {
       });
 
       it('does not update selected item on save for disabled dropdowns', async () => {
-        ProtectedBranchEditInstance = create({ pushDisabled: '' });
+        const selectedValue = [{ access_level: 40 }];
+        const ProtectedBranchEditInstance = create({ pushDisabled: '' });
         const dropdown = ProtectedBranchEditInstance.push_access_levels_dropdown;
-        await selectDropdownValue(dropdown, selectMaintainerAccessLevel);
+        dropdown.$emit('select', selectedValue);
+        dropdown.$emit('hidden');
+        await waitForPromises();
         expect(dropdown.preselected).toEqual([]);
       });
     });
@@ -233,6 +234,7 @@ describe('ProtectedBranchEdit', () => {
       });
 
       it('does not update permissions on hidden if there are no changes', () => {
+        const ProtectedBranchEditInstance = create();
         const dropdown = ProtectedBranchEditInstance.merge_access_levels_dropdown;
         dropdown.$emit('hidden');
         expect(mock.history.patch).toHaveLength(0);
@@ -241,16 +243,19 @@ describe('ProtectedBranchEdit', () => {
       it('updates permissions on hidden for enabled dropdowns with changes', async () => {
         const preselectedData = { id: 38, access_level: 40 };
         const preselected = [{ ...preselectedData, type: 'role' }];
-        ProtectedBranchEditInstance = create({
+        const selectedValue = [{ access_level: 30 }];
+        const ProtectedBranchEditInstance = create({
           pushPreselected: JSON.stringify(preselected),
         });
         const dropdown = ProtectedBranchEditInstance.merge_access_levels_dropdown;
-        await selectDropdownValue(dropdown, selectMaintainerAccessLevel);
+        dropdown.$emit('select', selectedValue);
+        dropdown.$emit('hidden');
+        await waitForPromises();
         expect(mock.history.patch).toHaveLength(1);
         expect(mock.history.patch[0].data).toEqual(
           JSON.stringify({
             protected_branch: {
-              merge_access_levels_attributes: selectMaintainerAccessLevel,
+              merge_access_levels_attributes: selectedValue,
               push_access_levels_attributes: [preselectedData],
             },
           }),
@@ -259,36 +264,47 @@ describe('ProtectedBranchEdit', () => {
 
       it('does not update permissions on hidden for disabled dropdowns', async () => {
         const preselected = [{ id: 38, access_level: 0, type: 'role' }];
-        ProtectedBranchEditInstance = create({
+        const selectedValue = [{ access_level: 30 }];
+        const ProtectedBranchEditInstance = create({
           mergeDisabled: '',
           mergePreselected: JSON.stringify(preselected),
         });
         const dropdown = ProtectedBranchEditInstance.push_access_levels_dropdown;
-        await selectDropdownValue(dropdown, selectMaintainerAccessLevel);
+        dropdown.$emit('select', selectedValue);
+        dropdown.$emit('hidden');
+        await waitForPromises();
         expect(mock.history.patch).toHaveLength(1);
         expect(mock.history.patch[0].data).toEqual(
           JSON.stringify({
             protected_branch: {
               merge_access_levels_attributes: [],
-              push_access_levels_attributes: selectMaintainerAccessLevel,
+              push_access_levels_attributes: selectedValue,
             },
           }),
         );
       });
 
       it('emits a tracking event for Allowed to merge dropdown', async () => {
+        const selectedValue = [{ access_level: 40 }];
+        const ProtectedBranchEditInstance = create();
         const dropdown = ProtectedBranchEditInstance.merge_access_levels_dropdown;
         const { trackEventSpy } = bindInternalEventDocument(dropdown.element);
-        await selectDropdownValue(dropdown, selectMaintainerAccessLevel);
+        dropdown.$emit('select', selectedValue);
+        dropdown.$emit('hidden');
+        await waitForPromises();
         expect(trackEventSpy).toHaveBeenCalledWith('change_allowed_to_merge', {
           label: 'repository_settings',
         });
       });
 
       it('emits a tracking event for Allowed to push and merge dropdown', async () => {
+        const selectedValue = [{ access_level: 40 }];
+        const ProtectedBranchEditInstance = create();
         const dropdown = ProtectedBranchEditInstance.push_access_levels_dropdown;
         const { trackEventSpy } = bindInternalEventDocument(dropdown.element);
-        await selectDropdownValue(dropdown, selectMaintainerAccessLevel);
+        dropdown.$emit('select', selectedValue);
+        dropdown.$emit('hidden');
+        await waitForPromises();
         expect(trackEventSpy).toHaveBeenCalledWith('change_allowed_to_push_and_merge', {
           label: 'repository_settings',
         });
@@ -302,15 +318,21 @@ describe('ProtectedBranchEdit', () => {
     });
 
     describe('when license supports code owner approvals', () => {
-      it('instantiates the code owner toggle', () => {
+      beforeEach(() => {
         create();
+      });
+
+      it('instantiates the code owner toggle', () => {
         expect(findCodeOwnerToggle()).not.toBe(null);
       });
     });
 
     describe('when license does not support code owner approvals', () => {
-      it('does not instantiate the code owner toggle', () => {
+      beforeEach(() => {
         create({ hasLicense: false });
+      });
+
+      it('does not instantiate the code owner toggle', () => {
         expect(findCodeOwnerToggle()).toBe(null);
       });
     });
@@ -396,9 +418,12 @@ describe('ProtectedBranchEdit', () => {
         });
 
         describe('when clicked and BE error', () => {
-          it('alerts error', async () => {
+          beforeEach(() => {
             mock.onPatch(TEST_URL).replyOnce(HTTP_STATUS_INTERNAL_SERVER_ERROR);
             toggle.click();
+          });
+
+          it('alerts error', async () => {
             await axios.waitForAll();
 
             expect(createAlert).toHaveBeenCalled();

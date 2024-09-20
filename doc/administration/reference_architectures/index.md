@@ -11,23 +11,23 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
-The GitLab reference architectures provide recommended scalable and elastic deployments as starting points for target loads. They are designed and tested by the
-GitLab Test Platform and Support teams.
+The GitLab Reference Architectures have been designed and tested by the
+GitLab Test Platform and Support teams to provide recommended scalable and elastic deployments as starting points for target loads.
 
 ## Available reference architectures
 
-The following reference architectures are available as recommended starting points for your environment.
+The following Reference Architectures are available as recommended starting points for your environment.
 
-The architectures are named in terms of peak load, based on user count or requests per second (RPS). RPS is calculated based on average real data.
+The architectures are named in terms of peak load, based on user count or Requests per Second (RPS). Where the latter has been calculated based on average real data.
 
 NOTE:
-Each architecture is designed to be [scalable and elastic](#scaling-an-environment). They can be adjusted accordingly based on your workload. For example, some known heavy scenarios such as using [large monorepos](#large-monorepos) or notable [additional workloads](#additional-workloads).
+Each architecture has been designed to be [scalable and elastic](#scaling-an-environment). As such, they can be adjusted accordingly if required by your specific workload. This may be likely in known heavy scenarios such as using [large monorepos](#large-monorepos) or notable [additional workloads](#additional-workloads).
 
-For details about what each reference architecture is tested against, see the **Testing Methodology** section of each page.
+For details about what each Reference Architecture has been tested against, see the "Testing Methodology" section of each page.
 
 ### GitLab package (Omnibus)
 
-The following is the list of Linux package based reference architectures:
+Below is the list of Linux package based reference architectures:
 
 - [Up to 20 RPS or 1,000 users](1k_users.md) <span style="color: darkgrey;">_API: 20 RPS, Web: 2 RPS, Git (Pull): 2 RPS, Git (Push): 1 RPS_</span>
 - [Up to 40 RPS or 2,000 users](2k_users.md) <span style="color: darkgrey;">_API: 40 RPS, Web: 4 RPS, Git (Pull): 4 RPS, Git (Push): 1 RPS_</span>
@@ -39,7 +39,7 @@ The following is the list of Linux package based reference architectures:
 
 ### Cloud native hybrid
 
-The following is a list of Cloud Native Hybrid reference architectures, where select recommended components can be run in Kubernetes:
+Below is a list of Cloud Native Hybrid reference architectures, where select recommended components can be run in Kubernetes:
 
 - [Up to 40 RPS or 2,000 users](2k_users.md#cloud-native-hybrid-reference-architecture-with-helm-charts-alternative) <span style="color: darkgrey;">_API: 40 RPS, Web: 4 RPS, Git (Pull): 4 RPS, Git (Push): 1 RPS_</span>
 - [Up to 60 RPS or 3,000 users](3k_users.md#cloud-native-hybrid-reference-architecture-with-helm-charts-alternative) <span style="color: darkgrey;">_API: 60 RPS, Web: 6 RPS, Git (Pull): 6 RPS, Git (Push): 1 RPS_</span>
@@ -50,47 +50,44 @@ The following is a list of Cloud Native Hybrid reference architectures, where se
 
 ## Before you start
 
-First, consider whether a self-managed approach is the right choice for you and your requirements.
+The first choice to consider is whether a Self Managed approach is correct for you and your requirements.
 
-Running any application in production is complex, and the same applies for GitLab. While we aim to make this as smooth as possible, there are still the general complexities based on your design. Typically you have to manage all aspects such as hardware, operating systems, networking, storage, security, GitLab itself, and more. This includes both the initial setup of the environment and the longer term maintenance.
+Running any application in production is complex, and the same applies for GitLab. While we aim to make this as smooth as possible, there are still the general complexities. This depends on the design chosen, but typically you'll need to manage all aspects such as hardware, operating systems, networking, storage, security, GitLab itself, and more. This includes both the initial setup of the environment and the longer term maintenance.
 
-You must have a working knowledge of running and maintaining applications in production if you decide to go down this route. If you aren't in this position, our [Professional Services](https://about.gitlab.com/services/#implementation-services) team offers implementation services. Those who want a more managed solution long term, can explore our other offerings such as [GitLab SaaS](../../subscriptions/gitlab_com/index.md) or [GitLab Dedicated](../../subscriptions/gitlab_dedicated/index.md).
+As such, it's recommended that you have a working knowledge of running and maintaining applications in production when deciding on going down this route. If you aren't in this position, our [Professional Services](https://about.gitlab.com/services/#implementation-services) team offers implementation services, but for those who want a more managed solution long term, it's recommended to instead explore our other offerings such as [GitLab SaaS](../../subscriptions/gitlab_com/index.md) or [GitLab Dedicated](../../subscriptions/gitlab_dedicated/index.md).
 
-If you are considering using the Self Managed approach, we encourage you to read through this page in full, specifically the following sections:
-
-- [Deciding which architecture to use](#deciding-which-architecture-to-start-with)
-- [Large monorepos](#large-monorepos)
-- [Additional workloads](#additional-workloads)
+If Self Managed is the approach you're considering, it's strongly encouraged to read through this page in full, in particular the [Deciding which architecture to use](#deciding-which-architecture-to-start-with), [Large monorepos](#large-monorepos) and [Additional workloads](#additional-workloads) sections.
 
 ## Deciding which architecture to start with
 
-The reference architectures are designed to strike a balance between three important factors: performance, resilience, and cost. They are designed to make it easier to set up GitLab at scale. However, it can still be a challenge to know which one meets your requirements and where to start accordingly.
+The Reference Architectures are designed to strike a balance between three important factors--performance, resilience and costs.
+
+While they are designed to make it easier to set up GitLab at scale, it can still be a challenge to know which one meets your requirements and where to start accordingly.
 
 As a general guide, **the more performant and/or resilient you want your environment to be, the more complex it is**.
 
-This section explains the things to consider when picking a reference architecture.
+This section explains the things to consider when picking a Reference Architecture to start with.
 
-### Expected load (RPS or user count)
+### Expected load (RPS / user count)
 
-First, check the expected peak load you want your environment to serve.
+The first thing to check is what the expected peak load is your environment would be expected to serve.
 
-Each architecture is described in terms of peak RPS or user count load. Each architecture is tested
-against its listed RPS for each endpoint type (API, Web, Git). The typical peak load corresponds to given user count, including both manual and automated interactions.
-These detailed are described in the **Testing Methodology** section on each page.
+Each architecture is described in terms of peak Requests per Second (RPS) or user count load. As detailed under the "Testing Methodology" section on each page, each architecture is tested
+against its listed RPS for each endpoint type (API, Web, Git), which is the typical peak load of the given user count, both manual and automated.
 
-To determine expected load, find out what peak RPS you want your environment to handle across endpoint types through existing metrics. Then, select the corresponding architecture.
+It's strongly recommended finding out what peak RPS your environment will be expected to handle across endpoint types through existing metrics and to select the corresponding architecture as this is the most objective method to determine expected load.
 
-Finding out the RPS can depend greatly on the specific environment setup and monitoring stack. Some potential options include using:
+Finding out the RPS can depend greatly on the specific environment setup and monitoring stack. Some potential options include:
 
-- [GitLab Prometheus](../monitoring/prometheus/index.md#sample-prometheus-queries) with queries like `sum(irate(gitlab_transaction_duration_seconds_count{controller!~'HealthController|MetricsController|'}[1m])) by (controller, action)`.
-- Other monitoring solutions.
-- Load Balancer statistics.
+- Through [GitLab Prometheus](../monitoring/prometheus/index.md#sample-prometheus-queries) with queries such as `sum(irate(gitlab_transaction_duration_seconds_count{controller!~'HealthController|MetricsController|'}[1m])) by (controller, action)`.
+- Through other monitoring solutions.
+- Through Load Balancer statistics.
 
 Contact our [Support team](https://about.gitlab.com/support/) for further guidance if required.
 
 #### If in doubt, pick the closest user count and scale accordingly
 
-If you are not able to find out the expected peak RPS, then select the architecture based on user count to start with. You can then monitor the environment
+If it's not possible for you to find out the expected peak RPS then it's recommended to select based on user count to start and then monitor the environment
 closely to confirm the RPS, whether the architecture is performing and [scale accordingly](#scaling-an-environment) as necessary.
 
 ### Standalone (non-HA)
@@ -436,7 +433,7 @@ If you choose to use a third party external service:
 
 Several database cloud provider services are known not to support the above or have been found to have other issues and aren't recommended:
 
-- [Amazon Aurora](https://aws.amazon.com/rds/aurora/) is incompatible and not supported. See [14.4.0](https://docs.gitlab.com/17.3/ee/update/versions/gitlab_14_changes.html#1440) for more details.
+- [Amazon Aurora](https://aws.amazon.com/rds/aurora/) is incompatible and not supported. See [14.4.0](../../update/versions/gitlab_14_changes.md#1440) for more details.
 - [Azure Database for PostgreSQL Single Server](https://azure.microsoft.com/en-gb/products/postgresql/#overview) is not supported as the service is now deprecated and runs on an unsupported version of PostgreSQL. It was also found to have notable performance and stability issues.
 - [Google AlloyDB](https://cloud.google.com/alloydb) and [Amazon RDS Multi-AZ DB cluster](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html) have not been tested and are not recommended. Both solutions are specifically not expected to work with GitLab Geo.
   - [Amazon RDS Multi-AZ DB instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZSingleStandby.html) is a separate product and is supported.

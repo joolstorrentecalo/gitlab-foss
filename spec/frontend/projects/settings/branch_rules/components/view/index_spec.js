@@ -80,7 +80,6 @@ describe('View branch rules', () => {
 
   const createComponent = async ({
     glFeatures = { editBranchRules: true },
-    canAdminProtectedBranches = true,
     branchRulesQueryHandler = branchRulesMockRequestHandler,
     deleteMutationHandler = deleteBranchRuleSuccessHandler,
     editMutationHandler = editBranchRuleSuccessHandler,
@@ -99,7 +98,6 @@ describe('View branch rules', () => {
         protectedBranchesPath,
         branchRulesPath,
         glFeatures,
-        canAdminProtectedBranches,
       },
       stubs: {
         Protection,
@@ -246,13 +244,6 @@ describe('View branch rules', () => {
   });
 
   describe('Editing branch rule', () => {
-    describe('when canAdminProtectedBranches is false', () => {
-      it('does not render edit rule button', () => {
-        createComponent({ canAdminProtectedBranches: false });
-        expect(findEditRuleNameButton().exists()).toBe(false);
-      });
-    });
-
     beforeEach(async () => {
       await createComponent();
     });
@@ -333,13 +324,6 @@ describe('View branch rules', () => {
   });
 
   describe('Deleting branch rule', () => {
-    describe('when canAdminProtectedBranches is false', () => {
-      it('does not render delete rule button', () => {
-        createComponent({ canAdminProtectedBranches: false });
-        expect(findDeleteRuleButton().exists()).toBe(false);
-      });
-    });
-
     it('renders delete rule button', () => {
       expect(findDeleteRuleButton().text()).toBe('Delete rule');
     });
