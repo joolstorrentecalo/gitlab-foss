@@ -339,9 +339,6 @@ export default {
     onInput(value) {
       this.note = value;
     },
-    append(value) {
-      this.$refs.markdownEditor.append(value);
-    },
   },
 };
 </script>

@@ -472,15 +472,3 @@
   position: relative;
   z-index: -1;
 }
-
-/**
-* Line connecting activity entries, used in issuables, work items etc
-*/
-@mixin vertical-line($top, $left) {
-  content: '';
-  position: absolute;
-  width: 2px;
-  left: $left;
-  top: $top;
-  height: calc(100% - #{$top});
-}

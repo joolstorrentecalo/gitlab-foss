@@ -26,7 +26,6 @@
 - capacity_planning
 - cell
 - ci_scaling
-- ci_variables
 - cloud_connector
 - cloud_native_installation
 - code_quality
@@ -83,7 +82,6 @@
 - internationalization
 - job_artifacts
 - logging
-- markdown
 - merge_trains
 - metrics
 - mlops
@@ -132,7 +130,6 @@
 - switchboard
 - system_access
 - team_planning
-- text_editors
 - tracing
 - user_management
 - user_profile

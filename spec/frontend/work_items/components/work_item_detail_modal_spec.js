@@ -4,7 +4,6 @@ import Vue, { nextTick } from 'vue';
 import VueApollo from 'vue-apollo';
 import waitForPromises from 'helpers/wait_for_promises';
 import createMockApollo from 'helpers/mock_apollo_helper';
-import { stubComponent } from 'helpers/stub_component';
 import WorkItemDetailModal from '~/work_items/components/work_item_detail_modal.vue';
 import deleteWorkItemMutation from '~/work_items/graphql/delete_work_item.mutation.graphql';
 import WorkItemDetail from '~/work_items/components/work_item_detail.vue';
@@ -53,11 +52,7 @@ describe('WorkItemDetailModal component', () => {
       },
       stubs: {
         GlModal,
-        WorkItemDetail: stubComponent(WorkItemDetail, {
-          methods: {
-            openInModal: jest.fn(),
-          },
-        }),
+        WorkItemDetail,
       },
     });
   };
@@ -124,14 +119,10 @@ describe('WorkItemDetailModal component', () => {
   it('updates the work item when WorkItemDetail emits `update-modal` event', async () => {
     createComponent();
 
-    findWorkItemDetail().vm.$emit('update-modal', undefined, {
-      iid: '2',
-      id: 'gid://gitlab/WorkItem/2',
-    });
+    findWorkItemDetail().vm.$emit('update-modal', undefined, { iid: 'updatedIid' });
     await nextTick();
 
-    expect(findWorkItemDetail().props('workItemIid')).toBe('2');
-    expect(findWorkItemDetail().props('workItemId')).toBe('gid://gitlab/WorkItem/2');
+    expect(findWorkItemDetail().props('workItemIid')).toBe('updatedIid');
   });
 
   describe('delete work item', () => {

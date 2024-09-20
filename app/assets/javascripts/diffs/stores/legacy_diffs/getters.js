@@ -7,93 +7,77 @@ import {
   INLINE_DIFF_LINES_KEY,
   DIFF_COMPARE_BASE_VERSION_INDEX,
   DIFF_COMPARE_HEAD_VERSION_INDEX,
-} from '~/diffs/constants';
-import { useNotes } from '~/notes/store/legacy_notes';
-import { useMrNotes } from '~/mr_notes/store/legacy_mr_notes';
+} from '../../constants';
 import { computeSuggestionCommitMessage } from '../../utils/suggestions';
 import { parallelizeDiffLines } from '../../store/utils';
 
-export function isParallelView() {
-  return this.diffViewType === PARALLEL_DIFF_VIEW_TYPE;
-}
+export const isParallelView = (state) => state.diffViewType === PARALLEL_DIFF_VIEW_TYPE;
 
-export function isInlineView() {
-  return this.diffViewType === INLINE_DIFF_VIEW_TYPE;
-}
+export const isInlineView = (state) => state.diffViewType === INLINE_DIFF_VIEW_TYPE;
 
-export function whichCollapsedTypes() {
-  const automatic = this.diffFiles.some((file) => file.viewer?.automaticallyCollapsed);
-  const manual = this.diffFiles.some((file) => file.viewer?.manuallyCollapsed);
+export const whichCollapsedTypes = (state) => {
+  const automatic = state.diffFiles.some((file) => file.viewer?.automaticallyCollapsed);
+  const manual = state.diffFiles.some((file) => file.viewer?.manuallyCollapsed);
 
   return {
     any: automatic || manual,
     automatic,
     manual,
   };
-}
+};
 
-export function commitId() {
-  return this.commit && this.commit.id ? this.commit.id : null;
-}
+export const commitId = (state) => (state.commit && state.commit.id ? state.commit.id : null);
 
 /**
  * Checks if the diff has all discussions expanded
  * @param {Object} diff
  * @returns {Boolean}
  */
-export function diffHasAllExpandedDiscussions() {
-  return (diff) => {
-    const discussions = this.getDiffFileDiscussions(diff);
+export const diffHasAllExpandedDiscussions = (state, getters) => (diff) => {
+  const discussions = getters.getDiffFileDiscussions(diff);
 
-    return (
-      (discussions &&
-        discussions.length &&
-        discussions.every((discussion) => discussion.expanded)) ||
-      false
-    );
-  };
-}
+  return (
+    (discussions && discussions.length && discussions.every((discussion) => discussion.expanded)) ||
+    false
+  );
+};
 
 /**
  * Checks if the diff has all discussions collapsed
  * @param {Object} diff
  * @returns {Boolean}
  */
-export function diffHasAllCollapsedDiscussions() {
-  return (diff) => {
-    const discussions = this.getDiffFileDiscussions(diff);
+export const diffHasAllCollapsedDiscussions = (state, getters) => (diff) => {
+  const discussions = getters.getDiffFileDiscussions(diff);
 
-    return (
-      (discussions &&
-        discussions.length &&
-        discussions.every((discussion) => !discussion.expanded)) ||
-      false
-    );
-  };
-}
+  return (
+    (discussions &&
+      discussions.length &&
+      discussions.every((discussion) => !discussion.expanded)) ||
+    false
+  );
+};
 
 /**
  * Checks if the diff has any open discussions
  * @param {Object} diff
  * @returns {Boolean}
  */
-export function diffHasExpandedDiscussions() {
-  return (diff) => {
-    const diffLineDiscussionsExpanded = diff[INLINE_DIFF_LINES_KEY].filter(
-      (l) => l.discussions.length >= 1,
-    ).some((l) => l.discussionsExpanded);
-    const diffFileDiscussionsExpanded = diff.discussions?.some((d) => d.expandedOnDiff);
+export const diffHasExpandedDiscussions = () => (diff) => {
+  const diffLineDiscussionsExpanded = diff[INLINE_DIFF_LINES_KEY].filter(
+    (l) => l.discussions.length >= 1,
+  ).some((l) => l.discussionsExpanded);
+  const diffFileDiscussionsExpanded = diff.discussions?.some((d) => d.expandedOnDiff);
 
-    return diffFileDiscussionsExpanded || diffLineDiscussionsExpanded;
-  };
-}
+  return diffFileDiscussionsExpanded || diffLineDiscussionsExpanded;
+};
 
 /**
  * Checks if every diff has every discussion open
  * @returns {Boolean}
  */
-export function allDiffDiscussionsExpanded() {
-  return this.diffFiles.every((diff) => {
+export const allDiffDiscussionsExpanded = (state) => {
+  return state.diffFiles.every((diff) => {
     const highlightedLines = diff[INLINE_DIFF_LINES_KEY];
     if (highlightedLines.length) {
       return highlightedLines
@@ -105,51 +89,45 @@ export function allDiffDiscussionsExpanded() {
     }
     return true;
   });
-}
+};
 
 /**
  * Checks if the diff has any discussion
  * @param {Boolean} diff
  * @returns {Boolean}
  */
-export function diffHasDiscussions() {
-  return (diff) => {
-    return (
-      diff.discussions?.length >= 1 ||
-      diff[INLINE_DIFF_LINES_KEY].some((l) => l.discussions.length >= 1)
-    );
-  };
-}
+export const diffHasDiscussions = () => (diff) => {
+  return (
+    diff.discussions?.length >= 1 ||
+    diff[INLINE_DIFF_LINES_KEY].some((l) => l.discussions.length >= 1)
+  );
+};
 
 /**
  * Returns an array with the discussions of the given diff
  * @param {Object} diff
  * @returns {Array}
  */
-export function getDiffFileDiscussions() {
-  return (diff) =>
-    useNotes().discussions.filter(
-      (discussion) =>
-        discussion.diff_discussion && discussion.diff_file.file_hash === diff.file_hash,
-    ) || [];
-}
+// eslint-disable-next-line max-params
+export const getDiffFileDiscussions = (state, getters, rootState, rootGetters) => (diff) =>
+  rootGetters.discussions.filter(
+    (discussion) => discussion.diff_discussion && discussion.diff_file.file_hash === diff.file_hash,
+  ) || [];
 
-export function getDiffFileByHash() {
-  return (fileHash) => this.diffFiles.find((file) => file.file_hash === fileHash);
-}
+export const getDiffFileByHash = (state) => (fileHash) =>
+  state.diffFiles.find((file) => file.file_hash === fileHash);
 
-export function isTreePathLoaded() {
+export function isTreePathLoaded(state) {
   return (path) => {
-    return Boolean(this.treeEntries[path]?.diffLoaded);
+    return Boolean(state.treeEntries[path]?.diffLoaded);
   };
 }
 
-export function flatBlobsList() {
-  return Object.values(this.treeEntries).filter((f) => f.type === 'blob');
-}
+export const flatBlobsList = (state) =>
+  Object.values(state.treeEntries).filter((f) => f.type === 'blob');
 
-export function allBlobs() {
-  return this.flatBlobsList.reduce((acc, file) => {
+export const allBlobs = (state, getters) =>
+  getters.flatBlobsList.reduce((acc, file) => {
     const { parentPath } = file;
 
     if (parentPath && !acc.some((f) => f.path === parentPath)) {
@@ -164,11 +142,9 @@ export function allBlobs() {
 
     return acc;
   }, []);
-}
 
-export function getCommentFormForDiffFile() {
-  return (fileHash) => this.commentForms.find((form) => form.fileHash === fileHash);
-}
+export const getCommentFormForDiffFile = (state) => (fileHash) =>
+  state.commentForms.find((form) => form.fileHash === fileHash);
 
 /**
  * Returns the test coverage hits for a specific line of a given file
@@ -176,131 +152,114 @@ export function getCommentFormForDiffFile() {
  * @param {number} line
  * @returns {number}
  */
-export function fileLineCoverage() {
-  return (file, line) => {
-    if (!this.coverageFiles.files) return {};
-    const fileCoverage = this.coverageFiles.files[file];
-    if (!fileCoverage) return {};
-    const lineCoverage = fileCoverage[String(line)];
+export const fileLineCoverage = (state) => (file, line) => {
+  if (!state.coverageFiles.files) return {};
+  const fileCoverage = state.coverageFiles.files[file];
+  if (!fileCoverage) return {};
+  const lineCoverage = fileCoverage[String(line)];
 
-    if (lineCoverage === 0) {
-      return { text: __('No test coverage'), class: 'no-coverage' };
-    }
-    if (lineCoverage >= 0) {
-      return {
-        text: n__('Test coverage: %d hit', 'Test coverage: %d hits', lineCoverage),
-        class: 'coverage',
-      };
-    }
-    return {};
-  };
-}
+  if (lineCoverage === 0) {
+    return { text: __('No test coverage'), class: 'no-coverage' };
+  }
+  if (lineCoverage >= 0) {
+    return {
+      text: n__('Test coverage: %d hit', 'Test coverage: %d hits', lineCoverage),
+      class: 'coverage',
+    };
+  }
+  return {};
+};
 
 /**
  * Returns index of a currently selected diff in diffFiles
  * @returns {number}
  */
-export function currentDiffIndex() {
-  return Math.max(
+export const currentDiffIndex = (state) =>
+  Math.max(
     0,
-    this.flatBlobsList.findIndex((diff) => diff.fileHash === this.currentDiffFileId),
+    flatBlobsList(state).findIndex((diff) => diff.fileHash === state.currentDiffFileId),
   );
-}
 
-export function diffLines() {
-  return (file) => {
-    return parallelizeDiffLines(
-      file.highlighted_diff_lines || [],
-      this.diffViewType === INLINE_DIFF_VIEW_TYPE,
-    );
-  };
-}
+export const diffLines = (state) => (file) => {
+  return parallelizeDiffLines(
+    file.highlighted_diff_lines || [],
+    state.diffViewType === INLINE_DIFF_VIEW_TYPE,
+  );
+};
 
-export function suggestionCommitMessage() {
-  return (values = {}) => {
-    const { mrMetadata } = useMrNotes().page;
-    return computeSuggestionCommitMessage({
-      message: this.defaultSuggestionCommitMessage,
+export function suggestionCommitMessage(state, _, rootState) {
+  return (values = {}) =>
+    computeSuggestionCommitMessage({
+      message: state.defaultSuggestionCommitMessage,
       values: {
-        branch_name: mrMetadata.branch_name,
-        project_path: mrMetadata.project_path,
-        project_name: mrMetadata.project_name,
-        username: mrMetadata.username,
-        user_full_name: mrMetadata.user_full_name,
+        branch_name: rootState.page.mrMetadata.branch_name,
+        project_path: rootState.page.mrMetadata.project_path,
+        project_name: rootState.page.mrMetadata.project_name,
+        username: rootState.page.mrMetadata.username,
+        user_full_name: rootState.page.mrMetadata.user_full_name,
         ...values,
       },
     });
-  };
 }
 
-export function isVirtualScrollingEnabled() {
-  if (this.disableVirtualScroller || getParameterValues('virtual_scrolling')[0] === 'false') {
+export const isVirtualScrollingEnabled = (state) => {
+  if (state.disableVirtualScroller || getParameterValues('virtual_scrolling')[0] === 'false') {
     return false;
   }
 
-  return !this.viewDiffsFileByFile;
-}
+  return !state.viewDiffsFileByFile;
+};
 
-export function isBatchLoading() {
-  return this.batchLoadingState === 'loading';
-}
-export function isBatchLoadingError() {
-  return this.batchLoadingState === 'error';
-}
+export const isBatchLoading = (state) => state.batchLoadingState === 'loading';
+export const isBatchLoadingError = (state) => state.batchLoadingState === 'error';
 
-export function diffFilesFiltered() {
-  const { linkedFile: file } = this;
-  if (file) {
-    const diffs = this.diffFiles.slice(0);
-    diffs.splice(diffs.indexOf(file), 1);
-    return [file, ...diffs];
+export const diffFiles = (state, getters) => {
+  const { linkedFile } = getters;
+  if (linkedFile) {
+    const diffs = state.diffFiles.slice(0);
+    diffs.splice(diffs.indexOf(linkedFile), 1);
+    return [linkedFile, ...diffs];
   }
-  return this.diffFiles;
-}
+  return state.diffFiles;
+};
 
-export function linkedFile() {
-  if (!this.linkedFileHash) return null;
-  return this.diffFiles.find((file) => file.file_hash === this.linkedFileHash);
-}
+export const linkedFile = (state) => {
+  if (!state.linkedFileHash) return null;
+  return state.diffFiles.find((file) => file.file_hash === state.linkedFileHash);
+};
 
-export function selectedTargetIndex() {
-  return this.startVersion?.version_index || DIFF_COMPARE_BASE_VERSION_INDEX;
-}
+export const selectedTargetIndex = (state) =>
+  state.startVersion?.version_index || DIFF_COMPARE_BASE_VERSION_INDEX;
 
-export function selectedSourceIndex() {
-  if (!this.mergeRequestDiff) return undefined;
-  return this.mergeRequestDiff.version_index;
-}
+export const selectedSourceIndex = (state) => state.mergeRequestDiff.version_index;
 
-export function selectedContextCommitsDiff() {
-  return this.contextCommitsDiff && this.contextCommitsDiff.showing_context_commits_diff;
-}
+export const selectedContextCommitsDiffs = (state) =>
+  state.contextCommitsDiff && state.contextCommitsDiff.showing_context_commits_diff;
 
-export function diffCompareDropdownTargetVersions() {
-  if (!this.mergeRequestDiff) return [];
+export const diffCompareDropdownTargetVersions = (state, getters) => {
   // startVersion only exists if the user has selected a version other
   // than "base" so if startVersion is null then base must be selected
 
   const diffHeadParam = getParameterByName('diff_head');
   const diffHead = parseBoolean(diffHeadParam) || !diffHeadParam;
-  const isBaseSelected = !this.startVersion;
-  const isHeadSelected = !this.startVersion && diffHead;
+  const isBaseSelected = !state.startVersion;
+  const isHeadSelected = !state.startVersion && diffHead;
   let baseVersion = null;
 
-  if (!this.mergeRequestDiff.head_version_path) {
+  if (!state.mergeRequestDiff.head_version_path) {
     baseVersion = {
-      versionName: this.targetBranchName,
+      versionName: state.targetBranchName,
       version_index: DIFF_COMPARE_BASE_VERSION_INDEX,
-      href: this.mergeRequestDiff.base_version_path,
+      href: state.mergeRequestDiff.base_version_path,
       isBase: true,
       selected: isBaseSelected,
     };
   }
 
   const headVersion = {
-    versionName: this.targetBranchName,
+    versionName: state.targetBranchName,
     version_index: DIFF_COMPARE_HEAD_VERSION_INDEX,
-    href: this.mergeRequestDiff.head_version_path,
+    href: state.mergeRequestDiff.head_version_path,
     isHead: true,
     selected: isHeadSelected,
   };
@@ -309,21 +268,21 @@ export function diffCompareDropdownTargetVersions() {
     return {
       href: v.compare_path,
       versionName: sprintf(__(`version %{versionIndex}`), { versionIndex: v.version_index }),
-      selected: v.version_index === this.selectedTargetIndex,
+      selected: v.version_index === getters.selectedTargetIndex,
       ...v,
     };
   };
 
   return [
-    ...this.mergeRequestDiffs.slice(1).map(formatVersion),
+    ...state.mergeRequestDiffs.slice(1).map(formatVersion),
     baseVersion,
-    this.mergeRequestDiff.head_version_path && headVersion,
+    state.mergeRequestDiff.head_version_path && headVersion,
   ].filter((a) => a);
-}
+};
 
-export function diffCompareDropdownSourceVersions() {
+export const diffCompareDropdownSourceVersions = (state, getters) => {
   // Appended properties here are to make the compare_dropdown_layout easier to reason about
-  const versions = this.mergeRequestDiffs.map((v, i) => {
+  const versions = state.mergeRequestDiffs.map((v, i) => {
     const isLatestVersion = i === 0;
 
     return {
@@ -334,19 +293,20 @@ export function diffCompareDropdownSourceVersions() {
       versionName: isLatestVersion
         ? __('latest version')
         : sprintf(__(`version %{versionIndex}`), { versionIndex: v.version_index }),
-      selected: v.version_index === this.selectedSourceIndex && !this.selectedContextCommitsDiffs,
+      selected:
+        v.version_index === getters.selectedSourceIndex && !getters.selectedContextCommitsDiffs,
     };
   });
 
-  const { contextCommitsDiff } = this;
+  const { contextCommitsDiff } = state;
   if (contextCommitsDiff) {
     versions.push({
       href: contextCommitsDiff.diffs_path,
       commitsText: n__(`%d commit`, `%d commits`, contextCommitsDiff.commits_count),
       versionName: __('previously merged commits'),
-      selected: this.selectedContextCommitsDiffs,
-      addDivider: this.mergeRequestDiffs.length > 0,
+      selected: getters.selectedContextCommitsDiffs,
+      addDivider: state.mergeRequestDiffs.length > 0,
     });
   }
   return versions;
-}
+};

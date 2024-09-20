@@ -199,6 +199,12 @@ p.time {
 // Fix issue with notes & lists creating a bunch of bottom borders.
 li.note {
   img { max-width: 100%; }
+
+  .note-title {
+    li {
+      border-bottom: 0 !important;
+    }
+  }
 }
 
 .markdown {
@@ -281,7 +287,6 @@ li.note {
   }
 }
 
-// these classes override styles from the dropzone node package
 .dropzone .dz-preview .dz-progress {
   border-color: $border-color !important;
 
@@ -340,6 +345,16 @@ li.note {
   word-wrap: break-word;
 }
 
+.checkbox-icon-inline-wrapper {
+  .checkbox {
+    display: inline;
+
+    label {
+      display: inline;
+    }
+  }
+}
+
 /** COMMON CLASSES **/
 /**
   🚨 Do not use these classes — they are deprecated and being removed. 🚨
@@ -364,6 +379,7 @@ li.note {
 .h-32-px { height: 32px;}
 
 .mw-6em { max-width: 6em; }
+.mw-70p { max-width: 70%; }
 
 // By default flex items don't shrink below their minimum content size.
 // To change this, these clases set a min-width or min-height
@@ -449,12 +465,12 @@ li.note {
 }
 
 .ref-container {
-  @apply gl-text-link #{!important};
+  color: var(--blue-500, $blue-500) !important;
   background-color: var(--blue-50, $blue-50);
 }
 
 .commit-sha-container {
-  @apply gl-text-subtle #{!important};
+  color: var(--gray-700, $gray-700) !important;
   background-color: var(--gray-50, $gray-50);
 }
 

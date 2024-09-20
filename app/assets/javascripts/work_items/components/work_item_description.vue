@@ -80,11 +80,6 @@ export default {
       required: false,
       default: '',
     },
-    withoutHeadingAnchors: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
   },
   markdownDocsPath: helpPagePath('user/markdown'),
   data() {
@@ -95,7 +90,6 @@ export default {
       isSubmitting: false,
       isSubmittingWithKeydown: false,
       descriptionText: this.description,
-      initialDescriptionText: this.description,
       conflictedDescription: '',
       formFieldProps: {
         'aria-label': __('Description'),
@@ -121,7 +115,7 @@ export default {
         return data?.workspace?.workItem || {};
       },
       result() {
-        if (this.isEditing && !this.createFlow) {
+        if (this.isEditing) {
           this.checkForConflicts();
         }
       },
@@ -227,7 +221,7 @@ export default {
   },
   methods: {
     checkForConflicts() {
-      if (this.initialDescriptionText.trim() !== this.workItemDescription?.description) {
+      if (this.descriptionText !== this.workItemDescription?.description) {
         this.conflictedDescription = this.workItemDescription?.description;
       }
     },
@@ -236,7 +230,6 @@ export default {
       this.disableTruncation = true;
 
       this.descriptionText = getDraft(this.autosaveKey) || this.workItemDescription?.description;
-      this.initialDescriptionText = this.descriptionText;
 
       await this.$nextTick();
 
@@ -261,8 +254,6 @@ export default {
       this.isEditing = false;
       this.$emit('cancelEditing');
       clearDraft(this.autosaveKey);
-      this.conflictedDescription = '';
-      this.initialDescriptionText = this.descriptionText;
     },
     onInput() {
       if (this.isSubmittingWithKeydown) {
@@ -279,9 +270,6 @@ export default {
       }
 
       this.$emit('updateWorkItem');
-
-      this.conflictedDescription = '';
-      this.initialDescriptionText = this.descriptionText;
     },
     setDescriptionText(newText) {
       this.descriptionText = newText;
@@ -332,7 +320,7 @@ export default {
               }}
             </p>
             <details class="gl-mb-5">
-              <summary class="gl-text-link">{{ s__('WorkItem|View current version') }}</summary>
+              <summary class="gl-text-blue-500">{{ s__('WorkItem|View current version') }}</summary>
               <gl-form-textarea
                 class="js-gfm-input js-autosize markdown-area !gl-font-monospace"
                 data-testid="conflicted-description"
@@ -384,7 +372,6 @@ export default {
       :disable-truncation="disableTruncation"
       :is-group="isGroup"
       :is-updating="isSubmitting"
-      :without-heading-anchors="withoutHeadingAnchors"
       @startEditing="startEditing"
       @descriptionUpdated="handleDescriptionTextUpdated"
     />

@@ -39,6 +39,10 @@ RSpec.describe 'Update a work item', feature_category: :team_planning do
     end
   end
 
+  before do
+    stub_feature_flags(enforce_check_group_level_work_items_license: true)
+  end
+
   context 'the user is not allowed to update a work item' do
     let(:current_user) { create(:user) }
 
@@ -134,7 +138,7 @@ RSpec.describe 'Update a work item', feature_category: :team_planning do
       end
     end
 
-    context 'with description widget input', :freeze_time do
+    context 'with description widget input' do
       let(:fields) do
         <<~FIELDS
           workItem {
@@ -144,11 +148,7 @@ RSpec.describe 'Update a work item', feature_category: :team_planning do
             widgets {
               type
               ... on WorkItemWidgetDescription {
-                description
-                lastEditedAt
-                lastEditedBy {
-                  id
-                }
+                      description
               }
             }
           }

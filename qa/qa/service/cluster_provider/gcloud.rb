@@ -27,6 +27,7 @@ module QA
         def setup
           login_if_not_already_logged_in
           create_cluster
+          install_helm
         end
 
         def teardown
@@ -78,16 +79,6 @@ module QA
           CMD
         end
 
-        def wait_for_pod(namespace)
-          shell <<~CMD.tr("\n", ' ')
-            kubectl wait pod \
-              --all \
-              --for=condition=Ready \
-              --namespace=#{namespace} \
-              --timeout=300s
-          CMD
-        end
-
         def install_gitlab_workspaces_proxy
           cmd_str = <<~CMD.tr("\n", ' ')
             helm repo add gitlab-workspaces-proxy \
@@ -95,7 +86,7 @@ module QA
             helm repo update &&
             helm upgrade --install gitlab-workspaces-proxy \
               gitlab-workspaces-proxy/gitlab-workspaces-proxy \
-              --version #{Runtime::Env.workspaces_proxy_version} \
+              --version 0.1.12 \
               --namespace=gitlab-workspaces \
               --create-namespace \
               --set="auth.client_id=#{Runtime::Env.workspaces_oauth_app_id}" \
@@ -134,6 +125,14 @@ module QA
         end
 
         private
+
+        def install_helm
+          shell <<~CMD.tr("\n", ' ')
+            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 &&
+            chmod 700 get_helm.sh &&
+            DESIRED_VERSION=v3.14.0 ./get_helm.sh
+          CMD
+        end
 
         def target_canary?
           Runtime::Env.qa_cookies.to_s.include?("gitlab_canary=true")

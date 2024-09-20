@@ -9,7 +9,6 @@ import {
   STATUS_LABELS,
   PODS_TABLE_FIELDS,
 } from '~/kubernetes_dashboard/constants';
-import { DELETE_POD_ACTION } from '~/environments/constants';
 import { getAge } from '~/kubernetes_dashboard/helpers/k8s_integration_helper';
 import WorkloadStats from '~/kubernetes_dashboard/components/workload_stats.vue';
 import WorkloadTable from '~/kubernetes_dashboard/components/workload_table.vue';
@@ -24,6 +23,7 @@ export default {
     WorkloadTable,
   },
   apollo: {
+    // eslint-disable-next-line @gitlab/vue-no-undef-apollo-properties
     k8sPods: {
       query: k8sPodsQuery,
       variables() {
@@ -46,7 +46,15 @@ export default {
               spec: pod.spec,
               fullStatus: pod.status,
               containers: pod.spec.containers,
-              actions: [DELETE_POD_ACTION],
+              actions: [
+                {
+                  name: 'delete-pod',
+                  text: s__('KubernetesDashboard|Delete pod'),
+                  icon: 'remove',
+                  variant: 'danger',
+                  class: '!gl-text-red-500',
+                },
+              ],
             };
           }) || []
         );
@@ -74,7 +82,6 @@ export default {
     return {
       error: '',
       filterOption: '',
-      k8sPods: [],
     };
   },
   computed: {
@@ -123,7 +130,10 @@ export default {
       return filteredPods.length;
     },
     onItemSelect(item) {
-      this.$emit('select-item', item);
+      this.$emit('show-resource-details', item);
+    },
+    onRemoveSelection() {
+      this.$emit('remove-selection');
     },
     filterPods(status) {
       this.filterOption = status;
@@ -157,6 +167,7 @@ export default {
         :fields="$options.PODS_TABLE_FIELDS"
         class="gl-mt-8"
         @select-item="onItemSelect"
+        @remove-selection="onRemoveSelection"
         @delete-pod="onDeletePod"
       />
     </template>

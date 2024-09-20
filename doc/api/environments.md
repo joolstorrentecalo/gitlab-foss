@@ -46,9 +46,7 @@ Example response:
     "updated_at": "2019-05-27T18:55:13.252Z",
     "enable_advanced_logs_querying": false,
     "logs_api_path": "/project/-/logs/k8s.json?environment_name=review%2Ffix-foo",
-    "auto_stop_at": "2019-06-03T18:55:13.252Z",
-    "kubernetes_namespace": "flux-system",
-    "flux_resource_path": "HelmRelease/flux-system"
+    "auto_stop_at": "2019-06-03T18:55:13.252Z"
   }
 ]
 ```
@@ -180,9 +178,7 @@ Example of response
     },
     "created_at": "2022-04-20T20:42:40.221Z",
     "created_by_user_id": 42
-  },
-  "kubernetes_namespace": "flux-system",
-  "flux_resource_path": "HelmRelease/flux-system"
+  }
 }
 ```
 
@@ -196,15 +192,12 @@ It returns `201` if the environment was successfully created, `400` for wrong pa
 POST /projects/:id/environments
 ```
 
-| Attribute              | Type           | Required | Description                                                                                                         |
-|------------------------|----------------|----------|---------------------------------------------------------------------------------------------------------------------|
-| `id`                   | integer/string | yes      | The ID or [URL-encoded path](rest/index.md#namespaced-path-encoding) of the project.                                |
-| `name`                 | string         | yes      | The name of the environment.                                                                                        |
-| `external_url`         | string         | no       | Place to link to for this environment.                                                                              |
-| `tier`                 | string         | no       | The tier of the new environment. Allowed values are `production`, `staging`, `testing`, `development`, and `other`. |
-| `cluster_agent_id`     | integer        | no       | The cluster agent to associate with this environment.                                                               |
-| `kubernetes_namespace` | string         | no       | The Kubernetes namespace to associate with this environment.                                                        |
-| `flux_resource_path`   | string         | no       | The Flux resource path to associate with this environment.                                                          |
+| Attribute      | Type           | Required | Description                                                                                                         |
+|----------------|----------------|----------|---------------------------------------------------------------------------------------------------------------------|
+| `id`           | integer/string | yes      | The ID or [URL-encoded path](rest/index.md#namespaced-path-encoding) of the project.                                |
+| `name`         | string         | yes      | The name of the environment.                                                                                        |
+| `external_url` | string         | no       | Place to link to for this environment.                                                                              |
+| `tier`         | string         | no       | The tier of the new environment. Allowed values are `production`, `staging`, `testing`, `development`, and `other`. |
 
 ```shell
 curl --data "name=deploy&external_url=https://deploy.gitlab.example.com" \
@@ -222,9 +215,7 @@ Example response:
   "state": "available",
   "tier": "production",
   "created_at": "2019-05-25T18:55:13.252Z",
-  "updated_at": "2019-05-27T18:55:13.252Z",
-  "kubernetes_namespace": "flux-system",
-  "flux_resource_path": "HelmRelease/flux-system"
+  "updated_at": "2019-05-27T18:55:13.252Z"
 }
 ```
 
@@ -240,15 +231,12 @@ It returns `200` if the environment was successfully updated. In case of an erro
 PUT /projects/:id/environments/:environments_id
 ```
 
-| Attribute              | Type            | Required | Description                                                                                                         |
-|------------------------|-----------------|----------|---------------------------------------------------------------------------------------------------------------------|
-| `id`                   | integer/string  | yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding).                                |
-| `environment_id`       | integer         | yes      | The ID of the environment.                                                                                          |
-| `external_url`         | string          | no       | The new `external_url`.                                                                                             |
-| `tier`                 | string          | no       | The tier of the new environment. Allowed values are `production`, `staging`, `testing`, `development`, and `other`. |
-| `cluster_agent_id`     | integer or null | no       | The cluster agent to associate with this environment or `null` to remove it.                                        |
-| `kubernetes_namespace` | string or null  | no       | The Kubernetes namespace to associate with this environment or `null` to remove it.                                 |
-| `flux_resource_path`   | string or null  | no       | The Flux resource path to associate with this environment or `null` to remove it.                                   |
+| Attribute        | Type           | Required | Description                                                                                                         |
+|------------------|----------------|----------|---------------------------------------------------------------------------------------------------------------------|
+| `id`             | integer/string | yes      | The ID or [URL-encoded path of the project](rest/index.md#namespaced-path-encoding).                                |
+| `environment_id` | integer        | yes      | The ID of the environment.                                                                                          |
+| `external_url`   | string         | no       | The new `external_url`.                                                                                             |
+| `tier`           | string         | no       | The tier of the new environment. Allowed values are `production`, `staging`, `testing`, `development`, and `other`. |
 
 ```shell
 curl --request PUT --data "external_url=https://staging.gitlab.example.com" \
@@ -266,9 +254,7 @@ Example response:
   "state": "available",
   "tier": "staging",
   "created_at": "2019-05-25T18:55:13.252Z",
-  "updated_at": "2019-05-27T18:55:13.252Z",
-  "kubernetes_namespace": "flux-system",
-  "flux_resource_path": "HelmRelease/flux-system"
+  "updated_at": "2019-05-27T18:55:13.252Z"
 }
 ```
 
@@ -362,9 +348,7 @@ Example response:
   "external_url": "https://deploy.gitlab.example.com",
   "state": "stopped",
   "created_at": "2019-05-25T18:55:13.252Z",
-  "updated_at": "2019-05-27T18:55:13.252Z",
-  "kubernetes_namespace": "flux-system",
-  "flux_resource_path": "HelmRelease/flux-system"
+  "updated_at": "2019-05-27T18:55:13.252Z"
 }
 ```
 

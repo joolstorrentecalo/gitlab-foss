@@ -216,7 +216,7 @@ graphql-schema-dump:
     - .default-retry
     - .ruby-cache
     - .default-before_script
-    - .frontend:rules:default-frontend-jobs
+    - .frontend:rules:default-frontend-jobs-with-docs-changes
   stage: fixtures
   needs: []
   script:
@@ -227,21 +227,6 @@ graphql-schema-dump:
     paths:
       - tmp/tests/graphql/gitlab_schema.graphql
       - tmp/tests/graphql/gitlab_schema.json
-
-upload-graphql-schema-dump:
-  stage: fixtures
-  variables:
-    SETUP_DB: "false"
-  extends:
-    - .default-retry
-    - .ruby-cache
-    - .default-before_script
-    - .frontend:rules:upload-graphql-schema-dump
-    - .with-graphql-schema-dump-needs
-  script:
-    - source scripts/gitlab_component_helpers.sh
-    - create_and_upload_graphql_schema_package
-
 
 .frontend-test-base:
   extends:

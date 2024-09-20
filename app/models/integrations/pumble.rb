@@ -39,7 +39,8 @@ module Integrations
       )
     end
 
-    def default_channel_placeholder; end
+    def default_channel_placeholder
+    end
 
     def self.supported_events
       %w[push issue confidential_issue merge_request note confidential_note tag_push

@@ -51,8 +51,6 @@ export default {
   inject: {
     projectPath: { default: '' },
     branchRulesPath: { default: '' },
-    showStatusChecks: { default: false },
-    showApprovers: { default: false },
   },
   data() {
     return {
@@ -65,15 +63,13 @@ export default {
         { text: this.$options.i18n.branchName, action: () => this.openCreateRuleModal() },
       ];
 
-      if (this.showApprovers || this.showStatusChecks) {
-        [this.$options.i18n.allBranches, this.$options.i18n.allProtectedBranches].forEach(
-          (branch) => {
-            if (!this.hasPredefinedBranchRule(branch)) {
-              items.push(this.createPredefinedBrachRulesItem(branch));
-            }
-          },
-        );
-      }
+      [this.$options.i18n.allBranches, this.$options.i18n.allProtectedBranches].forEach(
+        (branch) => {
+          if (!this.hasPredefinedBranchRule(branch)) {
+            items.push(this.createPredefinedBrachRulesItem(branch));
+          }
+        },
+      );
 
       return items;
     },
@@ -133,6 +129,9 @@ export default {
       this.$refs[this.$options.modalId].show();
     },
     addBranchRule({ name }) {
+      InternalEvents.trackEvent(PROTECTED_BRANCH, {
+        label: BRANCH_RULE_DETAILS_LABEL,
+      });
       this.$apollo
         .mutate({
           mutation: createBranchRuleMutation,
@@ -142,9 +141,6 @@ export default {
           },
         })
         .then(() => {
-          InternalEvents.trackEvent(PROTECTED_BRANCH, {
-            label: BRANCH_RULE_DETAILS_LABEL,
-          });
           visitUrl(this.getBranchRuleEditPath(name));
         })
         .catch(() => {

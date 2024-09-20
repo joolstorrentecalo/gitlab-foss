@@ -26,7 +26,6 @@ export default function mountBranchRules(el, store) {
     showStatusChecks,
     showApprovers,
     showCodeOwners,
-    showEnterpriseAccessLevels,
     canAdminProtectedBranches,
   } = el.dataset;
 
@@ -45,7 +44,6 @@ export default function mountBranchRules(el, store) {
       showStatusChecks: parseBoolean(showStatusChecks),
       showApprovers: parseBoolean(showApprovers),
       showCodeOwners: parseBoolean(showCodeOwners),
-      showEnterpriseAccessLevels: parseBoolean(showEnterpriseAccessLevels),
       canAdminProtectedBranches: parseBoolean(canAdminProtectedBranches),
     },
     render(h) {

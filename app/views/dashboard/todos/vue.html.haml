@@ -8,7 +8,6 @@
 
 - if current_user.todos.any?
   = render ::Layouts::PageHeadingComponent.new(_('To-Do List'))
-  #js-todos-app-root{ data: { issues_dashboard_path: issues_dashboard_path(assignee_username: current_user.username),
-    merge_requests_dashboard_path: merge_requests_dashboard_path(assignee_username: current_user.username) } }
+  #js-todos-app-root
 - else
   = render 'dashboard/todos/user_has_no_todos'

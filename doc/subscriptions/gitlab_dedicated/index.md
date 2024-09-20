@@ -198,10 +198,6 @@ As an alternative to using hosted runners, you can use your own runners for your
 
 To use self-managed runners, install [GitLab Runner](https://docs.gitlab.com/runner/install/) on infrastructure that you own or manage.
 
-#### OpenID Connect
-
-You can use [GitLab as an OpenID Connect identity provider](../../integration/openid_connect_provider.md). If you use an IP allowlist to restrict access to your instance, you can [enable OpenID Connect requests](../../administration/dedicated/configure_instance.md#enable-openid-connect-for-your-ip-allowlist) while maintaining your IP restrictions.
-
 #### Migration
 
 To help you migrate your data to GitLab Dedicated, choose from the following options:
@@ -211,26 +207,6 @@ To help you migrate your data to GitLab Dedicated, choose from the following opt
    - Using the [direct transfer](../../api/bulk_imports.md) API.
 1. When migrating from third-party services, you can use [the GitLab importers](../../user/project/import/index.md#supported-import-sources).
 1. You can also engage [Professional Services](../../user/project/import/index.md#migrate-by-engaging-professional-services).
-
-### Pre-production environments
-
-GitLab Dedicated supports pre-production environments that match the configuration of production environments. You can use pre-production environments to:
-
-- Test new features before implementing them in production.
-- Test configuration changes before applying them in production.
-
-Pre-production environments must be purchased as an add-on to your GitLab Dedicated subscription, with no additional licenses required.
-
-The following capabilities are available:
-
-- Flexible sizing: Match the size of your production environment or use a smaller reference architecture.
-- Version consistency: Runs the same GitLab version as your production environment.
-
-Limitations:
-
-- Single-region deployment only.
-- No SLA commitment.
-- Cannot run newer versions than production.
 
 ## Features that are not available
 
@@ -266,6 +242,7 @@ The following operational features are not available:
 - Multiple login providers
 - Support for deploying to non-AWS cloud providers, such as GCP or Azure
 - Observability Dashboard using Switchboard
+- Pre-Production Instance
 
 ### Available AWS regions
 

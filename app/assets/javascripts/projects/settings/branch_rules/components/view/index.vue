@@ -42,7 +42,7 @@ import {
   EDIT_RULE_MODAL_ID,
 } from './constants';
 
-const protectedBranchesHelpDocLink = helpPagePath('user/project/repository/branches/protected');
+const protectedBranchesHelpDocLink = helpPagePath('user/project/protected_branches');
 const codeOwnersHelpDocLink = helpPagePath('user/project/codeowners/index');
 const pushRulesHelpDocLink = helpPagePath('user/project/repository/push_rules');
 
@@ -379,7 +379,7 @@ export default {
     <page-heading :heading="$options.i18n.pageTitle">
       <template #actions>
         <gl-button
-          v-if="glFeatures.editBranchRules && branchRule && canAdminProtectedBranches"
+          v-if="glFeatures.editBranchRules && branchRule"
           v-gl-modal="$options.deleteModalId"
           data-testid="delete-rule-button"
           category="secondary"
@@ -396,7 +396,7 @@ export default {
       <crud-component :title="$options.i18n.ruleTarget" data-testid="rule-target-card">
         <template #actions>
           <gl-button
-            v-if="glFeatures.editBranchRules && !isPredefinedRule && canAdminProtectedBranches"
+            v-if="glFeatures.editBranchRules && !isPredefinedRule"
             v-gl-modal="$options.editModalId"
             data-testid="edit-rule-name-button"
             size="small"
@@ -443,6 +443,19 @@ export default {
           @edit="openAllowedToMergeDrawer"
         />
 
+        <rule-drawer
+          :is-open="isAllowedToMergeDrawerOpen || isAllowedToPushAndMergeDrawerOpen"
+          :roles="accessLevelsDrawerData.roles"
+          :users="accessLevelsDrawerData.users"
+          :groups="accessLevelsDrawerData.groups"
+          :deploy-keys="accessLevelsDrawerData.deployKeys"
+          :is-loading="isRuleUpdating"
+          :group-id="groupId"
+          :title="accessLevelsDrawerTitle"
+          @editRule="onEditAccessLevels"
+          @close="closeAccessLevelsDrawer"
+        />
+
         <!-- Allowed to push -->
         <protection
           class="gl-mt-5"
@@ -459,20 +472,6 @@ export default {
           :is-edit-available="canAdminProtectedBranches"
           data-testid="allowed-to-push-content"
           @edit="openAllowedToPushAndMergeDrawer"
-        />
-
-        <rule-drawer
-          :is-open="isAllowedToMergeDrawerOpen || isAllowedToPushAndMergeDrawerOpen"
-          :roles="accessLevelsDrawerData.roles"
-          :users="accessLevelsDrawerData.users"
-          :groups="accessLevelsDrawerData.groups"
-          :deploy-keys="accessLevelsDrawerData.deployKeys"
-          :is-loading="isRuleUpdating"
-          :group-id="groupId"
-          :title="accessLevelsDrawerTitle"
-          :is-push-access-levels="isAllowedToPushAndMergeDrawerOpen"
-          @editRule="onEditAccessLevels"
-          @close="closeAccessLevelsDrawer"
         />
 
         <!-- Force push -->

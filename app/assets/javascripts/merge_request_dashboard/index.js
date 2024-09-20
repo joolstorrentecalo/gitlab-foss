@@ -9,16 +9,6 @@ export function initMergeRequestDashboard(el) {
 
   const { lists, switch_dashboard_path: switchDashboardPath } = JSON.parse(el.dataset.initialData);
 
-  const keyArgs = [
-    'state',
-    'reviewState',
-    'reviewStates',
-    'reviewerWildcardId',
-    'mergedAfter',
-    'assignedReviewStates',
-    'reviewerReviewStates',
-  ];
-
   return new Vue({
     el,
     apolloProvider: new VueApollo({
@@ -28,18 +18,19 @@ export function initMergeRequestDashboard(el) {
           cacheConfig: {
             typePolicies: {
               CurrentUser: {
+                merge: true,
                 fields: {
-                  assignedMergeRequests: {
-                    keyArgs,
-                    merge: true,
-                  },
                   reviewRequestedMergeRequests: {
-                    keyArgs,
-                    merge: true,
+                    keyArgs: ['state', 'reviewState', 'reviewStates', 'mergedAfter'],
                   },
-                  assigneeOrReviewerMergeRequests: {
-                    keyArgs,
-                    merge: true,
+                  assignedMergeRequests: {
+                    keyArgs: [
+                      'state',
+                      'reviewState',
+                      'reviewStates',
+                      'reviewerWildcardId',
+                      'mergedAfter',
+                    ],
                   },
                 },
               },
@@ -48,8 +39,10 @@ export function initMergeRequestDashboard(el) {
                   nodes: concatPagination(),
                 },
               },
-              MergeRequestReviewer: {
-                keyFields: false,
+              UserMergeRequestInteraction: {
+                merge(a) {
+                  return a;
+                },
               },
             },
           },

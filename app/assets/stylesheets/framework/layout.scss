@@ -50,7 +50,7 @@ html {
 }
 
 .alert-wrapper {
-  &:not(:empty) {
+  .gl-alert:first-child {
     @apply gl-mt-3;
   }
 

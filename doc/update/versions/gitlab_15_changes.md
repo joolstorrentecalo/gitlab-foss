@@ -709,7 +709,7 @@ A [license caching issue](https://gitlab.com/gitlab-org/gitlab/-/issues/376706) 
 
 ## 15.3.3
 
-- In GitLab 15.3.3, [SAML Group Links](../../api/saml.md#saml-group-links) API `access_level` attribute type changed to `integer`. See
+- In GitLab 15.3.3, [SAML Group Links](../../api/groups.md#saml-group-links) API `access_level` attribute type changed to `integer`. See
   [the API documentation](../../api/members.md).
 - A [license caching issue](https://gitlab.com/gitlab-org/gitlab/-/issues/376706) prevents some premium features of GitLab from working correctly if you add a new license. Workarounds for this issue:
 

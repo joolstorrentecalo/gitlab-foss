@@ -213,7 +213,6 @@ export default class MergeRequestStore {
     this.draft = mergeRequest.draft;
     this.mergeRequestState = mergeRequest.state;
     this.detailedMergeStatus = mergeRequest.detailedMergeStatus;
-    this.pipelineIid = pipeline?.iid;
 
     this.setState();
   }

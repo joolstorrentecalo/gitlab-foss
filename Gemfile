@@ -30,7 +30,7 @@ gem 'bundler-checksum', '~> 0.1.0', path: 'vendor/gems/bundler-checksum', requir
 # See https://docs.gitlab.com/ee/development/gemfile.html#upgrade-rails for guidelines when upgrading Rails
 
 if next?
-  gem 'rails', '~> 7.1.4', feature_category: :shared
+  gem 'rails', '~> 7.1.3.4', feature_category: :shared
 else
   gem 'rails', '~> 7.0.8.4', feature_category: :shared
 end
@@ -38,10 +38,6 @@ end
 gem 'activerecord-gitlab', path: 'gems/activerecord-gitlab' # rubocop:todo Gemfile/MissingFeatureCategory
 
 gem 'bootsnap', '~> 1.18.3', require: false # rubocop:todo Gemfile/MissingFeatureCategory
-
-# Avoid the precompiled native gems because Omnibus needs to build this to ensure
-# LD_LIBRARY_PATH is correct: https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/7730
-gem 'ffi', '~> 1.17', force_ruby_platform: true, feature_category: :shared
 
 gem 'openssl', '~> 3.0' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'ipaddr', '~> 1.2.5' # rubocop:todo Gemfile/MissingFeatureCategory
@@ -93,7 +89,7 @@ gem 'doorkeeper', '~> 5.6', '>= 5.6.6' # rubocop:todo Gemfile/MissingFeatureCate
 gem 'doorkeeper-openid_connect', '~> 1.8', '>= 1.8.7' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'doorkeeper-device_authorization_grant', '~> 1.0.0', feature_category: :system_access
 gem 'rexml', '~> 3.3.2' # rubocop:todo Gemfile/MissingFeatureCategory
-gem 'ruby-saml', '~> 1.17.0', feature_category: :system_access
+gem 'ruby-saml', '~> 1.15.0' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth', '~> 2.1.0' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth-auth0', '~> 3.1' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth-azure-activedirectory-v2', '~> 2.0' # rubocop:todo Gemfile/MissingFeatureCategory
@@ -102,7 +98,7 @@ gem 'omniauth-github', '2.0.1' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth-gitlab', '~> 4.0.0', path: 'vendor/gems/omniauth-gitlab' # See vendor/gems/omniauth-gitlab/README.md # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth-google-oauth2', '~> 1.1' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth-oauth2-generic', '~> 0.2.2' # rubocop:todo Gemfile/MissingFeatureCategory
-gem 'omniauth-saml', '~> 2.2.1', feature_category: :system_access
+gem 'omniauth-saml', '~> 2.1.0' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth-shibboleth-redux', '~> 2.0', require: 'omniauth-shibboleth' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth_crowd', '~> 2.4.0', path: 'vendor/gems/omniauth_crowd' # See vendor/gems/omniauth_crowd/README.md # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'omniauth_openid_connect', '~> 0.8.0' # rubocop:todo Gemfile/MissingFeatureCategory
@@ -191,7 +187,7 @@ gem 'carrierwave', '~> 1.3' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'mini_magick', '~> 4.12' # rubocop:todo Gemfile/MissingFeatureCategory
 
 # for backups
-gem 'fog-aws', '~> 3.26', feature_category: :shared
+gem 'fog-aws', '~> 3.24', feature_category: :shared
 # Locked until fog-google resolves https://github.com/fog/fog-google/issues/421.
 # Also see config/initializers/fog_core_patch.rb.
 gem 'fog-core', '= 2.1.0' # rubocop:todo Gemfile/MissingFeatureCategory
@@ -260,7 +256,7 @@ gem 'asciidoctor-kroki', '~> 0.10.0', require: false # rubocop:todo Gemfile/Miss
 gem 'rouge', '~> 4.3.0', feature_category: :shared
 gem 'truncato', '~> 0.7.12' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'nokogiri', '~> 1.16' # rubocop:todo Gemfile/MissingFeatureCategory
-gem 'gitlab-glfm-markdown', '~> 0.0.20', feature_category: :team_planning
+gem 'gitlab-glfm-markdown', '~> 0.0.19', feature_category: :team_planning
 
 # Calendar rendering
 gem 'icalendar', '~> 2.10.1', feature_category: :system_access
@@ -404,7 +400,7 @@ gem 'thrift', '>= 0.16.0' # rubocop:todo Gemfile/MissingFeatureCategory
 
 # I18n
 gem 'rails-i18n', '~> 7.0', '>= 7.0.9', feature_category: :internationalization
-gem 'gettext_i18n_rails', '~> 1.13.0', feature_category: :internationalization
+gem 'gettext_i18n_rails', '~> 1.12.0', feature_category: :internationalization
 gem 'gettext', '~> 3.4', '>= 3.4.9',
   require: false,
   group: [:development, :test],
@@ -716,7 +712,7 @@ gem 'cvss-suite', '~> 3.0.1', require: 'cvss_suite' # rubocop:todo Gemfile/Missi
 gem 'arr-pm', '~> 0.0.12' # rubocop:todo Gemfile/MissingFeatureCategory
 
 # Remote Development
-gem 'devfile', '~> 0.0.28.pre.alpha1', feature_category: :workspaces
+gem 'devfile', '~> 0.0.26.pre.alpha1', feature_category: :workspaces
 
 # Apple plist parsing
 gem 'CFPropertyList', '~> 3.0.0' # rubocop:todo Gemfile/MissingFeatureCategory

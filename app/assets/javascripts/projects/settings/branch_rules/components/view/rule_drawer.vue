@@ -40,9 +40,6 @@ export default {
     ItemsSelector: () =>
       import('ee_component/projects/settings/branch_rules/components/view/items_selector.vue'),
   },
-  inject: {
-    showEnterpriseAccessLevels: { default: false },
-  },
   props: {
     isOpen: {
       type: Boolean,
@@ -81,11 +78,6 @@ export default {
       type: Boolean,
       required: true,
     },
-    isPushAccessLevels: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
   },
   data() {
     return {
@@ -102,9 +94,6 @@ export default {
   computed: {
     getDrawerHeaderHeight() {
       return getContentWrapperHeight();
-    },
-    isSelfHosted() {
-      return !window.gon?.dot_com;
     },
   },
   watch: {
@@ -182,59 +171,42 @@ export default {
 
     <template #default>
       <gl-form-group class="gl-border-none">
-        <gl-form-checkbox
-          v-if="isSelfHosted"
-          v-model="isAdminSelected"
-          data-testid="admins-role-checkbox"
-          @change="handleAccessLevelSelected"
-        >
+        <gl-form-checkbox v-model="isAdminSelected" @change="handleAccessLevelSelected">
           {{ $options.accessLevelsConfig[$options.ACCESS_LEVEL_ADMIN_INTEGER].accessLevelLabel }}
         </gl-form-checkbox>
-        <gl-form-checkbox
-          v-model="isMaintainersSelected"
-          data-testid="maintainers-role-checkbox"
-          @change="handleAccessLevelSelected"
-        >
+        <gl-form-checkbox v-model="isMaintainersSelected" @change="handleAccessLevelSelected">
           {{
             $options.accessLevelsConfig[$options.ACCESS_LEVEL_MAINTAINER_INTEGER].accessLevelLabel
           }}
         </gl-form-checkbox>
         <gl-form-checkbox
           v-model="isDevelopersAndMaintainersSelected"
-          data-testid="developers-role-checkbox"
           @change="handleAccessLevelSelected"
         >
           {{
             $options.accessLevelsConfig[$options.ACCESS_LEVEL_DEVELOPER_INTEGER].accessLevelLabel
           }}
         </gl-form-checkbox>
-        <gl-form-checkbox
-          v-model="isNoOneSelected"
-          data-testid="no-one-role-checkbox"
-          @change="handleNoOneSelected"
-        >
+        <gl-form-checkbox v-model="isNoOneSelected" @change="handleNoOneSelected">
           {{
             $options.accessLevelsConfig[$options.ACCESS_LEVEL_NO_ACCESS_INTEGER].accessLevelLabel
           }}
         </gl-form-checkbox>
 
-        <template v-if="showEnterpriseAccessLevels">
-          <items-selector
-            :type="$options.USERS_TYPE"
-            :items="formatItemsIds(users)"
-            :users-options="$options.projectUsersOptions"
-            data-testid="users-selector"
-            @change="handleRuleDataUpdate('updatedUsers', $event)"
-          />
-          <items-selector
-            :type="$options.GROUPS_TYPE"
-            :items="formatItemsIds(groups)"
-            data-testid="groups-selector"
-            @change="handleRuleDataUpdate('updatedGroups', $event)"
-          />
-        </template>
         <items-selector
-          v-if="isPushAccessLevels"
+          :type="$options.USERS_TYPE"
+          :items="formatItemsIds(users)"
+          :users-options="$options.projectUsersOptions"
+          data-testid="users-selector"
+          @change="handleRuleDataUpdate('updatedUsers', $event)"
+        />
+        <items-selector
+          :type="$options.GROUPS_TYPE"
+          :items="formatItemsIds(groups)"
+          data-testid="groups-selector"
+          @change="handleRuleDataUpdate('updatedGroups', $event)"
+        />
+        <items-selector
           :type="$options.DEPLOY_KEYS_TYPE"
           :items="formatItemsIds(deployKeys)"
           data-testid="deploy-keys-selector"

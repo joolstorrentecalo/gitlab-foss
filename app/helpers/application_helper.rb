@@ -389,11 +389,7 @@ module ApplicationHelper
 
     url = user.mastodon.match UserDetail::MASTODON_VALIDATION_REGEX
 
-    if url && Feature.enabled?(:verify_mastodon_user, user)
-      external_redirect_path(url: "https://#{url[2]}/@#{url[1]}", rel: 'me')
-    else
-      external_redirect_path(url: "https://#{url[2]}/@#{url[1]}")
-    end
+    external_redirect_path(url: "https://#{url[2]}/@#{url[1]}")
   end
 
   def collapsed_super_sidebar?

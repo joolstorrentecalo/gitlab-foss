@@ -17,7 +17,15 @@ import WorkItemLinkChildMetadata from 'ee_else_ce/work_items/components/shared/w
 import WorkItemTypeIcon from '../work_item_type_icon.vue';
 import WorkItemStateBadge from '../work_item_state_badge.vue';
 import { findLinkedItemsWidget } from '../../utils';
-import { STATE_OPEN, WIDGET_TYPE_ASSIGNEES, WIDGET_TYPE_LABELS } from '../../constants';
+import {
+  STATE_OPEN,
+  WIDGET_TYPE_PROGRESS,
+  WIDGET_TYPE_HIERARCHY,
+  WIDGET_TYPE_HEALTH_STATUS,
+  WIDGET_TYPE_MILESTONE,
+  WIDGET_TYPE_ASSIGNEES,
+  WIDGET_TYPE_LABELS,
+} from '../../constants';
 import WorkItemRelationshipIcons from './work_item_relationship_icons.vue';
 
 export default {
@@ -76,7 +84,8 @@ export default {
     },
     metadataWidgets() {
       return this.childItem.widgets?.reduce((metadataWidgets, widget) => {
-        if (widget.type) {
+        // Skip Hierarchy widget as it is not part of metadata.
+        if (widget.type && widget.type !== WIDGET_TYPE_HIERARCHY) {
           // eslint-disable-next-line no-param-reassign
           metadataWidgets[widget.type] = widget;
         }
@@ -111,6 +120,18 @@ export default {
     },
     childItemTypeColorClass() {
       return this.isChildItemOpen ? 'gl-text-secondary' : 'gl-text-gray-300';
+    },
+    hasMetadata() {
+      if (this.metadataWidgets) {
+        return (
+          Number.isInteger(this.metadataWidgets[WIDGET_TYPE_PROGRESS]?.progress) ||
+          Boolean(this.metadataWidgets[WIDGET_TYPE_HEALTH_STATUS]?.healthStatus) ||
+          Boolean(this.metadataWidgets[WIDGET_TYPE_MILESTONE]?.milestone) ||
+          this.metadataWidgets[WIDGET_TYPE_ASSIGNEES]?.assignees?.nodes.length > 0 ||
+          this.metadataWidgets[WIDGET_TYPE_LABELS]?.labels?.nodes.length > 0
+        );
+      }
+      return false;
     },
     displayLabels() {
       return this.showLabels && this.labels.length;

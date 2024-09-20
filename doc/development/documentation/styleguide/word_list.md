@@ -93,16 +93,12 @@ Do not use **Add new**.
 
 ## Admin area
 
-Use:
+To describe this area of the UI, use **Admin** area. The UI button is **Admin**.
 
-- **Admin** area, to describe this area of the UI.
-- **Admin** for the UI button.
-
-Instead of:
+Do not use:
 
 - **Admin area** (with both words as bold)
 - **Admin Area** (with **Area** capitalized)
-- **Admin** Area (with Area capitalized)
 - **administrator area**
 - or other variants
 
@@ -965,22 +961,6 @@ You can use **GA** to indicate general availability if you spell it out on first
 ## GitLab
 
 Do not make **GitLab** possessive (GitLab's). This guidance follows [GitLab Trademark Guidelines](https://handbook.gitlab.com/handbook/marketing/brand-and-product-marketing/brand/brand-activation/trademark-guidelines/).
-
-Do not put **GitLab** next to the name of another third-party tool or brand.
-For example, do not use:
-
-- GitLab Chrome extension
-- GitLab Kubernetes agent
-
-Instead, use:
-
-- GitLab extension for Chrome
-- GitLab agent for Kubernetes
-
-Putting the brand names next to each other can imply ownership or partnership, which we don't want to do,
-unless we've gone through a legal review and have been told to promote the partnership.
-
-This guidance follows the [Use of Third-party Trademarks](https://handbook.gitlab.com/handbook/legal/policies/product-third-party-trademarks-guidelines/#dos--donts-for-use-of-third-party-trademarks-in-gitlab).
 
 ## GitLab Dedicated
 

@@ -3,7 +3,6 @@ import { GlAlert } from '@gitlab/ui';
 import { sprintf, s__ } from '~/locale';
 import { createAlert } from '~/alert';
 import CrudComponent from '~/vue_shared/components/crud_component.vue';
-import { findWidget } from '~/issues/list/utils';
 import {
   FORM_TYPES,
   WORK_ITEMS_TREE_TEXT,
@@ -15,7 +14,6 @@ import {
   CHILD_ITEMS_ANCHOR,
   WORKITEM_TREE_SHOWLABELS_LOCALSTORAGEKEY,
   WORK_ITEM_TYPE_VALUE_EPIC,
-  WIDGET_TYPE_HIERARCHY,
 } from '../../constants';
 import {
   findHierarchyWidgets,
@@ -141,15 +139,6 @@ export default {
     },
   },
   computed: {
-    workItemHierarchy() {
-      return findWidget(WIDGET_TYPE_HIERARCHY, this.workItem);
-    },
-    rolledUpCountsByType() {
-      return this.workItemHierarchy?.rolledUpCountsByType || [];
-    },
-    depthLimitReachedByType() {
-      return this.workItemHierarchy?.depthLimitReachedByType || [];
-    },
     childrenIds() {
       return this.children.map((c) => c.id);
     },
@@ -168,20 +157,11 @@ export default {
       const reorderedChildTypes = childTypes.slice().sort((a, b) => a.id.localeCompare(b.id));
       return reorderedChildTypes.map((type) => {
         const enumType = WORK_ITEM_TYPE_VALUE_MAP[type.name];
-        const depthLimitByType =
-          this.depthLimitReachedByType?.find(
-            (item) => item.workItemType?.name.toUpperCase() === enumType,
-          ) || {};
-
         return {
           name: WORK_ITEMS_TYPE_MAP[enumType].name,
-          atDepthLimit: depthLimitByType.depthLimitReached,
           items: this.genericActionItems(type.name).map((item) => ({
             text: item.title,
             action: item.action,
-            extraAttrs: {
-              disabled: depthLimitByType.depthLimitReached,
-            },
           })),
         };
       });
@@ -293,11 +273,9 @@ export default {
   >
     <template #count>
       <work-item-rolled-up-data
-        v-if="!isLoadingChildren"
         :work-item-id="workItemId"
         :work-item-iid="workItemIid"
         :work-item-type="workItemType"
-        :rolled-up-counts-by-type="rolledUpCountsByType"
         :full-path="fullPath"
       />
     </template>

@@ -12,7 +12,6 @@ import {
   GlSprintf,
   GlLoadingIcon,
 } from '@gitlab/ui';
-import { GlBreakpointInstance } from '@gitlab/ui/dist/utils';
 import { uniqueId } from 'lodash';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { fetchPolicies } from '~/lib/graphql';
@@ -191,12 +190,6 @@ export default {
     },
   },
   computed: {
-    isMobile() {
-      return ['sm', 'xs'].includes(GlBreakpointInstance.getBreakpointSize());
-    },
-    removeButtonCategory() {
-      return this.isMobile ? 'secondary' : 'tertiary';
-    },
     isFetchingCiConfigVariables() {
       return this.predefinedVariables === null;
     },
@@ -516,17 +509,18 @@ export default {
               v-if="canRemove(index)"
               class="gl-mb-3 md:gl-ml-3"
               data-testid="remove-ci-variable-row"
-              :category="removeButtonCategory"
+              variant="danger"
+              category="secondary"
               :aria-label="$options.i18n.removeVariableLabel"
               @click="removeVariable(index)"
             >
-              <gl-icon class="!gl-mr-0 !gl-text-gray-500" name="remove" />
-              <span class="gl-ml-2 md:gl-hidden">{{ $options.i18n.removeVariableLabel }}</span>
+              <gl-icon class="!gl-mr-0 gl-hidden md:gl-block" name="clear" />
+              <span class="md:gl-hidden">{{ $options.i18n.removeVariableLabel }}</span>
             </gl-button>
             <gl-button
               v-else
               class="gl-invisible gl-mb-3 gl-hidden md:gl-ml-3 md:gl-block"
-              icon="remove"
+              icon="clear"
               :aria-label="$options.i18n.removeVariableLabel"
             />
           </template>

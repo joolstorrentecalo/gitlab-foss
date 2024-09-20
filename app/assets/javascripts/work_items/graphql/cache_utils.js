@@ -440,7 +440,6 @@ export const setNewWorkItemCache = async (
         widgets.push({
           type: 'HEALTH_STATUS',
           healthStatus: null,
-          rolledUpHealthStatus: [],
           __typename: 'WorkItemWidgetHealthStatus',
         });
       }
@@ -460,8 +459,6 @@ export const setNewWorkItemCache = async (
           hasChildren: false,
           hasParent: false,
           parent: null,
-          depthLimitReachedByType: [],
-          rolledUpCountsByType: [],
           children: {
             nodes: [],
             __typename: 'WorkItemConnection',

@@ -6,9 +6,7 @@ module SidekiqLogArguments
 end
 
 def load_cron_jobs!
-  # Set source to schedule to clear any missing jobs
-  # See https://github.com/sidekiq-cron/sidekiq-cron/pull/431
-  Sidekiq::Cron::Job.load_from_hash! Gitlab::SidekiqConfig.cron_jobs, source: 'schedule'
+  Sidekiq::Cron::Job.load_from_hash! Gitlab::SidekiqConfig.cron_jobs
 
   Gitlab.ee do
     Gitlab::Mirror.configure_cron_job!

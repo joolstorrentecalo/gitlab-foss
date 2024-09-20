@@ -2219,38 +2219,4 @@ describe.skip('DiffsStoreActions', () => {
       testAction(diffActions.unlinkFile, undefined, {}, [], []);
     });
   });
-
-  describe('expandAllFiles', () => {
-    it('triggers mutation', () => {
-      testAction(
-        diffActions.expandAllFiles,
-        undefined,
-        {},
-        [
-          {
-            type: types.SET_COLLAPSED_STATE_FOR_ALL_FILES,
-            payload: { collapsed: false },
-          },
-        ],
-        [],
-      );
-    });
-  });
-
-  describe('collapseAllFiles', () => {
-    it('triggers mutation', () => {
-      testAction(
-        diffActions.collapseAllFiles,
-        undefined,
-        {},
-        [
-          {
-            type: types.SET_COLLAPSED_STATE_FOR_ALL_FILES,
-            payload: { collapsed: true },
-          },
-        ],
-        [],
-      );
-    });
-  });
 });

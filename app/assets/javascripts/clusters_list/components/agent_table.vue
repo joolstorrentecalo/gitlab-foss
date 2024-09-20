@@ -32,9 +32,6 @@ export default {
     connectActionText: s__('ClusterAgents|Connect to %{agentName}'),
     deleteActionText: s__('ClusterAgents|Delete agent'),
     actions: __('Actions'),
-    receptiveAgentTooltip: s__(
-      'ClusterAgents|GitLab will establish the connection to this agent. A URL configuration is required.',
-    ),
   },
   components: {
     GlLink,
@@ -260,20 +257,10 @@ export default {
       data-testid="cluster-agent-list-table"
     >
       <template #cell(name)="{ item }">
-        <div class="gl-flex gl-flex-wrap gl-justify-end gl-gap-3 md:gl-justify-start">
-          <gl-link :href="item.webPath" data-testid="cluster-agent-name-link">{{
-            item.name
-          }}</gl-link
-          ><gl-badge v-if="item.isShared">{{ $options.i18n.sharedBadgeText }}</gl-badge>
-          <gl-badge
-            v-if="item.isReceptive"
-            v-gl-tooltip
-            :title="$options.i18n.receptiveAgentTooltip"
-            :aria-label="$options.i18n.receptiveAgentTooltip"
-            data-testid="cluster-agent-is-receptive"
-            >{{ $options.i18n.receptiveBadgeText }}</gl-badge
-          >
-        </div>
+        <gl-link :href="item.webPath" data-testid="cluster-agent-name-link">{{ item.name }}</gl-link
+        ><gl-badge v-if="item.isShared" class="gl-ml-3">{{
+          $options.i18n.sharedBadgeText
+        }}</gl-badge>
       </template>
 
       <template #cell(status)="{ item }">

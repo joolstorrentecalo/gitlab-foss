@@ -18,7 +18,7 @@ DETAILS:
 > - Subscription changed to require GitLab Duo Pro on February 15, 2024.
 
 NOTE:
-GitLab Duo requires GitLab 17.2 and later for the best user experience and results. Earlier versions may continue to work, however the experience may be degraded.
+GitLab Duo Code Suggestions requires [GitLab 16.8](https://about.gitlab.com/releases/2024/01/18/gitlab-16-8-released/) and later. For the best GitLab Duo experience, upgrade to the [latest version](https://about.gitlab.com/releases/categories/releases/) of GitLab.
 
 Write code more efficiently by using generative AI to suggest code while you're developing.
 
@@ -116,7 +116,7 @@ For use cases and best practices, follow the [GitLab Duo examples documentation]
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/464767) in GitLab 17.2 [with a flag](../../../../administration/feature_flags.md) named `advanced_context_resolver`. Disabled by default.
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/462750) in GitLab 17.2 [with a flag](../../../../administration/feature_flags.md) named `code_suggestions_context`. Disabled by default.
-> - [Introduced](https://gitlab.com/gitlab-org/editor-extensions/gitlab-lsp/-/issues/276) in GitLab Workflow for VS Code 4.20.0.
+> - [Introduced](https://gitlab.com/gitlab-org/editor-extensions/gitlab-lsp/-/issues/276) in GitLab VS Code Extension 4.20.0.
 > - [Introduced](https://gitlab.com/gitlab-org/editor-extensions/gitlab-jetbrains-plugin/-/issues/462) in GitLab Duo for JetBrains 2.7.0.
 > - [Added](https://gitlab.com/gitlab-org/editor-extensions/gitlab.vim/-/merge_requests/152) to the GitLab Neovim plugin on July 16, 2024.
 > - Feature flags `advanced_context_resolver` and `code_suggestions_context` [enabled on self-managed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/161538) in GitLab 17.4.
@@ -180,13 +180,6 @@ This API connection securely transmits a context window from your IDE/editor to 
 - For code generation:
   - Algorithms or large code blocks might take more than 10 seconds to generate.
   - Streaming of code generation responses is supported in VS Code, leading to faster average response times. Other supported IDEs offer slower response times and will return the generated code in a single block.
-
-### Use a self-hosted model
-
-Instead of using the default model to manage Code Suggestions requests, you can
-[deploy a self-hosted model](../../../../administration/self_hosted_models/index.md).
-This maximizes security and privacy by making sure nothing is sent to an
-external model.
 
 ### Disable direct connections to the AI Gateway
 
