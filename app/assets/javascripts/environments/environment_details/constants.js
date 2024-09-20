@@ -40,6 +40,13 @@ export const ENVIRONMENT_DETAILS_TABLE_FIELDS = [
     thClass: '!gl-border-t-0',
   },
   {
+    key: 'diff',
+    label: __('Diff'),
+    columnClass: 'gl-w-3/20',
+    tdClass: '!gl-align-middle',
+    thClass: '!gl-border-t-0',
+  },
+  {
     key: 'created',
     label: __('Created'),
     columnClass: 'gl-w-2/20',

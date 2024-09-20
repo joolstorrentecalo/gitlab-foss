@@ -4,6 +4,7 @@ import Commit from '~/vue_shared/components/commit.vue';
 import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
 import DeploymentStatusLink from '~/environments/components/deployment_status_link.vue';
 import DeploymentJob from './components/deployment_job.vue';
+import DeploymentDiff from './components/deployment_diff.vue';
 import DeploymentTriggerer from './components/deployment_triggerer.vue';
 import DeploymentActions from './components/deployment_actions.vue';
 import { ENVIRONMENT_DETAILS_TABLE_FIELDS } from './constants';
@@ -13,6 +14,7 @@ export default {
     DeploymentTriggerer,
     DeploymentActions,
     DeploymentJob,
+    DeploymentDiff,
     Commit,
     TimeAgoTooltip,
     DeploymentStatusLink,
@@ -46,6 +48,9 @@ export default {
     </template>
     <template #cell(job)="{ item }">
       <deployment-job :job="item.job" />
+    </template>
+    <template #diff(job)="{ item }">
+      <deployment-diff :item="item" :items="items" />
     </template>
     <template #cell(created)="{ item }">
       <time-ago-tooltip
