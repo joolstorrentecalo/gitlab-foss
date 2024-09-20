@@ -3,7 +3,10 @@
 require 'spec_helper'
 
 RSpec.describe Onboarding::ProgressWorker, '#perform', feature_category: :onboarding do
-  specify do
-    expect { described_class.new.perform(non_existing_record_id, '_action_') }.not_to raise_error
+  let_it_be(:namespace) { create(:namespace) }
+  let_it_be(:action) { 'git_write' }
+
+  it_behaves_like 'does not record an onboarding progress action' do
+    subject { described_class.new.perform(namespace.id, action) }
   end
 end

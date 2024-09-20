@@ -142,10 +142,7 @@ module InternalEventsCli
         'Which metrics do you want to add?',
         eligible_metrics,
         **select_opts,
-        **filter_opts,
-        per_page: 20,
-        &disabled_format_callback
-      )
+        per_page: 20)
 
       assign_shared_attrs(:actions, :milestone) do
         {
@@ -158,7 +155,6 @@ module InternalEventsCli
     def prompt_for_event_filters
       return if @metrics.none?(&:filters_expected?)
 
-      selected_unique_identifier = @metrics.first.identifier.value
       event_count = selected_events.length
       previous_inputs = {
         'label' => nil,
@@ -172,8 +168,6 @@ module InternalEventsCli
         next if deselect_nonfilterable_event?(event) # prompts user
 
         filter_values = event.additional_properties&.filter_map do |property, _|
-          next if selected_unique_identifier == property
-
           prompt_for_property_filter(
             event.action,
             property,
@@ -465,7 +459,6 @@ module InternalEventsCli
 
       prompt_for_text("  Finish the description: #{description_start}", default, multiline: true) do |q|
         q.required true
-        q.modify :trim
         q.messages[:required?] = Text::METRIC_DESCRIPTION_HELP
       end
     end

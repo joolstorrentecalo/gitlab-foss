@@ -87,12 +87,10 @@ describe('MrWidgetPipelineContainer', () => {
       expect(wrapper.findComponent(MrWidgetPipeline).props()).toMatchObject({
         pipeline: mockStore.mergePipeline,
         pipelineCoverageDelta: mockStore.pipelineCoverageDelta,
-        pipelineIid: mockStore.pipelineIid,
         ciStatus: mockStore.mergePipeline.details.status.text,
         hasCi: mockStore.hasCI,
         sourceBranch: mockStore.targetBranch,
         sourceBranchLink: mockStore.targetBranch,
-        sourceProjectFullPath: mockStore.sourceProjectFullPath,
       });
     });
 

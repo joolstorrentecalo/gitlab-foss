@@ -23,7 +23,7 @@ export default {
           :href="externalLink.url"
           target="_blank"
           rel="noopener noreferrer nofollow"
-          class="!gl-text-link"
+          class="!gl-text-blue-600"
         >
           <gl-icon name="external-link" class="flex-shrink-0" />
           {{ externalLink.label }}

@@ -212,7 +212,6 @@ export default {
       },
       result({ data }) {
         this.workItemNamespace = data.workspace?.workItem?.namespace;
-        this.isLoadingMore = false;
         if (this.hasNextPage) {
           this.fetchMoreNotes();
         } else if (this.targetNoteHash) {
@@ -313,6 +312,7 @@ export default {
           },
         })
         .catch((error) => this.$emit('error', error.message));
+      this.isLoadingMore = false;
     },
     showDeleteNoteModal(note, discussion) {
       const isLastNote = discussion.notes.nodes.length === 1;

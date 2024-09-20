@@ -33,15 +33,9 @@ export const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
  * for UTC-8 timezone.
  *
  * @param {string|number|Date} date
- * @returns {Date|null|undefined}
+ * @returns {Date}
  */
 export const newDate = (date) => {
-  if (date === null) {
-    return null;
-  }
-  if (date === undefined) {
-    return undefined;
-  }
   if (typeof date === 'string' && DATE_ONLY_REGEX.test(date)) {
     const parts = date.split('-');
     const year = parseInt(parts[0], 10);
@@ -260,6 +254,19 @@ export const newDateAsLocaleTime = (date) => {
   }
   const suffix = 'T00:00:00';
   return new Date(`${date}${suffix}`);
+};
+
+/**
+ * Takes a Date object (where timezone could be GMT or EST) and
+ * returns a Date object with the same date but in UTC.
+ *
+ * @param {Date} date A Date object
+ * @returns {Date|null} A Date object with the same date but in UTC
+ */
+export const getDateWithUTC = (date) => {
+  return date instanceof Date
+    ? new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+    : null;
 };
 
 export const beginOfDayTime = 'T00:00:00Z';

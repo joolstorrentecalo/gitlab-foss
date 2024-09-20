@@ -35,13 +35,6 @@ ci_group_variables:
   - table: namespaces
     column: group_id
     on_delete: async_delete
-ci_job_token_authorizations:
-  - table: projects
-    column: origin_project_id
-    on_delete: async_delete
-  - table: projects
-    column: accessed_project_id
-    on_delete: async_delete
 ci_job_token_group_scope_links:
   - table: users
     column: added_by_id
@@ -421,12 +414,6 @@ packages_build_infos:
   - table: ci_pipelines
     column: pipeline_id
     on_delete: async_nullify
-packages_npm_metadata_caches:
-  - table: projects
-    column: project_id
-    on_delete: update_column_to
-    target_column: status
-    target_value: 2
 packages_package_file_build_infos:
   - table: ci_pipelines
     column: pipeline_id
@@ -649,13 +636,6 @@ vulnerability_scanners:
   - table: projects
     column: project_id
     on_delete: async_delete
-vulnerability_state_transitions:
-  - table: projects
-    column: project_id
-    on_delete: async_delete
-  - table: users
-    column: author_id
-    on_delete: async_nullify
 vulnerability_statistics:
   - table: ci_pipelines
     column: latest_pipeline_id

@@ -80,11 +80,6 @@ export default {
       required: false,
       default: '',
     },
-    withoutHeadingAnchors: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
   },
   markdownDocsPath: helpPagePath('user/markdown'),
   data() {
@@ -332,7 +327,7 @@ export default {
               }}
             </p>
             <details class="gl-mb-5">
-              <summary class="gl-text-link">{{ s__('WorkItem|View current version') }}</summary>
+              <summary class="gl-text-blue-500">{{ s__('WorkItem|View current version') }}</summary>
               <gl-form-textarea
                 class="js-gfm-input js-autosize markdown-area !gl-font-monospace"
                 data-testid="conflicted-description"
@@ -384,7 +379,6 @@ export default {
       :disable-truncation="disableTruncation"
       :is-group="isGroup"
       :is-updating="isSubmitting"
-      :without-heading-anchors="withoutHeadingAnchors"
       @startEditing="startEditing"
       @descriptionUpdated="handleDescriptionTextUpdated"
     />
