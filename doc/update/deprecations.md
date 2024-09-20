@@ -392,27 +392,6 @@ See also how to [prevent your runner registration workflow from breaking](https:
 
 <div class="deprecation breaking-change" data-milestone="18.0">
 
-### Limited `scan` actions in a scan execution policy
-
-<div class="deprecation-notes">
-
-- Announced in GitLab <span class="milestone">17.5</span>
-- Removal in GitLab <span class="milestone">18.0</span> ([breaking change](https://docs.gitlab.com/ee/update/terminology.html#breaking-change))
-- To discuss this change or learn more, see the [deprecation issue](https://gitlab.com/gitlab-org/gitlab/-/issues/472213).
-
-</div>
-
-Starting in GitLab 18.0, [scan execution policies](https://docs.gitlab.com/ee/user/application_security/policies/scan_execution_policies.html)
-are limited to 10 `scan` actions per policy. You can't create new policies that exceed the limit, and you
-can't update existing policies if they exceed the limit. For any existing policy that exceeds the limit,
-only the policy's first 10 `scan` actions are run.
-
-You can configure a custom limit on self-managed instances with the `scan_execution_policies_action_limit` application setting.
-
-</div>
-
-<div class="deprecation breaking-change" data-milestone="18.0">
-
 ### List container registry repository tags API endpoint pagination
 
 <div class="deprecation-notes">
@@ -1019,34 +998,6 @@ This is one small step towards moving away from CI/CD templates in preference of
 </div>
 </div>
 
-<div class="milestone-wrapper" data-milestone="17.7">
-
-## GitLab 17.7
-
-<div class="deprecation " data-milestone="17.7">
-
-### TLS 1.0 and 1.1 no longer supported
-
-<div class="deprecation-notes">
-
-- Announced in GitLab <span class="milestone">17.4</span>
-- Removal in GitLab <span class="milestone">17.7</span>
-- To discuss this change or learn more, see the [deprecation issue](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/164512).
-
-</div>
-
-Long term support (LTS) for [OpenSSL version 1.1.1 ended in September 2023](https://endoflife.date/openssl). Therefore, OpenSSL 3 will be the default in GitLab 17.7.
-
-With the upgrade to OpenSSL 3:
-
-- GitLab requires TLS 1.2 or higher for all outgoing and incoming TLS connections.
-- TLS/SSL certificates must have at least 112 bits of security. RSA, DSA, and DH keys shorter than 2048 bits, and ECC keys shorter than 224 bits are prohibited.
-
-See the [GitLab 17.5 changes](https://docs.gitlab.com/ee/update/versions/gitlab_17_changes.html#1750) for more details.
-
-</div>
-</div>
-
 <div class="milestone-wrapper" data-milestone="17.6">
 
 ## GitLab 17.6
@@ -1084,6 +1035,34 @@ Long term service and support (LTSS) for [Debian 10 ended in June 2024](https://
 
 Therefore, we will longer support the Debian 10 distribution for Linux package installs. Users should upgrade to
 Debian 11 or Debian 12 for continued support.
+
+</div>
+</div>
+
+<div class="milestone-wrapper" data-milestone="17.5">
+
+## GitLab 17.5
+
+<div class="deprecation " data-milestone="17.5">
+
+### TLS 1.0 and 1.1 are deprecated
+
+<div class="deprecation-notes">
+
+- Announced in GitLab <span class="milestone">17.4</span>
+- Removal in GitLab <span class="milestone">17.5</span>
+- To discuss this change or learn more, see the [deprecation issue](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/164512).
+
+</div>
+
+Long term support (LTS) for [OpenSSL version 1.1.1 ended in September 2023](https://endoflife.date/openssl). Therefore, OpenSSL 3 will be the default in GitLab 17.5.
+
+With the upgrade to OpenSSL 3:
+
+- GitLab requires TLS 1.2 or higher for all outgoing and incoming TLS connections.
+- TLS/SSL certificates must have at least 112 bits of security. RSA, DSA, and DH keys shorter than 2048 bits, and ECC keys shorter than 224 bits are prohibited.
+
+See the [GitLab 17.5 changes](https://docs.gitlab.com/ee/update/versions/gitlab_17_changes.html#1750) for more details.
 
 </div>
 </div>

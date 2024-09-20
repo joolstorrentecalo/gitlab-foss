@@ -22,23 +22,23 @@ export default {
       return this.timeFormatted(this.todo.createdAt);
     },
     formattedDueDate() {
-      if (!this.todo?.targetEntity?.dueDate) {
+      if (!this.todo?.target.dueDate) {
         return null;
       }
 
-      if (isToday(newDateAsLocaleTime(this.todo.targetEntity.dueDate))) {
+      if (isToday(newDateAsLocaleTime(this.todo.target.dueDate))) {
         return s__('Todos|Due today');
       }
 
       return sprintf(s__('Todos|Due %{when}'), {
-        when: formatDate(this.todo.targetEntity.dueDate, 'mmm dd, yyyy'),
+        when: formatDate(this.todo.target.dueDate, 'mmm dd, yyyy'),
       });
     },
     showDueDateAsError() {
-      return this.formattedDueDate && isInPast(newDateAsLocaleTime(this.todo.targetEntity.dueDate));
+      return this.todo.target.dueDate && isInPast(newDateAsLocaleTime(this.todo.target.dueDate));
     },
     showDueDateAsWarning() {
-      return this.formattedDueDate && isToday(newDateAsLocaleTime(this.todo.targetEntity.dueDate));
+      return this.todo.target.dueDate && isToday(newDateAsLocaleTime(this.todo.target.dueDate));
     },
   },
 };
@@ -54,7 +54,7 @@ export default {
       }"
       >{{ formattedDueDate }}</span
     >
-    <template v-if="formattedDueDate"> &middot; </template>
+    <template v-if="todo.target.dueDate"> &middot; </template>
     {{ formattedCreatedAt }}
   </span>
 </template>

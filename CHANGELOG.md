@@ -5508,10 +5508,6 @@ No changes.
 - [Finalize the backfill migration for onboarding status step url](gitlab-org/gitlab@f986c1b1cf00968ff106136893bfe68d47895c69) ([merge request](gitlab-org/gitlab!147278))
 - [Remove ClusterRepositoryCache migration helper class](gitlab-org/gitlab@f71a7a94ce8d70d9d378ebc225b802b58f0ae006) ([merge request](gitlab-org/gitlab!147244))
 
-## 16.10.10 (2024-09-19)
-
-No changes.
-
 ## 16.10.9 (2024-07-23)
 
 ### Added (1 change)
@@ -6307,10 +6303,6 @@ No changes.
 - [Add sharding keys for code_review_workflow](gitlab-org/gitlab@f0ad99cc932bd74a5d02de99ee62651b32a34af2) ([merge request](gitlab-org/gitlab!143310))
 - [Add sharding keys for system_access](gitlab-org/gitlab@62c2fd4788e62e46f1469e2f18d178840e8e3df2) ([merge request](gitlab-org/gitlab!142501))
 - [Add sharding keys for purchase](gitlab-org/gitlab@9c3843da74714c72483c17489d5d3d68ceffd2c8) ([merge request](gitlab-org/gitlab!142505))
-
-## 16.9.11 (2024-09-19)
-
-No changes.
 
 ## 16.9.10 (2024-07-23)
 
@@ -7162,10 +7154,6 @@ No changes.
 
 - [Add remediation badge to vulnerability report](gitlab-org/gitlab@e6236197509eae1bb27edf8fb2c63ccf769c2642) ([merge request](gitlab-org/gitlab!142455))
 
-## 16.8.10 (2024-09-20)
-
-No changes.
-
 ## 16.8.9 (2024-07-23)
 
 ### Added (1 change)
@@ -7762,10 +7750,6 @@ No changes.
 - [Finalize merge_request_diffs.project_id backfill](gitlab-org/gitlab@26aded629ba0a944e9c1ef138d9d5563de0d86ac) ([merge request](gitlab-org/gitlab!139726))
 - [Bump the finalize_after date of backfill migration](gitlab-org/gitlab@770ab7faa2048bfeb8bddd506e6f37fe18bb4d06) ([merge request](gitlab-org/gitlab!140109))
 - [Remove code_suggestions_completion_api feature](gitlab-org/gitlab@988e2f57f9635ed9cc3896b15965b608fce54756) ([merge request](gitlab-org/gitlab!138174)) **GitLab Enterprise Edition**
-
-## 16.7.10 (2024-09-20)
-
-No changes.
 
 ## 16.7.9 (2024-07-23)
 
@@ -8772,10 +8756,6 @@ No changes.
 
 - [Move export buttons next to each other](gitlab-org/gitlab@106bea7a6246cd153cf66d133936a09d46369ae3) ([merge request](gitlab-org/gitlab!137461))
 
-## 16.6.10 (2024-09-20)
-
-No changes.
-
 ## 16.6.9 (2024-07-23)
 
 ### Added (1 change)
@@ -9424,10 +9404,6 @@ No changes.
 - [Raise rate limit error with type](gitlab-org/gitlab@68e071cdea7a7874f4975d1555c384ef920c0dee) ([merge request](gitlab-org/gitlab!134511))
 - [Remove pubsub migration helper for actioncable](gitlab-org/gitlab@763ca1305db6f1c9cf6700b8497494a81926d742) ([merge request](gitlab-org/gitlab!133066))
 - [Use partitioned table for CommitStatus](gitlab-org/gitlab@063826e042778995fae13928a2fb5de2c8855b45) ([merge request](gitlab-org/gitlab!134489))
-
-## 16.5.10 (2024-09-20)
-
-No changes.
 
 ## 16.5.9 (2024-07-23)
 

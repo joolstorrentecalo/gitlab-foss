@@ -95,7 +95,7 @@ RSpec.describe 'Database schema', feature_category: :database do
     ci_sources_projects: %w[partition_id],
     ci_stages: %w[partition_id project_id pipeline_id],
     ci_trigger_requests: %w[commit_id],
-    ci_job_artifact_states: %w[partition_id project_id],
+    ci_job_artifact_states: %w[partition_id],
     cluster_providers_aws: %w[security_group_id vpc_id access_key_id],
     cluster_providers_gcp: %w[gcp_project_id operation_id],
     compliance_management_frameworks: %w[group_id],
@@ -182,6 +182,7 @@ RSpec.describe 'Database schema', feature_category: :database do
     vulnerability_identifiers: %w[external_id],
     vulnerability_occurrence_identifiers: %w[project_id],
     vulnerability_scanners: %w[external_id],
+    vulnerability_state_transitions: %w[state_changed_at_pipeline_id],
     security_scans: %w[pipeline_id project_id], # foreign key is not added as ci_pipeline table will be moved into different db soon
     dependency_list_exports: %w[pipeline_id], # foreign key is not added as ci_pipeline table is in different db
     vulnerability_reads: %w[cluster_agent_id namespace_id], # namespace_id is a denormalization of `project.namespace`

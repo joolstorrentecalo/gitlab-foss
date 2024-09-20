@@ -188,12 +188,10 @@ describe('Pipelines Table', () => {
           createComponent({ provide: provideWithFailedJobsWidget });
         });
 
-        it('adds extra rows if pipelines have failed jobs', () => {
-          const pipelinesWithFailedJobs = pipelines.filter((p) => p.failed_builds_count > 0).length;
-
+        it('renders', () => {
+          // We have 2 rows per pipeline with the widget
+          expect(findTableRows()).toHaveLength(pipelines.length * 2);
           expect(findPipelineFailureWidget().exists()).toBe(true);
-          // We add a row to each pipeline with failed jobs
-          expect(findTableRows()).toHaveLength(pipelines.length + pipelinesWithFailedJobs);
         });
 
         it('passes the expected props', () => {
@@ -204,16 +202,6 @@ describe('Pipelines Table', () => {
             pipelinePath: firstPipeline.path,
             // Make sure the forward slash was removed
             projectPath: 'frontend-fixtures/pipelines-project',
-          });
-        });
-
-        it('applies correct class to row', () => {
-          findTableRows().wrappers.forEach((row) => {
-            if (row.attributes('class').includes('details')) {
-              expect(row.attributes('class')).not.toContain('!gl-border-b');
-            } else {
-              expect(row.attributes('class')).toContain('!gl-border-b');
-            }
           });
         });
       });

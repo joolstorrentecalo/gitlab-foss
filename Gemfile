@@ -39,10 +39,6 @@ gem 'activerecord-gitlab', path: 'gems/activerecord-gitlab' # rubocop:todo Gemfi
 
 gem 'bootsnap', '~> 1.18.3', require: false # rubocop:todo Gemfile/MissingFeatureCategory
 
-# Avoid the precompiled native gems because Omnibus needs to build this to ensure
-# LD_LIBRARY_PATH is correct: https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/7730
-gem 'ffi', '~> 1.17', force_ruby_platform: true, feature_category: :shared
-
 gem 'openssl', '~> 3.0' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'ipaddr', '~> 1.2.5' # rubocop:todo Gemfile/MissingFeatureCategory
 
@@ -275,7 +271,7 @@ gem 'rack', '~> 2.2.9' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'rack-timeout', '~> 0.7.0', require: 'rack/timeout/base' # rubocop:todo Gemfile/MissingFeatureCategory
 
 group :puma do
-  gem 'puma', '= 6.4.3', require: false, feature_category: :shared
+  gem 'puma', '= 6.4.0', require: false, feature_category: :shared
   gem 'sd_notify', '~> 0.1.0', require: false # rubocop:todo Gemfile/MissingFeatureCategory
 end
 
@@ -404,7 +400,7 @@ gem 'thrift', '>= 0.16.0' # rubocop:todo Gemfile/MissingFeatureCategory
 
 # I18n
 gem 'rails-i18n', '~> 7.0', '>= 7.0.9', feature_category: :internationalization
-gem 'gettext_i18n_rails', '~> 1.13.0', feature_category: :internationalization
+gem 'gettext_i18n_rails', '~> 1.12.0', feature_category: :internationalization
 gem 'gettext', '~> 3.4', '>= 3.4.9',
   require: false,
   group: [:development, :test],

@@ -1343,7 +1343,6 @@ export const workItemResponseFactory = ({
               __typename: 'WorkItemWidgetHierarchy',
               type: 'HIERARCHY',
               hasChildren: true,
-              rolledUpCountsByType: [],
               hasParent,
               children: {
                 nodes: [
@@ -1613,7 +1612,6 @@ export const workItemHierarchyNoUpdatePermissionResponse = {
           type: 'HIERARCHY',
           parent: null,
           hasChildren: true,
-          depthLimitReachedByType: [],
           rolledUpCountsByType: [],
           children: {
             pageInfo: {
@@ -2152,7 +2150,6 @@ export const workItemHierarchyTreeEmptyResponse = {
           type: 'HIERARCHY',
           parent: null,
           hasChildren: true,
-          depthLimitReachedByType: [],
           rolledUpCountsByType: [],
           children: {
             pageInfo: {
@@ -2209,18 +2206,6 @@ export const mockHierarchyChildren = [
   },
 ];
 
-export const mockDepthLimitReachedByType = [
-  {
-    workItemType: {
-      id: 'gid://gitlab/WorkItems::Type/8',
-      name: 'Epic',
-      __typename: 'WorkItemType',
-    },
-    depthLimitReached: false,
-    __typename: 'WorkItemTypeDepthLimitReachedByType',
-  },
-];
-
 export const mockRolledUpCountsByType = [
   {
     countsByState: {
@@ -2270,7 +2255,6 @@ export const mockHierarchyWidget = {
   type: 'HIERARCHY',
   parent: null,
   hasChildren: true,
-  depthLimitReachedByType: mockDepthLimitReachedByType,
   rolledUpCountsByType: mockRolledUpCountsByType,
   children: {
     pageInfo: {
@@ -4514,36 +4498,6 @@ export const allowedChildrenTypesResponse = {
   },
 };
 
-export const allowedParentTypesResponse = {
-  data: {
-    workItem: {
-      id: 'gid://gitlab/WorkItem/1',
-      workItemType: {
-        id: 'gid://gitlab/WorkItems::Type/6',
-        name: 'Objective',
-        widgetDefinitions: [
-          {
-            type: 'HIERARCHY',
-            allowedParentTypes: {
-              nodes: [
-                {
-                  id: 'gid://gitlab/WorkItems::Type/6',
-                  name: 'Objective',
-                  __typename: 'WorkItemType',
-                },
-              ],
-              __typename: 'WorkItemTypeConnection',
-            },
-            __typename: 'WorkItemWidgetDefinitionHierarchy',
-          },
-        ],
-        __typename: 'WorkItemType',
-      },
-      __typename: 'WorkItem',
-    },
-  },
-};
-
 export const generateWorkItemsListWithId = (count) =>
   Array.from({ length: count }, (_, i) => ({ id: `gid://gitlab/WorkItem/${i + 1}` }));
 
@@ -4703,7 +4657,6 @@ export const createWorkItemQueryResponse = {
             hasChildren: false,
             parent: null,
             hasParent: false,
-            rolledUpCountsByType: [],
             children: {
               nodes: [],
               __typename: 'WorkItemConnection',
@@ -4961,17 +4914,6 @@ export const mockMoveWorkItemMutationResponse = ({ error = undefined } = {}) => 
         userPermissions: mockUserPermissions,
       },
       errors: [error],
-    },
-  },
-});
-
-export const mockUserPreferences = (useWorkItemsView = true) => ({
-  data: {
-    currentUser: {
-      id: '1',
-      userPreferences: {
-        useWorkItemsView,
-      },
     },
   },
 });

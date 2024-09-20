@@ -38,8 +38,7 @@ RSpec.shared_context 'structured_logger' do
       'created_at' => created_at.to_f,
       'enqueued_at' => created_at.to_f,
       'scheduling_latency_s' => scheduling_latency_s,
-      'job_size_bytes' => be > 0,
-      'sidekiq_tid' => be_instance_of(String)
+      'job_size_bytes' => be > 0
     )
   end
 

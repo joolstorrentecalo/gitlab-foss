@@ -45,7 +45,7 @@ Pipelines can be configured in many different ways:
 
 - [Basic pipelines](pipeline_architectures.md#basic-pipelines) run everything in each stage concurrently,
   followed by the next stage.
-- [Pipelines that use the `needs` keyword](../yaml/needs.md) run based on dependencies
+- [Pipelines that use the `needs` keyword](../directed_acyclic_graph/index.md) run based on dependencies
   between jobs and can run more quickly than basic pipelines.
 - [Merge request pipelines](../pipelines/merge_request_pipelines.md) run for merge
   requests only (rather than for every commit).
@@ -76,7 +76,7 @@ You can also configure specific aspects of your pipelines through the GitLab UI.
 
 The recommended tool for editing CI/CD configuration is the [pipeline editor](../pipeline_editor/index.md).
 
-If you use VS Code to edit your GitLab CI/CD configuration, the [GitLab Workflow extension for VS Code](../../editor_extensions/visual_studio_code/index.md)
+If you use VS Code to edit your GitLab CI/CD configuration, the [GitLab Workflow VS Code extension](../../editor_extensions/visual_studio_code/index.md)
 helps you [validate your configuration](https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow#validate-gitlab-ci-configuration)
 and [view your pipeline status](https://marketplace.visualstudio.com/items?itemName=GitLab.gitlab-workflow#information-about-your-branch-pipelines-mr-closing-issue).
 

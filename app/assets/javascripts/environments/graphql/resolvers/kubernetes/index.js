@@ -1,4 +1,4 @@
-import { CoreV1Api, AppsV1Api, Configuration, WatchApi, EVENT_DATA } from '@gitlab/cluster-client';
+import { CoreV1Api, AppsV1Api, Configuration } from '@gitlab/cluster-client';
 import { __ } from '~/locale';
 import {
   getK8sPods,
@@ -6,7 +6,6 @@ import {
   handleClusterError,
   buildWatchPath,
   mapWorkloadItem,
-  mapEventItem,
 } from '~/kubernetes_dashboard/graphql/helpers/resolver_helpers';
 import {
   watchFluxKustomization,
@@ -19,7 +18,6 @@ import {
 import k8sPodsQuery from '../../queries/k8s_pods.query.graphql';
 import k8sServicesQuery from '../../queries/k8s_services.query.graphql';
 import k8sDeploymentsQuery from '../../queries/k8s_deployments.query.graphql';
-import k8sEventsQuery from '../../queries/k8s_events.query.graphql';
 import { k8sResourceType } from './constants';
 import { k8sLogs } from './k8s_logs';
 
@@ -43,29 +41,6 @@ const watchDeployments = ({ configuration, namespace, client }) => {
   const queryField = k8sResourceType.k8sDeployments;
 
   watchWorkloadItems({ client, query, configuration, namespace, watchPath, queryField });
-};
-
-const watchEvents = ({ client, configuration, namespace, involvedObjectName, config }) => {
-  const fieldSelector = `involvedObject.name=${involvedObjectName}`;
-  const watchPath = buildWatchPath({ resource: 'events', namespace });
-  const watcherApi = new WatchApi(config);
-
-  watcherApi
-    .subscribeToStream(watchPath, { fieldSelector, watch: true })
-    .then((watcher) => {
-      watcher.on(EVENT_DATA, (data) => {
-        const result = data.map(mapEventItem);
-
-        client.writeQuery({
-          query: k8sEventsQuery,
-          variables: { configuration, namespace, involvedObjectName },
-          data: { k8sEvents: result },
-        });
-      });
-    })
-    .catch((err) => {
-      handleClusterError(err);
-    });
 };
 
 const handleKubernetesMutationError = async (err) => {
@@ -190,7 +165,7 @@ export const kubernetesQueries = {
         }
       });
   },
-  k8sEvents(_, { configuration, involvedObjectName, namespace }, { client }) {
+  k8sEvents(_, { configuration, involvedObjectName, namespace }) {
     const fieldSelector = `involvedObject.name=${involvedObjectName}`;
     const config = new Configuration(configuration);
 
@@ -198,9 +173,7 @@ export const kubernetesQueries = {
     const eventsApi = coreV1Api.listCoreV1NamespacedEvent({ namespace, fieldSelector });
     return eventsApi
       .then((res) => {
-        const data = res.items?.map(mapEventItem) ?? [];
-
-        watchEvents({ client, configuration, namespace, involvedObjectName, config });
+        const data = res?.items || [];
 
         return data;
       })

@@ -970,27 +970,11 @@ RSpec.describe User, feature_category: :user_profile do
           expect(user.errors.messages[:email].first).to eq(expected_error)
         end
 
-        it 'allows example@test.com if user is placeholder or import user' do
-          placeholder_user = build(:user, :placeholder, email: "example@test.com")
-          import_user = build(:user, :import_user, email: "example@test.com")
-
-          expect(placeholder_user).to be_valid
-          expect(import_user).to be_valid
-        end
-
         it 'does not allow user to update email to a non-allowlisted domain' do
           user = create(:user, email: "info@test.example.com")
 
           expect { user.update!(email: "test@notexample.com") }
             .to raise_error(StandardError, 'Validation failed: Email is not allowed. Please use your regular email address. Check with your administrator.')
-        end
-
-        it 'allows placeholder and import users to update email to a non-allowlisted domain' do
-          placeholder_user = create(:user, :placeholder, email: "info@test.example.com")
-          import_user = create(:user, :import_user, email: "info2@test.example.com")
-
-          expect(placeholder_user.update!(email: "test@notexample.com")).to eq(true)
-          expect(import_user.update!(email: "test2@notexample.com")).to eq(true)
         end
       end
 
@@ -8754,55 +8738,6 @@ RSpec.describe User, feature_category: :user_profile do
       let(:project) { user_member_project }
 
       it { is_expected.to be_truthy }
-    end
-  end
-
-  context 'banned user normalized email reuse check' do
-    let_it_be(:existing_user) { create(:user) }
-
-    shared_examples 'does not perform the check' do
-      specify do
-        expect(::Users::BannedUser).not_to receive(:by_detumbled_email)
-
-        subject
-      end
-    end
-
-    context 'when email has other validation errors' do
-      subject(:new_user) { build(:user, email: existing_user.email).tap(&:valid?) }
-
-      it_behaves_like 'does not perform the check'
-    end
-
-    context 'when email has no other validation errors' do
-      let(:error_message) { 'Email is not allowed. Please enter a different email address and try again.' }
-      let(:tumbled_email) { 'person+inbox1@test.com' }
-      let(:normalized_email) { 'person@test.com' }
-      let!(:banned_user) { create(:user, :banned, email: normalized_email) }
-
-      subject(:new_user) { build(:user, email: tumbled_email).tap(&:valid?) }
-
-      it 'performs the check and adds an error' do
-        subject
-
-        expect(new_user.errors.full_messages).to include(error_message)
-      end
-
-      context 'and does not match normalized email of a banned user' do
-        let(:tumbled_email) { 'unique+tumbled@email.com' }
-
-        it 'does not add an error' do
-          expect(new_user.errors.full_messages).not_to include(error_message)
-        end
-      end
-
-      context 'when feature flag is disabled' do
-        before do
-          stub_feature_flags(block_banned_user_normalized_email_reuse: false)
-        end
-
-        it_behaves_like 'does not perform the check'
-      end
     end
   end
 end

@@ -104,8 +104,7 @@ Backup and restore recreates the entire database, including the indexes.
 1. In a [database console](../troubleshooting/postgresql.md#start-a-database-console), rebuild all indexes:
 
    ```shell
-   SET statement_timeout = 0;
-   REINDEX DATABASE gitlabhq_production;
+   REINDEX DATABASE gitlabhq_production
    ```
 
 1. In all nodes, start GitLab.
@@ -137,8 +136,7 @@ Backup and restore recreates the entire database, including the indexes.
    [database console](../troubleshooting/postgresql.md#start-a-database-console), rebuild all indexes:
 
    ```shell
-   SET statement_timeout = 0;
-   REINDEX DATABASE gitlabhq_production;
+   REINDEX DATABASE gitlabhq_production
    ```
 
 1. If the secondary sites receive traffic from users, then let the read-replica databases catch up
@@ -166,8 +164,7 @@ different types of indexes were handled, see the blog post about
 1. In a [database console](../troubleshooting/postgresql.md#start-a-database-console), reindex each affected index:
 
    ```shell
-   SET statement_timeout = 0;
-   REINDEX INDEX <index name> CONCURRENTLY;
+   REINDEX INDEX <index name> CONCURRENTLY
    ```
 
 1. After reindexing bad indexes, the collation must be refreshed. To update the system catalog to
@@ -207,8 +204,7 @@ different types of indexes were handled, see the blog post about
    [database console](../troubleshooting/postgresql.md#start-a-database-console), reindex each affected index:
 
    ```shell
-   SET statement_timeout = 0;
-   REINDEX INDEX <index name> CONCURRENTLY;
+   REINDEX INDEX <index name> CONCURRENTLY
    ```
 
 1. After reindexing bad indexes, the collation must be refreshed. To update the system catalog to

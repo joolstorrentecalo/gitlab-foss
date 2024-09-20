@@ -344,7 +344,7 @@ class User < ApplicationRecord
   validate :notification_email_verified, if: :notification_email_changed?
   validate :public_email_verified, if: :public_email_changed?
   validate :commit_email_verified, if: :commit_email_changed?
-  validate :email_allowed_by_restrictions, if: ->(user) { user.new_record? ? !user.created_by_id : user.email_changed? }
+  validate :email_allowed_by_restrictions?, if: ->(user) { user.new_record? ? !user.created_by_id : user.email_changed? }
   validate :check_username_format, if: :username_changed?
 
   validates :theme_id, allow_nil: true, inclusion: { in: Gitlab::Themes.valid_ids,
@@ -1249,15 +1249,6 @@ class User < ApplicationRecord
 
       errors.add(:email, _('is linked to an account pending deletion.'), help_page_url: help_page_url)
     end
-
-    banned_user_email_reuse_check unless errors.include?(:email)
-  end
-
-  def banned_user_email_reuse_check
-    return unless ::Feature.enabled?(:block_banned_user_normalized_email_reuse, ::Feature.current_request)
-    return unless ::Users::BannedUser.by_detumbled_email(email).exists?
-
-    errors.add(:email, _('is not allowed. Please enter a different email address and try again.'))
   end
 
   def commit_email_or_default
@@ -2632,9 +2623,7 @@ class User < ApplicationRecord
     end
   end
 
-  def email_allowed_by_restrictions
-    return if placeholder? || import_user?
-
+  def email_allowed_by_restrictions?
     error = validate_admin_signup_restrictions(email)
 
     errors.add(:email, error) if error
