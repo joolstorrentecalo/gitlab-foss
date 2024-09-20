@@ -149,12 +149,11 @@ module API
       project = find_project(id)
 
       return forbidden!("This project's CI/CD job token cannot be used to authenticate with the container registry of a different project.") unless authorized_project_scope?(project)
-      return not_found!('Project') if project.nil?
 
       unless can?(current_user, read_project_ability, project)
         return unauthorized! if authenticate_non_public?
 
-        return handle_job_token_failure!(project)
+        return not_found!('Project')
       end
 
       if project_moved?(id, project)
@@ -685,26 +684,24 @@ module API
       present_carrierwave_file!(file, **args)
     end
 
-    def present_carrierwave_file!(file, supports_direct_download: true, content_disposition: nil, content_type: nil)
+    def present_carrierwave_file!(file, supports_direct_download: true, content_disposition: nil)
       return not_found! unless file&.exists?
 
       if file.file_storage?
-        file_content_type = content_type || 'application/octet-stream'
-        present_disk_file!(file.path, file.filename, file_content_type)
+        present_disk_file!(file.path, file.filename)
       elsif supports_direct_download && file.class.direct_download_enabled?
         return redirect(ObjectStorage::S3.signed_head_url(file)) if request.head? && file.fog_credentials[:provider] == 'AWS'
 
         redirect_params = {}
         if content_disposition
           response_disposition = ActionDispatch::Http::ContentDisposition.format(disposition: content_disposition, filename: file.filename)
-          redirect_params[:query] = { 'response-content-disposition' => response_disposition, 'response-content-type' => content_type || file.content_type }
+          redirect_params[:query] = { 'response-content-disposition' => response_disposition, 'response-content-type' => file.content_type }
         end
 
         file_url = ObjectStorage::CDN::FileUrl.new(file: file, ip_address: ip_address, redirect_params: redirect_params)
         redirect(file_url.url)
       else
-        response_headers = { 'Content-Type' => content_type }.compact_blank
-        header(*Gitlab::Workhorse.send_url(file.url, response_headers: response_headers))
+        header(*Gitlab::Workhorse.send_url(file.url))
         status :ok
         body '' # to avoid an error from API::APIGuard::ResponseCoercerMiddleware
       end
@@ -947,17 +944,6 @@ module API
       Rack::Request.new(env).tap do |r|
         r.path_info = "/#{new_path}"
       end.url
-    end
-
-    def handle_job_token_failure!(project)
-      if current_user&.from_ci_job_token? && current_user&.ci_job_token_scope
-        source_project = current_user.ci_job_token_scope.current_project
-        error_message = format("Authentication by CI/CD job token not allowed from %{source_project_path} to %{target_project_path}.", source_project_path: source_project.path, target_project_path: project.path)
-
-        forbidden!(error_message)
-      else
-        not_found!('Project')
-      end
     end
   end
 end

@@ -6,6 +6,7 @@ import { createAlert } from '~/alert';
 import Api from '~/api';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import { STATUS_ALL, STATUS_CLOSED, STATUS_OPEN, STATUS_MERGED } from '~/issues/constants';
+import axios from '~/lib/utils/axios_utils';
 import { fetchPolicies } from '~/lib/graphql';
 import { isPositiveInteger } from '~/lib/utils/number_utils';
 import { scrollUp } from '~/lib/utils/scroll_utils';
@@ -41,12 +42,7 @@ import {
   TOKEN_TYPE_LABEL,
   TOKEN_TITLE_RELEASE,
   TOKEN_TYPE_RELEASE,
-  TOKEN_TITLE_DEPLOYED_BEFORE,
-  TOKEN_TYPE_DEPLOYED_BEFORE,
-  TOKEN_TITLE_DEPLOYED_AFTER,
-  TOKEN_TYPE_DEPLOYED_AFTER,
 } from '~/vue_shared/components/filtered_search_bar/constants';
-import { AutocompleteCache } from '~/issues/dashboard/utils';
 import {
   convertToApiParams,
   convertToSearchQuery,
@@ -67,14 +63,12 @@ import {
 } from '~/issues/list/constants';
 import CiIcon from '~/vue_shared/components/ci_icon/ci_icon.vue';
 import setSortPreferenceMutation from '~/issues/list/queries/set_sort_preference.mutation.graphql';
-import issuableEventHub from '~/issues/list/eventhub';
 import { i18n } from '../constants';
 import getMergeRequestsQuery from '../queries/get_merge_requests.query.graphql';
 import getMergeRequestsCountsQuery from '../queries/get_merge_requests_counts.query.graphql';
 import searchLabelsQuery from '../queries/search_labels.query.graphql';
 import MergeRequestStatistics from './merge_request_statistics.vue';
 import MergeRequestMoreActionsDropdown from './more_actions_dropdown.vue';
-import EmptyState from './empty_state.vue';
 
 const UserToken = () => import('~/vue_shared/components/filtered_search_bar/tokens/user_token.vue');
 const BranchToken = () =>
@@ -86,7 +80,6 @@ const LabelToken = () =>
 const ReleaseToken = () => import('./tokens/release_client_search_token.vue');
 const EmojiToken = () =>
   import('~/vue_shared/components/filtered_search_bar/tokens/emoji_token.vue');
-const DateToken = () => import('~/vue_shared/components/filtered_search_bar/tokens/date_token.vue');
 
 export default {
   name: 'MergeRequestsListApp',
@@ -101,7 +94,6 @@ export default {
     MergeRequestStatistics,
     MergeRequestMoreActionsDropdown,
     ApprovalCount,
-    EmptyState,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -116,7 +108,6 @@ export default {
     'isSignedIn',
     'newMergeRequestPath',
     'releasesEndpoint',
-    'canBulkUpdate',
   ],
   data() {
     return {
@@ -129,7 +120,6 @@ export default {
       sortKey: CREATED_DESC,
       state: STATUS_OPEN,
       pageSize: DEFAULT_PAGE_SIZE,
-      showBulkEditSidebar: false,
     };
   },
   apollo: {
@@ -343,20 +333,6 @@ export default {
           operators: OPERATORS_IS_NOT,
           releasesEndpoint: this.releasesEndpoint,
         },
-        {
-          type: TOKEN_TYPE_DEPLOYED_BEFORE,
-          title: TOKEN_TITLE_DEPLOYED_BEFORE,
-          icon: 'clock',
-          token: DateToken,
-          operators: OPERATORS_IS,
-        },
-        {
-          type: TOKEN_TYPE_DEPLOYED_AFTER,
-          title: TOKEN_TITLE_DEPLOYED_AFTER,
-          icon: 'clock',
-          token: DateToken,
-          operators: OPERATORS_IS,
-        },
       ];
 
       if (gon.current_user_id) {
@@ -422,22 +398,9 @@ export default {
         })
       );
     },
-    isOpenTab() {
-      return this.state === STATUS_OPEN;
-    },
-    isBulkEditButtonDisabled() {
-      return this.showBulkEditSidebar || !this.mergeRequests.length;
-    },
   },
   created() {
     this.updateData(this.initialSort);
-    this.autocompleteCache = new AutocompleteCache();
-  },
-  mounted() {
-    issuableEventHub.$on('issuables:toggleBulkEdit', this.toggleBulkEditSidebar);
-  },
-  beforeDestroy() {
-    issuableEventHub.$off('issuables:toggleBulkEdit', this.toggleBulkEditSidebar);
   },
   methods: {
     fetchBranches(search) {
@@ -451,13 +414,8 @@ export default {
           });
         });
     },
-    fetchEmojis(search) {
-      return this.autocompleteCache.fetch({
-        url: this.autocompleteAwardEmojisPath,
-        cacheName: 'emojis',
-        searchProperty: 'name',
-        search,
-      });
+    fetchEmojis() {
+      return axios.get(this.autocompleteAwardEmojisPath);
     },
     fetchLabelsWithFetchPolicy(search, fetchPolicy = fetchPolicies.CACHE_FIRST) {
       return this.$apollo
@@ -572,26 +530,6 @@ export default {
         mergeRequest.conflicts
       );
     },
-    toggleBulkEditSidebar(showBulkEditSidebar) {
-      this.showBulkEditSidebar = showBulkEditSidebar;
-    },
-    async handleBulkUpdateClick() {
-      if (!this.hasInitBulkEdit) {
-        const bulkUpdateSidebar = await import('~/issuable');
-        bulkUpdateSidebar.initBulkUpdateSidebar('issuable_');
-
-        this.hasInitBulkEdit = true;
-      }
-
-      issuableEventHub.$emit('issuables:enableBulkEdit');
-    },
-    handleUpdateLegacyBulkEdit() {
-      // If "select all" checkbox was checked, wait for all checkboxes
-      // to be checked before updating IssuableBulkUpdateSidebar class
-      this.$nextTick(() => {
-        issuableEventHub.$emit('issuables:updateBulkEdit');
-      });
-    },
   },
   STATUS_OPEN,
 };
@@ -619,27 +557,14 @@ export default {
     use-keyset-pagination
     :has-next-page="pageInfo.hasNextPage"
     :has-previous-page="pageInfo.hasPreviousPage"
-    issuable-item-class="merge-request"
-    :show-bulk-edit-sidebar="showBulkEditSidebar"
     @click-tab="handleClickTab"
     @next-page="handleNextPage"
     @previous-page="handlePreviousPage"
     @sort="handleSort"
     @filter="handleFilter"
-    @update-legacy-bulk-edit="handleUpdateLegacyBulkEdit"
   >
     <template #nav-actions>
       <div class="gl-flex gl-gap-3">
-        <gl-button
-          v-if="canBulkUpdate"
-          class="gl-grow"
-          :disabled="isBulkEditButtonDisabled"
-          data-testid="bulk-edit"
-          @click="handleBulkUpdateClick"
-        >
-          {{ __('Bulk edit') }}
-        </gl-button>
-
         <gl-button
           v-if="newMergeRequestPath"
           variant="confirm"
@@ -683,10 +608,5 @@ export default {
         <ci-icon :status="issuable.headPipeline.detailedStatus" use-link show-tooltip />
       </li>
     </template>
-
-    <template #empty-state>
-      <empty-state :has-search="hasSearch" :is-open-tab="isOpenTab" />
-    </template>
   </issuable-list>
-  <empty-state v-else :has-merge-requests="false" />
 </template>

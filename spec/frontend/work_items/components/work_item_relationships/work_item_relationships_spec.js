@@ -20,8 +20,6 @@ import {
   removeLinkedWorkItemResponse,
   workItemLinkedItemsResponse,
   workItemEmptyLinkedItemsResponse,
-  workItemSingleLinkedItemResponse,
-  mockLinkedItems,
 } from '../../mock_data';
 
 describe('WorkItemRelationships', () => {
@@ -76,7 +74,7 @@ describe('WorkItemRelationships', () => {
   const findLoadingIcon = () => wrapper.findComponent(GlLoadingIcon);
   const findErrorMessage = () => wrapper.findComponent(GlAlert);
   const findEmptyRelatedMessageContainer = () => wrapper.findByTestId('crud-empty');
-  const findLinkedItemsCountBadge = () => wrapper.findByTestId('linked-items-count-bage');
+  const findLinkedItemsCountContainer = () => wrapper.findByTestId('crud-count');
   const findLinkedItemsHelpLink = () => wrapper.findByTestId('help-link');
   const findAllWorkItemRelationshipListComponents = () =>
     wrapper.findAllComponents(WorkItemRelationshipList);
@@ -117,7 +115,7 @@ describe('WorkItemRelationships', () => {
 
     // renders all 3 lists: blocking, blocked by and related to
     expect(findAllWorkItemRelationshipListComponents().length).toBe(3);
-    expect(findLinkedItemsCountBadge().text()).toBe('3');
+    expect(findLinkedItemsCountContainer().text()).toBe('3');
   });
 
   it('shows an alert when list loading fails', async () => {
@@ -148,7 +146,7 @@ describe('WorkItemRelationships', () => {
   it('removes linked item and shows toast message when removeLinkedItem event is emitted', async () => {
     await createComponent();
 
-    expect(findLinkedItemsCountBadge().text()).toBe('3');
+    expect(findLinkedItemsCountContainer().text()).toBe('3');
 
     await findAllWorkItemRelationshipListComponents()
       .at(0)
@@ -165,7 +163,7 @@ describe('WorkItemRelationships', () => {
 
     expect($toast.show).toHaveBeenCalledWith('Linked item removed');
 
-    expect(findLinkedItemsCountBadge().text()).toBe('2');
+    expect(findLinkedItemsCountContainer().text()).toBe('2');
   });
 
   it.each`
@@ -240,20 +238,5 @@ describe('WorkItemRelationships', () => {
     it('calls getShowLabelsFromLocalStorage on mount', () => {
       expect(utils.getShowLabelsFromLocalStorage).toHaveBeenCalled();
     });
-
-    it.each`
-      ariaLabel                                                              | linkedItemsResponse
-      ${`Task has ${mockLinkedItems.linkedItems.nodes.length} linked items`} | ${workItemLinkedItemsResponse}
-      ${'Task has 1 linked item'}                                            | ${workItemSingleLinkedItemResponse}
-    `(
-      'renders the correct aria labels for the badge count',
-      async ({ ariaLabel, linkedItemsResponse }) => {
-        await createComponent({
-          workItemLinkedItemsHandler: jest.fn().mockResolvedValue(linkedItemsResponse),
-        });
-
-        expect(findLinkedItemsCountBadge().attributes('aria-label')).toBe(ariaLabel);
-      },
-    );
   });
 });

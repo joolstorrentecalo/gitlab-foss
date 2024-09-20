@@ -61,6 +61,11 @@ export default {
       type: Object,
       required: true,
     },
+    variant: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
   data() {
     return {
@@ -150,6 +155,7 @@ export default {
     :class="{
       target: isTargetNote,
       'pr-0': shouldShowDescriptionVersion,
+      [`system-note-variant-${variant}`]: variant,
     }"
     class="system-note"
   >
@@ -218,7 +224,7 @@ export default {
         ></div>
         <div v-if="hasMoreCommits" class="flex-list">
           <div
-            class="flex-row gl-relative gl-z-2 gl-cursor-pointer gl-pl-4 gl-pt-3 gl-text-link hover:gl-underline"
+            class="flex-row gl-relative gl-z-2 gl-cursor-pointer gl-pl-4 gl-pt-3 gl-text-blue-500 hover:gl-underline"
             @click="expanded = !expanded"
           >
             <gl-icon :name="toggleIcon" :size="12" class="gl-mr-2" />

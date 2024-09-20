@@ -930,18 +930,15 @@ Gitlab.ee do
   Settings.cron_jobs['gitlab_subscriptions_add_on_purchases_cleanup_worker'] ||= {}
   Settings.cron_jobs['gitlab_subscriptions_add_on_purchases_cleanup_worker']['cron'] ||= '0 1 * * *'
   Settings.cron_jobs['gitlab_subscriptions_add_on_purchases_cleanup_worker']['job_class'] = 'GitlabSubscriptions::AddOnPurchases::CleanupWorker'
-  Settings.cron_jobs['gitlab_subscriptions_offline_cloud_license_provision_worker'] ||= {}
-  Settings.cron_jobs['gitlab_subscriptions_offline_cloud_license_provision_worker']['cron'] ||= '30 0 * * *'
-  Settings.cron_jobs['gitlab_subscriptions_offline_cloud_license_provision_worker']['job_class'] = 'GitlabSubscriptions::AddOnPurchases::OfflineCloudLicenseProvisionWorker'
   Settings.cron_jobs['observability_alert_query_worker'] ||= {}
   Settings.cron_jobs['observability_alert_query_worker']['cron'] ||= '* * * * *'
   Settings.cron_jobs['observability_alert_query_worker']['job_class'] = 'Observability::AlertQueryWorker'
   Settings.cron_jobs['report_security_policies_metrics_worker.rb'] ||= {}
   Settings.cron_jobs['report_security_policies_metrics_worker.rb']['cron'] ||= '*/1 * * * *'
   Settings.cron_jobs['report_security_policies_metrics_worker.rb']['job_class'] = 'Security::Policies::ReportSecurityPoliciesMetricsWorker'
-  Settings.cron_jobs['usage_events_dump_write_buffer_cron_worker'] ||= {}
-  Settings.cron_jobs['usage_events_dump_write_buffer_cron_worker']['cron'] ||= "*/5 * * * *"
-  Settings.cron_jobs['usage_events_dump_write_buffer_cron_worker']['job_class'] = 'UsageEvents::DumpWriteBufferCronWorker'
+  Settings.cron_jobs['package_metadata_cve_enrichment_sync_worker'] ||= {}
+  Settings.cron_jobs['package_metadata_cve_enrichment_sync_worker']['cron'] ||= "*/5 * * * *"
+  Settings.cron_jobs['package_metadata_cve_enrichment_sync_worker']['job_class'] = 'PackageMetadata::CveEnrichmentSyncWorker'
 
   Gitlab.com do
     Settings.cron_jobs['disable_legacy_open_source_license_for_inactive_projects'] ||= {}

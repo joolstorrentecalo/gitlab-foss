@@ -20,6 +20,7 @@ query reviewRequests(
       after: $afterCursor
       sort: UPDATED_DESC
     ) {
+      count
       pageInfo {
         ...PageInfo
       }

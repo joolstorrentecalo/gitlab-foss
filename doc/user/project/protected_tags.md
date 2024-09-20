@@ -21,14 +21,14 @@ Each rule allows you to match either:
 - An individual tag name.
 - Wildcards to control multiple tags at once.
 
-This feature evolved out of [protected branches](repository/branches/protected.md).
+This feature evolved out of [protected branches](protected_branches.md).
 
 ## Who can modify a protected tag
 
 By default:
 
-- To create or delete tags, you must have the Maintainer role.
-- Protected tags [can only be deleted](#delete-a-protected-tag) using the UI or API.
+- To create tags, you must have the Maintainer role.
+- No one can update or delete tags.
 
 ## Configuring protected tags
 

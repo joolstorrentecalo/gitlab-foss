@@ -101,7 +101,7 @@ config/bounded_contexts.yml @fabiopitino @grzesiek @stanhu @cwoolley-gitlab @tku
 /ee/spec/finders/
 /rubocop/rubocop-migrations.yml
 
-[Pipeline configuration] @gl-quality/eng-prod @acunskis @ddavison @mlapierre
+[Pipeline configuration] @gl-quality/eng-prod
 /.gitlab-ci.yml
 /.gitlab/ci/
 /.gitlab/ci/docs.gitlab-ci.yml @gl-quality/eng-prod @gl-docsteam
@@ -1068,7 +1068,7 @@ lib/gitlab/checks/**
 /doc/user/project/organize_work_with_projects.md @lciutacu
 /doc/user/project/pages/ @msedlakjakubowski
 /doc/user/project/project_topics.md @lciutacu
-/doc/user/project/repository/branches/protected.md @brendan777
+/doc/user/project/protected_branches.md @brendan777
 /doc/user/project/protected_tags.md @brendan777
 /doc/user/project/quick_actions.md @msedlakjakubowski
 /doc/user/project/releases/ @phillipwells

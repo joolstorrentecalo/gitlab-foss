@@ -1,5 +1,5 @@
 <script>
-import { GlLink, GlDrawer, GlButton, GlTooltipDirective, GlOutsideDirective } from '@gitlab/ui';
+import { GlLink, GlDrawer, GlButton, GlTooltipDirective } from '@gitlab/ui';
 import { escapeRegExp } from 'lodash';
 import { __ } from '~/locale';
 import deleteWorkItemMutation from '~/work_items/graphql/delete_work_item.mutation.graphql';
@@ -11,7 +11,6 @@ export default {
   name: 'WorkItemDrawer',
   directives: {
     GlTooltip: GlTooltipDirective,
-    GlOutside: GlOutsideDirective,
   },
   components: {
     GlLink,
@@ -36,11 +35,6 @@ export default {
       required: false,
       default: TYPE_ISSUE,
     },
-    clickOutsideExcludeSelector: {
-      type: String,
-      required: false,
-      default: null,
-    },
   },
   data() {
     return {
@@ -59,7 +53,7 @@ export default {
       return this.activeItem.referencePath.split(delimiter)[0];
     },
     modalIsGroup() {
-      return this.issuableType.toLowerCase() === TYPE_EPIC;
+      return this.issuableType === TYPE_EPIC;
     },
     headerReference() {
       const path = this.activeItemFullPath.substring(this.activeItemFullPath.lastIndexOf('/') + 1);
@@ -110,46 +104,17 @@ export default {
         this.copyTooltipText = this.$options.i18n.copyTooltipText;
       }, 2000);
     },
-    handleClickOutside(event) {
-      for (const selector of this.$options.defaultExcludedSelectors) {
-        const excludedElements = document.querySelectorAll(selector);
-        for (const parent of excludedElements) {
-          if (parent.contains(event.target)) {
-            return;
-          }
-        }
-      }
-      if (this.clickOutsideExcludeSelector) {
-        const excludedElements = document.querySelectorAll(this.clickOutsideExcludeSelector);
-        for (const parent of excludedElements) {
-          if (parent.contains(event.target)) {
-            return;
-          }
-        }
-      }
-      this.$emit('close');
-    },
   },
   i18n: {
     copyTooltipText: __('Copy item URL'),
     copiedTooltipText: __('Copied'),
     openTooltipText: __('Open in full page'),
   },
-  defaultExcludedSelectors: [
-    '#confirmationModal',
-    '#create-timelog-modal',
-    '#set-time-estimate-modal',
-    '[id^="insert-comment-template-modal"]',
-    '.pika-single',
-    '.atwho-container',
-    '.tippy-content .gl-new-dropdown-panel',
-  ],
 };
 </script>
 
 <template>
   <gl-drawer
-    v-gl-outside="handleClickOutside"
     :open="open"
     data-testid="work-item-drawer"
     header-sticky

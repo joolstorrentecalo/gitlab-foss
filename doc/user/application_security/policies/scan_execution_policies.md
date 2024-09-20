@@ -283,9 +283,9 @@ The following requirements apply when enforcing Dynamic Application Security Tes
   [site profile](../dast/on-demand_scan.md#site-profile) and
   [scanner profile](../dast/on-demand_scan.md#scanner-profile) must exist. If these are not
   available, the policy is not applied and a job with an error message is created instead.
-- When a DAST site profile or scanner profile is named in an enabled scan execution policy, the
-  profile cannot be modified or deleted. To edit or delete the profile, you must first set the
-  policy to **Disabled** in the policy editor or set `enabled: false` in the YAML mode.
+- After you associate the site profile and scanner profile by name in the policy, it is not possible
+  to modify or delete them. If you want to modify them, you must first disable the policy by setting
+  the `active` flag to `false`.
 - When configuring policies with a scheduled DAST scan, the author of the commit in the security
   policy project's repository must have access to the scanner and site profiles. Otherwise, the scan
   is not scheduled successfully.
@@ -322,7 +322,7 @@ In GitLab 16.9 and earlier:
 - If the CI/CD variables suffixed `_EXCLUDED_ANALYZERS` were declared in a policy, their values were
   ignored, regardless of where they were defined: policy, group, or project.
 
-## Scope security policies
+## Scope security policies to projects
 
 > - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/135398) in GitLab 16.7 [with a flag](../../../administration/feature_flags.md) named `security_policies_policy_scope`. Enabled by default.
 > - [Generally available](https://gitlab.com/gitlab-org/gitlab/-/issues/443594) in GitLab 16.11. Feature flag `security_policies_policy_scope` removed.
@@ -337,7 +337,7 @@ For example, if you are linking policies to a group, a group owner must create t
 the security policy project. Then, all policies in the security policy project are inherited by all
 projects in the group.
 
-You scope security policies by setting the scopes in the `policy.yml` file to:
+You scope security policies to projects by setting the scopes in the `policy.yml` file to:
 
 - _Include_ only projects with an applied [compliance framework](../../group/compliance_frameworks.md) by using
   the compliance framework's ID. To include projects, use `policy_scope.compliance_frameworks.id` to specify IDs of

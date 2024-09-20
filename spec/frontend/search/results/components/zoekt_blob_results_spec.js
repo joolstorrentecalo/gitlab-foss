@@ -46,10 +46,6 @@ describe('ZoektBlobResults', () => {
   const findLoadingIcon = () => wrapper.findComponent(GlLoadingIcon);
   const findEmptyResult = () => wrapper.findComponent(EmptyResult);
 
-  beforeEach(() => {
-    window.gon.user_color_mode = 'gl-light';
-  });
-
   describe('when loading results', () => {
     beforeEach(async () => {
       createComponent({

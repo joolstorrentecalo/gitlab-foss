@@ -286,18 +286,13 @@ module Gitlab
       end
 
       def list_commits(revisions, params = {})
-        # We want to include the commit ref in the revisions if present.
-        revisions = Array.wrap(params[:ref].presence || []) + Array.wrap(revisions)
-
         request = Gitaly::ListCommitsRequest.new(
           repository: @gitaly_repo,
-          revisions: revisions,
+          revisions: Array.wrap(revisions),
           reverse: !!params[:reverse],
           ignore_case: params[:ignore_case],
           pagination_params: params[:pagination_params]
         )
-
-        request.order = params[:order].upcase if params[:order].present?
 
         if params[:commit_message_patterns]
           request.commit_message_patterns += Array.wrap(params[:commit_message_patterns])

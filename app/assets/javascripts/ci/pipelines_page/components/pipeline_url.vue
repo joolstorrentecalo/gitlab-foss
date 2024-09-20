@@ -136,9 +136,12 @@ export default {
     <div v-if="pipelineName" class="gl-mb-2" data-testid="pipeline-name-container">
       <span class="gl-flex">
         <tooltip-on-truncate :title="pipelineName" class="gl-grow gl-truncate gl-text-gray-900">
-          <gl-link :href="pipeline.path" class="!gl-text-link" data-testid="pipeline-url-link">{{
-            pipelineName
-          }}</gl-link>
+          <gl-link
+            :href="pipeline.path"
+            class="!gl-text-blue-600"
+            data-testid="pipeline-url-link"
+            >{{ pipelineName }}</gl-link
+          >
         </tooltip-on-truncate>
       </span>
     </div>
@@ -165,7 +168,7 @@ export default {
     <div class="gl-mb-2">
       <gl-link
         :href="pipeline.path"
-        class="gl-mr-1 !gl-text-link"
+        class="gl-mr-1 !gl-text-blue-500"
         data-testid="pipeline-url-link"
         @click="trackClick('click_pipeline_id')"
         >#{{ pipeline[pipelineIdType] }}</gl-link

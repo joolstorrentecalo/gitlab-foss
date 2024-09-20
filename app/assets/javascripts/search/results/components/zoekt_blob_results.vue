@@ -6,11 +6,6 @@ import BlobHeader from '~/search/results/components/blob_header.vue';
 import BlobFooter from '~/search/results/components/blob_footer.vue';
 import BlobBody from '~/search/results/components/blob_body.vue';
 import EmptyResult from '~/search/results/components/result_empty.vue';
-import {
-  getSystemColorScheme,
-  listenSystemColorSchemeChange,
-  removeListenerSystemColorSchemeChange,
-} from '~/lib/utils/css_utils';
 
 import { DEFAULT_SHOW_CHUNKS } from '~/search/results/constants';
 
@@ -39,11 +34,6 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      systemColorScheme: getSystemColorScheme(),
-    };
-  },
   computed: {
     ...mapState(['query']),
     pagination: {
@@ -57,12 +47,6 @@ export default {
     currentPage() {
       return this.query.page ? parseInt(this.query.page, 10) : 1;
     },
-  },
-  mounted() {
-    listenSystemColorSchemeChange(this.changeSystemColorScheme);
-  },
-  destroyed() {
-    removeListenerSystemColorSchemeChange(this.changeSystemColorScheme);
   },
   methods: {
     ...mapActions(['setQuery']),
@@ -83,9 +67,6 @@ export default {
     position(index) {
       return index + 1;
     },
-    changeSystemColorScheme(glScheme) {
-      this.systemColorScheme = glScheme;
-    },
   },
 };
 </script>
@@ -100,8 +81,9 @@ export default {
         class="file-result-holder file-holder gl-my-5"
         :header-class="{
           '!gl-border-b-0': !hasCode(file),
-          'file-title': true,
+          'gl-new-card-header file-title': true,
         }"
+        footer-class="gl-new-card-footer"
         body-class="gl-p-0"
       >
         <template #header>
@@ -110,16 +92,10 @@ export default {
             :project-path="file.projectPath"
             :file-url="file.fileUrl"
             :is-header-only="!hasCode(file)"
-            :system-color-scheme="systemColorScheme"
           />
         </template>
 
-        <blob-body
-          v-if="hasCode(file)"
-          :file="file"
-          :position="position(index)"
-          :system-color-scheme="systemColorScheme"
-        />
+        <blob-body v-if="hasCode(file)" :file="file" :position="position(index)" />
 
         <template v-if="hasMore(file)" #footer>
           <blob-footer :file="file" :position="position(index)" />
