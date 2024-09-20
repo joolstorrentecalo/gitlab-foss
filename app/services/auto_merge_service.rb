@@ -17,7 +17,7 @@ class AutoMergeService < BaseService
     def get_service_class(strategy)
       return unless all_strategies_ordered_by_preference.include?(strategy)
 
-      "::AutoMerge::#{strategy.camelize}Service".constantize
+      strategy_to_class_map[strategy]
     end
   end
 
@@ -70,8 +70,15 @@ class AutoMergeService < BaseService
 
   private
 
-  def get_service_instance(merge_request, strategy)
-    strong_memoize("service_instance_#{merge_request.id}_#{strategy}") do
+  def strategy_to_class_map
+    {
+      STRATEGY_MERGE_WHEN_PIPELINE_SUCCEEDS => AutoMerge::MergeWhenPipelineSucceedsService,
+      STRATEGY_MERGE_WHEN_CHECKS_PASS => AutoMerge::MergeWhenChecksPassService
+    }
+  end
+
+  def service_instance(merge_request, strategy)
+    strong_memoize_with(:service_instance, merge_request, strategy) do
       self.class.get_service_class(strategy)&.new(project, current_user, params)
     end
   end
