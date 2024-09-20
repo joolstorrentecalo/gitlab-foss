@@ -410,4 +410,39 @@ RSpec.describe AuthHelper, feature_category: :system_access do
       end
     end
   end
+
+  describe '#delete_otp_authenticator_data' do
+    context 'password is required' do
+      it 'returns data to delete the OTP authenticator' do
+        message = _('Are you sure you want to delete this one-time password authenticator? ' \
+          'Enter your password to continue. This action cannot be undone.')
+        button_and_title = _('Delete one-time password authenticator')
+
+        expect(helper.delete_otp_authenticator_data(true)).to match(a_hash_including({
+          button_text: button_and_title,
+          classes: 'gl-w-full sm:gl-w-auto',
+          message: message,
+          path: destroy_otp_profile_two_factor_auth_path,
+          password_required: 'true',
+          title: button_and_title
+        }))
+      end
+    end
+
+    context 'password is not required' do
+      it 'returns data to delete the OTP authenticator' do
+        message = _('Are you sure you want to delete this one-time password authenticator?')
+        button_and_title = _('Delete one-time password authenticator')
+
+        expect(helper.delete_otp_authenticator_data(false)).to match(a_hash_including({
+          button_text: button_and_title,
+          classes: 'gl-w-full sm:gl-w-auto',
+          message: message,
+          path: destroy_otp_profile_two_factor_auth_path,
+          password_required: 'false',
+          title: button_and_title
+        }))
+      end
+    end
+  end
 end

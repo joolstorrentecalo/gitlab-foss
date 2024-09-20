@@ -36,7 +36,8 @@ RSpec.describe Profiles::TwoFactorAuthsController, feature_category: :system_acc
     it 'requires the current password', :aggregate_failures do
       go
 
-      expect(assigns[:error]).to eq(error_message)
+      error = assigns[:error] || assigns[:destroy_error]
+      expect(error).to eq(error_message)
       expect(response).to render_template(:show)
     end
 
@@ -428,6 +429,76 @@ RSpec.describe Profiles::TwoFactorAuthsController, feature_category: :system_acc
         expect(flash[:alert])
           .to eq _('Two-factor authentication is not enabled for this user')
       end
+    end
+  end
+
+  describe 'DELETE destroy_otp' do
+    def go
+      delete :destroy_otp, params: { current_password: current_password }
+    end
+
+    let(:current_password) { user.password }
+
+    context 'for a user that has OTP and WebAuthn enabled' do
+      let_it_be_with_reload(:user) do
+        create(:user, :two_factor_via_otp, :two_factor_via_webauthn)
+      end
+
+      it 'disables OTP authenticator and leaves WebAuthn devices unaffected' do
+        expect(user.reload.two_factor_otp_enabled?).to eq(true)
+        expect(user.reload.two_factor_webauthn_enabled?).to eq(true)
+
+        go
+
+        expect(user.reload.two_factor_otp_enabled?).to eq(false)
+        expect(user.reload.two_factor_webauthn_enabled?).to eq(true)
+      end
+
+      it 'redirects to profile_account_path' do
+        go
+
+        expect(response).to redirect_to(profile_account_path)
+      end
+
+      it 'displays a notice on success' do
+        go
+
+        expect(flash[:notice])
+          .to eq _('One-time password authenticator has been deleted!')
+      end
+
+      it_behaves_like 'user must enter a valid current password'
+    end
+
+    context 'for a user that has only OTP enabled' do
+      let_it_be_with_reload(:user) do
+        create(:user, :two_factor_via_otp)
+      end
+
+      it 'disables the two-factor service' do
+        expect(user.reload.two_factor_otp_enabled?).to eq(true)
+        expect(user.reload.two_factor_enabled?).to eq(true)
+
+        go
+
+        expect(user.reload.two_factor_otp_enabled?).to eq(false)
+        expect(user.reload.two_factor_enabled?).to eq(false)
+      end
+
+      it 'redirects to profile_account_path' do
+        go
+
+        expect(response).to redirect_to(profile_account_path)
+      end
+
+      it 'displays a notice on success' do
+        go
+
+        expect(flash[:notice])
+          .to eq _('Two-factor authentication has been disabled successfully!')
+      end
+
+      it_behaves_like 'user must enter a valid current password'
     end
   end
 end

@@ -186,6 +186,23 @@ module AuthHelper
     end
   end
 
+  def delete_otp_authenticator_data(password_required)
+    message = if password_required
+                _('Are you sure you want to delete this one-time password authenticator? ' \
+                  'Enter your password to continue. This action cannot be undone.')
+              else
+                _('Are you sure you want to delete this one-time password authenticator?')
+              end
+
+    button_and_title = _('Delete one-time password authenticator')
+    { button_text: button_and_title,
+      classes: 'gl-w-full sm:gl-w-auto',
+      message: message,
+      path: destroy_otp_profile_two_factor_auth_path,
+      password_required: password_required.to_s,
+      title: button_and_title }
+  end
+
   extend self
 end
 

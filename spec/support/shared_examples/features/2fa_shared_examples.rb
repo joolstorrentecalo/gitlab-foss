@@ -57,7 +57,11 @@ RSpec.shared_examples 'hardware device for 2fa' do |device_type|
         expect(page).to have_content(first_device.name)
         expect(page).to have_content(second_device.name)
 
-        accept_gl_confirm(button_text: 'Delete') { click_on 'Delete', match: :first }
+        accept_gl_confirm(button_text: 'Delete') do
+          within_testid(device_type.downcase) do
+            click_on 'Delete', match: :first
+          end
+        end
 
         expect(page).to have_content('Successfully deleted')
         expect(page.body).not_to have_content(first_device.name)

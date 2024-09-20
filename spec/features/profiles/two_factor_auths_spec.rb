@@ -128,7 +128,29 @@ RSpec.describe 'Two factor auths', feature_category: :system_access do
     end
 
     context 'when user has two-factor authentication enabled' do
-      let_it_be(:user) { create(:user, :two_factor) }
+      let_it_be(:user) { create(:user, :two_factor_via_otp, :two_factor_via_webauthn) }
+
+      it 'requires the current_password to delete the OTP authenticator', :js do
+        visit profile_two_factor_auth_path
+
+        click_button _('Delete one-time password authenticator')
+
+        within_modal do
+          fill_in 'current_password', with: '123'
+          click_button _('Delete one-time password authenticator')
+        end
+
+        expect(page).to have_selector('.gl-alert-title', text: invalid_current_pwd_msg, count: 1)
+
+        click_button _('Delete one-time password authenticator')
+
+        within_modal do
+          fill_in 'current_password', with: user.password
+          click_button _('Delete one-time password authenticator')
+        end
+
+        expect(page).to have_content(_('One-time password authenticator has been deleted!'))
+      end
 
       it 'requires the current_password to disable two-factor authentication', :js do
         visit profile_two_factor_auth_path

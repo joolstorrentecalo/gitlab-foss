@@ -1203,6 +1203,10 @@ class User < ApplicationRecord
   end
 
   def needs_new_otp_secret?
+    if Feature.enabled?(:two_factor_actions)
+      return !two_factor_otp_enabled? && otp_secret_expired?
+    end
+
     !two_factor_enabled? && otp_secret_expired?
   end
 
