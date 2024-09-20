@@ -18,17 +18,27 @@ module PersonalAccessTokens
     BATCH_SIZE = 100
 
     def perform(*args)
-      process_user_tokens
-      process_project_bot_tokens
+      notification_intervals.each do |interval|
+        process_user_tokens(interval)
+        process_project_bot_tokens(interval)
+      end
     end
 
     private
 
-    def process_user_tokens
+    def notification_intervals
+      if Feature.enabled?(:expiring_pats_30d_60d_notifications, :instance)
+        PersonalAccessToken::NOTIFICATION_INTERVALS.keys
+      else
+        [:seven_days]
+      end
+    end
+
+    def process_user_tokens(interval = :seven_days)
       # rubocop: disable CodeReuse/ActiveRecord -- We need to specify batch size to avoid timing out of worker
       loop do
         tokens = PersonalAccessToken
-                   .expiring_and_not_notified_without_impersonation
+                   .scope_for_notification_interval(interval)
                    .owner_is_human
                    .select(:user_id)
                    .limit(BATCH_SIZE)
@@ -40,9 +50,7 @@ module PersonalAccessTokens
 
         users.each do |user|
           with_context(user: user) do
-            expiring_user_tokens = user.expiring_soon_and_unnotified_personal_access_tokens
-
-            next if expiring_user_tokens.empty?
+            expiring_user_tokens = PersonalAccessToken.scope_for_notification_interval(interval).where(user_id: user.id)
 
             # We never materialise the token instances. We need the names to mention them in the
             # email. Later we trigger an update query on the entire relation, not on individual instances.
@@ -50,16 +58,21 @@ module PersonalAccessTokens
             # We're limiting to 100 tokens so we avoid loading too many tokens into memory.
             # At the time of writing this would only affect 69 users on GitLab.com
 
-            deliver_user_notifications(user, token_names)
+            next if token_names.empty?
 
-            expiring_user_tokens.update_all(expire_notification_delivered: true)
+            interval_days = PersonalAccessToken.notification_interval(interval)
+            deliver_user_notifications(user, token_names, days_to_expire: interval_days)
+
+            notification_updates = { "#{interval}_notification_sent_at" => Time.current }
+            notification_updates[:expire_notification_delivered] = true if interval == :seven_days
+            expiring_user_tokens.update_all(notification_updates)
           end
         end
       end
       # rubocop: enable CodeReuse/ActiveRecord
     end
 
-    def process_project_bot_tokens
+    def process_project_bot_tokens(interval = :seven_days)
       # rubocop: disable CodeReuse/ActiveRecord -- We need to specify batch size to avoid timing out of worker
       notifications_delivered = 0
       project_bot_ids_without_resource = []
@@ -67,7 +80,7 @@ module PersonalAccessTokens
       loop do
         tokens = PersonalAccessToken
                    .where.not(user_id: project_bot_ids_without_resource | project_bot_ids_with_failed_delivery)
-                   .expiring_and_not_notified_without_impersonation
+                   .scope_for_notification_interval(interval)
                    .project_access_token
                    .select(:id, :user_id)
                    .limit(BATCH_SIZE)
@@ -89,8 +102,12 @@ module PersonalAccessTokens
               # project bot does not have more than 1 token
               expiring_user_token = project_bot.personal_access_tokens.first
 
-              execute_web_hooks(project_bot, expiring_user_token)
-              deliver_bot_notifications(project_bot, expiring_user_token.name)
+              # webhooks do not include information about when the token expires, so
+              # only trigger on seven_days interval to avoid changing existing behavior
+              execute_web_hooks(project_bot, expiring_user_token) if interval == :seven_days
+
+              interval_days = PersonalAccessToken.notification_interval(interval)
+              deliver_bot_notifications(project_bot, expiring_user_token.name, days_to_expire: interval_days)
             end
           rescue StandardError => e
             project_bot_ids_with_failed_delivery << project_bot.id
@@ -102,7 +119,10 @@ module PersonalAccessTokens
         tokens_with_delivered_notifications =
           tokens
             .where.not(user_id: project_bot_ids_without_resource | project_bot_ids_with_failed_delivery)
-        tokens_with_delivered_notifications.update_all(expire_notification_delivered: true)
+
+        notification_updates = { "#{interval}_notification_sent_at" => Time.current }
+        notification_updates[:expire_notification_delivered] = true if interval == :seven_days
+        tokens_with_delivered_notifications.update_all(notification_updates)
 
         notifications_delivered += tokens_with_delivered_notifications.count
       end
@@ -117,12 +137,16 @@ module PersonalAccessTokens
       # rubocop: enable CodeReuse/ActiveRecord
     end
 
-    def deliver_bot_notifications(bot_user, token_name)
-      notification_service.bot_resource_access_token_about_to_expire(bot_user, token_name)
+    def deliver_bot_notifications(bot_user, token_name, days_to_expire: 7)
+      notification_service.bot_resource_access_token_about_to_expire(
+        bot_user,
+        token_name,
+        days_to_expire: days_to_expire
+      )
     end
 
-    def deliver_user_notifications(user, token_names)
-      notification_service.access_token_about_to_expire(user, token_names)
+    def deliver_user_notifications(user, token_names, days_to_expire: 7)
+      notification_service.access_token_about_to_expire(user, token_names, days_to_expire: days_to_expire)
     end
 
     def log_exception(ex, user)

@@ -7,17 +7,17 @@ class PersonalAccessToken < ApplicationRecord
   include EachBatch
   include CreatedAtFilterable
   include Gitlab::SQL::Pattern
-  include SafelyChangeColumnDefault
-
   extend ::Gitlab::Utils::Override
+
+  NOTIFICATION_INTERVALS = {
+    seven_days: 0..7,
+    thirty_days: 8..30,
+    sixty_days: 31..60
+  }.freeze
 
   add_authentication_token_field :token,
     digest: true,
     format_with_prefix: :prefix_from_application_current_settings
-
-  columns_changing_default :organization_id
-
-  attribute :organization_id, default: -> { Organizations::Organization::DEFAULT_ORGANIZATION_ID }
 
   # PATs are 20 characters + optional configurable settings prefix (0..20)
   TOKEN_LENGTH_RANGE = (20..40)
@@ -33,15 +33,13 @@ class PersonalAccessToken < ApplicationRecord
   before_save :ensure_token
 
   scope :active, -> { not_revoked.not_expired }
-  scope :expiring_and_not_notified, ->(date) { where(["revoked = false AND expire_notification_delivered = false AND expires_at >= CURRENT_DATE AND expires_at <= ?", date]) }
+  scope :expiring_and_not_notified, ->(date) { where(revoked: false, expire_notification_delivered: false, seven_days_notification_sent_at: nil).where('expires_at >= CURRENT_DATE').where('expires_at <= ?', date) }
   scope :expired_today_and_not_notified, -> { where(["revoked = false AND expires_at = CURRENT_DATE AND after_expiry_notification_delivered = false"]) }
-  scope :expired_before, ->(date) { expired.where(arel_table[:expires_at].lt(date)) }
   scope :inactive, -> { where("revoked = true OR expires_at < CURRENT_DATE") }
   scope :last_used_before_or_unused, ->(date) { where("personal_access_tokens.created_at < :date AND (last_used_at < :date OR last_used_at IS NULL)", date: date) }
   scope :with_impersonation, -> { where(impersonation: true) }
   scope :without_impersonation, -> { where(impersonation: false) }
   scope :revoked, -> { where(revoked: true) }
-  scope :revoked_before, ->(date) { revoked.where(arel_table[:updated_at].lt(date)) }
   scope :not_revoked, -> { where(revoked: [false, nil]) }
   scope :for_user, ->(user) { where(user: user) }
   scope :for_users, ->(users) { where(user: users) }
@@ -52,7 +50,9 @@ class PersonalAccessToken < ApplicationRecord
   scope :owner_is_human, -> { includes(:user).references(:user).merge(User.human) }
   scope :last_used_before, ->(date) { where("last_used_at <= ?", date) }
   scope :last_used_after, ->(date) { where("last_used_at >= ?", date) }
-  scope :expiring_and_not_notified_without_impersonation, -> { where(["(revoked = false AND expire_notification_delivered = false AND expires_at >= CURRENT_DATE AND expires_at <= :date) and impersonation = false", { date: DAYS_TO_EXPIRE.days.from_now.to_date }]) }
+  scope :expiring_and_not_notified_without_impersonation, -> {
+    expiring_and_not_notified(DAYS_TO_EXPIRE.days.from_now.to_date).without_impersonation
+  }
 
   validates :scopes, presence: true
   validates :expires_at, presence: true, on: :create, unless: :allow_expires_at_to_be_empty?
@@ -83,6 +83,23 @@ class PersonalAccessToken < ApplicationRecord
 
   def self.search(query)
     fuzzy_search(query, [:name])
+  end
+
+  def self.notification_interval(interval)
+    NOTIFICATION_INTERVALS.fetch(interval).max
+  end
+
+  def self.scope_for_notification_interval(interval)
+    date_range = NOTIFICATION_INTERVALS.fetch(interval)
+    min_expiry_date = Date.current + date_range.min
+    max_expiry_date = Date.current + date_range.max
+    interval_attr = "#{interval}_notification_sent_at"
+
+    without_impersonation
+     .not_revoked
+     .where(interval_attr => nil)
+     .where(expire_notification_delivered: false) # legacy version of seven_days_notification_sent_at
+     .where('expires_at BETWEEN ? AND ?', min_expiry_date, max_expiry_date)
   end
 
   def hook_attrs
