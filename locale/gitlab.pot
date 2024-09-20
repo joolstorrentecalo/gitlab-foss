@@ -3898,7 +3898,10 @@ msgstr ""
 msgid "AdminSelfHostedModels|Define your set of self-hosted models"
 msgstr ""
 
-msgid "AdminSelfHostedModels|Delete model"
+msgid "AdminSelfHostedModels|Delete"
+msgstr ""
+
+msgid "AdminSelfHostedModels|Delete self-hosted model"
 msgstr ""
 
 msgid "AdminSelfHostedModels|Deployment name"
@@ -7334,6 +7337,9 @@ msgid "Are you sure you want to lose your issue information?"
 msgstr ""
 
 msgid "Are you sure you want to merge immediately?"
+msgstr ""
+
+msgid "Are you sure you want to proceed?"
 msgstr ""
 
 msgid "Are you sure you want to re-deploy this environment?"
@@ -52661,7 +52667,7 @@ msgstr ""
 msgid "Started escalation for this incident."
 msgstr ""
 
-msgid "Starting with GitLab 17.5, OpenSSL 3 will be used. All TLS connections require TLS 1.2 or higher. Weaker ciphers are no longer supported. Encryption must have at least of 112 bits of security. %{link_start}Learn more%{link_end}."
+msgid "Starting with GitLab 17.7, OpenSSL 3 will be used. All TLS connections require TLS 1.2 or higher. Weaker ciphers are no longer supported. Encryption must have at least of 112 bits of security. %{link_start}Learn more%{link_end}."
 msgstr ""
 
 msgid "Starting..."
