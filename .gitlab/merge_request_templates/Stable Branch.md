@@ -5,6 +5,10 @@ GitLab patch releases https://docs.gitlab.com/ee/policy/maintenance.html#patch-r
 If you're backporting a security fix, please refer to the security merge request
 template https://gitlab.com/gitlab-org/security/gitlab/blob/master/.gitlab/merge_request_templates/Security%20Release.md.
 Security backport merge requests should not be opened on the GitLab canonical project.
+
+Please don't remove this comment.
+
+Template: Stable Branch.md
 -->
 
 ## What does this MR do and why?
@@ -34,3 +38,5 @@ If you have questions about the patch release process, please:
 [`#releases`]: https://gitlab.slack.com/archives/C0XM5UU6B
 
 /assign me
+
+<!-- template sourced from https://gitlab.com/gitlab-org/gitlab/-/blob/master/.gitlab/merge_request_templates/Stable%20Branch.md -->
