@@ -4315,17 +4315,21 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
   end
 
   describe '#pages_generator?', feature_category: :pages do
-    where(:name, :enabled, :result) do
-      'foo' | false | false
-      'pages' | false | false
-      'pages:preview' | true | false
-      'pages' | true | true
+    where(:name, :pages_config, :enabled, :result) do
+      'foo' | nil | false | false
+      'pages' | nil | false | false
+      'pages:preview' | nil | true | false
+      'pages' | nil | true | true
+      'foo' | true | true | true
+      'foo' | { expire_in: '1 day' } | true | true
+      'foo' | false | true | false
+      'pages' | false | true | false
     end
 
     with_them do
       before do
         stub_pages_setting(enabled: enabled)
-        build.update!(name: name)
+        build.update!(name: name, options: { pages: pages_config })
       end
 
       subject { build.pages_generator? }

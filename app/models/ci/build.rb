@@ -230,7 +230,6 @@ module Ci
     scope :with_pipeline_source_type, ->(pipeline_source_type) { joins(:pipeline).where(pipeline: { source: pipeline_source_type }) }
     scope :created_after, ->(time) { where(arel_table[:created_at].gt(time)) }
     scope :updated_after, ->(time) { where(arel_table[:updated_at].gt(time)) }
-    scope :for_project_ids, ->(project_ids) { where(project_id: project_ids) }
 
     add_authentication_token_field :token,
       encrypted: :required,
@@ -458,8 +457,10 @@ module Ci
     end
 
     def pages_generator?
-      Gitlab.config.pages.enabled &&
-        name == 'pages'
+      return false unless Gitlab.config.pages.enabled
+      return true if options[:pages].is_a?(Hash) || options[:pages] == true
+
+      options[:pages] != false && name == 'pages' # Legacy behaviour
     end
 
     # Overriden on EE
