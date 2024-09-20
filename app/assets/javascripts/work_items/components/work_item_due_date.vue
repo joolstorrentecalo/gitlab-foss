@@ -1,9 +1,10 @@
 <script>
 import { GlButton, GlDatepicker, GlFormGroup, GlOutsideDirective as Outside } from '@gitlab/ui';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
+import { getDateWithUTC, newDateAsLocaleTime } from '~/lib/utils/datetime/date_calculation_utility';
 import { s__ } from '~/locale';
 import Tracking from '~/tracking';
-import { formatDate, newDate, pikadayToString } from '~/lib/utils/datetime_utility';
+import { formatDate, pikadayToString } from '~/lib/utils/datetime_utility';
 import { Mousetrap } from '~/lib/mousetrap';
 import { keysFor, SIDEBAR_CLOSE_WIDGET } from '~/behaviors/shortcuts/keybindings';
 import {
@@ -74,8 +75,8 @@ export default {
     datesUnchanged() {
       const dirtyDueDate = this.dirtyDueDate || nullObjectDate;
       const dirtyStartDate = this.dirtyStartDate || nullObjectDate;
-      const dueDate = this.dueDate ? newDate(this.dueDate) : nullObjectDate;
-      const startDate = this.startDate ? newDate(this.startDate) : nullObjectDate;
+      const dueDate = this.dueDate ? newDateAsLocaleTime(this.dueDate) : nullObjectDate;
+      const startDate = this.startDate ? newDateAsLocaleTime(this.startDate) : nullObjectDate;
       return (
         dirtyDueDate.getTime() === dueDate.getTime() &&
         dirtyStartDate.getTime() === startDate.getTime()
@@ -136,13 +137,13 @@ export default {
   watch: {
     dueDate: {
       handler(newDueDate) {
-        this.dirtyDueDate = newDate(newDueDate);
+        this.dirtyDueDate = newDateAsLocaleTime(newDueDate);
       },
       immediate: true,
     },
     startDate: {
       handler(newStartDate) {
-        this.dirtyStartDate = newDate(newStartDate);
+        this.dirtyStartDate = newDateAsLocaleTime(newStartDate);
       },
       immediate: true,
     },
@@ -181,8 +182,8 @@ export default {
             input: {
               id: this.workItemId,
               startAndDueDateWidget: {
-                dueDate: this.dirtyDueDate ? pikadayToString(this.dirtyDueDate) : null,
-                startDate: this.dirtyStartDate ? pikadayToString(this.dirtyStartDate) : null,
+                dueDate: getDateWithUTC(this.dirtyDueDate),
+                startDate: getDateWithUTC(this.dirtyStartDate),
               },
             },
           },

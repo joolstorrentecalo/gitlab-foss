@@ -3886,6 +3886,9 @@ msgstr ""
 msgid "AdminSelfHostedModels|An error occurred while loading self-hosted models. Please try again."
 msgstr ""
 
+msgid "AdminSelfHostedModels|An error occurred while updating the sefl-hosted model, please try again."
+msgstr ""
+
 msgid "AdminSelfHostedModels|By enabling self-hosted models, you accept the %{link_start}GitLab Testing Agreement%{link_end}."
 msgstr ""
 
@@ -3959,6 +3962,9 @@ msgid "AdminSelfHostedModels|Self-hosted models"
 msgstr ""
 
 msgid "AdminSelfHostedModels|Self-hosted models are an experimental feature."
+msgstr ""
+
+msgid "AdminSelfHostedModels|Successfully updated %{mainFeature} / %{title}"
 msgstr ""
 
 msgid "AdminSelfHostedModels|There was an error saving the self-hosted model. Please try again."
@@ -13180,6 +13186,9 @@ msgstr ""
 msgid "Code"
 msgstr ""
 
+msgid "Code Completion"
+msgstr ""
+
 msgid "Code Coverage: %{coveragePercentage}%{percentSymbol}"
 msgstr ""
 
@@ -13187,6 +13196,9 @@ msgid "Code Coverage|Couldn't fetch the code coverage data"
 msgstr ""
 
 msgid "Code Coverage|No code coverage data"
+msgstr ""
+
+msgid "Code Generation"
 msgstr ""
 
 msgid "Code Owner"
@@ -13202,6 +13214,9 @@ msgid "Code Quality scans found %{degradation} and %{improvement}."
 msgstr ""
 
 msgid "Code Quality scans found %{findings}."
+msgstr ""
+
+msgid "Code Suggestions"
 msgstr ""
 
 msgid "Code block"
@@ -20070,6 +20085,9 @@ msgid "Due to inactivity, the %{project_name} (%{project_link}) project is sched
 msgstr ""
 
 msgid "Due to inactivity, this project is scheduled to be deleted on %{deletion_date}. %{link_start}Why is this scheduled?%{link_end}"
+msgstr ""
+
+msgid "Duo Chat"
 msgstr ""
 
 msgid "DuoChat|An administrator has turned off GitLab Duo for this %{reason}"
@@ -57709,6 +57727,9 @@ msgstr ""
 msgid "Try all GitLab has to offer for 30 days. No credit card required."
 msgstr ""
 
+msgid "Try changing or removing filters."
+msgstr ""
+
 msgid "Try grouping with different labels"
 msgstr ""
 
@@ -57869,6 +57890,9 @@ msgid "Unable to collect CPU information"
 msgstr ""
 
 msgid "Unable to collect memory information"
+msgstr ""
+
+msgid "Unable to complete your request. Please enter a different email address and try again."
 msgstr ""
 
 msgid "Unable to connect to server: %{error}"
@@ -63607,6 +63631,9 @@ msgstr ""
 msgid "Your resource access tokens will expire in %{days_to_expire} or less"
 msgstr ""
 
+msgid "Your search didn't match any commits."
+msgstr ""
+
 msgid "Your search didn't match any commits. Try a different query."
 msgstr ""
 
@@ -64050,9 +64077,6 @@ msgstr[1] ""
 msgid "ci secure files"
 msgstr ""
 
-msgid "ciReport|%{criticalStart}critical%{criticalEnd}, %{highStart}high%{highEnd} and %{otherStart}other%{otherEnd} vulnerabilities detected."
-msgstr ""
-
 msgid "ciReport|%{criticalStart}critical%{criticalEnd}, %{highStart}high%{highEnd} and %{otherStart}others%{otherEnd}"
 msgstr ""
 
@@ -64261,9 +64285,6 @@ msgstr ""
 msgid "ciReport|Resolve with scanner suggestion"
 msgstr ""
 
-msgid "ciReport|Runs against latest tags only"
-msgstr ""
-
 msgid "ciReport|SAST"
 msgstr ""
 
@@ -64327,9 +64348,6 @@ msgid "ciReport|View all pipeline findings"
 msgstr ""
 
 msgid "ciReport|View full report"
-msgstr ""
-
-msgid "ciReport|View vulnerabilities"
 msgstr ""
 
 msgid "ciReport|in"
@@ -64781,9 +64799,6 @@ msgid "is not allowed for this project."
 msgstr ""
 
 msgid "is not allowed to point to itself"
-msgstr ""
-
-msgid "is not allowed. Please enter a different email address and try again."
 msgstr ""
 
 msgid "is not allowed. Please use your regular email address."
