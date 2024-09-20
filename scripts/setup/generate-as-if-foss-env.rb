@@ -30,6 +30,7 @@ class GenerateAsIfFossEnv
     'compile-production-assets' => 'ENABLE_COMPILE_PRODUCTION_ASSETS',
     'compile-storybook' => 'ENABLE_COMPILE_STORYBOOK',
     'compile-test-assets' => 'ENABLE_COMPILE_TEST_ASSETS',
+    'db:docs-lint' => 'ENABLE_DB_DOCS_LINT',
     'detect-tests' => 'ENABLE_DETECT_TESTS',
     'eslint' => 'ENABLE_ESLINT',
     'generate-apollo-graphql-schema' => 'ENABLE_GENERATE_APOLLO_GRAPHQL_SCHEMA',

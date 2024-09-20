@@ -1144,6 +1144,14 @@
         - scripts/lint_templates_bash.rb
 
 ######################
+# DB rules #
+######################
+.db:rules:docs-lint:
+  rules:
+    - if: '$ENABLE_DB_DOCS_LINT == "true"'
+    - !reference [.rails:rules:ee-and-foss-migration, rules]
+
+######################
 # Dev fixtures rules #
 ######################
 .dev-fixtures:rules:foss-only:
@@ -2002,6 +2010,8 @@
   rules:
     - if: '$DISABLE_DB_MULTI_VERSION_UPGRADE =~ /true|yes|1/i'
       when: never
+    - <<: *if-merge-request-targeting-stable-branch
+      when: manual
     - !reference [".rails:rules:ee-and-foss-migration", rules]
 
 .rails:rules:db-backup:

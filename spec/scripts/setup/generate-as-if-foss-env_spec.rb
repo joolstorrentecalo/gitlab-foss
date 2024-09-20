@@ -40,6 +40,7 @@ RSpec.describe GenerateAsIfFossEnv, feature_category: :tooling do # rubocop:disa
         'compile-storybook',
         'compile-test-assets',
         'cache-assets:test',
+        'db:docs-lint',
         'detect-tests',
         'eslint',
         'generate-apollo-graphql-schema',
@@ -109,6 +110,7 @@ RSpec.describe GenerateAsIfFossEnv, feature_category: :tooling do # rubocop:disa
         ENABLE_COMPILE_STORYBOOK: 'true',
         ENABLE_COMPILE_TEST_ASSETS: 'true',
         ENABLE_CACHE_ASSETS: 'true',
+        ENABLE_DB_DOCS_LINT: 'true',
         ENABLE_DETECT_TESTS: 'true',
         ENABLE_ESLINT: 'true',
         ENABLE_GENERATE_APOLLO_GRAPHQL_SCHEMA: 'true',
@@ -178,6 +180,7 @@ RSpec.describe GenerateAsIfFossEnv, feature_category: :tooling do # rubocop:disa
         ENABLE_COMPILE_STORYBOOK=true
         ENABLE_COMPILE_TEST_ASSETS=true
         ENABLE_CACHE_ASSETS=true
+        ENABLE_DB_DOCS_LINT=true
         ENABLE_DETECT_TESTS=true
         ENABLE_ESLINT=true
         ENABLE_GENERATE_APOLLO_GRAPHQL_SCHEMA=true
