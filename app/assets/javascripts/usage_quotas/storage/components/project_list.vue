@@ -1,10 +1,11 @@
 <script>
-import { GlTable, GlLink, GlSprintf, GlIcon } from '@gitlab/ui';
+import { GlTable, GlLink, GlSprintf } from '@gitlab/ui';
 import { __ } from '~/locale';
 import ProjectAvatar from '~/vue_shared/components/project_avatar.vue';
 import { containerRegistryPopover } from '~/usage_quotas/storage/constants';
 import NumberToHumanSize from '~/vue_shared/components/number_to_human_size/number_to_human_size.vue';
 import HelpPageLink from '~/vue_shared/components/help_page_link/help_page_link.vue';
+import HelpIcon from '~/vue_shared/components/help_icon/help_icon.vue';
 import StorageTypeHelpLink from './storage_type_help_link.vue';
 import StorageTypeWarning from './storage_type_warning.vue';
 
@@ -14,12 +15,12 @@ export default {
     GlTable,
     GlLink,
     GlSprintf,
-    GlIcon,
     ProjectAvatar,
     NumberToHumanSize,
     HelpPageLink,
     StorageTypeHelpLink,
     StorageTypeWarning,
+    HelpIcon,
   },
   props: {
     projects: {
@@ -159,7 +160,7 @@ export default {
             </template>
           </gl-sprintf>
           <help-page-link href="user/usage_quotas#view-project-fork-storage-usage" target="_blank">
-            <gl-icon name="question-o" :size="12" />
+            <help-icon size="small" />
           </help-page-link>
         </div>
       </template>

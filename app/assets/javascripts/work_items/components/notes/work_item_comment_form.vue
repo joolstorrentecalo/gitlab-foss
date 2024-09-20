@@ -1,5 +1,5 @@
 <script>
-import { GlButton, GlFormCheckbox, GlIcon, GlTooltipDirective } from '@gitlab/ui';
+import { GlButton, GlFormCheckbox, GlTooltipDirective } from '@gitlab/ui';
 import { helpPagePath } from '~/helpers/help_page_helper';
 import { s__, __ } from '~/locale';
 import { capitalizeFirstCharacter } from '~/lib/utils/text_utility';
@@ -7,6 +7,7 @@ import { STATE_OPEN, WORK_ITEM_TYPE_VALUE_TASK } from '~/work_items/constants';
 import { getDraft, clearDraft, updateDraft } from '~/lib/utils/autosave';
 import { confirmAction } from '~/lib/utils/confirm_via_gl_modal/confirm_via_gl_modal';
 import MarkdownEditor from '~/vue_shared/components/markdown/markdown_editor.vue';
+import HelpIcon from '~/vue_shared/components/help_icon/help_icon.vue';
 import WorkItemStateToggle from '~/work_items/components/work_item_state_toggle.vue';
 import CommentFieldLayout from '~/notes/components/comment_field_layout.vue';
 
@@ -40,8 +41,8 @@ export default {
     GlButton,
     MarkdownEditor,
     GlFormCheckbox,
-    GlIcon,
     WorkItemStateToggle,
+    HelpIcon,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -275,12 +276,9 @@ export default {
             data-testid="internal-note-checkbox"
           >
             {{ $options.i18n.internal }}
-            <gl-icon
+            <help-icon
               v-gl-tooltip:tooltipcontainer.bottom
-              name="question-o"
-              :size="16"
               :title="$options.i18n.internalVisibility"
-              class="gl-text-blue-500"
             />
           </gl-form-checkbox>
           <div class="gl-flex gl-gap-3">

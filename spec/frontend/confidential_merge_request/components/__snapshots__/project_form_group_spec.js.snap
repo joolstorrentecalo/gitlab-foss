@@ -32,10 +32,8 @@ exports[`Confidential merge request project form group component renders empty s
         >
           Read more
         </span>
-        <gl-icon-stub
-          name="question-o"
-          size="16"
-          variant="current"
+        <help-icon-stub
+          size="default"
         />
       </gl-link-stub>
     </p>
@@ -69,10 +67,8 @@ exports[`Confidential merge request project form group component renders fork dr
         >
           Read more
         </span>
-        <gl-icon-stub
-          name="question-o"
-          size="16"
-          variant="current"
+        <help-icon-stub
+          size="default"
         />
       </gl-link-stub>
     </p>

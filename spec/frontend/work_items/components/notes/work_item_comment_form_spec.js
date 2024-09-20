@@ -1,4 +1,4 @@
-import { GlFormCheckbox, GlIcon } from '@gitlab/ui';
+import { GlFormCheckbox } from '@gitlab/ui';
 import Vue, { nextTick } from 'vue';
 import VueApollo from 'vue-apollo';
 import { shallowMountExtended } from 'helpers/vue_test_utils_helper';
@@ -7,6 +7,7 @@ import waitForPromises from 'helpers/wait_for_promises';
 import * as autosave from '~/lib/utils/autosave';
 import { ESC_KEY, ENTER_KEY } from '~/lib/utils/keys';
 import { STATE_OPEN } from '~/work_items/constants';
+import HelpIcon from '~/vue_shared/components/help_icon/help_icon.vue';
 import * as confirmViaGlModal from '~/lib/utils/confirm_via_gl_modal/confirm_via_gl_modal';
 import CommentFieldLayout from '~/notes/components/comment_field_layout.vue';
 import WorkItemCommentForm from '~/work_items/components/notes/work_item_comment_form.vue';
@@ -38,7 +39,7 @@ describe('Work item comment form component', () => {
   const findCancelButton = () => wrapper.findByTestId('cancel-button');
   const findConfirmButton = () => wrapper.findByTestId('confirm-button');
   const findInternalNoteCheckbox = () => wrapper.findComponent(GlFormCheckbox);
-  const findInternalNoteTooltipIcon = () => wrapper.findComponent(GlIcon);
+  const findInternalNoteTooltipIcon = () => wrapper.findComponent(HelpIcon);
   const findWorkItemToggleStateButton = () => wrapper.findComponent(WorkItemStateToggle);
   const findToggleResolveCheckbox = () => wrapper.findByTestId('toggle-resolve-checkbox');
 

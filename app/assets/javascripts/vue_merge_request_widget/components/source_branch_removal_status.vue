@@ -1,6 +1,7 @@
 <script>
-import { GlIcon, GlTooltipDirective } from '@gitlab/ui';
+import { GlTooltipDirective } from '@gitlab/ui';
 import { __ } from '~/locale';
+import HelpIcon from '~/vue_shared/components/help_icon/help_icon.vue';
 
 export default {
   i18n: {
@@ -8,7 +9,7 @@ export default {
     tooltipTitle: __('A user with write access to the source branch selected this option'),
   },
   components: {
-    GlIcon,
+    HelpIcon,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -21,11 +22,10 @@ export default {
     <span class="status-text">
       {{ $options.i18n.removesBranchText }}
     </span>
-    <gl-icon
+    <help-icon
       v-gl-tooltip.hover
       :title="$options.i18n.tooltipTitle"
       :aria-label="$options.i18n.tooltipTitle"
-      name="question-o"
     />
   </p>
 </template>

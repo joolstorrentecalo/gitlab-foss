@@ -1,10 +1,11 @@
 <script>
-import { GlButton, GlIcon, GlLink, GlPagination, GlTable, GlTooltipDirective } from '@gitlab/ui';
+import { GlButton, GlLink, GlPagination, GlTable, GlTooltipDirective } from '@gitlab/ui';
 import { helpPagePath } from '~/helpers/help_page_helper';
 import { convertObjectPropsToCamelCase } from '~/lib/utils/common_utils';
 import { __, sprintf } from '~/locale';
 import DomElementListener from '~/vue_shared/components/dom_element_listener.vue';
 import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
+import HelpIcon from '~/vue_shared/components/help_icon/help_icon.vue';
 import UserDate from '~/vue_shared/components/user_date.vue';
 import { EVENT_SUCCESS, FIELDS, FORM_SELECTOR, INITIAL_PAGE, PAGE_SIZE } from './constants';
 
@@ -16,12 +17,12 @@ export default {
   components: {
     DomElementListener,
     GlButton,
-    GlIcon,
     GlLink,
     GlPagination,
     GlTable,
     TimeAgoTooltip,
     UserDate,
+    HelpIcon,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -127,7 +128,7 @@ export default {
           <template #head(lastUsedAt)="{ label }">
             <span>{{ label }}</span>
             <gl-link :href="$options.lastUsedHelpLink"
-              ><gl-icon name="question-o" class="gl-ml-2" /><span class="gl-sr-only">{{
+              ><help-icon class="gl-ml-2" /><span class="gl-sr-only">{{
                 s__('AccessTokens|The last time a token was used')
               }}</span></gl-link
             >

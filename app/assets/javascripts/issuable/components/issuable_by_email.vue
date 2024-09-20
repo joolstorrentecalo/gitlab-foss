@@ -7,12 +7,12 @@ import {
   GlSprintf,
   GlLink,
   GlFormInputGroup,
-  GlIcon,
 } from '@gitlab/ui';
 import { TYPE_ISSUE } from '~/issues/constants';
 import axios from '~/lib/utils/axios_utils';
 import { sprintf, __ } from '~/locale';
 import ModalCopyButton from '~/vue_shared/components/modal_copy_button.vue';
+import HelpIcon from '~/vue_shared/components/help_icon/help_icon.vue';
 
 export default {
   i18n: {
@@ -25,8 +25,8 @@ export default {
     GlSprintf,
     GlLink,
     GlFormInputGroup,
-    GlIcon,
     ModalCopyButton,
+    HelpIcon,
   },
   directives: {
     GlModal: GlModalDirective,
@@ -150,7 +150,7 @@ export default {
         >
           <template #helpIcon>
             <gl-link :href="emailsHelpPagePath" target="_blank">
-              <gl-icon class="gl-text-blue-600" name="question-o" />
+              <help-icon />
             </gl-link>
           </template>
           <template #resetLink="{ content }">
