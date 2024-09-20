@@ -98,7 +98,7 @@ module UsersHelper
     end
   end
 
-  def impersonation_enabled?
+  def impersonation_enabled?(*)
     Gitlab.config.gitlab.impersonation_enabled
   end
 
