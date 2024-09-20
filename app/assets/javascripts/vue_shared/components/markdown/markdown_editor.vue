@@ -213,6 +213,9 @@ export default {
         };
       }
     },
+    findAndReplace({ find, replace }) {
+      this.setValue(this.value.replaceAll(find, replace));
+    },
     updateMarkdownFromContentEditor({ markdown }) {
       this.markdown = markdown;
       this.$emit('input', markdown);
