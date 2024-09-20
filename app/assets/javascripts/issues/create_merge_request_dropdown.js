@@ -378,6 +378,17 @@ export default class CreateMergeRequestDropdown {
   }
 
   onChangeInput(event) {
+    // If the user was holding a meta key, released a meta key, or released or pressed esc, do nothing.
+    if (
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      [16, 17, 18, 27, 37, 38, 39, 40, 91, 93].includes(event.keyCode)
+    ) {
+      return undefined;
+    }
+
     this.disable();
     let target;
     let value;

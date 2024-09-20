@@ -43,7 +43,6 @@ describe('BlobHeader', () => {
         filePath: 'test/file.js',
         projectPath: 'Testjs/Test',
         fileUrl: 'https://gitlab.com/test/file.js',
-        systemColorScheme: 'gl-light',
       });
     });
 
@@ -60,7 +59,6 @@ describe('BlobHeader', () => {
       createComponent({
         filePath: 'test/file.js',
         fileUrl: 'https://gitlab.com/test/file.js',
-        systemColorScheme: 'gl-light',
       });
     });
 
@@ -78,7 +76,6 @@ describe('BlobHeader', () => {
         filePath: 'test/file.js',
         projectPath: 'Testjs/Test',
         fileUrl: 'https://gitlab.com/test/file.js',
-        systemColorScheme: 'gl-light',
       });
     });
 

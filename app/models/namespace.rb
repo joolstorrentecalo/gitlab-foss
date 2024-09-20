@@ -247,9 +247,6 @@ class Namespace < ApplicationRecord
 
   scope :with_shared_runners_enabled, -> { where(shared_runners_enabled: true) }
 
-  scope :by_contains_all_traversal_ids, ->(traversal_ids) { where('traversal_ids::bigint[] @> ARRAY[?]::bigint[]', traversal_ids) }
-  scope :by_traversal_ids, ->(traversal_ids) { where('traversal_ids::bigint[] = ARRAY[?]::bigint[]', traversal_ids) }
-
   # Make sure that the name is same as strong_memoize name in root_ancestor
   # method
   attr_writer :root_ancestor, :emails_enabled_memoized
@@ -356,6 +353,15 @@ class Namespace < ApplicationRecord
 
       coalesce = Arel::Nodes::NamedFunction.new('COALESCE', [sum, 0])
       coalesce.as(column.to_s)
+    end
+
+    def with_disabled_organization_validation
+      current_value = Gitlab::SafeRequestStore[:require_organization]
+      Gitlab::SafeRequestStore[:require_organization] = false
+
+      yield
+    ensure
+      Gitlab::SafeRequestStore[:require_organization] = current_value
     end
 
     def username_reserved?(username)

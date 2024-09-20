@@ -27,11 +27,6 @@ export default {
       required: true,
       default: () => [],
     },
-    hideCountWhenZero: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
   },
   computed: {
     totalCountAllByType() {
@@ -48,9 +43,6 @@ export default {
         this.rolledUpCountExists(rollUpCount),
       );
     },
-    showRolledUpCount() {
-      return this.hideCountWhenZero ? this.totalCountAllByType > 0 : true;
-    },
   },
   methods: {
     workItemTypeCount(workItemTypeName) {
@@ -65,7 +57,7 @@ export default {
 };
 </script>
 <template>
-  <div v-if="showRolledUpCount" data-testid="work-item-rolled-up-count-wrapper">
+  <div>
     <span
       v-if="showDetailedCount"
       ref="info"

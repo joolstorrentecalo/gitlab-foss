@@ -137,14 +137,6 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
         is_expected.to contain_exactly(build)
       end
     end
-
-    describe 'for_project_ids' do
-      subject { described_class.for_project_ids([new_project.id]) }
-
-      it 'returns the builds from given projects' do
-        is_expected.to contain_exactly(new_build)
-      end
-    end
   end
 
   describe 'callbacks' do
@@ -4314,6 +4306,80 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
     end
   end
 
+  describe '.matches_tag_ids' do
+    let_it_be(:build, reload: true) { create(:ci_build, pipeline: pipeline, user: user) }
+
+    let(:tag_ids) { Ci::Tag.named_any(tag_list).ids }
+
+    subject { described_class.where(id: build).matches_tag_ids(tag_ids) }
+
+    before do
+      build.update!(tag_list: build_tag_list)
+    end
+
+    context 'when have different tags' do
+      let(:build_tag_list) { %w[A B] }
+      let(:tag_list) { %w[C D] }
+
+      it "does not match a build" do
+        is_expected.not_to contain_exactly(build)
+      end
+    end
+
+    context 'when have a subset of tags' do
+      let(:build_tag_list) { %w[A B] }
+      let(:tag_list) { %w[A B C D] }
+
+      it "does match a build" do
+        is_expected.to contain_exactly(build)
+      end
+    end
+
+    context 'when build does not have tags' do
+      let(:build_tag_list) { [] }
+      let(:tag_list) { %w[C D] }
+
+      it "does match a build" do
+        is_expected.to contain_exactly(build)
+      end
+    end
+
+    context 'when does not have a subset of tags' do
+      let(:build_tag_list) { %w[A B C] }
+      let(:tag_list) { %w[C D] }
+
+      it "does not match a build" do
+        is_expected.not_to contain_exactly(build)
+      end
+    end
+  end
+
+  describe '.matches_tags' do
+    let_it_be(:build, reload: true) { create(:ci_build, pipeline: pipeline, user: user) }
+
+    subject { described_class.where(id: build).with_any_tags }
+
+    before do
+      build.update!(tag_list: tag_list)
+    end
+
+    context 'when does have tags' do
+      let(:tag_list) { %w[A B] }
+
+      it "does match a build" do
+        is_expected.to contain_exactly(build)
+      end
+    end
+
+    context 'when does not have tags' do
+      let(:tag_list) { [] }
+
+      it "does not match a build" do
+        is_expected.not_to contain_exactly(build)
+      end
+    end
+  end
+
   describe '#pages_generator?', feature_category: :pages do
     where(:name, :enabled, :result) do
       'foo' | false | false
@@ -5845,7 +5911,7 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
     end
   end
 
-  describe 'partitioning' do
+  describe 'partitioning', :ci_partitionable do
     include Ci::PartitioningHelpers
 
     let(:new_pipeline) { create(:ci_pipeline, project: project) }
@@ -5853,7 +5919,7 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
     let(:ci_build) { FactoryBot.build(:ci_build, pipeline: new_pipeline, ci_stage: ci_stage) }
 
     before do
-      stub_current_partition_id(ci_testing_partition_id)
+      stub_current_partition_id(ci_testing_partition_id_for_check_constraints)
     end
 
     it 'assigns partition_id to job variables successfully', :aggregate_failures do
@@ -5865,26 +5931,26 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
       ci_build.save!
 
       expect(ci_build.job_variables.count).to eq(2)
-      expect(ci_build.job_variables.first.partition_id).to eq(ci_testing_partition_id)
-      expect(ci_build.job_variables.second.partition_id).to eq(ci_testing_partition_id)
+      expect(ci_build.job_variables.first.partition_id).to eq(ci_testing_partition_id_for_check_constraints)
+      expect(ci_build.job_variables.second.partition_id).to eq(ci_testing_partition_id_for_check_constraints)
     end
   end
 
-  describe 'assigning token' do
+  describe 'assigning token', :ci_partitionable do
     include Ci::PartitioningHelpers
 
     let(:new_pipeline) { create(:ci_pipeline, project: project) }
     let(:ci_build) { create(:ci_build, pipeline: new_pipeline) }
 
     before do
-      stub_current_partition_id(ci_testing_partition_id)
+      stub_current_partition_id(ci_testing_partition_id_for_check_constraints)
     end
 
     it 'includes partition_id in the token prefix' do
       prefix = ci_build.token.match(/^glcbt-([\h]+)_/)
       partition_prefix = prefix[1].to_i(16)
 
-      expect(partition_prefix).to eq(ci_testing_partition_id)
+      expect(partition_prefix).to eq(ci_testing_partition_id_for_check_constraints)
     end
   end
 
@@ -5899,8 +5965,8 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
     end
   end
 
-  describe 'metadata partitioning' do
-    let(:pipeline) { create(:ci_pipeline, project: project, partition_id: ci_testing_partition_id) }
+  describe 'metadata partitioning', :ci_partitionable do
+    let(:pipeline) { create(:ci_pipeline, project: project, partition_id: ci_testing_partition_id_for_check_constraints) }
 
     let(:ci_stage) { create(:ci_stage, pipeline: pipeline) }
     let(:build) { FactoryBot.build(:ci_build, pipeline: pipeline, ci_stage: ci_stage) }
@@ -5915,7 +5981,7 @@ RSpec.describe Ci::Build, feature_category: :continuous_integration, factory_def
 
       expect(build.metadata).to be_present
       expect(build.metadata).to be_valid
-      expect(build.metadata.partition_id).to eq(ci_testing_partition_id)
+      expect(build.metadata.partition_id).to eq(ci_testing_partition_id_for_check_constraints)
     end
   end
 

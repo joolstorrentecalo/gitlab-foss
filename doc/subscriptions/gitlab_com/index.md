@@ -186,10 +186,6 @@ For example, if you purchase a subscription for 10 users:
 
 Seats owed = 12 - 10 (Maximum users - users in subscription)
 
-To prevent charges from seats owed, you can
-[turn on restricted access](../../administration/settings/sign_up_restrictions.md#turn-on-restricted-access).
-This setting restricts groups from adding new billable users when there are no seats left in the subscription.
-
 ### Free Guest users
 
 DETAILS:
@@ -229,7 +225,7 @@ The following is emailed to you:
 
 ### Remove users from your subscription
 
-To remove a billable user from your GitLab.com subscription:
+To remove a billable user from your subscription:
 
 1. On the left sidebar, select **Search or go to** and find your group.
 1. Select **Settings > Billing**.
@@ -241,8 +237,6 @@ If you add a member to a group by using the [share a group with another group](.
 
 - Remove the member from the shared group. You must be a group owner to do this.
 - From the group's membership page, remove access from the entire shared group.
-
-To remove a user from your self-managed instance, see [Deactivate a user](../../administration/moderate_users.md#deactivate-a-user).
 
 ## Seat usage alerts
 
@@ -337,6 +331,7 @@ To resume paid feature functionality, purchase a new subscription.
 ## Renew your GitLab.com subscription
 
 30 days before a subscription expires, a banner with the subscription expiry date displays for group owners in the GitLab user interface.
+You also receive [email notifications](../self_managed/index.md#email-notifications) before a subscription automatically renews.
 
 Before you renew your GitLab.com subscription, you should [review your account](../self_managed/index.md#review-your-account).
 
@@ -357,7 +352,6 @@ If you want to renew for fewer seats, you can do either of the following:
 ### Automatic subscription renewal
 
 When a subscription is set to auto-renew, it renews automatically at midnight UTC on the expiration date without a gap in available service.
-You receive [email notifications](../self_managed/index.md#email-notifications) before a subscription automatically renews.
 Subscriptions purchased through the Customers Portal or GitLab.com are set to auto-renew by default,
 but you can [disable automatic subscription renewal](../self_managed/index.md#enable-or-disable-automatic-subscription-renewal).
 

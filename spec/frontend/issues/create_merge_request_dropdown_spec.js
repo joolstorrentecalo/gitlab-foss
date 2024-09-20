@@ -97,4 +97,37 @@ describe('CreateMergeRequestDropdown', () => {
       );
     });
   });
+
+  describe('onChangeInput', () => {
+    const events = [
+      { keyCode: 16, label: 'shift' },
+      { keyCode: 17, label: 'control' },
+      { keyCode: 18, label: 'alt' },
+      { keyCode: 27, label: 'escape' },
+      { keyCode: 37, label: 'left arrow' },
+      { keyCode: 38, label: 'up arrow' },
+      { keyCode: 39, label: 'right arrow' },
+      { keyCode: 40, label: 'down arrow' },
+      { keyCode: 91, label: 'window/command key' },
+      { keyCode: 93, label: 'ContextMenu key' },
+    ];
+    it('returns early if the user copies the branch name', () => {
+      const ctrlEvent = {
+        keyCode: 67, // 'c' key
+        ctrlKey: true,
+      };
+      expect(dropdown.onChangeInput(ctrlEvent)).toBe(undefined);
+      const cmdEvent = {
+        keyCode: 67, // 'c' key
+        metaKey: true,
+      };
+      expect(dropdown.onChangeInput(cmdEvent)).toBe(undefined);
+    });
+    it.each(events)('returns early when the user releases $label key', ({ keyCode }) => {
+      const event = {
+        keyCode,
+      };
+      expect(dropdown.onChangeInput(event)).toBe(undefined);
+    });
+  });
 });

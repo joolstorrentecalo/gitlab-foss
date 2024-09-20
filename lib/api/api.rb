@@ -222,7 +222,6 @@ module API
         mount ::API::Admin::InstanceClusters
         mount ::API::Admin::Migrations
         mount ::API::Admin::PlanLimits
-        mount ::API::Admin::Token
         mount ::API::AlertManagementAlerts
         mount ::API::Appearance
         mount ::API::Applications
@@ -230,7 +229,6 @@ module API
         mount ::API::Badges
         mount ::API::Branches
         mount ::API::BulkImports
-        mount ::API::Ci::Catalog
         mount ::API::Ci::JobArtifacts
         mount ::API::Groups
         mount ::API::Ci::Jobs

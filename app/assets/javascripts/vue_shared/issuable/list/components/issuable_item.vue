@@ -8,11 +8,10 @@ import {
   GlSprintf,
   GlTooltipDirective,
 } from '@gitlab/ui';
-import { escapeRegExp } from 'lodash';
 import { getIdFromGraphQLId } from '~/graphql_shared/utils';
 import { STATUS_OPEN, STATUS_CLOSED } from '~/issues/constants';
 import { isScopedLabel } from '~/lib/utils/common_utils';
-import { isExternal, setUrlFragment, visitUrl } from '~/lib/utils/url_utility';
+import { isExternal, setUrlFragment } from '~/lib/utils/url_utility';
 import { __, n__, sprintf } from '~/locale';
 import IssuableAssignees from '~/issuable/components/issue_assignees.vue';
 import timeagoMixin from '~/vue_shared/mixins/timeago';
@@ -46,11 +45,6 @@ export default {
     issuableSymbol: {
       type: String,
       required: true,
-    },
-    fullPath: {
-      type: String,
-      required: false,
-      default: null,
     },
     issuable: {
       type: Object,
@@ -245,45 +239,15 @@ export default {
       return '';
     },
     handleIssuableItemClick(e) {
-      if (e.metaKey || e.ctrlKey || this.showCheckbox) {
+      if (e.metaKey || e.ctrlKey || !this.preventRedirect) {
         return;
       }
       e.preventDefault();
-      if (!this.preventRedirect) {
-        this.navigateToIssuable();
-        return;
-      }
       this.$emit('select-issuable', {
         iid: this.issuableIid,
         webUrl: this.issuable.webUrl,
         fullPath: this.workItemFullPath,
-        workItemType: this.type.toLowerCase(),
       });
-    },
-    navigateToIssuable() {
-      if (!this.fullPath) {
-        visitUrl(this.issuableLinkHref);
-      }
-      const escapedFullPath = escapeRegExp(this.fullPath);
-      // eslint-disable-next-line no-useless-escape
-      const regex = new RegExp(`groups\/${escapedFullPath}\/-\/(work_items|epics)\/\\d+`);
-      const isWorkItemPath = regex.test(this.issuableLinkHref);
-
-      if (isWorkItemPath) {
-        this.$router.push({
-          name: 'workItem',
-          params: {
-            iid: this.issuableIid,
-          },
-        });
-      } else {
-        visitUrl(this.issuableLinkHref);
-      }
-    },
-    handleRowClick(e) {
-      if (this.preventRedirect) {
-        this.handleIssuableItemClick(e);
-      }
     },
   },
 };
@@ -293,16 +257,10 @@ export default {
   <li
     :id="`issuable_${issuableId}`"
     class="issue !gl-flex !gl-px-5"
-    :class="{
-      closed: issuable.closedAt,
-      'gl-bg-blue-50': isActive,
-      'gl-cursor-pointer': preventRedirect && !showCheckbox,
-      'hover:gl-bg-subtle': preventRedirect && !isActive && !showCheckbox,
-    }"
+    :class="{ closed: issuable.closedAt, 'gl-bg-blue-50': isActive }"
     :data-labels="labelIdsString"
     :data-qa-issue-id="issuableId"
     data-testid="issuable-item-wrapper"
-    @click="handleRowClick"
   >
     <gl-form-checkbox
       v-if="showCheckbox"
@@ -337,40 +295,42 @@ export default {
           :title="__('This issue is hidden because its author has been banned.')"
           :aria-label="__('Hidden')"
         />
-        <work-item-prefetch
-          v-if="preventRedirect"
-          :work-item-iid="issuableIid"
-          :work-item-full-path="workItemFullPath"
-          data-testid="issuable-prefetch-trigger"
-        >
-          <template #default="{ prefetchWorkItem, clearPrefetching }">
-            <gl-link
-              class="issue-title-text gl-text-base"
-              dir="auto"
-              :href="issuableLinkHref"
-              data-testid="issuable-title-link"
-              v-bind="issuableTitleProps"
-              @click.stop="handleIssuableItemClick"
-              @mouseover.native="prefetchWorkItem(issuableIid)"
-              @mouseout.native="clearPrefetching"
-            >
-              {{ issuable.title }}
-              <gl-icon v-if="isIssuableUrlExternal" name="external-link" class="gl-ml-2" />
-            </gl-link>
-          </template>
-        </work-item-prefetch>
-        <gl-link
-          v-else
-          class="issue-title-text gl-text-base"
-          dir="auto"
-          :href="issuableLinkHref"
-          data-testid="issuable-title-link"
-          v-bind="issuableTitleProps"
-          @click.stop="handleIssuableItemClick"
-        >
-          {{ issuable.title }}
-          <gl-icon v-if="isIssuableUrlExternal" name="external-link" class="gl-ml-2" />
-        </gl-link>
+        <template v-if="preventRedirect">
+          <work-item-prefetch
+            :work-item-iid="issuableIid"
+            :work-item-full-path="workItemFullPath"
+            data-testid="issuable-prefetch-trigger"
+          >
+            <template #default="{ prefetchWorkItem, clearPrefetching }">
+              <gl-link
+                class="issue-title-text gl-text-base"
+                dir="auto"
+                :href="issuableLinkHref"
+                data-testid="issuable-title-link"
+                v-bind="issuableTitleProps"
+                @click="handleIssuableItemClick"
+                @mouseover.native="prefetchWorkItem(issuableIid)"
+                @mouseout.native="clearPrefetching"
+              >
+                {{ issuable.title }}
+                <gl-icon v-if="isIssuableUrlExternal" name="external-link" class="gl-ml-2" />
+              </gl-link>
+            </template>
+          </work-item-prefetch>
+        </template>
+        <template v-else>
+          <gl-link
+            class="issue-title-text gl-text-base"
+            dir="auto"
+            :href="issuableLinkHref"
+            data-testid="issuable-title-link"
+            v-bind="issuableTitleProps"
+            @click="handleIssuableItemClick"
+          >
+            {{ issuable.title }}
+            <gl-icon v-if="isIssuableUrlExternal" name="external-link" class="gl-ml-2" />
+          </gl-link>
+        </template>
         <slot v-if="hasSlotContents('title-icons')" name="title-icons"></slot>
         <span
           v-if="taskStatus"
@@ -412,7 +372,6 @@ export default {
                   :href="author.webPath"
                   data-testid="issuable-author"
                   class="author-link js-user-link gl-text-sm !gl-text-gray-500"
-                  @click.stop
                 >
                   <span class="author">{{ author.name }}</span>
                 </gl-link>
@@ -446,7 +405,6 @@ export default {
             :description="label.description"
             :scoped="scopedLabel(label)"
             :target="labelTarget(label)"
-            @click.stop
           />
         </p>
       </div>

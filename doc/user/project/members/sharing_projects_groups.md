@@ -123,7 +123,7 @@ To invite a group to a project:
 1. Select **Manage > Members**.
 1. Select **Invite a group**.
 1. In the **Select a group to invite** list, select the group you want to invite.
-1. Select the highest [role](../../permissions.md) for users in the group.
+1. Select the highest [role](../../permissions.md) or [custom role](../../custom_roles.md#assign-a-custom-role-to-an-invited-group) for users in the group.
 1. Optional. Select an **Access expiration date**.
    From that date onward, the invited group can no longer access the project.
 1. Select **Invite**.
@@ -173,9 +173,6 @@ When this setting is enabled:
 
 - It applies to all subgroups, unless overridden by a group Owner.
 - Groups already added to a project lose access to it.
-
-NOTE:
-After you [specify a user cap for the group](../../group/manage.md#specify-a-user-cap-for-a-group), you cannot disable this setting.
 
 ## Sharing groups
 
@@ -228,7 +225,7 @@ To invite a group to your group:
 1. Select **Manage > Members**.
 1. Select **Invite a group**.
 1. In the **Select a group to invite** list, select the group you want to invite.
-1. Select the highest [role](../../permissions.md) or [custom role](../../custom_roles.md#assign-a-custom-role-to-an-invited-group) for users in the group.
+1. Select the highest [role](../../permissions.md) for users in the group.
 1. Optional. Select an **Access expiration date**.
    From that date onward, the invited group can no longer access the group.
 1. Select **Invite**.

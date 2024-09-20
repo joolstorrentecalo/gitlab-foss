@@ -573,28 +573,6 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
         end
       end
     end
-
-    describe '#by_contains_all_traversal_ids' do
-      let_it_be(:namespace_1) { create(:group) }
-      let_it_be(:namespace_2) { create(:group, parent: namespace_1) }
-      let_it_be(:namespace_3) { create(:namespace) }
-
-      it 'returns groups that contain all provided traversal_ids' do
-        expect(described_class.by_contains_all_traversal_ids(namespace_1.traversal_ids))
-          .to contain_exactly(namespace_1, namespace_2)
-        expect(described_class.by_contains_all_traversal_ids(namespace_2.traversal_ids)).to contain_exactly(namespace_2)
-        expect(described_class.by_contains_all_traversal_ids(namespace_3.traversal_ids)).to contain_exactly(namespace_3)
-      end
-    end
-
-    describe '#by_traversal_ids' do
-      let_it_be(:namespace_1) { create(:namespace) }
-
-      it 'returns groups for the provided traversal_ids' do
-        expect(described_class.by_traversal_ids(namespace.traversal_ids)).to contain_exactly(namespace)
-        expect(described_class.by_traversal_ids(namespace_1.traversal_ids)).to contain_exactly(namespace_1)
-      end
-    end
   end
 
   describe 'delegate' do
@@ -756,6 +734,32 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
 
       expect(namespace.valid?).to eq(true)
     end
+
+    describe '.with_disabled_organization_validation' do
+      it 'does not require organization' do
+        namespace.organization = nil
+
+        Namespace.with_disabled_organization_validation do
+          expect(namespace.valid?).to eq(true)
+        end
+      end
+
+      context 'with nested calls' do
+        it 'validation will not be re-enabled' do
+          result = []
+          Namespace.with_disabled_organization_validation do
+            result << described_class.new.require_organization?
+            Namespace.with_disabled_organization_validation do
+              result << described_class.new.require_organization?
+            end
+            result << described_class.new.require_organization?
+          end
+
+          expect(result.any?(true)).to be false
+          expect(described_class.new.require_organization?).to be false
+        end
+      end
+    end
   end
 
   context 'when feature flag require_organization is enabled', :request_store do
@@ -763,6 +767,32 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
       namespace.organization = nil
 
       expect(namespace.valid?).to eq(false)
+    end
+
+    describe '.with_disabled_organization_validation' do
+      it 'does not require organization' do
+        namespace.organization = nil
+
+        Namespace.with_disabled_organization_validation do
+          expect(namespace.valid?).to eq(true)
+        end
+      end
+
+      context 'with nested calls' do
+        it 'only last call will re-enable the validation' do
+          result = []
+          Namespace.with_disabled_organization_validation do
+            result << described_class.new.require_organization?
+            Namespace.with_disabled_organization_validation do
+              result << described_class.new.require_organization?
+            end
+            result << described_class.new.require_organization?
+          end
+
+          expect(result.any?(true)).to be false
+          expect(described_class.new.require_organization?).to be true
+        end
+      end
     end
   end
 

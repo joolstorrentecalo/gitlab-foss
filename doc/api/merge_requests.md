@@ -17,7 +17,6 @@ DETAILS:
 > - `with_merge_status_recheck` [changed](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/115948) in GitLab 15.11 [with a flag](../administration/feature_flags.md) named `restrict_merge_status_recheck` to be ignored for requests from users insufficient permissions. Disabled by default.
 > - `approvals_before_merge` [deprecated](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/119503) in GitLab 16.0.
 > - `prepared_at` [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/122001) in GitLab 16.1.
-> - `merge_after` [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/165092) in GitLab 17.4.
 
 All API calls to non-public information require authentication.
 
@@ -119,7 +118,6 @@ Example response:
       "web_url": "https://gitlab.com/DouweM"
     },
     "merged_at": "2018-09-07T11:16:17.520Z",
-    "merge_after": "2018-09-07T11:16:00.000Z",
     "prepared_at": "2018-09-04T11:16:17.520Z",
     "closed_by": null,
     "closed_at": null,
@@ -369,7 +367,6 @@ Example response:
       "web_url": "https://gitlab.com/DouweM"
     },
     "merged_at": "2018-09-07T11:16:17.520Z",
-    "merge_after": "2018-09-07T11:16:00.000Z",
     "prepared_at": "2018-09-04T11:16:17.520Z",
     "closed_by": null,
     "closed_at": null,
@@ -556,7 +553,6 @@ Example response:
       "web_url": "https://gitlab.com/DouweM"
     },
     "merged_at": "2018-09-07T11:16:17.520Z",
-    "merge_after": "2018-09-07T11:16:00.000Z",
     "prepared_at": "2018-09-04T11:16:17.520Z",
     "closed_by": null,
     "closed_at": null,
@@ -751,7 +747,6 @@ Example response:
   "merged_by": null, // Deprecated and will be removed in API v5. Use `merge_user` instead.
   "merge_user": null,
   "merged_at": null,
-  "merge_after": "2018-09-07T11:16:00.000Z",
   "prepared_at": "2018-09-04T11:16:17.520Z",
   "closed_by": null,
   "closed_at": null,
@@ -1139,7 +1134,6 @@ Example response:
       "merged_by": null,
       "merge_user": null,
       "merged_at": null,
-      "merge_after": "2018-09-07T11:16:00.000Z",
       "closed_by": null,
       "closed_at": null,
       "target_branch": "master",
@@ -1249,7 +1243,6 @@ Example response:
       "merged_by": null,
       "merge_user": null,
       "merged_at": null,
-      "merge_after": "2018-09-07T11:16:00.000Z",
       "closed_by": null,
       "closed_at": null,
       "target_branch": "master",
@@ -1794,7 +1787,6 @@ Example response:
     "web_url": "https://gitlab.com/DouweM"
   },
   "merged_at": "2018-09-07T11:16:17.520Z",
-  "merge_after": "2018-09-07T11:16:00.000Z",
   "prepared_at": "2018-09-04T11:16:17.520Z",
   "closed_by": null,
   "closed_at": null,
@@ -1968,7 +1960,6 @@ Example response:
     "web_url": "https://gitlab.com/DouweM"
   },
   "merged_at": "2018-09-07T11:16:17.520Z",
-  "merge_after": "2018-09-07T11:16:00.000Z",
   "prepared_at": "2018-09-04T11:16:17.520Z",
   "closed_by": null,
   "closed_at": null,
@@ -2162,7 +2153,6 @@ Example response:
     "web_url": "https://gitlab.com/DouweM"
   },
   "merged_at": "2018-09-07T11:16:17.520Z",
-  "merge_after": "2018-09-07T11:16:00.000Z",
   "prepared_at": "2018-09-04T11:16:17.520Z",
   "closed_by": null,
   "closed_at": null,
@@ -2364,7 +2354,6 @@ Example response:
     "web_url": "https://gitlab.com/DouweM"
   },
   "merged_at": "2018-09-07T11:16:17.520Z",
-  "merge_after": "2018-09-07T11:16:00.000Z",
   "prepared_at": "2018-09-04T11:16:17.520Z",
   "closed_by": null,
   "closed_at": null,
@@ -2837,7 +2826,6 @@ Example response:
     "web_url": "https://gitlab.com/DouweM"
   },
   "merged_at": "2018-09-07T11:16:17.520Z",
-  "merge_after": "2018-09-07T11:16:00.000Z",
   "prepared_at": "2018-09-04T11:16:17.520Z",
   "closed_by": null,
   "closed_at": null,
@@ -3002,7 +2990,6 @@ Example response:
     "web_url": "https://gitlab.com/DouweM"
   },
   "merged_at": "2018-09-07T11:16:17.520Z",
-  "merge_after": "2018-09-07T11:16:00.000Z",
   "prepared_at": "2018-09-04T11:16:17.520Z",
   "closed_by": null,
   "closed_at": null,

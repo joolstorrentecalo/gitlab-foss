@@ -72,7 +72,6 @@ A GitLab CI/CD pipeline configuration includes:
   | [`retry`](#retry)                             | When and how many times a job can be auto-retried in case of a failure.                                     |
   | [`rules`](#rules)                             | List of conditions to evaluate and determine selected attributes of a job, and whether or not it's created. |
   | [`script`](#script)                           | Shell script that is executed by a runner.                                                                  |
-  | [`run`](#run)                                 | Run configuration that is executed by a runner.                                                             |
   | [`secrets`](#secrets)                         | The CI/CD secrets the job needs.                                                                            |
   | [`services`](#services)                       | Use Docker services images.                                                                                 |
   | [`stage`](#stage)                             | Defines a job stage.                                                                                        |
@@ -2875,7 +2874,7 @@ Use `interruptible` to configure the [auto-cancel redundant pipelines](../pipeli
 feature to cancel a job before it completes if a new pipeline on the same ref starts for a newer commit. If the feature
 is disabled, the keyword has no effect. The new pipeline must be for a commit with new changes. For example,
 the **Auto-cancel redundant pipelines** feature has no effect
-if you select **New pipeline** in the UI to run a pipeline for the same commit.
+if you select **Run pipeline** in the UI to run a pipeline for the same commit.
 
 The behavior of the **Auto-cancel redundant pipelines** feature can be controlled by
 the [`workflow:auto_cancel:on_new_commit`](#workflowauto_cancelon_new_commit) setting.
@@ -2981,7 +2980,7 @@ In this example, a new pipeline causes a running pipeline to cancel `step-1` and
 ### `needs`
 
 Use `needs` to execute jobs out-of-order. Relationships between jobs
-that use `needs` can be visualized as a [directed acyclic graph](../yaml/needs.md).
+that use `needs` can be visualized as a [directed acyclic graph](../directed_acyclic_graph/index.md).
 
 You can ignore stage ordering and run some jobs without waiting for others to complete.
 Jobs in multiple stages can run concurrently.
@@ -3173,8 +3172,8 @@ build_job:
   or the group/project must have public visibility.
 - You can't use `needs:project` in the same job as [`trigger`](#trigger).
 - When using `needs:project` to download artifacts from another pipeline, the job does not wait for
-  the needed job to complete. [Using `needs` to wait for jobs to complete](../yaml/needs.md)
-  is limited to jobs in the same pipeline. Make sure that the needed job in the other
+  the needed job to complete. [Directed acyclic graph](../directed_acyclic_graph/index.md)
+  behavior is limited to jobs in the same pipeline. Make sure that the needed job in the other
   pipeline completes before the job that needs it tries to download the artifacts.
 - You can't download artifacts from jobs that run in [`parallel`](#parallel).
 - Support [CI/CD variables](../variables/index.md) in `project`, `job`, and `ref`.
@@ -4488,12 +4487,14 @@ if reached when evaluating a job's rules.
 
 **Possible inputs**:
 
-- `on_success` (default): Run the job only when no jobs in earlier stages fail.
+- `on_success` (default): Run the job only when no jobs in earlier stages fail
+  or are allowed to fail with [`allow_failure: true`](#allow_failure). `on_success`
+  is the default behavior when you combine `when` with `if`, `changes`, or `exists`.
 - `on_failure`: Run the job only when at least one job in an earlier stage fails.
 - `never`: Don't run the job regardless of the status of jobs in earlier stages.
 - `always`: Run the job regardless of the status of jobs in earlier stages.
 - `manual`: Add the job to the pipeline as a [manual job](../jobs/job_control.md#create-a-job-that-must-be-run-manually).
-  The default value for [`allow_failure`](#allow_failure) changes to `false`.
+  When using `rules:when` with `manual`, `allow_failure` defaults to `false`.
 - `delayed`: Add the job to the pipeline as a [delayed job](../jobs/job_control.md#run-a-job-after-a-delay).
 
 **Example of `rules:when`**:
@@ -4515,17 +4516,6 @@ In this example, `job1` is added to pipelines:
   when `when` is not defined.
 - For feature branches as a delayed job.
 - In all other cases as a manual job.
-
-**Additional details**:
-
-- When evaluating the status of jobs for `on_success` and `on_failure`:
-  - Jobs with [`allow_failure: true`](#allow_failure) in earlier stages are considered successful, even if they failed.
-  - Skipped jobs in earlier stages, for example [manual jobs that have not been started](../jobs/job_control.md#create-a-job-that-must-be-run-manually),
-    are considered successful.
-- When using `rules:when: manual` to [add a manual job](../jobs/job_control.md#create-a-job-that-must-be-run-manually):
-  - [`allow_failure`](#allow_failure) becomes `false` by default. This default is the opposite of
-    using [`when: manual`](#when) to add a manual job.
-  - To achieve the same behavior as `when: manual` defined outside of `rules`, set [`rules: allow_failure`](#rulesallow_failure) to `true`.
 
 #### `rules:allow_failure`
 
@@ -4667,61 +4657,6 @@ job:
 
 - The rule-level `rules:interruptible` overrides the job-level [`interruptible`](#interruptible),
   and only applies when the specific rule triggers the job.
-
-### `run`
-
-DETAILS:
-**Status:** Experiment
-
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/440487) in GitLab 17.3 [with a flag](../../administration/feature_flags.md) named `pipeline_run_keyword`. Disabled by default. Requires GitLab Runner 17.1.
-
-FLAG:
-The availability of this feature is controlled by a feature flag.
-For more information, see the history.
-This feature is available for testing, but not ready for production use.
-
-Use `run` to define a series of [steps](../steps/index.md) to be executed in a job. Each step can be either a script or a predefined step.
-
-You can also provide optional environment variables and inputs.
-
-**Keyword type**: Job keyword. You can use it only as part of a job.
-
-**Possible inputs**:
-
-- An array of hashes, where each hash represents a step with the following possible keys:
-  - `name`: A string representing the name of the step.
-  - `script`: A string or array of strings containing shell commands to execute.
-  - `step`: A string identifying a predefined step to run.
-  - `env`: Optional. A hash of environment variables specific to this step.
-  - `inputs`: Optional. A hash of input parameters for predefined steps.
-
-Each array entry must have a `name`, and one `script` or `step` (but not both).
-
-**Example of `run`**:
-
-``` yaml
-job:
-  run:
-    - name: 'hello_steps'
-      script: 'echo "hello from step1"'
-    - name: 'bye_steps'
-      step: gitlab.com/gitlab-org/ci-cd/runner-tools/echo-step@main
-      inputs:
-        echo: 'bye steps!'
-      env:
-        var1: 'value 1'
-```
-
-In this example, the job has two steps:
-
-- `hello_steps` runs the `echo` shell command.
-- `bye_steps` uses a predefined step with an environment variable and an input parameter.
-
-**Additional details**:
-
-- A step can have either a `script` or a `step` key, but not both.
-- A `run` configuration cannot be used together with existing [`script`](#script) keyword.
-- Multi-line scripts can be defined using [YAML block scalar syntax](script.md#split-long-commands).
 
 ### `script`
 
@@ -5675,13 +5610,16 @@ the default value is `when: on_success`.
 
 **Possible inputs**:
 
-- `on_success` (default): Run the job only when no jobs in earlier stages fail.
-- `on_failure`: Run the job only when at least one job in an earlier stage fails.
+- `on_success` (default): Run the job only when no jobs in earlier stages fail
+  or have `allow_failure: true`.
+- `on_failure`: Run the job only when at least one job in an earlier stage fails. A job in an earlier stage
+  with `allow_failure: true` is always considered successful.
 - `never`: Don't run the job regardless of the status of jobs in earlier stages.
-  Can only be used in a [`rules`](#ruleswhen) section or [`workflow: rules`](#workflowrules).
-- `always`: Run the job regardless of the status of jobs in earlier stages.
-- `manual`: Add the job to the pipeline as a [manual job](../jobs/job_control.md#create-a-job-that-must-be-run-manually).
-- `delayed`: Add the job to the pipeline as a [delayed job](../jobs/job_control.md#run-a-job-after-a-delay).
+  Can only be used in a [`rules`](#rules) section or `workflow: rules`.
+- `always`: Run the job regardless of the status of jobs in earlier stages. Can also be used in `workflow:rules`.
+- `manual`: Run the job only when [triggered manually](../jobs/job_control.md#create-a-job-that-must-be-run-manually).
+- `delayed`: [Delay the execution of a job](../jobs/job_control.md#run-a-job-after-a-delay)
+  for a specified duration.
 
 **Example of `when`**:
 
@@ -5732,12 +5670,9 @@ In this example, the script:
 
 **Additional details**:
 
-- When evaluating the status of jobs for `on_success` and `on_failure`:
-  - Jobs with [`allow_failure: true`](#allow_failure) in earlier stages are considered successful, even if they failed.
-  - Skipped jobs in earlier stages, for example [manual jobs that have not been started](../jobs/job_control.md#create-a-job-that-must-be-run-manually),
-    are considered successful.
-- The default value for [`allow_failure`](#allow_failure) is `true` with `when: manual`. The default value
-  changes to `false` with [`rules:when: manual`](#ruleswhen).
+- The default behavior of `allow_failure` changes to `true` with `when: manual`.
+  However, if you use `when: manual` with [`rules`](#rules), `allow_failure` defaults
+  to `false`.
 
 **Related topics**:
 
@@ -5841,7 +5776,7 @@ pipeline based on branch names or pipeline types.
   | `schedules`              | For [scheduled pipelines](../pipelines/schedules.md). |
   | `tags`                   | When the Git reference for a pipeline is a tag. |
   | `triggers`               | For pipelines created by using a [trigger token](../triggers/index.md#configure-cicd-jobs-to-run-in-triggered-pipelines). |
-  | `web`                    | For pipelines created by selecting **New pipeline** in the GitLab UI, from the project's **Build > Pipelines** section. |
+  | `web`                    | For pipelines created by selecting **Run pipeline** in the GitLab UI, from the project's **Build > Pipelines** section. |
 
 **Example of `only:refs` and `except:refs`**:
 

@@ -38,7 +38,7 @@ export default {
     disableAttachments: {
       type: Boolean,
       required: false,
-      default: false,
+      default: true,
     },
   },
   data() {
@@ -223,9 +223,7 @@ export default {
 
 <template>
   <div>
-    <gl-button v-gl-modal="$options.modal.id" variant="confirm" category="primary">
-      {{ $options.modal.buttonTitle }}
-    </gl-button>
+    <gl-button v-gl-modal="$options.modal.id">{{ $options.modal.buttonTitle }}</gl-button>
     <gl-modal
       :modal-id="$options.modal.id"
       :title="$options.modal.title"

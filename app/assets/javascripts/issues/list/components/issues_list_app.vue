@@ -894,7 +894,6 @@ export default {
       :open="isIssuableSelected"
       :active-item="activeIssuable"
       :issuable-type="$options.issuableType"
-      click-outside-exclude-selector=".issuable-list"
       @close="activeIssuable = null"
       @work-item-updated="updateIssuablesCache"
       @work-item-emoji-updated="updateIssuableEmojis"
@@ -906,7 +905,6 @@ export default {
     <issuable-list
       v-if="hasAnyIssues"
       :namespace="fullPath"
-      :full-path="fullPath"
       recent-searches-storage-key="issues"
       :search-tokens="searchTokens"
       :has-scoped-labels-feature="hasScopedLabelsFeature"

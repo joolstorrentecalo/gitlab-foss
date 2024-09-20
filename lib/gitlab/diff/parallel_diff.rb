@@ -9,12 +9,13 @@ module Gitlab
         @diff_file = diff_file
       end
 
-      def parallelize(diff_lines = diff_file.highlighted_diff_lines)
+      def parallelize
         i = 0
         free_right_index = nil
 
         lines = []
-        diff_lines.each do |line|
+        highlighted_diff_lines = diff_file.highlighted_diff_lines
+        highlighted_diff_lines.each do |line|
           if line.removed?
             lines << {
               left: line,

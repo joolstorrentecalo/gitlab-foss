@@ -779,7 +779,6 @@ RSpec.describe Gitlab::GitalyClient::CommitService, feature_category: :gitaly do
   describe '#list_commits' do
     let(:revisions) { 'master' }
     let(:reverse) { false }
-    let(:order) { :date }
     let(:author) { nil }
     let(:ignore_case) { nil }
     let(:commit_message_patterns) { nil }
@@ -802,8 +801,7 @@ RSpec.describe Gitlab::GitalyClient::CommitService, feature_category: :gitaly do
             commit_message_patterns: commit_message_patterns,
             before: before,
             after: after,
-            pagination_params: pagination_params,
-            order: order
+            pagination_params: pagination_params
           )
 
           expect(service).to receive(:list_commits).with(expected_request, kind_of(Hash)).and_return([])

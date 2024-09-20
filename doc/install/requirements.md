@@ -11,7 +11,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** Self-managed
 
-This page contains information about the system requirements to install GitLab.
+This page contains information about the minimum system requirements to install GitLab.
 
 ## Hardware
 
@@ -45,15 +45,14 @@ For a maximum of 20 requests per second or 1,000 users, you should have 16 GB of
 For more users or higher workload,
 see [reference architectures](../administration/reference_architectures/index.md).
 
-In some cases, GitLab can run with at least 8 GB of memory.
-For more information, see
-[running GitLab in a memory-constrained environment](https://docs.gitlab.com/omnibus/settings/memory_constrained_envs.html).
+In certain circumstances, GitLab might run in a
+[memory-constrained environment](https://docs.gitlab.com/omnibus/settings/memory_constrained_envs.html).
 
 ## Database
 
 ### PostgreSQL
 
-[PostgreSQL](https://www.postgresql.org/) is the only supported database and is bundled with the Linux package.
+PostgreSQL is the only supported database and is bundled with the Linux package.
 You can also use an [external PostgreSQL database](https://docs.gitlab.com/omnibus/settings/database.html#using-a-non-packaged-postgresql-database-management-server).
 
 Depending on the [number of users](../administration/reference_architectures/index.md),
@@ -211,27 +210,21 @@ The recommended number of threads is dependent on several factors, including tot
 
 ## Redis
 
-[Redis](https://redis.io/) stores all user sessions and background tasks
-and requires about 25 kB per user on average.
+Redis stores all user sessions and the background task queue.
 
-In GitLab 16.0 and later, Redis 6.x or 7.x is required.
-For more information about end-of-life dates, see the
-[Redis documentation](https://redis.io/docs/latest/operate/rs/installing-upgrading/product-lifecycle/).
+The requirements for Redis are as follows:
 
-For Redis:
-
-- Use a standalone instance (with or without high availability).
-  Redis Cluster is not supported.
-- Set the [eviction policy](../administration/redis/replication_and_failover_external.md#setting-the-eviction-policy) as appropriate.
+- Redis 6.x or 7.x is required in GitLab 16.0 and later. However, you should upgrade to
+  Redis 6.2.14 or later as [Redis 6.0 is no longer supported](https://endoflife.date/redis).
+- Redis Cluster mode is not supported. Redis Standalone must be used, with or without HA.
+- Storage requirements for Redis are minimal, about 25 kB per user on average.
+- [Redis eviction mode](../administration/redis/replication_and_failover_external.md#setting-the-eviction-policy) set appropriately.
 
 ## Sidekiq
 
-[Sidekiq](https://sidekiq.org/) uses a multi-threaded process for background jobs.
-This process initially consumes more than 200 MB of memory
-and might grow over time due to memory leaks.
-
-On a very active server with more than 10,000 billable users,
-the Sidekiq process might consume more than 1 GB of memory.
+Sidekiq processes the background jobs with a multi-threaded process.
+This process starts with the entire Rails stack (200 MB+) but it can grow over time due to memory leaks.
+On a very active server (10,000 billable users) the Sidekiq process can use 1 GB+ of memory.
 
 ## Prometheus
 

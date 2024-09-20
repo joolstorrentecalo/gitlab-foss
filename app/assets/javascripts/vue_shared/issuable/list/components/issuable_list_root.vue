@@ -47,11 +47,6 @@ export default {
       type: String,
       required: true,
     },
-    fullPath: {
-      type: String,
-      required: false,
-      default: null,
-    },
     recentSearchesStorageKey: {
       type: String,
       required: true,
@@ -386,7 +381,6 @@ export default {
           :issuable-symbol="issuableSymbol"
           :issuable="issuable"
           :label-filter-param="labelFilterParam"
-          :full-path="fullPath"
           :show-checkbox="showBulkEditSidebar"
           :checked="isIssuableChecked(issuable)"
           :show-work-item-type-icon="showWorkItemTypeIcon"
