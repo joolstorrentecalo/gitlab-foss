@@ -16,7 +16,11 @@ module Gitlab
       end
 
       def author_id(object)
-        uid(object) || project.creator_id
+        if placeholder_user_mapping_enabled?
+          placeholder_user_id(object)
+        else
+          uid(object) || project.creator_id
+        end
       end
 
       # Object should behave as a object so we can remove object.is_a?(Hash) check
@@ -51,6 +55,18 @@ module Gitlab
         end
       end
 
+      def placeholder_user_id(object)
+        source_user_mapper.find_or_create_source_user(
+          source_name: object[:author],
+          source_username: object[:author_username],
+          source_user_identifier: object[:author_email]
+        ).mapped_user_id
+      end
+
+      def source_user(identifier)
+        source_user_mapper.find_source_user(identifier)
+      end
+
       private
 
       def cache
@@ -59,6 +75,19 @@ module Gitlab
 
       def build_cache_key(by, value)
         format(CACHE_KEY, project_id: project.id, by: by, value: value)
+      end
+
+      def source_user_mapper
+        @source_user_mapper ||= Gitlab::Import::SourceUserMapper.new(
+          namespace: project.root_ancestor,
+          import_type: ::Import::SOURCE_BITBUCKET_SERVER,
+          source_hostname: project.import_data.credentials[:base_uri]
+        )
+      end
+
+      def placeholder_user_mapping_enabled?
+        Feature.enabled?(:importer_user_mapping, project.creator) &&
+          Feature.enabled?(:bitbucket_server_user_mapping, project.creator)
       end
     end
   end

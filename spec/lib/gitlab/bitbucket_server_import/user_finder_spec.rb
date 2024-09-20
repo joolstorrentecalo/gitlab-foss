@@ -11,18 +11,24 @@ RSpec.describe Gitlab::BitbucketServerImport::UserFinder, :clean_gitlab_redis_sh
   subject(:user_finder) { described_class.new(project) }
 
   describe '#author_id' do
-    it 'calls uid method' do
-      object = { author_username: user.username }
+    context 'when `bitbucket_server_user_mapping` is disabled' do
+      before do
+        stub_feature_flags(bitbucket_server_user_mapping: false)
+      end
 
-      expect(user_finder).to receive(:uid).with(object).and_return(10)
-      expect(user_finder.author_id(object)).to eq(10)
-    end
+      it 'calls uid method' do
+        object = { author_username: user.username }
 
-    context 'when corresponding user does not exist' do
-      it 'fallsback to project creator_id' do
-        object = { author_email: 'unknown' }
+        expect(user_finder).to receive(:uid).with(object).and_return(10)
+        expect(user_finder.author_id(object)).to eq(10)
+      end
 
-        expect(user_finder.author_id(object)).to eq(created_id)
+      context 'when corresponding user does not exist' do
+        it 'fallsback to project creator_id' do
+          object = { author_email: 'unknown' }
+
+          expect(user_finder.author_id(object)).to eq(created_id)
+        end
       end
     end
   end

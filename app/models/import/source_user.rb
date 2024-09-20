@@ -40,6 +40,7 @@ module Import
     scope :by_statuses, ->(statuses) { where(status: statuses) }
     scope :awaiting_reassignment, -> { where(status: [0, 1, 2, 3, 4]) }
     scope :reassigned, -> { where(status: [5, 6]) }
+    scope :for_placeholders, ->(placeholder_ids) { where(placeholder_user_id: placeholder_ids) }
 
     STATUSES = {
       pending_reassignment: 0,

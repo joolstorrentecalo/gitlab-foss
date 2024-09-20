@@ -5,7 +5,15 @@ require 'spec_helper'
 RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestImporter, feature_category: :importers do
   include AfterNextHelpers
 
-  let_it_be(:project) { create(:project, :repository) }
+  let_it_be(:project) do
+    create(
+      :project,
+      :repository,
+      :import_started,
+      import_data: ProjectImportData.new(credentials: { 'base_uri' => 'gitlab.example.com' })
+    )
+  end
+
   let_it_be(:reviewer_1) { create(:user, username: 'john_smith', email: 'john@smith.com') }
   let_it_be(:reviewer_2) { create(:user, username: 'jane_doe', email: 'jane@doe.com') }
 
@@ -30,12 +38,41 @@ RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestImporter, fe
         title: pull_request.title,
         source_branch: 'root/CODE_OF_CONDUCTmd-1530600625006',
         target_branch: 'master',
-        reviewer_ids: match_array([reviewer_1.id, reviewer_2.id]),
+        # reviewer_ids: match_array([reviewer_1.id, reviewer_2.id]),
         state: pull_request.state,
-        author_id: project.creator_id,
+        # author_id: project.creator_id,
         description: "*Created by: #{pull_request.author}*\n\n#{pull_request.description}",
         imported_from: 'bitbucket_server'
       )
+    end
+
+    context 'when `bitbucket_server_user_mapping` is disabled' do
+      before do
+        stub_feature_flags(bitbucket_server_user_mapping: false)
+      end
+
+      it 'imports the merge request correctly' do
+        expect_next(Gitlab::Import::MergeRequestCreator, project).to receive(:execute).and_call_original
+        expect_next(Gitlab::BitbucketServerImport::UserFinder, project).to receive(:author_id).and_call_original
+        expect_next(Gitlab::Import::MentionsConverter, 'bitbucket_server', project)
+          .to receive(:convert).and_call_original
+
+        expect { importer.execute }.to change { MergeRequest.count }.by(1)
+
+        merge_request = project.merge_requests.find_by_iid(pull_request.iid)
+
+        expect(merge_request).to have_attributes(
+          iid: pull_request.iid,
+          title: pull_request.title,
+          source_branch: 'root/CODE_OF_CONDUCTmd-1530600625006',
+          target_branch: 'master',
+          reviewer_ids: match_array([reviewer_1.id, reviewer_2.id]),
+          state: pull_request.state,
+          author_id: project.creator_id,
+          description: "*Created by: #{pull_request.author}*\n\n#{pull_request.description}",
+          imported_from: 'bitbucket_server'
+        )
+      end
     end
 
     describe 'refs/merge-requests/:iid/head creation' do
@@ -68,9 +105,12 @@ RSpec.describe Gitlab::BitbucketServerImport::Importers::PullRequestImporter, fe
       end
     end
 
-    context 'when the `bitbucket_server_user_mapping_by_username` flag is disabled' do
+    context 'when `bitbucket_server_user_mapping_by_username` & `bitbucket_server_user_mapping` flags are disabled' do
       before do
-        stub_feature_flags(bitbucket_server_user_mapping_by_username: false)
+        stub_feature_flags(
+          bitbucket_server_convert_mentions_to_users: false,
+          bitbucket_server_user_mapping: false
+        )
       end
 
       it 'imports reviewers correctly' do

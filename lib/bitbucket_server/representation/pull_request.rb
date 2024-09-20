@@ -22,7 +22,13 @@ module BitbucketServer
       end
 
       def reviewers
-        raw['reviewers']
+        raw['reviewers'].map do |reviewer|
+          reviewer.merge(
+            'author_username' => reviewer.dig('user', 'slug'),
+            'author_email' => reviewer.dig('user', 'emailAddress'),
+            'author' => reviewer.dig('user', 'name')
+          )
+        end
       end
 
       def iid
