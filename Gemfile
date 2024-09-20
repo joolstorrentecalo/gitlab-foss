@@ -55,7 +55,7 @@ end
 
 gem 'gitlab-backup-cli', path: 'gems/gitlab-backup-cli', require: 'gitlab/backup/cli', feature_category: :backup_restore
 
-gem 'gitlab-secret_detection', path: 'gems/gitlab-secret_detection', feature_category: :secret_detection
+gem 'gitlab-secret_detection', '~> 0.3', feature_category: :secret_detection
 
 # Responders respond_to and respond_with
 gem 'responders', '~> 3.0' # rubocop:todo Gemfile/MissingFeatureCategory
@@ -303,7 +303,7 @@ gem 'rainbow', '~> 3.0' # rubocop:todo Gemfile/MissingFeatureCategory
 gem 'ruby-progressbar', '~> 1.10' # rubocop:todo Gemfile/MissingFeatureCategory
 
 # Linear-time regex library for untrusted regular expressions
-gem 're2', '2.7.0' # rubocop:todo Gemfile/MissingFeatureCategory
+gem 're2', '2.14.0' # rubocop:todo Gemfile/MissingFeatureCategory
 
 # Misc
 
@@ -639,11 +639,11 @@ gem 'gitlab-kas-grpc', '~> 17.4.0.pre.rc1', feature_category: :deployment_manage
 # https://gitlab.com/gitlab-org/gitlab/-/issues/473169#note_2028352939
 # Or we can upgrade to a more recent version as long as we can confirm
 # that it doesn't have the same issues.
-gem 'grpc', '= 1.63.0', feature_category: :shared
+gem 'grpc', '= 1.66.0', feature_category: :shared
 
 gem 'google-protobuf', '~> 3.25', '>= 3.25.3' # rubocop:todo Gemfile/MissingFeatureCategory
 
-gem 'toml-rb', '~> 2.2.0' # rubocop:todo Gemfile/MissingFeatureCategory
+gem 'toml-rb', '~> 3.0.1' # rubocop:todo Gemfile/MissingFeatureCategory
 
 # Feature toggles
 gem 'flipper', '~> 0.26.2' # rubocop:todo Gemfile/MissingFeatureCategory
