@@ -61,7 +61,7 @@ export default {
 };
 </script>
 <template>
-  <div class="gl-mb-2 gl-flex gl-items-center gl-justify-between gl-gap-2">
+  <div class="gl-mb-2 gl-flex gl-items-center gl-justify-between gl-gap-2 gl-p-2 gl-pl-0 gl-pr-3">
     <gl-link
       :href="mergeRequest.webUrl"
       class="gfm-merge_request gl-truncate gl-text-gray-900 hover:gl-text-gray-900 hover:gl-underline"

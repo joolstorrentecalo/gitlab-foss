@@ -11,10 +11,12 @@ import { STATE_CLOSED, STATE_OPEN } from '~/work_items/constants';
 import {
   workItemResponseFactory,
   workItemDevelopmentFragmentResponse,
-  workItemDevelopmentNodes,
+  workItemDevelopmentMRNodes,
+  workItemDevelopmentFeatureFlagNodes,
 } from 'jest/work_items/mock_data';
 
 import WorkItemDevelopment from '~/work_items/components/work_item_development/work_item_development.vue';
+import WorkItemDevelopmentFeatureFlagsList from '~/work_items/components/work_item_development/work_item_development_feature_flags.vue';
 import WorkItemDevelopmentRelationshipList from '~/work_items/components/work_item_development/work_item_development_relationship_list.vue';
 
 describe('WorkItemDevelopment CE', () => {
@@ -30,11 +32,32 @@ describe('WorkItemDevelopment CE', () => {
   });
   const workItemWithOneMR = workItemResponseFactory({
     developmentWidgetPresent: true,
-    developmentItems: workItemDevelopmentFragmentResponse([workItemDevelopmentNodes[0]], true),
+    developmentItems: workItemDevelopmentFragmentResponse([workItemDevelopmentMRNodes[0]], true),
   });
   const workItemWithMRList = workItemResponseFactory({
     developmentWidgetPresent: true,
-    developmentItems: workItemDevelopmentFragmentResponse(workItemDevelopmentNodes, true),
+    developmentItems: workItemDevelopmentFragmentResponse(workItemDevelopmentMRNodes, true, []),
+  });
+  const workItemWithFlagList = workItemResponseFactory({
+    developmentWidgetPresent: true,
+    developmentItems: workItemDevelopmentFragmentResponse(
+      [],
+      false,
+      workItemDevelopmentFeatureFlagNodes,
+    ),
+  });
+  const workItemWithNoMRsOrFlags = workItemResponseFactory({
+    developmentWidgetPresent: true,
+    developmentItems: workItemDevelopmentFragmentResponse([], false, []),
+    canUpdate: true,
+  });
+  const workItemWithMRsAndFlagList = workItemResponseFactory({
+    developmentWidgetPresent: true,
+    developmentItems: workItemDevelopmentFragmentResponse(
+      workItemDevelopmentMRNodes,
+      true,
+      workItemDevelopmentFeatureFlagNodes,
+    ),
   });
 
   const projectWorkItemResponseWithMRList = {
@@ -91,22 +114,47 @@ describe('WorkItemDevelopment CE', () => {
   };
 
   const successQueryHandler = jest.fn().mockResolvedValue(projectWorkItemResponseWithMRList);
-  const workItemWithEmptyMRList = workItemResponseFactory({
-    canUpdate: true,
-    developmentWidgetPresent: true,
-    developmentItems: workItemDevelopmentFragmentResponse([]),
-  });
   const workItemWithAutoCloseFlagEnabled = workItemResponseFactory({
     developmentWidgetPresent: true,
-    developmentItems: workItemDevelopmentFragmentResponse(workItemDevelopmentNodes, true),
+    developmentItems: workItemDevelopmentFragmentResponse(workItemDevelopmentMRNodes, true),
   });
 
-  const successQueryHandlerWithEmptyMRList = jest.fn().mockResolvedValue({
+  const successQueryHandlerWithEmptyMRListAndHasFeatureFlagList = jest.fn().mockResolvedValue({
     data: {
       workspace: {
         __typename: 'Project',
         id: 'gid://gitlab/Project/1',
-        workItem: workItemWithEmptyMRList.data.workItem,
+        workItem: workItemWithFlagList.data.workItem,
+      },
+    },
+  });
+
+  const successQueryHandlerWithEmptyFlagListAndHasMRList = jest.fn().mockResolvedValue({
+    data: {
+      workspace: {
+        __typename: 'Project',
+        id: 'gid://gitlab/Project/1',
+        workItem: workItemWithMRList.data.workItem,
+      },
+    },
+  });
+
+  const successQueryHandlerWithEmptyMRAndFlagList = jest.fn().mockResolvedValue({
+    data: {
+      workspace: {
+        __typename: 'Project',
+        id: 'gid://gitlab/Project/1',
+        workItem: workItemWithNoMRsOrFlags.data.workItem,
+      },
+    },
+  });
+
+  const successQueryHandlerWithMRAndFlagList = jest.fn().mockResolvedValue({
+    data: {
+      workspace: {
+        __typename: 'Project',
+        id: 'gid://gitlab/Project/1',
+        workItem: workItemWithMRsAndFlagList.data.workItem,
       },
     },
   });
@@ -165,6 +213,7 @@ describe('WorkItemDevelopment CE', () => {
   const findCreateMRButton = () => wrapper.findByTestId('create-mr-button');
   const findCreateBranchButton = () => wrapper.findByTestId('create-branch-button');
   const findMoreInformation = () => wrapper.findByTestId('more-information');
+  const findFeatureFlagsList = () => wrapper.findComponent(WorkItemDevelopmentFeatureFlagsList);
   const findRelationshipList = () => wrapper.findComponent(WorkItemDevelopmentRelationshipList);
 
   describe('Default', () => {
@@ -210,14 +259,14 @@ describe('WorkItemDevelopment CE', () => {
   describe('when the response is successful', () => {
     describe.each`
       workItemsAlphaFFEnabled | shouldShowActionCtaButtons
-      ${true}                 | ${true}
+      ${true}                 | ${false}
       ${false}                | ${false}
     `(
-      'when the list of MRs is empty and workItemsAlpha is `$workItemsAlphaFFEnabled`',
+      'when the list of MRs is empty but there is a Feature Flag list and workItemsAlpha is `$workItemsAlphaFFEnabled`',
       ({ workItemsAlphaFFEnabled, shouldShowActionCtaButtons }) => {
         beforeEach(async () => {
           createComponent({
-            workItemQueryHandler: successQueryHandlerWithEmptyMRList,
+            workItemQueryHandler: successQueryHandlerWithEmptyMRListAndHasFeatureFlagList,
             workItemsAlphaEnabled: workItemsAlphaFFEnabled,
           });
           await waitForPromises();
@@ -232,6 +281,91 @@ describe('WorkItemDevelopment CE', () => {
         });
       },
     );
+
+    describe.each`
+      workItemsAlphaFFEnabled | shouldShowActionCtaButtons
+      ${true}                 | ${false}
+      ${false}                | ${false}
+    `(
+      'when the list of Feature Flag is empty but there is a MR list and workItemsAlpha is `$workItemsAlphaFFEnabled`',
+      ({ workItemsAlphaFFEnabled, shouldShowActionCtaButtons }) => {
+        beforeEach(async () => {
+          createComponent({
+            workItemQueryHandler: successQueryHandlerWithEmptyFlagListAndHasMRList,
+            workItemsAlphaEnabled: workItemsAlphaFFEnabled,
+          });
+          await waitForPromises();
+        });
+
+        it(`should ${shouldShowActionCtaButtons ? '' : 'not '} show the 'Create MR' button`, () => {
+          expect(findCreateMRButton().exists()).toBe(shouldShowActionCtaButtons);
+        });
+
+        it(`should ${shouldShowActionCtaButtons ? '' : 'not '} show the 'Create branch' button`, () => {
+          expect(findCreateBranchButton().exists()).toBe(shouldShowActionCtaButtons);
+        });
+      },
+    );
+
+    describe.each`
+      workItemsAlphaFFEnabled | shouldShowActionCtaButtons
+      ${true}                 | ${true}
+    `(
+      'when both the list of Feature flags and MRs are empty and workItemsAlpha is `$workItemsAlphaFFEnabled`',
+      ({ workItemsAlphaFFEnabled, shouldShowActionCtaButtons }) => {
+        beforeEach(async () => {
+          createComponent({
+            workItemQueryHandler: successQueryHandlerWithEmptyMRAndFlagList,
+            workItemsAlphaEnabled: workItemsAlphaFFEnabled,
+          });
+          await waitForPromises();
+        });
+
+        it(`should ${shouldShowActionCtaButtons ? '' : 'not '} show the 'Create MR' button`, () => {
+          expect(findCreateMRButton().exists()).toBe(shouldShowActionCtaButtons);
+        });
+
+        it(`should ${shouldShowActionCtaButtons ? '' : 'not '} show the 'Create branch' button`, () => {
+          expect(findCreateBranchButton().exists()).toBe(shouldShowActionCtaButtons);
+        });
+      },
+    );
+
+    describe.each`
+      workItemsAlphaFFEnabled | shouldShowActionCtaButtons
+      ${true}                 | ${false}
+      ${false}                | ${false}
+    `(
+      'when both the list of Feature flags and MRs exist and workItemsAlpha is `$workItemsAlphaFFEnabled`',
+      ({ workItemsAlphaFFEnabled, shouldShowActionCtaButtons }) => {
+        beforeEach(async () => {
+          createComponent({
+            workItemQueryHandler: successQueryHandlerWithMRAndFlagList,
+            workItemsAlphaEnabled: workItemsAlphaFFEnabled,
+          });
+          await waitForPromises();
+        });
+
+        it(`should ${shouldShowActionCtaButtons ? '' : 'not '} show the 'Create MR' button`, () => {
+          expect(findCreateMRButton().exists()).toBe(shouldShowActionCtaButtons);
+        });
+
+        it(`should ${shouldShowActionCtaButtons ? '' : 'not '} show the 'Create branch' button`, () => {
+          expect(findCreateBranchButton().exists()).toBe(shouldShowActionCtaButtons);
+        });
+      },
+    );
+
+    describe('when there is a list of feature flags', () => {
+      beforeEach(async () => {
+        createComponent();
+        await waitForPromises();
+      });
+
+      it('should show the relationship list', () => {
+        expect(findFeatureFlagsList().exists()).toBe(true);
+      });
+    });
 
     describe('when there is a list of MR`s', () => {
       beforeEach(async () => {
@@ -264,8 +398,8 @@ describe('WorkItemDevelopment CE', () => {
     it.each`
       queryHandler                             | message                                                            | workItemState   | linkedMRsNumber
       ${successQueryHandlerWithOneMR}          | ${'This task will be closed when the following is merged.'}        | ${STATE_OPEN}   | ${1}
-      ${successQueryHandlerWithMRList}         | ${'This task will be closed when any of the following is merged.'} | ${STATE_OPEN}   | ${workItemDevelopmentNodes.length}
-      ${successQueryHandlerWithClosedWorkItem} | ${'The task was closed automatically when a branch was merged.'}   | ${STATE_CLOSED} | ${workItemDevelopmentNodes.length}
+      ${successQueryHandlerWithMRList}         | ${'This task will be closed when any of the following is merged.'} | ${STATE_OPEN}   | ${workItemDevelopmentMRNodes.length}
+      ${successQueryHandlerWithClosedWorkItem} | ${'The task was closed automatically when a branch was merged.'}   | ${STATE_CLOSED} | ${workItemDevelopmentMRNodes.length}
     `(
       'when the workItemState is `$workItemState` and number of linked MRs is `$linkedMRsNumber` shows message `$message`',
       async ({ queryHandler, message }) => {

@@ -8,6 +8,7 @@ import { findWidget } from '~/issues/list/utils';
 import workItemByIidQuery from '~/work_items/graphql/work_item_by_iid.query.graphql';
 import { sprintfWorkItem, WIDGET_TYPE_DEVELOPMENT, STATE_OPEN } from '~/work_items/constants';
 
+import WorkItemDevelopmentFeatureFlags from './work_item_development_feature_flags.vue';
 import WorkItemDevelopmentRelationshipList from './work_item_development_relationship_list.vue';
 
 export default {
@@ -15,6 +16,7 @@ export default {
     GlLoadingIcon,
     GlIcon,
     GlButton,
+    WorkItemDevelopmentFeatureFlags,
     WorkItemDevelopmentRelationshipList,
   },
   directives: {
@@ -90,6 +92,15 @@ export default {
     },
     shouldShowDevWidget() {
       return this.workItemDevelopment && this.shouldShowEmptyState;
+    },
+    featureFlags() {
+      return this.workItemDevelopment?.featureFlags?.nodes || [];
+    },
+    shouldShowFeatureFlagsList() {
+      return !this.error && this.featureFlags?.length > 0;
+    },
+    shouldShowCreateButtons() {
+      return !this.shouldShowFeatureFlagsList && this.isRelatedDevelopmentListEmpty;
     },
     isRelatedDevelopmentListEmpty() {
       return !this.error && this.linkedMergeRequests.length === 0;
@@ -171,7 +182,15 @@ export default {
         :aria-label="__('Add branch or merge request')"
       />
     </div>
-    <template v-if="isRelatedDevelopmentListEmpty">
+    <work-item-development-feature-flags
+      v-if="shouldShowFeatureFlagsList"
+      :feature-flags="featureFlags"
+    />
+    <work-item-development-relationship-list
+      v-if="!isRelatedDevelopmentListEmpty"
+      :work-item-dev-widget="workItemDevelopment"
+    />
+    <template v-if="shouldShowCreateButtons">
       <span v-if="!canUpdate" class="gl-text-secondary">{{ __('None') }}</span>
       <template v-else>
         <gl-button category="secondary" size="small" data-testid="create-mr-button">{{
@@ -182,6 +201,5 @@ export default {
         }}</gl-button>
       </template>
     </template>
-    <work-item-development-relationship-list v-else :work-item-dev-widget="workItemDevelopment" />
   </div>
 </template>
