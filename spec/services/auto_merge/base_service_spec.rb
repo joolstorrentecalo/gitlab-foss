@@ -309,13 +309,13 @@ RSpec.describe AutoMerge::BaseService, feature_category: :code_review_workflow d
 
     let(:merge_request) { create(:merge_request) }
     let(:yield_result) { true }
-    let(:checks_pass) { true }
+    let(:checks_response) { ServiceResponse.success }
     let(:can_be_merged) { true }
 
     context 'when can_be_merged is true' do
       before do
         allow(merge_request).to receive(:can_be_merged_by?).and_return(can_be_merged)
-        allow(merge_request).to receive(:mergeability_checks_pass?).and_return(checks_pass)
+        allow(merge_request).to receive(:execute_merge_checks) { checks_response }
       end
 
       context 'when the mergeabilty checks pass is true' do
@@ -335,7 +335,15 @@ RSpec.describe AutoMerge::BaseService, feature_category: :code_review_workflow d
       end
 
       context 'when the mergeabilty checks pass is false' do
-        let(:checks_pass) { false }
+        let(:checks_response) do
+          ServiceResponse.error(
+            message: 'Checks failed.',
+            payload: {
+              results: [],
+              failed_check: :not_mergeable
+            }
+          )
+        end
 
         context 'when the yield is true' do
           it 'returns false' do

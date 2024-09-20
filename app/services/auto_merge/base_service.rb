@@ -5,6 +5,13 @@ module AutoMerge
     include Gitlab::Utils::StrongMemoize
     include MergeRequests::AssignsMergeParams
 
+    attr_accessor :abort_error
+
+    def initialize(project, user = nil, params = {})
+      super(project, user, params)
+      @abort_error = nil
+    end
+
     def execute(merge_request)
       ApplicationRecord.transaction do
         register_auto_merge_parameters!(merge_request)
@@ -58,13 +65,28 @@ module AutoMerge
 
     def available_for?(merge_request)
       strong_memoize("available_for_#{merge_request.id}") do
-        merge_request.can_be_merged_by?(current_user) &&
-          merge_request.mergeability_checks_pass?(**skippable_available_for_checks(merge_request)) &&
-          yield
+        user_can_merge_mr?(merge_request) && merge_checks_pass?(merge_request) && yield
       end
     end
 
     private
+
+    def user_can_merge_mr?(merge_request)
+      return true if merge_request.can_be_merged_by?(current_user)
+
+      self.abort_error = 'they do not have permission to merge the merge request.'
+      false
+    end
+
+    def merge_checks_pass?(merge_request)
+      checks_results = merge_request.mergeability_checks(**skippable_available_for_checks(merge_request))
+
+      return true if checks_results.success?
+
+      self.abort_error = "the merge request cannot be merged. Failed mergeability check: " \
+        "#{checks_results.payload[:failed_check]}"
+      false
+    end
 
     def skippable_available_for_checks(merge_request)
       merge_request.skipped_mergeable_checks(
