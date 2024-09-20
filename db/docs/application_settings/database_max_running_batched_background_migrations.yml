@@ -1,0 +1,10 @@
+---
+attr: database_max_running_batched_background_migrations
+clusterwide:
+default: '2'
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

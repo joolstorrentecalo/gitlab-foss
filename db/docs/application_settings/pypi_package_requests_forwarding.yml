@@ -1,0 +1,11 @@
+---
+attr: pypi_package_requests_forwarding
+clusterwide:
+default: 'true'
+description: Use pypi.org as a default remote repository when the package is not found
+  in the GitLab Package Registry for PyPI. Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: boolean

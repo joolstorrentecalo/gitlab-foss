@@ -1,0 +1,10 @@
+---
+attr: help_page_text
+clusterwide:
+default:
+description: Custom text displayed on the help page.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

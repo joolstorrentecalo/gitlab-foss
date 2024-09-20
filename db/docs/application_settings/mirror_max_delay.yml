@@ -1,0 +1,11 @@
+---
+attr: mirror_max_delay
+clusterwide:
+default: '300'
+description: Maximum time (in minutes) between updates that a mirror can have when
+  scheduled to synchronize. Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

@@ -1,0 +1,10 @@
+---
+attr: mailgun_events_enabled
+clusterwide:
+default: 'false'
+description: Enable Mailgun event receiver.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: boolean

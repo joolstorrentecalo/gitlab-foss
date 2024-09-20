@@ -1,0 +1,11 @@
+---
+attr: domain_denylist_enabled
+clusterwide:
+default: 'false'
+description: "(**If enabled, requires:** `domain_denylist`) Allows blocking sign-ups
+  from emails from specific domains."
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: boolean

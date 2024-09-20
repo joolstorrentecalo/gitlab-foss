@@ -1,0 +1,10 @@
+---
+attr: throttle_authenticated_web_requests_per_period
+clusterwide:
+default: '7200'
+description: Maximum requests per period per user.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

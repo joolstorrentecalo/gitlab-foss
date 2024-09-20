@@ -1,0 +1,11 @@
+---
+attr: package_registry_allow_anyone_to_pull_option
+clusterwide:
+default: 'true'
+description: Enable to [allow anyone to pull from Package Registry](../user/packages/package_registry/index.md#allow-anyone-to-pull-from-package-registry)
+  visible and changeable.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: boolean

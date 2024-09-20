@@ -1,0 +1,10 @@
+---
+attr: ai_action_api_rate_limit
+clusterwide: false
+default: '160'
+description:
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

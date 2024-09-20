@@ -1,0 +1,11 @@
+---
+attr: whats_new_variant
+clusterwide:
+default: '0'
+description: 'What''s new variant, possible values: `all_tiers`, `current_tier`, and
+  `disabled`.'
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: false
+type: integer

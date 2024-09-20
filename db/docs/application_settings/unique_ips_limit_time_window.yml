@@ -1,0 +1,10 @@
+---
+attr: unique_ips_limit_time_window
+clusterwide:
+default:
+description: How many seconds an IP is counted towards the limit.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: integer

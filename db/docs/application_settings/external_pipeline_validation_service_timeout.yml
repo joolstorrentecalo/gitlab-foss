@@ -1,0 +1,11 @@
+---
+attr: external_pipeline_validation_service_timeout
+clusterwide:
+default:
+description: How long to wait for a response from the pipeline validation service.
+  Assumes `OK` if it times out.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: integer

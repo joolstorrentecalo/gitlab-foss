@@ -1,0 +1,10 @@
+---
+attr: error_tracking_access_token_encrypted
+clusterwide:
+default:
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

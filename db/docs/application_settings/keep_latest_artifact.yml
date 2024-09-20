@@ -1,0 +1,11 @@
+---
+attr: keep_latest_artifact
+clusterwide:
+default: 'true'
+description: Prevent the deletion of the artifacts from the most recent successful
+  jobs, regardless of the expiry time. Enabled by default.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: boolean

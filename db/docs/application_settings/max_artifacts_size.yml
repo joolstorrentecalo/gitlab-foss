@@ -1,0 +1,10 @@
+---
+attr: max_artifacts_size
+clusterwide:
+default: '100'
+description: Maximum artifacts size in MB.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

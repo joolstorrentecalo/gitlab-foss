@@ -1,0 +1,10 @@
+---
+attr: eks_account_id
+clusterwide:
+default:
+description: Amazon account ID.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

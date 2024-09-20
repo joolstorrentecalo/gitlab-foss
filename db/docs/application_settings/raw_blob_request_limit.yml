@@ -1,0 +1,11 @@
+---
+attr: raw_blob_request_limit
+clusterwide:
+default: '300'
+description: Maximum number of requests per minute for each raw path (default is `300`).
+  Set to `0` to disable throttling.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

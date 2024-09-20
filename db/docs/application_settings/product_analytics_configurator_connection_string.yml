@@ -1,0 +1,10 @@
+---
+attr: product_analytics_configurator_connection_string
+clusterwide:
+default:
+description:
+encrypted: true
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

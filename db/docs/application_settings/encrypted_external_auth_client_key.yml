@@ -1,0 +1,9 @@
+---
+attr: encrypted_external_auth_client_key
+clusterwide:
+default:
+description:
+gitlab_com_different_than_default: false
+jihu: false
+not_null: false
+type: string

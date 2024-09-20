@@ -1,0 +1,10 @@
+---
+attr: max_pages_size
+clusterwide:
+default: '100'
+description: Maximum size of pages repositories in MB.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

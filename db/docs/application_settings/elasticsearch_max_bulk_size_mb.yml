@@ -1,0 +1,11 @@
+---
+attr: elasticsearch_max_bulk_size_mb
+clusterwide:
+default: '10'
+description: Maximum size of Elasticsearch bulk indexing requests in MB. This only
+  applies to repository indexing operations. Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

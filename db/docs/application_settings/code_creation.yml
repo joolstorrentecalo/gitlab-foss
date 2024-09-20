@@ -1,0 +1,10 @@
+---
+attr: code_creation
+clusterwide:
+default: "'{}'::jsonb"
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: hash

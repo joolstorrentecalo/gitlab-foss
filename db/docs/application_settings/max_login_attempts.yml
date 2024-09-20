@@ -1,0 +1,10 @@
+---
+attr: max_login_attempts
+clusterwide:
+default:
+description: Maximum number of sign-in attempts before locking out the user.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: false
+type: integer

@@ -1,0 +1,10 @@
+---
+attr: enforce_namespace_storage_limit
+clusterwide:
+default: 'false'
+description: Enabling this permits enforcement of namespace storage limits.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: boolean

@@ -1,0 +1,11 @@
+---
+attr: sourcegraph_enabled
+clusterwide:
+default: 'false'
+description: Enables Sourcegraph integration. Default is `false`. **If enabled, requires**
+  `sourcegraph_url`.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: boolean

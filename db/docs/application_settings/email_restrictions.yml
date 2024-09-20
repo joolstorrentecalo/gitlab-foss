@@ -1,0 +1,10 @@
+---
+attr: email_restrictions
+clusterwide:
+default:
+description: Regular expression that is checked against the email used during registration.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

@@ -1,0 +1,12 @@
+---
+attr: gitlab_shell_operation_limit
+clusterwide:
+default: '600'
+description: 'Maximum number of Git operations per minute a user can perform. Default:
+  `600`. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/412088) in GitLab
+  16.2.'
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: false
+type: integer

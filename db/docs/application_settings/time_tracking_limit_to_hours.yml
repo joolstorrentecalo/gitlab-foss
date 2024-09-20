@@ -1,0 +1,10 @@
+---
+attr: time_tracking_limit_to_hours
+clusterwide:
+default: 'false'
+description: Limit display of time tracking units to hours. Default is `false`.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: boolean

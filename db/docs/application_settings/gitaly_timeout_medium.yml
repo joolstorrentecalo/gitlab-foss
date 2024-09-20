@@ -1,0 +1,11 @@
+---
+attr: gitaly_timeout_medium
+clusterwide:
+default: '30'
+description: Medium Gitaly timeout, in seconds. This should be a value between the
+  Fast and the Default timeout. Set to `0` to disable timeouts.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

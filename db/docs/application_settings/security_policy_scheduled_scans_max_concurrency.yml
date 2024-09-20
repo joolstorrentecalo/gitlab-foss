@@ -1,0 +1,10 @@
+---
+attr: security_policy_scheduled_scans_max_concurrency
+clusterwide:
+default: '10000'
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

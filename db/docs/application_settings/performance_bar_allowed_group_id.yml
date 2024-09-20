@@ -1,0 +1,11 @@
+---
+attr: performance_bar_allowed_group_id
+clusterwide:
+default:
+description: "(Deprecated: Use `performance_bar_allowed_group_path` instead) Path
+  of the group that is allowed to toggle the performance bar."
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: integer

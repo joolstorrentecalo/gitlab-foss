@@ -1,0 +1,10 @@
+---
+attr: throttle_protected_paths_period_in_seconds
+clusterwide:
+default: '60'
+description:
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

@@ -1,0 +1,10 @@
+---
+attr: default_artifacts_expire_in
+clusterwide:
+default: "'0'::character"
+description: Set the default expiration time for each job's artifacts.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: string

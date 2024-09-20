@@ -1,0 +1,12 @@
+---
+attr: domain_denylist
+clusterwide:
+default:
+description: 'Users with email addresses that match these domains **cannot** sign
+  up. Wildcards allowed. Enter multiple entries on separate lines. For example: `domain.com`,
+  `*.domain.com`.'
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

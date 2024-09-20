@@ -1,0 +1,10 @@
+---
+attr: throttle_unauthenticated_api_period_in_seconds
+clusterwide:
+default: '3600'
+description: Rate limit period in seconds.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

@@ -1,0 +1,10 @@
+---
+attr: push_rule_id
+clusterwide:
+default:
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: integer

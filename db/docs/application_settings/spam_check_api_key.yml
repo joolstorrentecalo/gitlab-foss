@@ -1,0 +1,10 @@
+---
+attr: spam_check_api_key
+clusterwide:
+default:
+description: API key used by GitLab for accessing the Spam Check service endpoint.
+encrypted: true
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

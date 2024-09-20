@@ -1,0 +1,10 @@
+---
+attr: session_expire_delay
+clusterwide:
+default: '10080'
+description: Session duration in minutes. GitLab restart is required to apply changes.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

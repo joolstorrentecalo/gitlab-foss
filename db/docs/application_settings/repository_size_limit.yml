@@ -1,0 +1,10 @@
+---
+attr: repository_size_limit
+clusterwide:
+default: '0'
+description: Size limit per repository (MB). Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: integer

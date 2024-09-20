@@ -1,0 +1,10 @@
+---
+attr: content_validation_endpoint_enabled
+clusterwide:
+default: 'false'
+description:
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: true
+not_null: true
+type: boolean

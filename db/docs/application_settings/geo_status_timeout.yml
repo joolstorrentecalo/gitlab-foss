@@ -1,0 +1,11 @@
+---
+attr: geo_status_timeout
+clusterwide:
+default: '10'
+description: The amount of seconds after which a request to get a secondary node status
+  times out. Self-managed, Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: integer

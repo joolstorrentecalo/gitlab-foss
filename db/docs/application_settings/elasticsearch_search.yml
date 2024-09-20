@@ -1,0 +1,10 @@
+---
+attr: elasticsearch_search
+clusterwide:
+default: 'false'
+description: Enable Elasticsearch search. Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: boolean

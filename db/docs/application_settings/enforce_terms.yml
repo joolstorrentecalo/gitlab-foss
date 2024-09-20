@@ -1,0 +1,10 @@
+---
+attr: enforce_terms
+clusterwide:
+default: 'false'
+description: "(**If enabled, requires:** `terms`) Enforce application ToS to all users."
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: boolean

@@ -1,0 +1,10 @@
+---
+attr: user_default_internal_regex
+clusterwide:
+default:
+description: Specify an email address regex pattern to identify default internal users.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

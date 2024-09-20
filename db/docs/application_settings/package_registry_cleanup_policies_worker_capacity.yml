@@ -1,0 +1,10 @@
+---
+attr: package_registry_cleanup_policies_worker_capacity
+clusterwide:
+default: '2'
+description: Number of workers assigned to the packages cleanup policies.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

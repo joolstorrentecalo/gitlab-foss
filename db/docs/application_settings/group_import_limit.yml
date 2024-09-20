@@ -1,0 +1,10 @@
+---
+attr: group_import_limit
+clusterwide:
+default: '6'
+description:
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

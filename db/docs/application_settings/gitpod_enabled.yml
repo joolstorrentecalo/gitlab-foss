@@ -1,0 +1,11 @@
+---
+attr: gitpod_enabled
+clusterwide:
+default: 'false'
+description: "(**If enabled, requires:** `gitpod_url`) Enable [Gitpod integration](../integration/gitpod.md).
+  Default is `false`."
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: boolean

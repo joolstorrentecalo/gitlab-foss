@@ -1,0 +1,11 @@
+---
+attr: user_oauth_applications
+clusterwide:
+default: 'true'
+description: Allow users to register any application to use GitLab as an OAuth provider.
+  This setting does not affect group-level OAuth applications.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: false
+type: boolean

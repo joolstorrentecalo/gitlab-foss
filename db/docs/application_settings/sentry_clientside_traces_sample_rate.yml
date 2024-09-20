@@ -1,0 +1,10 @@
+---
+attr: sentry_clientside_traces_sample_rate
+clusterwide:
+default: '0.0'
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: float

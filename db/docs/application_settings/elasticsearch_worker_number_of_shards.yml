@@ -1,0 +1,11 @@
+---
+attr: elasticsearch_worker_number_of_shards
+clusterwide:
+default: '2'
+description: Number of indexing worker shards. This improves non-code indexing throughput
+  by enqueuing more parallel Sidekiq jobs. Default is `2`. Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

@@ -1,0 +1,11 @@
+---
+attr: max_yaml_size_bytes
+clusterwide:
+default: '2097152'
+description: 'The maximum size in bytes of a single CI/CD configuration file. Default:
+  `2097152`.'
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

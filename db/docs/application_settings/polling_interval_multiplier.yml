@@ -1,0 +1,11 @@
+---
+attr: polling_interval_multiplier
+clusterwide:
+default: '1.0'
+description: Interval multiplier used by endpoints that perform polling. Set to `0`
+  to disable polling.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: float

@@ -1,0 +1,11 @@
+---
+attr: shared_runners_minutes
+clusterwide:
+default: '0'
+description: Set the maximum number of compute minutes that a group can use on shared
+  runners per month. Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

@@ -1,0 +1,10 @@
+---
+attr: local_markdown_version
+clusterwide:
+default: '0'
+description: Increase this value when any cached Markdown should be invalidated.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

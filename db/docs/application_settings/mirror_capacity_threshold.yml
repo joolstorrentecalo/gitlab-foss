@@ -1,0 +1,11 @@
+---
+attr: mirror_capacity_threshold
+clusterwide:
+default: '50'
+description: Minimum capacity to be available before scheduling more mirrors preemptively.
+  Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

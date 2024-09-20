@@ -1,0 +1,10 @@
+---
+attr: container_registry_vendor
+clusterwide:
+default: "''::text"
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: string

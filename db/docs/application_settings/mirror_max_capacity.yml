@@ -1,0 +1,11 @@
+---
+attr: mirror_max_capacity
+clusterwide:
+default: '100'
+description: Maximum number of mirrors that can be synchronizing at the same time.
+  Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

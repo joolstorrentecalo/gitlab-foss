@@ -1,0 +1,10 @@
+---
+attr: gravatar_enabled
+clusterwide:
+default:
+description: Enable Gravatar.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: boolean

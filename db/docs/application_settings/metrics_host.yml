@@ -1,0 +1,10 @@
+---
+attr: metrics_host
+clusterwide:
+default: "'localhost'::character"
+description:
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: false
+type: string

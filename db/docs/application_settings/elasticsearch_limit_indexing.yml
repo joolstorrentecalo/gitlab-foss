@@ -1,0 +1,11 @@
+---
+attr: elasticsearch_limit_indexing
+clusterwide:
+default: 'false'
+description: Limit Elasticsearch to index certain namespaces and projects. Premium
+  and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: boolean

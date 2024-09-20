@@ -1,0 +1,10 @@
+---
+attr: static_objects_external_storage_url
+clusterwide:
+default:
+description: URL to an external storage for repository static objects.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

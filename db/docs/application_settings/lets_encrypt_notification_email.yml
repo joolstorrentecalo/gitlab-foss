@@ -1,0 +1,10 @@
+---
+attr: lets_encrypt_notification_email
+clusterwide:
+default:
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

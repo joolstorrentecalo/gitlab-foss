@@ -1,0 +1,11 @@
+---
+attr: housekeeping_gc_period
+clusterwide:
+default: '200'
+description: Deprecated. Number of Git pushes after which `git gc` is run. Use `housekeeping_optimize_repository_period`
+  instead. For more information, see [Housekeeping fields](#housekeeping-fields).
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: integer

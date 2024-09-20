@@ -1,0 +1,10 @@
+---
+attr: diff_max_lines
+clusterwide:
+default: '50000'
+description: Maximum [lines in a diff](../administration/diff_limits.md).
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

@@ -1,0 +1,10 @@
+---
+attr: protected_paths_for_get_request
+clusterwide:
+default: "'{}'::text[]"
+description:
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: string

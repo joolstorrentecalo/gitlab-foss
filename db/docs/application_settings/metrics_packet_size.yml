@@ -1,0 +1,10 @@
+---
+attr: metrics_packet_size
+clusterwide:
+default: '1'
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: integer

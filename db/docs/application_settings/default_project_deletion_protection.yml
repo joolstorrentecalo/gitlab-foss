@@ -1,0 +1,11 @@
+---
+attr: default_project_deletion_protection
+clusterwide:
+default: 'false'
+description: Enable default project deletion protection so only administrators can
+  delete projects. Default is `false`. Self-managed, Premium and Ultimate only.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: boolean

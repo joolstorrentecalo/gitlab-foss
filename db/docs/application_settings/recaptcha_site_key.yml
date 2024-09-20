@@ -1,0 +1,10 @@
+---
+attr: recaptcha_site_key
+clusterwide:
+default:
+description: Site key for reCAPTCHA.
+encrypted: true
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

@@ -1,0 +1,10 @@
+---
+attr: arkose_labs_namespace
+clusterwide: true
+default: "'client'::text"
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: string

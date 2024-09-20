@@ -1,0 +1,10 @@
+---
+attr: max_import_size
+clusterwide:
+default: '0'
+description: Maximum import size in MB. 0 for unlimited. Default = 0 (unlimited).
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

@@ -1,0 +1,10 @@
+---
+attr: throttle_unauthenticated_deprecated_api_requests_per_period
+clusterwide:
+default: '1800'
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: integer

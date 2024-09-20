@@ -1,0 +1,11 @@
+---
+attr: elasticsearch_aws_region
+clusterwide:
+default: "'us-east-1'::character"
+description: The AWS region the Elasticsearch domain is configured. Premium and Ultimate
+  only.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: false
+type: string

@@ -1,0 +1,11 @@
+---
+attr: plantuml_enabled
+clusterwide:
+default:
+description: "(**If enabled, requires:** `plantuml_url`) Enable [PlantUML integration](../administration/integration/plantuml.md).
+  Default is `false`."
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: boolean

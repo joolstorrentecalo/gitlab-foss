@@ -1,0 +1,10 @@
+---
+attr: after_sign_out_path
+clusterwide: true
+default:
+description: Where to redirect users after logout.
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: false
+type: string

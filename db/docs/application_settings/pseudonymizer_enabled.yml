@@ -1,0 +1,10 @@
+---
+attr: pseudonymizer_enabled
+clusterwide:
+default: 'false'
+description:
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: boolean

@@ -1,0 +1,11 @@
+---
+attr: can_create_group
+clusterwide:
+default: 'true'
+description: Indicates whether users can create top-level groups. [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/367754)
+  in GitLab 15.5. Defaults to `true`.
+encrypted: false
+gitlab_com_different_than_default: false
+jihu: false
+not_null: true
+type: boolean

@@ -1,0 +1,10 @@
+---
+attr: lets_encrypt_terms_of_service_accepted
+clusterwide:
+default: 'false'
+description:
+encrypted: false
+gitlab_com_different_than_default: true
+jihu: false
+not_null: true
+type: boolean
