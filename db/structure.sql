@@ -20551,6 +20551,25 @@ CREATE SEQUENCE wiki_page_meta_id_seq
 
 ALTER SEQUENCE wiki_page_meta_id_seq OWNED BY wiki_page_meta.id;
 
+CREATE TABLE wiki_page_meta_user_mentions (
+    id bigint NOT NULL,
+    wiki_page_meta_id bigint NOT NULL,
+    note_id bigint NOT NULL,
+    namespace_id bigint NOT NULL,
+    mentioned_users_ids bigint[],
+    mentioned_projects_ids bigint[],
+    mentioned_groups_ids bigint[]
+);
+
+CREATE SEQUENCE wiki_page_meta_user_mentions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE wiki_page_meta_user_mentions_id_seq OWNED BY wiki_page_meta_user_mentions.id;
+
 CREATE TABLE wiki_page_slugs (
     id bigint NOT NULL,
     canonical boolean DEFAULT false NOT NULL,
@@ -22710,6 +22729,8 @@ ALTER TABLE ONLY web_hooks ALTER COLUMN id SET DEFAULT nextval('web_hooks_id_seq
 ALTER TABLE ONLY webauthn_registrations ALTER COLUMN id SET DEFAULT nextval('webauthn_registrations_id_seq'::regclass);
 
 ALTER TABLE ONLY wiki_page_meta ALTER COLUMN id SET DEFAULT nextval('wiki_page_meta_id_seq'::regclass);
+
+ALTER TABLE ONLY wiki_page_meta_user_mentions ALTER COLUMN id SET DEFAULT nextval('wiki_page_meta_user_mentions_id_seq'::regclass);
 
 ALTER TABLE ONLY wiki_page_slugs ALTER COLUMN id SET DEFAULT nextval('wiki_page_slugs_id_seq'::regclass);
 
@@ -25522,6 +25543,9 @@ ALTER TABLE ONLY webauthn_registrations
 
 ALTER TABLE ONLY wiki_page_meta
     ADD CONSTRAINT wiki_page_meta_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY wiki_page_meta_user_mentions
+    ADD CONSTRAINT wiki_page_meta_user_mentions_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY wiki_page_slugs
     ADD CONSTRAINT wiki_page_slugs_pkey PRIMARY KEY (id);
@@ -31130,9 +31154,15 @@ CREATE UNIQUE INDEX index_webauthn_registrations_on_credential_xid ON webauthn_r
 
 CREATE INDEX index_webauthn_registrations_on_user_id ON webauthn_registrations USING btree (user_id);
 
+CREATE UNIQUE INDEX index_wiki_meta_user_mentions_on_wiki_page_meta_id_and_note_id ON wiki_page_meta_user_mentions USING btree (wiki_page_meta_id, note_id);
+
 CREATE INDEX index_wiki_page_meta_on_namespace_id ON wiki_page_meta USING btree (namespace_id);
 
 CREATE INDEX index_wiki_page_meta_on_project_id ON wiki_page_meta USING btree (project_id);
+
+CREATE INDEX index_wiki_page_meta_user_mentions_on_namespace_id ON wiki_page_meta_user_mentions USING btree (namespace_id);
+
+CREATE INDEX index_wiki_page_meta_user_mentions_on_note_id ON wiki_page_meta_user_mentions USING btree (note_id);
 
 CREATE INDEX index_wiki_page_slugs_on_project_id ON wiki_page_slugs USING btree (project_id);
 
@@ -34043,9 +34073,6 @@ ALTER TABLE ONLY subscription_user_add_on_assignments
 ALTER TABLE ONLY packages_conan_metadata
     ADD CONSTRAINT fk_7302a29cd9 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
-ALTER TABLE ONLY approval_merge_request_rules
-    ADD CONSTRAINT fk_73fec3d7e5 FOREIGN KEY (approval_policy_rule_id) REFERENCES approval_policy_rules(id) ON DELETE CASCADE;
-
 ALTER TABLE ONLY index_statuses
     ADD CONSTRAINT fk_74b2492545 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
@@ -34084,6 +34111,9 @@ ALTER TABLE ONLY users
 
 ALTER TABLE ONLY analytics_devops_adoption_snapshots
     ADD CONSTRAINT fk_78c9eac821 FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY wiki_page_meta_user_mentions
+    ADD CONSTRAINT fk_7954f34107 FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY topics
     ADD CONSTRAINT fk_79ae18bd4b FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE;
@@ -34395,6 +34425,9 @@ ALTER TABLE ONLY analytics_cycle_analytics_group_stages
     ADD CONSTRAINT fk_analytics_cycle_analytics_group_stages_group_value_stream_id FOREIGN KEY (group_value_stream_id) REFERENCES analytics_cycle_analytics_group_value_streams(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY approval_merge_request_rules
+    ADD CONSTRAINT fk_approval_merge_request_rules_on_approval_policy_rule_id FOREIGN KEY (approval_policy_rule_id) REFERENCES approval_policy_rules(id) ON DELETE SET NULL;
+
+ALTER TABLE ONLY approval_merge_request_rules
     ADD CONSTRAINT fk_approval_merge_request_rules_on_scan_result_policy_id FOREIGN KEY (scan_result_policy_id) REFERENCES scan_result_policies(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY fork_network_members
@@ -34475,11 +34508,17 @@ ALTER TABLE ONLY uploads
 ALTER TABLE ONLY deployments
     ADD CONSTRAINT fk_b9a3851b82 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY wiki_page_meta_user_mentions
+    ADD CONSTRAINT fk_ba8a9d7f95 FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE;
+
 ALTER TABLE ONLY project_compliance_standards_adherence
     ADD CONSTRAINT fk_baf6f6f878 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
 ALTER TABLE p_ci_runner_machine_builds
     ADD CONSTRAINT fk_bb490f12fe_p FOREIGN KEY (partition_id, build_id) REFERENCES p_ci_builds(partition_id, id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE ONLY wiki_page_meta_user_mentions
+    ADD CONSTRAINT fk_bc155eba89 FOREIGN KEY (wiki_page_meta_id) REFERENCES wiki_page_meta(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY security_orchestration_policy_rule_schedules
     ADD CONSTRAINT fk_bcbb90477f FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
