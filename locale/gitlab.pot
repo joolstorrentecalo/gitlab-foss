@@ -17972,9 +17972,6 @@ msgstr ""
 msgid "DelayedJobs|Are you sure you want to run %{jobName} immediately? Otherwise this job will run automatically after its timer finishes."
 msgstr ""
 
-msgid "DelayedJobs|Are you sure you want to run %{job_name} immediately? This job will run automatically after it's timer finishes."
-msgstr ""
-
 msgid "DelayedJobs|Are you sure you want to run %{job_name} immediately? This job will run automatically after its timer finishes."
 msgstr ""
 
@@ -17985,9 +17982,6 @@ msgid "DelayedJobs|Start now"
 msgstr ""
 
 msgid "DelayedJobs|Unschedule"
-msgstr ""
-
-msgid "DelayedJobs|delayed"
 msgstr ""
 
 msgid "Delete"
@@ -30718,16 +30712,10 @@ msgstr ""
 msgid "Job has wrong arguments format."
 msgstr ""
 
-msgid "Job is stuck. Check runners."
-msgstr ""
-
 msgid "Job logs and artifacts"
 msgstr ""
 
 msgid "Job token permissions"
-msgstr ""
-
-msgid "Job was retried"
 msgstr ""
 
 msgid "JobAssistant|Add job"
@@ -40529,6 +40517,9 @@ msgid "Pipeline|Merged result pipeline"
 msgstr ""
 
 msgid "Pipeline|Merged result pipeline runs on the contents of the merge request combined with the contents of the target branch."
+msgstr ""
+
+msgid "Pipeline|New pipeline"
 msgstr ""
 
 msgid "Pipeline|Only the first 100 jobs per stage are displayed"
@@ -52780,9 +52771,6 @@ msgstr ""
 msgid "Status not supported"
 msgstr ""
 
-msgid "Status was retried."
-msgstr ""
-
 msgid "Status:"
 msgstr ""
 
@@ -63859,9 +63847,6 @@ msgstr ""
 msgid "all protected branches"
 msgstr ""
 
-msgid "allowed to fail"
-msgstr ""
-
 msgid "already assigned to an epic"
 msgstr ""
 
@@ -65002,9 +64987,6 @@ msgstr ""
 msgid "main"
 msgstr ""
 
-msgid "manual"
-msgstr ""
-
 msgid "math|Display anyway"
 msgstr ""
 
@@ -66015,9 +65997,6 @@ msgid "total must be less than or equal to %{size}"
 msgstr ""
 
 msgid "trigger token"
-msgstr ""
-
-msgid "triggered"
 msgstr ""
 
 msgid "two-factor authentication settings"

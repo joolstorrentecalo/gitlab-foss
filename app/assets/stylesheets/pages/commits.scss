@@ -158,8 +158,7 @@
   }
 }
 
-.commit,
-.generic-commit-status {
+.commit {
   a {
     color: $gl-text-color;
   }
@@ -195,7 +194,6 @@
 }
 
 .commit,
-.generic-commit-status,
 .branch-commit {
   .commit-sha {
     color: $blue-600;

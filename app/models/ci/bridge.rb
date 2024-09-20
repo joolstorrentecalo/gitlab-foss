@@ -208,10 +208,6 @@ module Ci
       raise NotImplementedError
     end
 
-    def to_partial_path
-      'projects/generic_commit_statuses/generic_commit_status'
-    end
-
     def yaml_for_downstream
       strong_memoize(:yaml_for_downstream) do
         includes = options&.dig(:trigger, :include)
