@@ -14,7 +14,11 @@ module Gitlab
           private
 
           def target
-            check_object_storage(::Backup::Targets::Files.new(nil, storage_path, options: options, excludes: ['tmp']))
+            check_object_storage(
+              Gitlab::Backup::Cli::Targets::Files.new(
+                storage_path, excludes: ['tmp']
+              )
+            )
           end
 
           def storage_path = context.terraform_state_path

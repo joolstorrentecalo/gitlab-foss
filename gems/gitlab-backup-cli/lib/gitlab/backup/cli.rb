@@ -36,6 +36,14 @@ module Gitlab
         Rails.application.autoloaders
         Rails.application.load_tasks
       end
+
+      def self.compression_command
+        Shell::Command.new('gzip', '-c', '-1')
+      end
+
+      def self.decompression_command
+        Shell::Command.new('gzip', '-cd')
+      end
     end
   end
 end

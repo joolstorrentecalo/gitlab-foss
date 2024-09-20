@@ -5,16 +5,9 @@ module Gitlab
     module Cli
       module Tasks
         class Task
-          attr_reader :options, :context
-
           # Identifier used as parameter in the CLI to skip from executing
           def self.id
             raise NotImplementedError
-          end
-
-          def initialize(context:, options:)
-            @context = context
-            @options = options
           end
 
           # Initiate a backup
@@ -30,10 +23,10 @@ module Gitlab
             target.dump(backup_output, backup_id)
           end
 
-          def restore!(archive_directory)
+          def restore!(archive_directory, workdir)
             archived_data_location = Pathname(archive_directory).join(destination_path)
 
-            target.restore(archived_data_location, nil)
+            target.restore(archived_data_location, workdir, nil)
           end
 
           # Key string that identifies the task
@@ -68,8 +61,12 @@ module Gitlab
             enabled
           end
 
+          def context
+            @context ||= Gitlab::Backup::Cli::SourceContext.new
+          end
+
           def config
-            Gitlab::Backup::Cli::SourceContext.new.config(id)
+            context.config(id)
           end
 
           def object_storage?
@@ -92,7 +89,7 @@ module Gitlab
 
           def check_object_storage(file_target)
             if object_storage?
-              ::Gitlab::Backup::Cli::Targets::ObjectStorage.find_task(id, options, config)
+              ::Gitlab::Backup::Cli::Targets::ObjectStorage.find_task(id, config)
             else
               file_target
             end

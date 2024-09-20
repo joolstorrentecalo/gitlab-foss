@@ -6,16 +6,6 @@ module Gitlab
       module Targets
         # Abstract class used to implement a Backup Target
         class Target
-          # Backup creation and restore option flags
-          #
-          # TODO: Migrate to a unified backup specific Options implementation
-          # @return [::Backup::Options]
-          attr_reader :options
-
-          def initialize(options:)
-            @options = options
-          end
-
           # dump task backup to `path`
           #
           # @param [String] path fully qualified backup task destination

@@ -45,16 +45,9 @@ module Gitlab
         end
 
         def execute_all_tasks
-          # TODO: when we migrate targets to the new codebase, recreate options to have only what we need here
-          # https://gitlab.com/gitlab-org/gitlab/-/issues/454906
-          options = ::Backup::Options.new(
-            remote_directory: backup_bucket,
-            container_registry_bucket: registry_bucket,
-            service_account_file: service_account_file
-          )
           tasks = []
 
-          Gitlab::Backup::Cli::Tasks.build_each(context: context, options: options) do |task|
+          Gitlab::Backup::Cli::Tasks.build_each(context: context) do |task|
             Gitlab::Backup::Cli::Output.info("Executing Backup of #{task.human_name}...")
 
             duration = measure_duration do

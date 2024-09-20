@@ -20,17 +20,12 @@ module Gitlab
           @archive_directory = context.backup_basedir.join(backup_id)
 
           @metadata = nil
-          @backup_options = nil
         end
 
         def execute
           read_metadata!
 
           execute_all_tasks
-        end
-
-        def backup_options
-          @backup_options ||= build_backup_options!
         end
 
         def metadata
@@ -45,13 +40,12 @@ module Gitlab
         private
 
         def execute_all_tasks
-          # TODO: when we migrate targets to the new codebase, recreate options to have only what we need here
-          # https://gitlab.com/gitlab-org/gitlab/-/issues/454906
-          Gitlab::Backup::Cli::Tasks.build_each(context: context, options: backup_options) do |task|
+          # TODO: Pass backup_id
+          Gitlab::Backup::Cli::Tasks.build_each do |task|
             Gitlab::Backup::Cli::Output.info("Executing restoration of #{task.human_name}...")
 
             duration = measure_duration do
-              task.restore!(archive_directory)
+              task.restore!(archive_directory, workdir)
             end
 
             Gitlab::Backup::Cli::Output.success("Finished restoration of #{task.human_name}! (#{duration.in_seconds}s)")
@@ -60,12 +54,6 @@ module Gitlab
 
         def read_metadata!
           @metadata = Gitlab::Backup::Cli::Metadata::BackupMetadata.load!(archive_directory)
-        end
-
-        def build_backup_options!
-          ::Backup::Options.new(
-            backup_id: backup_id
-          )
         end
 
         # @return [Pathname] temporary directory

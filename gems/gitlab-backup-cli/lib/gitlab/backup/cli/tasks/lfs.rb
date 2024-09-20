@@ -14,7 +14,7 @@ module Gitlab
           private
 
           def target
-            check_object_storage(::Backup::Targets::Files.new(nil, storage_path, options: options))
+            check_object_storage(Gitlab::Backup::Cli::Targets::Files.new(storage_path))
           end
 
           def storage_path = context.ci_lfs_path

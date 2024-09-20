@@ -10,10 +10,10 @@ module Gitlab
           class Google < Target
             attr_accessor :object_type, :backup_bucket, :client, :config
 
-            def initialize(object_type, options, config)
+            def initialize(object_type, remote_directory, config)
               check_env
               @object_type = object_type
-              @backup_bucket = options.remote_directory
+              @backup_bucket = remote_directory
               @config = config
               @client = ::Google::Cloud::StorageTransfer.storage_transfer_service
             end

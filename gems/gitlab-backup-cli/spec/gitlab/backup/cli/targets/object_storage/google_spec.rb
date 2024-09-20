@@ -30,14 +30,12 @@ RSpec.describe Gitlab::Backup::Cli::Targets::ObjectStorage::Google do
     }
   end
 
-  let(:backup_options) { instance_double("Gitlab::Backup::Options", remote_directory: 'fake_backup_bucket') }
-
   before do
     allow(Gitlab).to receive(:config).and_return(gitlab_config)
     allow(::Google::Cloud::StorageTransfer).to receive(:storage_transfer_service).and_return(client)
   end
 
-  subject(:object_storage) { described_class.new("fake_object", backup_options, supported_config) }
+  subject(:object_storage) { described_class.new("fake_object", 'fake_backup_bucket', supported_config) }
 
   describe "#dump" do
     let(:supported_provider) do
