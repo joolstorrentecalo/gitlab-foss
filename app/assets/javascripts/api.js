@@ -962,7 +962,12 @@ const Api = {
     const { project_id, namespace_id } = data;
     return axios.post(
       url,
-      { event, project_id, namespace_id, additional_properties: additionalProperties },
+      {
+        event,
+        project_id,
+        namespace_id,
+        additional_properties: additionalProperties,
+      },
       { headers },
     );
   },
