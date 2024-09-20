@@ -31,7 +31,11 @@ RSpec.describe 'Database schema', feature_category: :database do
     p_ci_builds_execution_configs: [%w[partition_id pipeline_id]], # the index on pipeline_id is enough
     p_ci_pipelines: [%w[auto_canceled_by_partition_id auto_canceled_by_id]], # index on auto_canceled_by_id is sufficient
     p_ci_pipeline_variables: [%w[partition_id pipeline_id]], # index on pipeline_id is sufficient
+    p_ci_runners: %w[namespace_id project_id], # the partial indices exist on the respective partitions
     p_ci_stages: [%w[partition_id pipeline_id]], # the index on pipeline_id is sufficient
+    p_instance_type_ci_runners: %w[namespace_id project_id], # these values will always be -1 on this partition
+    p_group_type_ci_runners: %w[creator_id namespace_id], # the partial indices on creator_id IS NOT NULL and namespace_id != -1 are sufficient
+    p_project_type_ci_runners: %w[creator_id project_id], # the partial indices on creator_id IS NOT NULL and project_id != -1 are sufficient
     # `search_index_id index_type` is the composite foreign key configured for `search_namespace_index_assignments`,
     # but in Search::NamespaceIndexAssignment model, only `search_index_id` is used as foreign key and indexed
     search_namespace_index_assignments: [%w[search_index_id index_type]],
@@ -154,7 +158,11 @@ RSpec.describe 'Database schema', feature_category: :database do
     p_ci_job_artifacts: %w[partition_id project_id job_id],
     p_ci_pipeline_variables: %w[partition_id pipeline_id project_id],
     p_ci_builds_execution_configs: %w[partition_id],
+    p_ci_runners: %w[namespace_id project_id], # These fields are only used in the partitions, and have the appropriate FKs
     p_ci_stages: %w[partition_id project_id pipeline_id],
+    p_instance_type_ci_runners: %w[namespace_id project_id], # These fields are always -1 in this partition
+    p_group_type_ci_runners: %w[project_id], # This field is always -1 in this partition
+    p_project_type_ci_runners: %w[namespace_id], # This field is always -1 in this partition
     project_build_artifacts_size_refreshes: %w[last_job_artifact_id],
     project_data_transfers: %w[project_id namespace_id],
     project_error_tracking_settings: %w[sentry_project_id],
