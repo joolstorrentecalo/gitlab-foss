@@ -39,6 +39,13 @@ RSpec.describe DiffNote do
       subject { build(:diff_note_on_commit, project: project, commit_id: commit_id, position: position) }
     end
 
+    it 'uses line code if already set' do
+      note = build(:diff_note_on_merge_request, project: project, position: position, noteable: merge_request,
+        line_code: 'test_line_code')
+
+      expect(note.line_code).to eq('test_line_code')
+    end
+
     it "is not valid when noteable is empty" do
       note = build(:diff_note_on_merge_request, project: project, noteable: nil)
 
