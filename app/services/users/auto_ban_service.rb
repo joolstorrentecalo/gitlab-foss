@@ -10,6 +10,7 @@ module Users
     def execute
       if user.ban
         record_custom_attribute
+        ban_duplicate_users
         success
       else
         messages = user.errors.full_messages
@@ -20,12 +21,17 @@ module Users
     def execute!
       user.ban!
       record_custom_attribute
+      ban_duplicate_users
       success
     end
 
     private
 
     attr_reader :user, :reason
+
+    def ban_duplicate_users
+      AntiAbuse::BanDuplicateUsersWorker.perform_async(user.id)
+    end
 
     def record_custom_attribute
       custom_attribute = {
