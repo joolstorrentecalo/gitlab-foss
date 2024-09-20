@@ -285,6 +285,51 @@ module Issuable
       fuzzy_search(query, [:title])
     end
 
+    def gfm_autocomplete_search(query)
+      issuables_cte = Gitlab::SQL::CTE.new(table_name, self.all)
+      search_relations = []
+
+      search_relations << unscoped.from(issuables_cte.table).where(
+        'title ILIKE :pattern',
+        pattern: "%#{sanitize_sql_like(query)}%"
+      )
+
+      if query.match?(/\A\d+\z/)
+        search_relations << unscoped.from(issuables_cte.table).iid_prefix_search(query)
+      end
+
+      unscoped.with(issuables_cte.to_arel)
+              .from_union(search_relations)
+              .order(id: :desc)
+    end
+
+    # Search for IIDs with the given prefix
+    # For example, when given a search query `123`, this will generate conditions:
+    # WHERE iid = 123
+    #   OR iid BETWEEN 1230 AND 1239
+    #   OR iid BETWEEN 12300 AND 12399
+    #   OR iid BETWEEN 123000 AND 123999
+    #   OR iid BETWEEN 1230000 AND 1239999
+    #   OR iid BETWEEN 12300000 AND 12399999
+    #   OR iid BETWEEN 123000000 AND 123999999
+    def iid_prefix_search(query)
+      query = query.to_i
+
+      issuables = self.where(iid: query)
+
+      if query > 0
+        # Search up to 9-digit IIDs
+        (1..(9 - query.digits.size)).map do |other_digits|
+          range_start = query * (10**other_digits)
+          range_end = range_start + (10**other_digits) - 1
+
+          issuables = issuables.or(self.where(iid: range_start..range_end))
+        end
+      end
+
+      issuables
+    end
+
     def available_states
       @available_states ||= STATE_ID_MAP.slice(*available_state_names)
     end
