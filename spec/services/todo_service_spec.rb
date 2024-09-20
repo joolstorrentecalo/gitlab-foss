@@ -1115,6 +1115,16 @@ RSpec.describe TodoService, feature_category: :team_planning do
       end
     end
 
+    describe '#ssh_key_expired' do
+      let_it_be(:ssh_key) { create(:key, user: author) }
+
+      it 'creates a pending todo for the user' do
+        service.ssh_key_expired(ssh_key)
+
+        should_create_todo(user: author, author: author, target: ssh_key, project: nil, action: Todo::EXPIRED)
+      end
+    end
+
     describe '#merge_request_build_failed' do
       let(:merge_participants) { [unassigned_mr.author, admin] }
 

@@ -17,6 +17,7 @@ module Keys
       if expiring_soon
         trigger_expiring_soon_notification
       else
+        create_expired_todos
         trigger_expired_notification
       end
     end
@@ -37,6 +38,12 @@ module Keys
       notification_service.ssh_key_expired(user, keys.map(&:fingerprint))
 
       keys.update_all(expiry_notification_delivered_at: Time.current.utc)
+    end
+
+    def create_expired_todos
+      keys.each do |key|
+        todo_service.ssh_key_expired(key)
+      end
     end
   end
 end

@@ -8,6 +8,7 @@ module Types
     value 'MERGEREQUEST', value: 'MergeRequest', description: 'Merge request.'
     value 'DESIGN', value: 'DesignManagement::Design', description: 'Design.'
     value 'ALERT', value: 'AlertManagement::Alert', description: 'Alert.'
+    value 'KEY', value: 'Key', description: 'SSH key.'
   end
 end
 

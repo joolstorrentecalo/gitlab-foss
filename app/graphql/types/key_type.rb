@@ -5,6 +5,8 @@ module Types
     graphql_name 'Key'
     description 'Represents an SSH key.'
 
+    implements Types::TodoableInterface
+
     field :created_at, Types::TimeType, null: false,
       description: 'Timestamp of when the key was created.'
     field :expires_at, Types::TimeType, null: false,

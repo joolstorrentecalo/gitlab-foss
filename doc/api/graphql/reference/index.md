@@ -25569,7 +25569,9 @@ Represents an SSH key.
 | <a id="keyexpiresat"></a>`expiresAt` | [`Time!`](#time) | Timestamp of when the key expires. It's null if it never expires. |
 | <a id="keyid"></a>`id` | [`ID!`](#id) | ID of the key. |
 | <a id="keykey"></a>`key` | [`String!`](#string) | Public key of the key pair. |
+| <a id="keyname"></a>`name` | [`String`](#string) | Name or title of this object. |
 | <a id="keytitle"></a>`title` | [`String!`](#string) | Title of the key. |
+| <a id="keyweburl"></a>`webUrl` | [`String`](#string) | URL of this object. |
 
 ### `Label`
 
@@ -38559,6 +38561,7 @@ Values for sorting timelogs.
 | <a id="todoactionenumassigned"></a>`assigned` | User was assigned. |
 | <a id="todoactionenumbuild_failed"></a>`build_failed` | Build triggered by the user failed. |
 | <a id="todoactionenumdirectly_addressed"></a>`directly_addressed` | User was directly addressed. |
+| <a id="todoactionenumexpired"></a>`expired` | Something expired. |
 | <a id="todoactionenummarked"></a>`marked` | User added a to-do item. |
 | <a id="todoactionenummember_access_requested"></a>`member_access_requested` | Group or project access requested from the user. |
 | <a id="todoactionenummentioned"></a>`mentioned` | User was mentioned. |
@@ -38601,6 +38604,7 @@ Sort options for todos.
 | <a id="todotargetenumdesign"></a>`DESIGN` | Design. |
 | <a id="todotargetenumepic"></a>`EPIC` | An Epic. |
 | <a id="todotargetenumissue"></a>`ISSUE` | Issue. |
+| <a id="todotargetenumkey"></a>`KEY` | SSH key. |
 | <a id="todotargetenummergerequest"></a>`MERGEREQUEST` | Merge request. |
 | <a id="todotargetenumworkitem"></a>`WORKITEM` | Work item. |
 
@@ -40782,6 +40786,7 @@ Implementations:
 - [`EpicIssue`](#epicissue)
 - [`Group`](#group)
 - [`Issue`](#issue)
+- [`Key`](#key)
 - [`MergeRequest`](#mergerequest)
 - [`Namespace`](#namespace)
 - [`Project`](#project)

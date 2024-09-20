@@ -176,6 +176,7 @@
     "EpicIssue",
     "Group",
     "Issue",
+    "Key",
     "MergeRequest",
     "Namespace",
     "Project",
