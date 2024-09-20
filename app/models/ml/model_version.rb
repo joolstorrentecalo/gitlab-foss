@@ -60,6 +60,12 @@ module Ml
       end
 
       def by_project_id_name_and_version(project_id, name, version)
+        if version.is_a? Numeric
+          return joins(:model).find_by(model:
+                                         { name: name, project_id: project_id }, project_id: project_id, id: version
+          )
+        end
+
         joins(:model).find_by(model: { name: name, project_id: project_id }, project_id: project_id, version: version)
       end
     end

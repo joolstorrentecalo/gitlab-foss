@@ -219,6 +219,18 @@ RSpec.describe Ml::ModelVersion, feature_category: :mlops do
 
       it { is_expected.to be(nil) }
     end
+
+    context 'if version is numeric' do
+      let(:version) { model_version1.id }
+
+      it { is_expected.to eq(model_version1) }
+    end
+
+    context 'if version is a non-existing numeric' do
+      let(:version) { 9999 }
+
+      it { is_expected.to be(nil) }
+    end
   end
 
   describe '.order_by_model_id_id_desc' do

@@ -230,6 +230,7 @@ module API
         mount ::API::Badges
         mount ::API::Branches
         mount ::API::BulkImports
+        mount ::API::Ci::Catalog
         mount ::API::Ci::JobArtifacts
         mount ::API::Groups
         mount ::API::Ci::Jobs
@@ -397,6 +398,7 @@ module API
       mount ::API::UsageDataNonSqlMetrics
       mount ::API::VsCode::Settings::VsCodeSettingsSync
       mount ::API::Ml::Mlflow::Entrypoint
+      mount ::API::Ml::MlflowArtifacts::Entrypoint
     end
 
     mount ::API::Internal::AutoFlow
