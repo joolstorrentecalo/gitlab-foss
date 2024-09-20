@@ -1144,6 +1144,14 @@
         - scripts/lint_templates_bash.rb
 
 ######################
+# DB rules #
+######################
+.db:rules:docs-lint:
+  rules:
+    - if: '$ENABLE_DB_DOCS_LINT == "true"'
+    - !reference [.rails:rules:ee-and-foss-migration, rules]
+
+######################
 # Dev fixtures rules #
 ######################
 .dev-fixtures:rules:foss-only:
