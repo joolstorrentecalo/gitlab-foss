@@ -23,6 +23,7 @@ module Projects
 
       rescue StandardError => e
         Gitlab::AppLogger.error("Error streaming diffs: #{e.message}")
+        response.stream.write e.backtrace
         response.stream.write e.message
       ensure
         response.stream.close
@@ -43,8 +44,29 @@ module Projects
       end
 
       def stream_diff_files(offset)
-        @merge_request.diffs_for_streaming(offset_index: offset).diff_files.each do |diff_file|
-          response.stream.write(render_diff_file(diff_file))
+        collection = @merge_request.diffs_for_streaming(offset_index: offset)
+
+        if params[:cached].present?
+          Gitlab::Diff::RenderedCache.new(
+            collection,
+            compress: params[:compress],
+            compress_offset: offset,
+            limit: params[:cache_limit]
+          ) do |cache|
+            collection.diff_files.each do |diff_file|
+              response.stream.write(
+                cache.fetch(diff_file) do
+                  render_diff_file(diff_file)
+                end
+              )
+            end
+          end
+        else
+          collection.diff_files.each do |diff_file|
+            response.stream.write(
+              render_diff_file(diff_file)
+            )
+          end
         end
       end
 

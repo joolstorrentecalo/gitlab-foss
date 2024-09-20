@@ -2421,7 +2421,7 @@ class MergeRequest < ApplicationRecord
   def first_diffs_slice(limit)
     diff = diffable_merge_ref? ? merge_head_diff : merge_request_diff
 
-    diff.paginated_diffs(1, limit).diff_files
+    diff.paginated_diffs(1, limit)
   end
 
   private
