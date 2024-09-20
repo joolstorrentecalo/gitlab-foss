@@ -70,10 +70,6 @@ export const getQueryResponse = {
                 },
               ],
             },
-            taskCompletionStatus: {
-              completedCount: 0,
-              count: 1,
-            },
           },
         ],
       },
