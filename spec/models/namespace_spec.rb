@@ -574,25 +574,32 @@ RSpec.describe Namespace, feature_category: :groups_and_projects do
       end
     end
 
-    describe '#by_contains_all_traversal_ids' do
+    describe '#with_descendents_for_traversal_ids' do
       let_it_be(:namespace_1) { create(:group) }
       let_it_be(:namespace_2) { create(:group, parent: namespace_1) }
       let_it_be(:namespace_3) { create(:namespace) }
 
-      it 'returns groups that contain all provided traversal_ids' do
-        expect(described_class.by_contains_all_traversal_ids(namespace_1.traversal_ids))
+      it 'returns groups that contain all provided traversal_ids', :aggregate_failures do
+        expect(described_class.with_descendents_for_traversal_ids(namespace_1.traversal_ids))
           .to contain_exactly(namespace_1, namespace_2)
-        expect(described_class.by_contains_all_traversal_ids(namespace_2.traversal_ids)).to contain_exactly(namespace_2)
-        expect(described_class.by_contains_all_traversal_ids(namespace_3.traversal_ids)).to contain_exactly(namespace_3)
+        expect(described_class.with_descendents_for_traversal_ids(namespace_2.traversal_ids))
+          .to contain_exactly(namespace_2)
+        expect(described_class.with_descendents_for_traversal_ids(namespace_3.traversal_ids))
+          .to contain_exactly(namespace_3)
       end
     end
 
-    describe '#by_traversal_ids' do
-      let_it_be(:namespace_1) { create(:namespace) }
+    describe '#with_ancestors_for_traversal_ids' do
+      let_it_be(:namespace_1) { create(:group) }
+      let_it_be(:namespace_2) { create(:group, parent: namespace_1) }
+      let_it_be(:namespace_3) { create(:namespace) }
 
-      it 'returns groups for the provided traversal_ids' do
-        expect(described_class.by_traversal_ids(namespace.traversal_ids)).to contain_exactly(namespace)
-        expect(described_class.by_traversal_ids(namespace_1.traversal_ids)).to contain_exactly(namespace_1)
+      it 'returns groups with ancestors for the provided traversal_ids', :aggregate_failures do
+        expect(described_class.with_ancestors_for_traversal_ids(namespace.traversal_ids)).to contain_exactly(namespace)
+        expect(described_class.with_ancestors_for_traversal_ids(namespace_1.traversal_ids))
+          .to contain_exactly(namespace_1)
+        expect(described_class.with_ancestors_for_traversal_ids(namespace_2.traversal_ids))
+          .to contain_exactly(namespace_1, namespace_2)
       end
     end
   end
