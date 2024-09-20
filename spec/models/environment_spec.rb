@@ -928,6 +928,20 @@ RSpec.describe Environment, :use_clean_rails_memory_store_caching, feature_categ
               expect(close_action.reload.processed).to be_truthy
             end
 
+            it 'successfully plays the job even if the job was a stale object when build job and the no locking feature is disabled' do
+              stub_feature_flags(no_locking_for_stop_actions: false)
+              skip unless factory_type == :ci_build
+
+              # Since job is droped.
+              expect(close_action.processed).to be_falsey
+
+              # it encounters the StaleObjectError at first, but reloads the object and runs `job.play`
+              expect { subject }.not_to raise_error
+
+              # Now the job should be processed.
+              expect(close_action.reload.processed).to be_truthy
+            end
+
             it 'does nothing when bridge job' do
               skip unless factory_type == :ci_bridge
 

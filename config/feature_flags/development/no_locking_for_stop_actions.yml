@@ -1,0 +1,8 @@
+---
+name: no_locking_for_stop_actions
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/166730
+rollout_issue_url: https://gitlab.com/gitlab-org/gitlab/-/issues/492409
+milestone: '17.5'
+type: development
+group: group::source code
+default_enabled: false

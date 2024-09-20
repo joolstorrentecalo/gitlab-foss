@@ -272,6 +272,15 @@ RSpec.describe Ci::RetryJobService, feature_category: :continuous_integration do
           expect { new_job }.not_to raise_error
         end
       end
+
+      context 'when feature flag no_locking_for_stop_actions is enabled' do
+        Feature.enable(:no_locking_for_stop_actions, true)
+        let(:new_job) { service.clone!(job, variables: job_variables_attributes) }
+
+        it 'does not give variables to the new bridge' do
+          expect { new_job }.not_to raise_error
+        end
+      end
     end
 
     context 'when the job to be cloned is a build' do
