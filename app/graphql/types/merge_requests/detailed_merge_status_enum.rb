@@ -66,6 +66,9 @@ module Types
       value 'SECURITY_POLICIES_EVALUATING',
         value: :security_policy_evaluation,
         description: 'All security policies must be evaluated.'
+      value 'SECURITY_POLICIES_VIOLATIONS',
+        value: :security_policy_violations,
+        description: 'All policy rules must be satisfied.'
     end
   end
 end
