@@ -1453,6 +1453,8 @@ development:
       enabled: true
       address: 127.0.0.1
       port: 0
+  cloud_connector:
+    base_url: http://0.0.0.0:5052
 
 test:
   <<: *base
@@ -1675,6 +1677,8 @@ test:
   prometheus:
     enabled: true
     server_address: 'localhost:9090'
+  cloud_connector:
+    base_url: 'https://cloud.gitlab.com'
 
 staging:
   <<: *base

@@ -1030,8 +1030,8 @@ end
 # Cloud connector
 #
 Gitlab.ee do
-  Settings['cloud_connector'] = {}
-  Settings.cloud_connector['base_url'] ||= ENV['CLOUD_CONNECTOR_BASE_URL'] || 'https://cloud.gitlab.com'
+  Settings['cloud_connector'] ||= {}
+  Settings.cloud_connector['base_url'] ||= 'https://cloud.gitlab.com'
 end
 
 #
