@@ -2,6 +2,11 @@
 
 module Onboarding
   class Status
+    # overridden in EE
+    def self.registration_params(_params)
+      {}
+    end
+
     def initialize(params, session, user)
       @params = params
       @session = session
@@ -20,6 +25,11 @@ module Onboarding
 
     def last_invited_member_source
       last_invited_member&.source
+    end
+
+    # overridden in EE
+    def registration_omniauth_params(*)
+      {}
     end
 
     private

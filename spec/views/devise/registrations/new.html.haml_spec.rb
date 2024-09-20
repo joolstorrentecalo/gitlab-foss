@@ -5,14 +5,16 @@ require 'spec_helper'
 RSpec.describe 'devise/registrations/new', feature_category: :system_access do
   let(:resource) { Users::RegistrationsBuildService.new(nil, {}).execute }
   let(:tracking_label) { '_some_registration_' }
+  let(:onboarding_status) do
+    instance_double(::Onboarding::Status, registration_omniauth_params: {}, registration_params: {})
+  end
 
   subject { render && rendered }
 
   before do
+    allow(view).to receive(:onboarding_status).and_return(onboarding_status)
     allow(view).to receive(:resource).and_return(resource)
     allow(view).to receive(:resource_name).and_return(:user)
-    allow(view).to receive(:glm_tracking_params).and_return({})
-    allow(view).to receive(:registration_path_params).and_return({})
     allow(view).to receive(:preregistration_tracking_label).and_return(tracking_label)
     allow(view).to receive(:arkose_labs_enabled?)
   end
