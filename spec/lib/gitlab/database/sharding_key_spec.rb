@@ -52,7 +52,9 @@ RSpec.describe 'new tables missing sharding_key', feature_category: :cell do
       *['protected_environments.project_id', 'protected_environments.group_id'],
       'security_orchestration_policy_configurations.project_id',
       'security_orchestration_policy_configurations.namespace_id',
-      *['protected_branches.project_id', 'protected_branches.namespace_id']
+      *['protected_branches.project_id', 'protected_branches.namespace_id'],
+      *['p_group_type_ci_runners.namespace_id'],
+      *['p_project_type_ci_runners.project_id']
     ]
   end
 
@@ -140,7 +142,7 @@ RSpec.describe 'new tables missing sharding_key', feature_category: :cell do
             "since it now has a valid constraint."
         else
           expect(not_nullable || has_null_check_constraint).to eq(true),
-            "Missing a not null constraint for `#{table_name}.#{column_name}` . " \
+            "Missing a not null constraint for `#{table_name}.#{column_name}`. " \
             "All sharding keys must be not nullable or have a NOT NULL check constraint"
         end
       else

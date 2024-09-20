@@ -761,6 +761,92 @@ $$;
 
 COMMENT ON FUNCTION table_sync_function_3f39f64fc3() IS 'Partitioning migration: table sync for merge_request_diff_files table';
 
+CREATE FUNCTION table_sync_function_686d6c7993() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+IF (TG_OP = 'DELETE') THEN
+  DELETE FROM p_ci_runners where "id" = OLD."id";
+ELSIF (TG_OP = 'UPDATE') THEN
+  UPDATE p_ci_runners
+  SET "creator_id" = NEW."creator_id",
+    "created_at" = NEW."created_at",
+    "updated_at" = NEW."updated_at",
+    "contacted_at" = NEW."contacted_at",
+    "token_expires_at" = NEW."token_expires_at",
+    "public_projects_minutes_cost_factor" = NEW."public_projects_minutes_cost_factor",
+    "private_projects_minutes_cost_factor" = NEW."private_projects_minutes_cost_factor",
+    "access_level" = NEW."access_level",
+    "maximum_timeout" = NEW."maximum_timeout",
+    "runner_type" = NEW."runner_type",
+    "registration_type" = NEW."registration_type",
+    "creation_state" = NEW."creation_state",
+    "active" = NEW."active",
+    "run_untagged" = NEW."run_untagged",
+    "locked" = NEW."locked",
+    "name" = NEW."name",
+    "token_encrypted" = NEW."token_encrypted",
+    "token" = NEW."token",
+    "description" = NEW."description",
+    "maintainer_note" = NEW."maintainer_note",
+    "allowed_plans" = NEW."allowed_plans",
+    "allowed_plan_ids" = NEW."allowed_plan_ids"
+  WHERE p_ci_runners."id" = NEW."id";
+ELSIF (TG_OP = 'INSERT') THEN
+  INSERT INTO p_ci_runners ("id",
+    "creator_id",
+    "created_at",
+    "updated_at",
+    "contacted_at",
+    "token_expires_at",
+    "public_projects_minutes_cost_factor",
+    "private_projects_minutes_cost_factor",
+    "access_level",
+    "maximum_timeout",
+    "runner_type",
+    "registration_type",
+    "creation_state",
+    "active",
+    "run_untagged",
+    "locked",
+    "name",
+    "token_encrypted",
+    "token",
+    "description",
+    "maintainer_note",
+    "allowed_plans",
+    "allowed_plan_ids")
+  VALUES (NEW."id",
+    NEW."creator_id",
+    NEW."created_at",
+    NEW."updated_at",
+    NEW."contacted_at",
+    NEW."token_expires_at",
+    NEW."public_projects_minutes_cost_factor",
+    NEW."private_projects_minutes_cost_factor",
+    NEW."access_level",
+    NEW."maximum_timeout",
+    NEW."runner_type",
+    NEW."registration_type",
+    NEW."creation_state",
+    NEW."active",
+    NEW."run_untagged",
+    NEW."locked",
+    NEW."name",
+    NEW."token_encrypted",
+    NEW."token",
+    NEW."description",
+    NEW."maintainer_note",
+    NEW."allowed_plans",
+    NEW."allowed_plan_ids");
+END IF;
+RETURN NULL;
+
+END
+$$;
+
+COMMENT ON FUNCTION table_sync_function_686d6c7993() IS 'Partitioning migration: table sync for ci_runners table';
+
 CREATE FUNCTION trigger_01b3fc052119() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
@@ -1090,22 +1176,6 @@ IF NEW."project_id" IS NULL THEN
   INTO NEW."project_id"
   FROM "ml_experiments"
   WHERE "ml_experiments"."id" = NEW."experiment_id";
-END IF;
-
-RETURN NEW;
-
-END
-$$;
-
-CREATE FUNCTION trigger_30209d0fba3e() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-IF NEW."project_id" IS NULL THEN
-  SELECT "project_id"
-  INTO NEW."project_id"
-  FROM "alert_management_alerts"
-  WHERE "alert_management_alerts"."id" = NEW."alert_management_alert_id";
 END IF;
 
 RETURN NEW;
@@ -1922,22 +1992,6 @@ IF NEW."project_id" IS NULL THEN
   INTO NEW."project_id"
   FROM "protected_tags"
   WHERE "protected_tags"."id" = NEW."protected_tag_id";
-END IF;
-
-RETURN NEW;
-
-END
-$$;
-
-CREATE FUNCTION trigger_b046dd50c711() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-IF NEW."project_id" IS NULL THEN
-  SELECT "project_id"
-  INTO NEW."project_id"
-  FROM "incident_management_oncall_schedules"
-  WHERE "incident_management_oncall_schedules"."id" = NEW."oncall_schedule_id";
 END IF;
 
 RETURN NEW;
@@ -5295,8 +5349,7 @@ CREATE TABLE alert_management_alert_user_mentions (
     note_id bigint,
     mentioned_users_ids bigint[],
     mentioned_projects_ids bigint[],
-    mentioned_groups_ids bigint[],
-    project_id bigint
+    mentioned_groups_ids bigint[]
 );
 
 CREATE SEQUENCE alert_management_alert_user_mentions_id_seq
@@ -12015,7 +12068,6 @@ CREATE TABLE incident_management_oncall_rotations (
     ends_at timestamp with time zone,
     active_period_start time without time zone,
     active_period_end time without time zone,
-    project_id bigint,
     CONSTRAINT check_5209fb5d02 CHECK ((char_length(name) <= 200))
 );
 
@@ -14708,6 +14760,139 @@ CREATE SEQUENCE p_ci_job_annotations_id_seq
     CACHE 1;
 
 ALTER SEQUENCE p_ci_job_annotations_id_seq OWNED BY p_ci_job_annotations.id;
+
+CREATE TABLE p_ci_runners (
+    id bigint NOT NULL,
+    creator_id bigint,
+    namespace_id bigint,
+    project_id bigint,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    contacted_at timestamp with time zone,
+    token_expires_at timestamp with time zone,
+    public_projects_minutes_cost_factor double precision DEFAULT 1.0 NOT NULL,
+    private_projects_minutes_cost_factor double precision DEFAULT 1.0 NOT NULL,
+    access_level integer DEFAULT 0 NOT NULL,
+    maximum_timeout integer,
+    runner_type smallint NOT NULL,
+    registration_type smallint DEFAULT 0 NOT NULL,
+    creation_state smallint DEFAULT 0 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    run_untagged boolean DEFAULT true NOT NULL,
+    locked boolean DEFAULT false NOT NULL,
+    name text,
+    token_encrypted text,
+    token text,
+    description text,
+    maintainer_note text,
+    allowed_plans text[] DEFAULT '{}'::text[] NOT NULL,
+    allowed_plan_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    CONSTRAINT check_19e031a2bf CHECK ((char_length(description) <= 1024)),
+    CONSTRAINT check_264e2dfcce CHECK ((char_length(name) <= 256)),
+    CONSTRAINT check_6988353e82 CHECK ((char_length(maintainer_note) <= 1024)),
+    CONSTRAINT check_7a9a3d0abe CHECK ((char_length(token) <= 128)),
+    CONSTRAINT check_c98f486091 CHECK ((char_length(token_encrypted) <= 69))
+)
+PARTITION BY LIST (runner_type);
+
+CREATE TABLE p_group_type_ci_runners (
+    id bigint NOT NULL,
+    creator_id bigint,
+    namespace_id bigint,
+    project_id bigint,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    contacted_at timestamp with time zone,
+    token_expires_at timestamp with time zone,
+    public_projects_minutes_cost_factor double precision DEFAULT 1.0 NOT NULL,
+    private_projects_minutes_cost_factor double precision DEFAULT 1.0 NOT NULL,
+    access_level integer DEFAULT 0 NOT NULL,
+    maximum_timeout integer,
+    runner_type smallint NOT NULL,
+    registration_type smallint DEFAULT 0 NOT NULL,
+    creation_state smallint DEFAULT 0 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    run_untagged boolean DEFAULT true NOT NULL,
+    locked boolean DEFAULT false NOT NULL,
+    name text,
+    token_encrypted text,
+    token text,
+    description text,
+    maintainer_note text,
+    allowed_plans text[] DEFAULT '{}'::text[] NOT NULL,
+    allowed_plan_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    CONSTRAINT check_19e031a2bf CHECK ((char_length(description) <= 1024)),
+    CONSTRAINT check_264e2dfcce CHECK ((char_length(name) <= 256)),
+    CONSTRAINT check_6988353e82 CHECK ((char_length(maintainer_note) <= 1024)),
+    CONSTRAINT check_7a9a3d0abe CHECK ((char_length(token) <= 128)),
+    CONSTRAINT check_c98f486091 CHECK ((char_length(token_encrypted) <= 69))
+);
+
+CREATE TABLE p_instance_type_ci_runners (
+    id bigint NOT NULL,
+    creator_id bigint,
+    namespace_id bigint,
+    project_id bigint,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    contacted_at timestamp with time zone,
+    token_expires_at timestamp with time zone,
+    public_projects_minutes_cost_factor double precision DEFAULT 1.0 NOT NULL,
+    private_projects_minutes_cost_factor double precision DEFAULT 1.0 NOT NULL,
+    access_level integer DEFAULT 0 NOT NULL,
+    maximum_timeout integer,
+    runner_type smallint NOT NULL,
+    registration_type smallint DEFAULT 0 NOT NULL,
+    creation_state smallint DEFAULT 0 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    run_untagged boolean DEFAULT true NOT NULL,
+    locked boolean DEFAULT false NOT NULL,
+    name text,
+    token_encrypted text,
+    token text,
+    description text,
+    maintainer_note text,
+    allowed_plans text[] DEFAULT '{}'::text[] NOT NULL,
+    allowed_plan_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    CONSTRAINT check_19e031a2bf CHECK ((char_length(description) <= 1024)),
+    CONSTRAINT check_264e2dfcce CHECK ((char_length(name) <= 256)),
+    CONSTRAINT check_6988353e82 CHECK ((char_length(maintainer_note) <= 1024)),
+    CONSTRAINT check_7a9a3d0abe CHECK ((char_length(token) <= 128)),
+    CONSTRAINT check_c98f486091 CHECK ((char_length(token_encrypted) <= 69))
+);
+
+CREATE TABLE p_project_type_ci_runners (
+    id bigint NOT NULL,
+    creator_id bigint,
+    namespace_id bigint,
+    project_id bigint,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    contacted_at timestamp with time zone,
+    token_expires_at timestamp with time zone,
+    public_projects_minutes_cost_factor double precision DEFAULT 1.0 NOT NULL,
+    private_projects_minutes_cost_factor double precision DEFAULT 1.0 NOT NULL,
+    access_level integer DEFAULT 0 NOT NULL,
+    maximum_timeout integer,
+    runner_type smallint NOT NULL,
+    registration_type smallint DEFAULT 0 NOT NULL,
+    creation_state smallint DEFAULT 0 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    run_untagged boolean DEFAULT true NOT NULL,
+    locked boolean DEFAULT false NOT NULL,
+    name text,
+    token_encrypted text,
+    token text,
+    description text,
+    maintainer_note text,
+    allowed_plans text[] DEFAULT '{}'::text[] NOT NULL,
+    allowed_plan_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    CONSTRAINT check_19e031a2bf CHECK ((char_length(description) <= 1024)),
+    CONSTRAINT check_264e2dfcce CHECK ((char_length(name) <= 256)),
+    CONSTRAINT check_6988353e82 CHECK ((char_length(maintainer_note) <= 1024)),
+    CONSTRAINT check_7a9a3d0abe CHECK ((char_length(token) <= 128)),
+    CONSTRAINT check_c98f486091 CHECK ((char_length(token_encrypted) <= 69))
+);
 
 CREATE TABLE packages_build_infos (
     id bigint NOT NULL,
@@ -21439,6 +21624,12 @@ ALTER TABLE ONLY p_ci_pipelines_config ATTACH PARTITION ci_pipelines_config FOR 
 
 ALTER TABLE ONLY p_ci_stages ATTACH PARTITION ci_stages FOR VALUES IN ('100', '101');
 
+ALTER TABLE ONLY p_ci_runners ATTACH PARTITION p_group_type_ci_runners FOR VALUES IN ('2');
+
+ALTER TABLE ONLY p_ci_runners ATTACH PARTITION p_instance_type_ci_runners FOR VALUES IN ('1');
+
+ALTER TABLE ONLY p_ci_runners ATTACH PARTITION p_project_type_ci_runners FOR VALUES IN ('3');
+
 ALTER TABLE ONLY abuse_events ALTER COLUMN id SET DEFAULT nextval('abuse_events_id_seq'::regclass);
 
 ALTER TABLE ONLY abuse_report_assignees ALTER COLUMN id SET DEFAULT nextval('abuse_report_assignees_id_seq'::regclass);
@@ -24685,6 +24876,18 @@ ALTER TABLE ONLY p_ci_job_annotations
 ALTER TABLE ONLY p_ci_runner_machine_builds
     ADD CONSTRAINT p_ci_runner_machine_builds_pkey PRIMARY KEY (build_id, partition_id);
 
+ALTER TABLE ONLY p_ci_runners
+    ADD CONSTRAINT p_ci_runners_pkey PRIMARY KEY (runner_type, id);
+
+ALTER TABLE ONLY p_group_type_ci_runners
+    ADD CONSTRAINT p_group_type_ci_runners_pkey PRIMARY KEY (runner_type, id);
+
+ALTER TABLE ONLY p_instance_type_ci_runners
+    ADD CONSTRAINT p_instance_type_ci_runners_pkey PRIMARY KEY (runner_type, id);
+
+ALTER TABLE ONLY p_project_type_ci_runners
+    ADD CONSTRAINT p_project_type_ci_runners_pkey PRIMARY KEY (runner_type, id);
+
 ALTER TABLE ONLY packages_build_infos
     ADD CONSTRAINT packages_build_infos_pkey PRIMARY KEY (id);
 
@@ -27249,8 +27452,6 @@ CREATE INDEX index_alert_management_alert_metric_images_on_alert_id ON alert_man
 
 CREATE INDEX index_alert_management_alert_metric_images_on_project_id ON alert_management_alert_metric_images USING btree (project_id);
 
-CREATE INDEX index_alert_management_alert_user_mentions_on_project_id ON alert_management_alert_user_mentions USING btree (project_id);
-
 CREATE INDEX index_alert_management_alerts_on_domain ON alert_management_alerts USING btree (domain);
 
 CREATE INDEX index_alert_management_alerts_on_environment_id ON alert_management_alerts USING btree (environment_id) WHERE (environment_id IS NOT NULL);
@@ -28813,8 +29014,6 @@ CREATE UNIQUE INDEX index_inc_mgmnt_oncall_rotations_on_oncall_schedule_id_and_n
 
 CREATE INDEX index_incident_management_escalation_rules_on_project_id ON incident_management_escalation_rules USING btree (project_id);
 
-CREATE INDEX index_incident_management_oncall_rotations_on_project_id ON incident_management_oncall_rotations USING btree (project_id);
-
 CREATE INDEX index_incident_management_oncall_schedules_on_project_id ON incident_management_oncall_schedules USING btree (project_id);
 
 CREATE INDEX index_incident_management_oncall_shifts_on_participant_id ON incident_management_oncall_shifts USING btree (participant_id);
@@ -29644,6 +29843,34 @@ CREATE INDEX index_p_ci_job_annotations_on_project_id ON ONLY p_ci_job_annotatio
 CREATE INDEX index_p_ci_runner_machine_builds_on_project_id ON ONLY p_ci_runner_machine_builds USING btree (project_id);
 
 CREATE INDEX index_p_ci_runner_machine_builds_on_runner_machine_id ON ONLY p_ci_runner_machine_builds USING btree (runner_machine_id);
+
+CREATE INDEX index_p_ci_runners_on_active_and_id ON ONLY p_ci_runners USING btree (active, id);
+
+CREATE INDEX index_p_ci_runners_on_contacted_at_and_id_desc ON ONLY p_ci_runners USING btree (contacted_at, id DESC);
+
+CREATE INDEX index_p_ci_runners_on_contacted_at_and_id_where_inactive ON ONLY p_ci_runners USING btree (contacted_at DESC, id DESC) WHERE (active = false);
+
+CREATE INDEX index_p_ci_runners_on_contacted_at_desc_and_id_desc ON ONLY p_ci_runners USING btree (contacted_at DESC, id DESC);
+
+CREATE INDEX index_p_ci_runners_on_created_at_and_id_desc ON ONLY p_ci_runners USING btree (created_at, id DESC);
+
+CREATE INDEX index_p_ci_runners_on_created_at_and_id_where_inactive ON ONLY p_ci_runners USING btree (created_at DESC, id DESC) WHERE (active = false);
+
+CREATE INDEX index_p_ci_runners_on_created_at_desc_and_id_desc ON ONLY p_ci_runners USING btree (created_at DESC, id DESC);
+
+CREATE INDEX index_p_ci_runners_on_creator_id_where_creator_id_not_null ON ONLY p_ci_runners USING btree (creator_id) WHERE (creator_id IS NOT NULL);
+
+CREATE INDEX index_p_ci_runners_on_description_trigram ON ONLY p_ci_runners USING gin (description gin_trgm_ops);
+
+CREATE INDEX index_p_ci_runners_on_locked ON ONLY p_ci_runners USING btree (locked);
+
+CREATE INDEX index_p_ci_runners_on_namespace_id_where_not_null ON ONLY p_ci_runners USING btree (namespace_id) WHERE (namespace_id IS NOT NULL);
+
+CREATE INDEX index_p_ci_runners_on_project_id_where_not_null ON ONLY p_ci_runners USING btree (project_id) WHERE (project_id IS NOT NULL);
+
+CREATE INDEX index_p_ci_runners_on_token_expires_at_and_id_desc ON ONLY p_ci_runners USING btree (token_expires_at, id DESC);
+
+CREATE INDEX index_p_ci_runners_on_token_expires_at_desc_and_id_desc ON ONLY p_ci_runners USING btree (token_expires_at DESC, id DESC);
 
 CREATE INDEX index_packages_build_infos_on_pipeline_id ON packages_build_infos USING btree (pipeline_id);
 
@@ -30721,6 +30948,10 @@ CREATE UNIQUE INDEX index_uniq_ci_runners_on_token_encrypted ON ci_runners USING
 
 CREATE UNIQUE INDEX index_uniq_im_issuable_escalation_statuses_on_issue_id ON incident_management_issuable_escalation_statuses USING btree (issue_id);
 
+CREATE UNIQUE INDEX index_uniq_p_ci_runners_on_token ON ONLY p_ci_runners USING btree (token, runner_type);
+
+CREATE UNIQUE INDEX index_uniq_p_ci_runners_on_token_encrypted ON ONLY p_ci_runners USING btree (token_encrypted, runner_type);
+
 CREATE UNIQUE INDEX index_uniq_projects_on_runners_token ON projects USING btree (runners_token);
 
 CREATE UNIQUE INDEX index_uniq_projects_on_runners_token_encrypted ON projects USING btree (runners_token_encrypted);
@@ -31246,6 +31477,102 @@ CREATE INDEX p_ci_builds_scheduled_at_idx ON ONLY p_ci_builds USING btree (sched
 CREATE UNIQUE INDEX p_ci_builds_token_encrypted_partition_id_idx ON ONLY p_ci_builds USING btree (token_encrypted, partition_id) WHERE (token_encrypted IS NOT NULL);
 
 CREATE INDEX p_ci_job_artifacts_expire_at_job_id_idx1 ON ONLY p_ci_job_artifacts USING btree (expire_at, job_id) WHERE ((locked = 2) AND (expire_at IS NOT NULL));
+
+CREATE INDEX p_group_type_ci_runners_active_id_idx ON p_group_type_ci_runners USING btree (active, id);
+
+CREATE INDEX p_group_type_ci_runners_contacted_at_id_idx ON p_group_type_ci_runners USING btree (contacted_at, id DESC);
+
+CREATE INDEX p_group_type_ci_runners_contacted_at_id_idx1 ON p_group_type_ci_runners USING btree (contacted_at DESC, id DESC) WHERE (active = false);
+
+CREATE INDEX p_group_type_ci_runners_contacted_at_id_idx2 ON p_group_type_ci_runners USING btree (contacted_at DESC, id DESC);
+
+CREATE INDEX p_group_type_ci_runners_created_at_id_idx ON p_group_type_ci_runners USING btree (created_at, id DESC);
+
+CREATE INDEX p_group_type_ci_runners_created_at_id_idx1 ON p_group_type_ci_runners USING btree (created_at DESC, id DESC) WHERE (active = false);
+
+CREATE INDEX p_group_type_ci_runners_created_at_id_idx2 ON p_group_type_ci_runners USING btree (created_at DESC, id DESC);
+
+CREATE INDEX p_group_type_ci_runners_creator_id_idx ON p_group_type_ci_runners USING btree (creator_id) WHERE (creator_id IS NOT NULL);
+
+CREATE INDEX p_group_type_ci_runners_description_idx ON p_group_type_ci_runners USING gin (description gin_trgm_ops);
+
+CREATE INDEX p_group_type_ci_runners_locked_idx ON p_group_type_ci_runners USING btree (locked);
+
+CREATE INDEX p_group_type_ci_runners_namespace_id_idx ON p_group_type_ci_runners USING btree (namespace_id) WHERE (namespace_id IS NOT NULL);
+
+CREATE INDEX p_group_type_ci_runners_project_id_idx ON p_group_type_ci_runners USING btree (project_id) WHERE (project_id IS NOT NULL);
+
+CREATE UNIQUE INDEX p_group_type_ci_runners_token_encrypted_runner_type_idx ON p_group_type_ci_runners USING btree (token_encrypted, runner_type);
+
+CREATE INDEX p_group_type_ci_runners_token_expires_at_id_idx ON p_group_type_ci_runners USING btree (token_expires_at, id DESC);
+
+CREATE INDEX p_group_type_ci_runners_token_expires_at_id_idx1 ON p_group_type_ci_runners USING btree (token_expires_at DESC, id DESC);
+
+CREATE UNIQUE INDEX p_group_type_ci_runners_token_runner_type_idx ON p_group_type_ci_runners USING btree (token, runner_type);
+
+CREATE INDEX p_instance_type_ci_runners_active_id_idx ON p_instance_type_ci_runners USING btree (active, id);
+
+CREATE INDEX p_instance_type_ci_runners_contacted_at_id_idx ON p_instance_type_ci_runners USING btree (contacted_at, id DESC);
+
+CREATE INDEX p_instance_type_ci_runners_contacted_at_id_idx1 ON p_instance_type_ci_runners USING btree (contacted_at DESC, id DESC) WHERE (active = false);
+
+CREATE INDEX p_instance_type_ci_runners_contacted_at_id_idx2 ON p_instance_type_ci_runners USING btree (contacted_at DESC, id DESC);
+
+CREATE INDEX p_instance_type_ci_runners_created_at_id_idx ON p_instance_type_ci_runners USING btree (created_at, id DESC);
+
+CREATE INDEX p_instance_type_ci_runners_created_at_id_idx1 ON p_instance_type_ci_runners USING btree (created_at DESC, id DESC) WHERE (active = false);
+
+CREATE INDEX p_instance_type_ci_runners_created_at_id_idx2 ON p_instance_type_ci_runners USING btree (created_at DESC, id DESC);
+
+CREATE INDEX p_instance_type_ci_runners_creator_id_idx ON p_instance_type_ci_runners USING btree (creator_id) WHERE (creator_id IS NOT NULL);
+
+CREATE INDEX p_instance_type_ci_runners_description_idx ON p_instance_type_ci_runners USING gin (description gin_trgm_ops);
+
+CREATE INDEX p_instance_type_ci_runners_locked_idx ON p_instance_type_ci_runners USING btree (locked);
+
+CREATE INDEX p_instance_type_ci_runners_namespace_id_idx ON p_instance_type_ci_runners USING btree (namespace_id) WHERE (namespace_id IS NOT NULL);
+
+CREATE INDEX p_instance_type_ci_runners_project_id_idx ON p_instance_type_ci_runners USING btree (project_id) WHERE (project_id IS NOT NULL);
+
+CREATE UNIQUE INDEX p_instance_type_ci_runners_token_encrypted_runner_type_idx ON p_instance_type_ci_runners USING btree (token_encrypted, runner_type);
+
+CREATE INDEX p_instance_type_ci_runners_token_expires_at_id_idx ON p_instance_type_ci_runners USING btree (token_expires_at, id DESC);
+
+CREATE INDEX p_instance_type_ci_runners_token_expires_at_id_idx1 ON p_instance_type_ci_runners USING btree (token_expires_at DESC, id DESC);
+
+CREATE UNIQUE INDEX p_instance_type_ci_runners_token_runner_type_idx ON p_instance_type_ci_runners USING btree (token, runner_type);
+
+CREATE INDEX p_project_type_ci_runners_active_id_idx ON p_project_type_ci_runners USING btree (active, id);
+
+CREATE INDEX p_project_type_ci_runners_contacted_at_id_idx ON p_project_type_ci_runners USING btree (contacted_at, id DESC);
+
+CREATE INDEX p_project_type_ci_runners_contacted_at_id_idx1 ON p_project_type_ci_runners USING btree (contacted_at DESC, id DESC) WHERE (active = false);
+
+CREATE INDEX p_project_type_ci_runners_contacted_at_id_idx2 ON p_project_type_ci_runners USING btree (contacted_at DESC, id DESC);
+
+CREATE INDEX p_project_type_ci_runners_created_at_id_idx ON p_project_type_ci_runners USING btree (created_at, id DESC);
+
+CREATE INDEX p_project_type_ci_runners_created_at_id_idx1 ON p_project_type_ci_runners USING btree (created_at DESC, id DESC) WHERE (active = false);
+
+CREATE INDEX p_project_type_ci_runners_created_at_id_idx2 ON p_project_type_ci_runners USING btree (created_at DESC, id DESC);
+
+CREATE INDEX p_project_type_ci_runners_creator_id_idx ON p_project_type_ci_runners USING btree (creator_id) WHERE (creator_id IS NOT NULL);
+
+CREATE INDEX p_project_type_ci_runners_description_idx ON p_project_type_ci_runners USING gin (description gin_trgm_ops);
+
+CREATE INDEX p_project_type_ci_runners_locked_idx ON p_project_type_ci_runners USING btree (locked);
+
+CREATE INDEX p_project_type_ci_runners_namespace_id_idx ON p_project_type_ci_runners USING btree (namespace_id) WHERE (namespace_id IS NOT NULL);
+
+CREATE INDEX p_project_type_ci_runners_project_id_idx ON p_project_type_ci_runners USING btree (project_id) WHERE (project_id IS NOT NULL);
+
+CREATE UNIQUE INDEX p_project_type_ci_runners_token_encrypted_runner_type_idx ON p_project_type_ci_runners USING btree (token_encrypted, runner_type);
+
+CREATE INDEX p_project_type_ci_runners_token_expires_at_id_idx ON p_project_type_ci_runners USING btree (token_expires_at, id DESC);
+
+CREATE INDEX p_project_type_ci_runners_token_expires_at_id_idx1 ON p_project_type_ci_runners USING btree (token_expires_at DESC, id DESC);
+
+CREATE UNIQUE INDEX p_project_type_ci_runners_token_runner_type_idx ON p_project_type_ci_runners USING btree (token, runner_type);
 
 CREATE INDEX package_name_index ON packages_packages USING btree (name);
 
@@ -33051,6 +33378,108 @@ ALTER INDEX p_ci_builds_user_id_name_created_at_idx ATTACH PARTITION index_secur
 
 ALTER INDEX p_ci_builds_name_id_idx ATTACH PARTITION index_security_ci_builds_on_name_and_id_parser_features;
 
+ALTER INDEX index_p_ci_runners_on_active_and_id ATTACH PARTITION p_group_type_ci_runners_active_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_and_id_desc ATTACH PARTITION p_group_type_ci_runners_contacted_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_and_id_where_inactive ATTACH PARTITION p_group_type_ci_runners_contacted_at_id_idx1;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_desc_and_id_desc ATTACH PARTITION p_group_type_ci_runners_contacted_at_id_idx2;
+
+ALTER INDEX index_p_ci_runners_on_created_at_and_id_desc ATTACH PARTITION p_group_type_ci_runners_created_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_created_at_and_id_where_inactive ATTACH PARTITION p_group_type_ci_runners_created_at_id_idx1;
+
+ALTER INDEX index_p_ci_runners_on_created_at_desc_and_id_desc ATTACH PARTITION p_group_type_ci_runners_created_at_id_idx2;
+
+ALTER INDEX index_p_ci_runners_on_creator_id_where_creator_id_not_null ATTACH PARTITION p_group_type_ci_runners_creator_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_description_trigram ATTACH PARTITION p_group_type_ci_runners_description_idx;
+
+ALTER INDEX index_p_ci_runners_on_locked ATTACH PARTITION p_group_type_ci_runners_locked_idx;
+
+ALTER INDEX index_p_ci_runners_on_namespace_id_where_not_null ATTACH PARTITION p_group_type_ci_runners_namespace_id_idx;
+
+ALTER INDEX p_ci_runners_pkey ATTACH PARTITION p_group_type_ci_runners_pkey;
+
+ALTER INDEX index_p_ci_runners_on_project_id_where_not_null ATTACH PARTITION p_group_type_ci_runners_project_id_idx;
+
+ALTER INDEX index_uniq_p_ci_runners_on_token_encrypted ATTACH PARTITION p_group_type_ci_runners_token_encrypted_runner_type_idx;
+
+ALTER INDEX index_p_ci_runners_on_token_expires_at_and_id_desc ATTACH PARTITION p_group_type_ci_runners_token_expires_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_token_expires_at_desc_and_id_desc ATTACH PARTITION p_group_type_ci_runners_token_expires_at_id_idx1;
+
+ALTER INDEX index_uniq_p_ci_runners_on_token ATTACH PARTITION p_group_type_ci_runners_token_runner_type_idx;
+
+ALTER INDEX index_p_ci_runners_on_active_and_id ATTACH PARTITION p_instance_type_ci_runners_active_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_and_id_desc ATTACH PARTITION p_instance_type_ci_runners_contacted_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_and_id_where_inactive ATTACH PARTITION p_instance_type_ci_runners_contacted_at_id_idx1;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_desc_and_id_desc ATTACH PARTITION p_instance_type_ci_runners_contacted_at_id_idx2;
+
+ALTER INDEX index_p_ci_runners_on_created_at_and_id_desc ATTACH PARTITION p_instance_type_ci_runners_created_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_created_at_and_id_where_inactive ATTACH PARTITION p_instance_type_ci_runners_created_at_id_idx1;
+
+ALTER INDEX index_p_ci_runners_on_created_at_desc_and_id_desc ATTACH PARTITION p_instance_type_ci_runners_created_at_id_idx2;
+
+ALTER INDEX index_p_ci_runners_on_creator_id_where_creator_id_not_null ATTACH PARTITION p_instance_type_ci_runners_creator_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_description_trigram ATTACH PARTITION p_instance_type_ci_runners_description_idx;
+
+ALTER INDEX index_p_ci_runners_on_locked ATTACH PARTITION p_instance_type_ci_runners_locked_idx;
+
+ALTER INDEX index_p_ci_runners_on_namespace_id_where_not_null ATTACH PARTITION p_instance_type_ci_runners_namespace_id_idx;
+
+ALTER INDEX p_ci_runners_pkey ATTACH PARTITION p_instance_type_ci_runners_pkey;
+
+ALTER INDEX index_p_ci_runners_on_project_id_where_not_null ATTACH PARTITION p_instance_type_ci_runners_project_id_idx;
+
+ALTER INDEX index_uniq_p_ci_runners_on_token_encrypted ATTACH PARTITION p_instance_type_ci_runners_token_encrypted_runner_type_idx;
+
+ALTER INDEX index_p_ci_runners_on_token_expires_at_and_id_desc ATTACH PARTITION p_instance_type_ci_runners_token_expires_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_token_expires_at_desc_and_id_desc ATTACH PARTITION p_instance_type_ci_runners_token_expires_at_id_idx1;
+
+ALTER INDEX index_uniq_p_ci_runners_on_token ATTACH PARTITION p_instance_type_ci_runners_token_runner_type_idx;
+
+ALTER INDEX index_p_ci_runners_on_active_and_id ATTACH PARTITION p_project_type_ci_runners_active_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_and_id_desc ATTACH PARTITION p_project_type_ci_runners_contacted_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_and_id_where_inactive ATTACH PARTITION p_project_type_ci_runners_contacted_at_id_idx1;
+
+ALTER INDEX index_p_ci_runners_on_contacted_at_desc_and_id_desc ATTACH PARTITION p_project_type_ci_runners_contacted_at_id_idx2;
+
+ALTER INDEX index_p_ci_runners_on_created_at_and_id_desc ATTACH PARTITION p_project_type_ci_runners_created_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_created_at_and_id_where_inactive ATTACH PARTITION p_project_type_ci_runners_created_at_id_idx1;
+
+ALTER INDEX index_p_ci_runners_on_created_at_desc_and_id_desc ATTACH PARTITION p_project_type_ci_runners_created_at_id_idx2;
+
+ALTER INDEX index_p_ci_runners_on_creator_id_where_creator_id_not_null ATTACH PARTITION p_project_type_ci_runners_creator_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_description_trigram ATTACH PARTITION p_project_type_ci_runners_description_idx;
+
+ALTER INDEX index_p_ci_runners_on_locked ATTACH PARTITION p_project_type_ci_runners_locked_idx;
+
+ALTER INDEX index_p_ci_runners_on_namespace_id_where_not_null ATTACH PARTITION p_project_type_ci_runners_namespace_id_idx;
+
+ALTER INDEX p_ci_runners_pkey ATTACH PARTITION p_project_type_ci_runners_pkey;
+
+ALTER INDEX index_p_ci_runners_on_project_id_where_not_null ATTACH PARTITION p_project_type_ci_runners_project_id_idx;
+
+ALTER INDEX index_uniq_p_ci_runners_on_token_encrypted ATTACH PARTITION p_project_type_ci_runners_token_encrypted_runner_type_idx;
+
+ALTER INDEX index_p_ci_runners_on_token_expires_at_and_id_desc ATTACH PARTITION p_project_type_ci_runners_token_expires_at_id_idx;
+
+ALTER INDEX index_p_ci_runners_on_token_expires_at_desc_and_id_desc ATTACH PARTITION p_project_type_ci_runners_token_expires_at_id_idx1;
+
+ALTER INDEX index_uniq_p_ci_runners_on_token ATTACH PARTITION p_project_type_ci_runners_token_runner_type_idx;
+
 ALTER INDEX p_ci_builds_scheduled_at_idx ATTACH PARTITION partial_index_ci_builds_on_scheduled_at_with_scheduled_jobs;
 
 ALTER INDEX p_ci_job_artifacts_expire_at_job_id_idx1 ATTACH PARTITION tmp_index_ci_job_artifacts_on_expire_at_where_locked_unknown;
@@ -33111,6 +33540,8 @@ CREATE TRIGGER push_rules_loose_fk_trigger AFTER DELETE ON push_rules REFERENCIN
 
 CREATE TRIGGER table_sync_trigger_57c8465cd7 AFTER INSERT OR DELETE OR UPDATE ON merge_request_diff_commits FOR EACH ROW EXECUTE FUNCTION table_sync_function_0992e728d3();
 
+CREATE TRIGGER table_sync_trigger_61879721b5 AFTER INSERT OR DELETE OR UPDATE ON ci_runners FOR EACH ROW EXECUTE FUNCTION table_sync_function_686d6c7993();
+
 CREATE TRIGGER table_sync_trigger_cd362c20e2 AFTER INSERT OR DELETE OR UPDATE ON merge_request_diff_files FOR EACH ROW EXECUTE FUNCTION table_sync_function_3f39f64fc3();
 
 CREATE TRIGGER tags_loose_fk_trigger AFTER DELETE ON tags REFERENCING OLD TABLE AS old_table FOR EACH STATEMENT EXECUTE FUNCTION insert_into_loose_foreign_keys_deleted_records();
@@ -33156,8 +33587,6 @@ CREATE TRIGGER trigger_25d35f02ab55 BEFORE INSERT OR UPDATE ON ml_candidate_meta
 CREATE TRIGGER trigger_25fe4f7da510 BEFORE INSERT OR UPDATE ON vulnerability_issue_links FOR EACH ROW EXECUTE FUNCTION trigger_25fe4f7da510();
 
 CREATE TRIGGER trigger_2b8fdc9b4a4e BEFORE INSERT OR UPDATE ON ml_experiment_metadata FOR EACH ROW EXECUTE FUNCTION trigger_2b8fdc9b4a4e();
-
-CREATE TRIGGER trigger_30209d0fba3e BEFORE INSERT OR UPDATE ON alert_management_alert_user_mentions FOR EACH ROW EXECUTE FUNCTION trigger_30209d0fba3e();
 
 CREATE TRIGGER trigger_3691f9f6a69f BEFORE INSERT OR UPDATE ON remote_development_agent_configs FOR EACH ROW EXECUTE FUNCTION trigger_3691f9f6a69f();
 
@@ -33258,8 +33687,6 @@ CREATE TRIGGER trigger_a4e4fb2451d9 BEFORE INSERT OR UPDATE ON epic_user_mention
 CREATE TRIGGER trigger_a7e0fb195210 BEFORE INSERT OR UPDATE ON vulnerability_finding_evidences FOR EACH ROW EXECUTE FUNCTION trigger_a7e0fb195210();
 
 CREATE TRIGGER trigger_af3f17817e4d BEFORE INSERT OR UPDATE ON protected_tag_create_access_levels FOR EACH ROW EXECUTE FUNCTION trigger_af3f17817e4d();
-
-CREATE TRIGGER trigger_b046dd50c711 BEFORE INSERT OR UPDATE ON incident_management_oncall_rotations FOR EACH ROW EXECUTE FUNCTION trigger_b046dd50c711();
 
 CREATE TRIGGER trigger_b2612138515d BEFORE INSERT OR UPDATE ON project_relation_exports FOR EACH ROW EXECUTE FUNCTION trigger_b2612138515d();
 
@@ -34110,9 +34537,6 @@ ALTER TABLE ONLY sprints
 ALTER TABLE ONLY alert_management_alert_metric_images
     ADD CONSTRAINT fk_80b75a6094 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
-ALTER TABLE ONLY alert_management_alert_user_mentions
-    ADD CONSTRAINT fk_8175238264 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
-
 ALTER TABLE ONLY related_epic_links
     ADD CONSTRAINT fk_8257080565 FOREIGN KEY (group_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
@@ -34583,9 +35007,6 @@ ALTER TABLE ONLY incident_management_escalation_rules
 
 ALTER TABLE ONLY packages_dependencies
     ADD CONSTRAINT fk_cea1124da7 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
-
-ALTER TABLE ONLY incident_management_oncall_rotations
-    ADD CONSTRAINT fk_cecf1b51f9 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY compliance_framework_security_policies
     ADD CONSTRAINT fk_cf3c0ac207 FOREIGN KEY (policy_configuration_id) REFERENCES security_orchestration_policy_configurations(id) ON DELETE CASCADE;
