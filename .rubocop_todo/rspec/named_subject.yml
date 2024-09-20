@@ -22,7 +22,6 @@ RSpec/NamedSubject:
     - 'ee/spec/controllers/groups/analytics/productivity_analytics_controller_spec.rb'
     - 'ee/spec/controllers/groups/analytics/repository_analytics_controller_spec.rb'
     - 'ee/spec/controllers/groups/analytics/tasks_by_type_controller_spec.rb'
-    - 'ee/spec/controllers/groups/epic_issues_controller_spec.rb'
     - 'ee/spec/controllers/groups/epics_controller_spec.rb'
     - 'ee/spec/controllers/groups/group_members_controller_spec.rb'
     - 'ee/spec/controllers/groups/groups_controller_spec.rb'
