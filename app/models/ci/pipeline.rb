@@ -542,8 +542,8 @@ module Ci
     # ref - The ref to scope the data to (e.g. "master"). If the ref is not
     #       given we simply get the latest pipelines for the commits, regardless
     #       of what refs the pipelines belong to.
-    def self.latest_pipeline_per_commit(commits, ref = nil)
-      sql = select('DISTINCT ON (sha) *')
+    def self.latest_pipeline_per_commit(commits, ref = nil, includes = [])
+      sql = includes(includes).select('DISTINCT ON (sha) *')
               .where(sha: commits)
               .order(:sha, id: :desc)
 

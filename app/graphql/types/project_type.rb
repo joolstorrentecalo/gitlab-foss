@@ -747,6 +747,11 @@ module Types
       connection: true,
       description: "List of the project's Pages Deployments."
 
+    field :lastest_pipeline_detailed_status, Types::Ci::DetailedStatusType,
+      resolver: Resolvers::Ci::ProjectLatestPipelineDetailedStatusResolver,
+      calls_gitaly: true,
+      description: 'Detailed status of the latest pipeline.'
+
     def protectable_branches
       ProtectableDropdown.new(project, :branches).protectable_ref_names
     end

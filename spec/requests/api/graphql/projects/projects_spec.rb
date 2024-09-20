@@ -147,4 +147,95 @@ RSpec.describe 'getting a collection of projects', feature_category: :source_cod
       end
     end
   end
+
+  describe 'lastest_pipeline_detailed_status' do
+    let_it_be(:project_with_repo_1) { create(:project, :public, :repository, group: group) }
+    let_it_be(:project_with_repo_2) { create(:project, :public, :repository, group: group) }
+
+    let_it_be(:add_file) do
+      project_with_repo_2.repository.create_file(
+        current_user,
+        'foo.md',
+        'A file',
+        message: 'Add file',
+        branch_name: 'master'
+      )
+    end
+
+    let_it_be(:ci_pipeline_1) do
+      create(:ci_pipeline, project: project_with_repo_1, sha: project_with_repo_1.commit.sha, status: :pending)
+    end
+
+    let_it_be(:ci_pipeline_2) do
+      create(:ci_pipeline, project: project_with_repo_2, sha: project_with_repo_2.commit.sha, status: :success)
+    end
+
+    let(:filters) do
+      {
+        full_paths: [other_project.full_path, project_with_repo_1.full_path, project_with_repo_2.full_path],
+        sort: 'created_asc'
+      }
+    end
+
+    let(:query) do
+      graphql_query_for(
+        :projects,
+        filters,
+        "nodes { lastestPipelineDetailedStatus { name, label } }"
+      )
+    end
+
+    it 'returns latest pipeline detailed status or null if there is no pipeline' do
+      post_graphql(query, current_user: current_user)
+
+      expect(graphql_data_at(:projects, :nodes, 0, :lastestPipelineDetailedStatus)).to be_nil
+      expect(graphql_data_at(:projects, :nodes, 1, :lastestPipelineDetailedStatus)).to match({
+        "name" => 'PENDING',
+        "label" => 'pending'
+      })
+      expect(graphql_data_at(:projects, :nodes, 2, :lastestPipelineDetailedStatus)).to match({
+        "name" => 'SUCCESS',
+        "label" => 'passed'
+      })
+    end
+
+    it 'avoids N+1', :use_sql_query_cache do
+      # Batch loaded in app/graphql/resolvers/ci/project_latest_pipeline_detailed_status_resolver.rb
+      # to avoid N+1
+
+      # warm up
+      post_graphql(query, current_user: current_user)
+
+      query_count = ActiveRecord::QueryRecorder.new(skip_cached: false) do
+        post_graphql(query, current_user: current_user)
+      end
+
+      project_with_repo_3 = create(:project, :public, :repository, group: group)
+      create(:ci_pipeline, project: project_with_repo_3, sha: project_with_repo_3.commit.sha, status: :success)
+
+      expect { post_graphql(query, current_user: current_user) }.to issue_same_number_of_queries_as(query_count)
+    end
+
+    context 'when user does not have read_pipeline ability' do
+      let_it_be(:project_with_repo_3) do
+        create(:project, :private, :repository, public_builds: false)
+      end
+
+      let_it_be(:ci_pipeline_3) do
+        create(:ci_pipeline, project: project_with_repo_3, sha: project_with_repo_3.commit.sha, status: :pending)
+      end
+
+      let(:filters) { { full_paths: [project_with_repo_3.full_path] } }
+
+      before_all do
+        project_with_repo_3.add_guest(current_user)
+      end
+
+      it 'returns null' do
+        post_graphql(query, current_user: current_user)
+
+        expect(graphql_data_at(:projects, :nodes, 0, :lastestPipelineDetailedStatus)).to be_nil
+      end
+    end
+  end
 end

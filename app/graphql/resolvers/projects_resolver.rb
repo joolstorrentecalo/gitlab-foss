@@ -63,7 +63,8 @@ module Resolvers
         container_repositories: [:container_repositories],
         container_repositories_count: [:container_repositories],
         web_url: { namespace: [:route] },
-        is_catalog_resource: [:catalog_resource]
+        is_catalog_resource: [:catalog_resource],
+        lastest_pipeline_detailed_status: [:project_feature]
       }
     end
 

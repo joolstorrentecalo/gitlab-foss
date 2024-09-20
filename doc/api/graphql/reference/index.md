@@ -23272,6 +23272,10 @@ four standard [pagination arguments](#pagination-arguments):
 
 AddOnPurchase associated with the namespace.
 
+DETAILS:
+**Deprecated** in GitLab 17.5.
+Use root addOnPurchases instead.
+
 Returns [`AddOnPurchase`](#addonpurchase).
 
 ###### Arguments
@@ -27970,6 +27974,10 @@ four standard [pagination arguments](#pagination-arguments):
 
 AddOnPurchase associated with the namespace.
 
+DETAILS:
+**Deprecated** in GitLab 17.5.
+Use root addOnPurchases instead.
+
 Returns [`AddOnPurchase`](#addonpurchase).
 
 ###### Arguments
@@ -29510,6 +29518,7 @@ Project-level settings for product analytics provider.
 | <a id="projectjobsenabled"></a>`jobsEnabled` | [`Boolean`](#boolean) | Indicates if CI/CD pipeline jobs are enabled for the current user. |
 | <a id="projectlanguages"></a>`languages` | [`[RepositoryLanguage!]`](#repositorylanguage) | Programming languages used in the project. |
 | <a id="projectlastactivityat"></a>`lastActivityAt` | [`Time`](#time) | Timestamp of the project last activity. |
+| <a id="projectlastestpipelinedetailedstatus"></a>`lastestPipelineDetailedStatus` | [`DetailedStatus`](#detailedstatus) | Detailed status of the latest pipeline. |
 | <a id="projectlfsenabled"></a>`lfsEnabled` | [`Boolean`](#boolean) | Indicates if the project has Large File Storage (LFS) enabled. |
 | <a id="projectmarkedfordeletionon"></a>`markedForDeletionOn` **{warning-solid}** | [`Time`](#time) | **Introduced** in GitLab 16.10. **Status**: Experiment. Date when project was scheduled to be deleted. |
 | <a id="projectmaxaccesslevel"></a>`maxAccessLevel` | [`AccessLevel!`](#accesslevel) | The maximum access level of the current user in the project. |
