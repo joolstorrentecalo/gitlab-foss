@@ -12,7 +12,7 @@ module Gitlab
           # @attr [Float] duration
           Result = Struct.new(:stderr, :status_list, :duration, keyword_init: true)
 
-          attr_reader :shell_commands
+          attr_reader :shell_commands, :result
 
           # @param [Array<Shell::Command>] shell_commands
           def initialize(*shell_commands)
@@ -24,7 +24,7 @@ module Gitlab
           # @param [IO|String|Array] input stdin redirection
           # @param [IO|String|Array] output stdout redirection
           # @return [Pipeline::Result]
-          def run_pipeline!(input: nil, output: nil)
+          def run!(input: nil, output: nil)
             start = Time.now
             # Open3 writes on `err_write` and we receive from `err_read`
             err_read, err_write = IO.pipe
@@ -43,7 +43,13 @@ module Gitlab
             stderr = err_read.read
             err_read.close # close after reading to avoid leaking file descriptors
 
-            Result.new(stderr: stderr, status_list: status_list, duration: duration)
+            @result = Result.new(stderr: stderr, status_list: status_list, duration: duration)
+          end
+
+          def success?
+            return false unless result&.status_list && result.status_list.any?
+
+            result.status_list.map(&:success?).all?
           end
 
           private
