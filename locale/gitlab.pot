@@ -59198,6 +59198,9 @@ msgstr ""
 msgid "UserMapping|Import details:"
 msgstr ""
 
+msgid "UserMapping|Import user memberships"
+msgstr ""
+
 msgid "UserMapping|Imported from: %{source_hostname}"
 msgstr ""
 

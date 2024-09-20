@@ -117,6 +117,7 @@ export default {
       helpUrl: helpPagePath('user/group/import/index', {
         anchor: 'visibility-rules',
       }),
+      shouldMigrateMemberships: false,
     };
   },
 
@@ -410,7 +411,7 @@ export default {
       this.validateImportTarget(newImportTarget);
     },
 
-    async requestGroupsImport(importRequests) {
+    async requestGroupsImport(importRequests, migrateMemberships) {
       const newPendingGroupsIds = importRequests.map((request) => request.sourceGroupId);
       newPendingGroupsIds.forEach((id) => {
         if (!this.pendingGroupsIds.includes(id)) {
@@ -421,7 +422,7 @@ export default {
       try {
         await this.$apollo.mutate({
           mutation: importGroupsMutation,
-          variables: { importRequests },
+          variables: { importRequests, migrateMemberships },
         });
       } catch (error) {
         if (error.networkError?.response?.status === HTTP_STATUS_TOO_MANY_REQUESTS) {
@@ -457,14 +458,17 @@ export default {
         });
       } else {
         this.reimportRequests = this.reimportRequests.filter((id) => id !== group.id);
-        await this.requestGroupsImport([
-          {
-            sourceGroupId: group.id,
-            targetNamespace: group.importTarget.targetNamespace.fullPath,
-            newName: group.importTarget.newName,
-            ...extraArgs,
-          },
-        ]);
+        await this.requestGroupsImport(
+          [
+            {
+              sourceGroupId: group.id,
+              targetNamespace: group.importTarget.targetNamespace.fullPath,
+              newName: group.importTarget.newName,
+              ...extraArgs,
+            },
+          ],
+          this.shouldMigrateMemberships,
+        );
 
         const updatedGroup = this.groups?.find((g) => g.id === group.id);
 
@@ -488,7 +492,7 @@ export default {
           ...extraArgs,
         }));
 
-      this.requestGroupsImport(importRequests);
+      this.requestGroupsImport(importRequests, this.shouldMigrateMemberships);
     },
 
     setPageSize(size) {
@@ -787,38 +791,47 @@ export default {
       </gl-empty-state>
       <template v-else>
         <div
-          class="import-table-bar gl-sticky gl-z-3 gl-flex gl-items-center gl-border-0 gl-border-b-1 gl-border-solid gl-border-gray-200 gl-bg-gray-10 gl-px-4"
+          class="import-table-bar gl-sticky gl-z-3 gl-flex gl-items-center gl-justify-between gl-border-0 gl-border-b-1 gl-border-solid gl-border-gray-200 gl-bg-gray-10 gl-px-4"
         >
-          <span data-test-id="selection-count">
-            <gl-sprintf :message="__('%{count} selected')">
-              <template #count>
-                {{ selectedGroupsIds.length }}
-              </template>
-            </gl-sprintf>
-          </span>
-          <gl-dropdown
-            :text="s__('BulkImport|Import with projects')"
-            :disabled="!hasSelectedGroups"
-            variant="confirm"
-            category="primary"
-            data-testid="import-selected-groups-dropdown"
-            class="gl-ml-4"
-            split
-            @click="importSelectedGroups({ migrateProjects: true })"
-          >
-            <gl-dropdown-item @click="importSelectedGroups({ migrateProjects: false })">
-              {{ s__('BulkImport|Import without projects') }}
-            </gl-dropdown-item>
-          </gl-dropdown>
-          <span v-if="showImportProjectsWarning" class="gl-ml-3">
-            <gl-icon
-              v-gl-tooltip
-              :title="s__('BulkImport|Some groups will be imported without projects.')"
-              name="warning"
-              class="gl-text-orange-500"
-              data-testid="import-projects-warning"
-            />
-          </span>
+          <div class="inner-div gl-flex gl-grow gl-items-center">
+            <span data-test-id="selection-count">
+              <gl-sprintf :message="__('%{count} selected')">
+                <template #count>
+                  {{ selectedGroupsIds.length }}
+                </template>
+              </gl-sprintf>
+            </span>
+            <gl-dropdown
+              :text="s__('BulkImport|Import with projects')"
+              :disabled="!hasSelectedGroups"
+              variant="confirm"
+              category="primary"
+              data-testid="import-selected-groups-dropdown"
+              class="gl-ml-4 gl-shrink"
+              split
+              @click="importSelectedGroups({ migrateProjects: true })"
+            >
+              <gl-dropdown-item @click="importSelectedGroups({ migrateProjects: false })">
+                {{ s__('BulkImport|Import without projects') }}
+              </gl-dropdown-item>
+            </gl-dropdown>
+            <span v-if="showImportProjectsWarning" class="gl-ml-3 gl-ml-auto gl-shrink-0">
+              <gl-icon
+                v-gl-tooltip
+                :title="s__('BulkImport|Some groups will be imported without projects.')"
+                name="warning"
+                class="gl-text-orange-500"
+                data-testid="import-projects-warning"
+              />
+            </span>
+            <gl-form-checkbox
+              id="toggle-import-user-memberships"
+              v-model="shouldMigrateMemberships"
+              class="gl-ml-4 gl-h-7 gl-pt-3"
+            >
+              {{ s__('UserMapping|Import user memberships') }}
+            </gl-form-checkbox>
+          </div>
 
           <span class="gl-ml-3">
             <gl-icon name="information-o" :size="12" class="gl-text-blue-600" />

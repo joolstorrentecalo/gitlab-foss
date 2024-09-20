@@ -1,5 +1,5 @@
-mutation importGroups($importRequests: [ImportGroupInput!]!) {
-  importGroups(importRequests: $importRequests) @client {
+mutation importGroups($importRequests: [ImportGroupInput!]!, $migrateMemberships: Boolean!) {
+  importGroups(importRequests: $importRequests, migrateMemberships: $migrateMemberships) @client {
     id
     lastImportTarget {
       id
