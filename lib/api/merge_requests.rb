@@ -605,8 +605,11 @@ module API
         merge_request_params = { allow_duplicate: true }
 
         if params[:async]
+          ::Ci::PipelineCreationMetadata.set_creation_started_for_merge_request(merge_request)
+          GraphqlTriggers.merge_request_merge_status_updated(merge_request)
+
           ::MergeRequests::CreatePipelineWorker # rubocop:disable CodeReuse/Worker -- Worker wraps service and another service wrapping that is pointless
-            .perform_async(user_project.id, current_user.id, merge_request.id, merge_request_params)
+            .perform_async(user_project.id, current_user.id, merge_request.id)
         else
           pipeline = ::MergeRequests::CreatePipelineService
             .new(project: user_project, current_user: current_user, params: merge_request_params)

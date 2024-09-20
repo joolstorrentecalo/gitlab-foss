@@ -6,16 +6,10 @@ module Types
     class PipelineCreation < BaseObject
       graphql_name 'CiPipelineCreationType'
 
-      field :status,
-        ::Types::Ci::PipelineCreations::StatusEnum,
+      field :in_progress,
+        GraphQL::Types::Boolean,
         null: true,
-        description: 'Pipeline creation status.',
-        alpha: { milestone: '17.4' }
-
-      field :pipeline_id,
-        GraphQL::Types::ID,
-        null: true,
-        description: 'ID of the created pipeline.',
+        description: 'Whether a pipeline creation is in progress.',
         alpha: { milestone: '17.4' }
     end
     # rubocop: enable Graphql/AuthorizeTypes

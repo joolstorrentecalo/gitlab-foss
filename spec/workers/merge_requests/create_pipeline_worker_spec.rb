@@ -4,9 +4,10 @@ require 'spec_helper'
 
 RSpec.describe MergeRequests::CreatePipelineWorker, feature_category: :pipeline_composition do
   describe '#perform' do
-    let(:user) { create(:user) }
-    let(:project) { create(:project) }
-    let(:merge_request) { create(:merge_request) }
+    let_it_be(:merge_request) { create(:merge_request) }
+    let_it_be(:project) { create(:project) }
+    let_it_be(:user) { create(:user) }
+
     let(:worker) { described_class.new }
 
     subject { worker.perform(project.id, user.id, merge_request.id) }
@@ -25,6 +26,44 @@ RSpec.describe MergeRequests::CreatePipelineWorker, feature_category: :pipeline_
           expect(merge_request).to receive(:update_head_pipeline)
 
           subject
+        end
+      end
+
+      context 'when given a pipeline creation ID', :clean_gitlab_redis_shared_state do
+        before do
+          # rubocop:disable Rails/SaveBang -- This method call is not ActiveRecord#save
+          Ci::PipelineCreationMetadata.new(id: '123', merge_request: merge_request, status: 'creating').save
+          # rubocop:enable Rails/SaveBang
+        end
+
+        context 'when pipeline creation succeeds' do
+          it 'updates the creation status to succeeded' do
+            allow_next_instance_of(MergeRequests::CreatePipelineService) do |service|
+              allow(service).to receive(:execute).and_return(
+                ServiceResponse.success(payload: instance_double(Ci::Pipeline, id: '456'))
+              )
+            end
+
+            worker.perform(project.id, user.id, merge_request.id, pipeline_creation_id: '123')
+
+            creation = Ci::PipelineCreationMetadata.find_by(id: '123', merge_request: merge_request)
+            expect(creation.status).to eq('succeeded')
+            expect(creation.pipeline_id).to eq('456')
+          end
+        end
+
+        context 'when pipeline creation fails' do
+          it 'updates the creation status to failed' do
+            allow_next_instance_of(MergeRequests::CreatePipelineService) do |service|
+              allow(service).to receive(:execute).and_return(ServiceResponse.error(message: 'failed'))
+            end
+
+            worker.perform(project.id, user.id, merge_request.id, pipeline_creation_id: '123')
+
+            expect(
+              Ci::PipelineCreationMetadata.find_by(id: '123', merge_request: merge_request).status
+            ).to eq('failed')
+          end
         end
       end
 

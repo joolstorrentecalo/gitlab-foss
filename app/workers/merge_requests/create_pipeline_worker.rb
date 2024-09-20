@@ -30,12 +30,13 @@ module MergeRequests
       allow_duplicate = params.with_indifferent_access[:allow_duplicate]
       push_options = params.with_indifferent_access[:push_options]
 
-      MergeRequests::CreatePipelineService
-        .new(
-          project: project,
-          current_user: user,
-          params: { allow_duplicate: allow_duplicate, push_options: push_options }
-        ).execute(merge_request)
+      MergeRequests::CreatePipelineService.new(
+        project: project,
+        current_user: user,
+        params: { allow_duplicate: allow_duplicate, push_options: push_options }
+      ).execute(merge_request)
+
+      ::Ci::PipelineCreationMetadata.set_creation_finished_for_merge_request(merge_request)
 
       merge_request.update_head_pipeline
 

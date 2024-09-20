@@ -1707,7 +1707,11 @@ class MergeRequest < ApplicationRecord
 
     return true if project.allow_merge_on_skipped_pipeline?(inherit_group_setting: true) && diff_head_pipeline.skipped?
 
-    diff_head_pipeline.success?
+    diff_head_pipeline.success? && no_pipelines_being_created?
+  end
+
+  def no_pipelines_being_created?
+    ::Ci::PipelineCreationMetadata.pipeline_creating_for_merge_request?(self)
   end
 
   def environments_in_head_pipeline(deployment_status: nil)

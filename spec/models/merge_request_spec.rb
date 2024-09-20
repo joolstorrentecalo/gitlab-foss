@@ -4313,7 +4313,21 @@ RSpec.describe MergeRequest, factory_default: :keep, feature_category: :code_rev
           pipeline.status = 'success'
         end
 
-        it { expect(subject.mergeable_ci_state?).to be_truthy }
+        context 'when there is a pipeline creation in progress', :clean_gitlab_redis_shared_state do
+          before do
+            ::Ci::PipelineCreationMetadata.new(
+              id: ::Ci::PipelineCreationMetadata.generate_id,
+              merge_request: subject,
+              status: 'creating'
+            ).save # rubocop:disable Rails/SaveBang -- This is method call is not ActiveRecord#save
+          end
+
+          it { expect(subject.mergeable_ci_state?).to be_falsey }
+        end
+
+        context 'when there is no pipeline creation in progress' do
+          it { expect(subject.mergeable_ci_state?).to be_truthy }
+        end
       end
 
       context 'and a skipped pipeline is associated' do

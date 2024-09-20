@@ -19323,8 +19323,7 @@ CI/CD variables given to a manual job.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| <a id="cipipelinecreationtypepipelineid"></a>`pipelineId` **{warning-solid}** | [`ID`](#id) | **Introduced** in GitLab 17.4. **Status**: Experiment. ID of the created pipeline. |
-| <a id="cipipelinecreationtypestatus"></a>`status` **{warning-solid}** | [`CiPipelineCreationStatus`](#cipipelinecreationstatus) | **Introduced** in GitLab 17.4. **Status**: Experiment. Pipeline creation status. |
+| <a id="cipipelinecreationtypeinprogress"></a>`inProgress` **{warning-solid}** | [`Boolean`](#boolean) | **Introduced** in GitLab 17.4. **Status**: Experiment. Whether a pipeline creation is in progress. |
 
 ### `CiProjectVariable`
 
@@ -36159,14 +36158,6 @@ Direction of access.
 | ----- | ----------- |
 | <a id="cijobtokenscopedirectioninbound"></a>`INBOUND` | Target projects in the inbound allowlist can access the scope project through their job tokens. |
 | <a id="cijobtokenscopedirectionoutbound"></a>`OUTBOUND` | Job token scope project can access target project in the outbound allowlist. |
-
-### `CiPipelineCreationStatus`
-
-| Value | Description |
-| ----- | ----------- |
-| <a id="cipipelinecreationstatuscreating"></a>`CREATING` | Pipeline is creating. |
-| <a id="cipipelinecreationstatusfailed"></a>`FAILED` | Pipeline has failed. |
-| <a id="cipipelinecreationstatussucceeded"></a>`SUCCEEDED` | Pipeline has succeeded. |
 
 ### `CiRunnerAccessLevel`
 

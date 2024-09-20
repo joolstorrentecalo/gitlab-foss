@@ -2129,16 +2129,26 @@ RSpec.describe API::MergeRequests, :aggregate_failures, feature_category: :sourc
         expect(json_response).to be_a Hash
       end
 
-      context 'when async is requested', :sidekiq_inline do
+      context 'when async is requested', :sidekiq_inline, :clean_gitlab_redis_shared_state do
         let(:request) do
           post api("/projects/#{project.id}/merge_requests/#{merge_request_iid}/pipelines", authenticated_user), params: { async: true }
         end
 
-        it 'creates the pipeline async' do
-          expect(MergeRequests::CreatePipelineWorker).to receive(:perform_async).and_call_original
+        it 'creates the pipeline async and updates the merge request status subscription' do
+          allow(Ci::PipelineCreationMetadata).to receive(:generate_id).and_return('123')
+
+          expect(MergeRequests::CreatePipelineWorker).to(
+            receive(:perform_async)
+            .with(anything, anything, anything, a_hash_including(pipeline_creation_id: '123'))
+            .and_call_original
+          )
+          expect(GraphqlTriggers).to receive(:merge_request_merge_status_updated).with(merge_request)
 
           expect { request }.to change(Ci::Pipeline, :count).by(1)
 
+          expect(
+            Ci::PipelineCreationMetadata.find_by(id: '123', merge_request: merge_request).status
+          ).to eq('succeeded')
           expect(response).to have_gitlab_http_status(:accepted)
         end
       end
