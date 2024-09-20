@@ -3,6 +3,7 @@
 # Lifesize project import test executed from https://gitlab.com/gitlab-org/manage/import/import-metrics
 
 # rubocop:disable Rails/Pluck, Layout/LineLength, RSpec/MultipleMemoizedHelpers
+
 module QA
   RSpec.describe "Manage", :skip_live_env,
     only: { condition: -> { ENV["CI_PROJECT_NAME"] == "import-metrics" } },
@@ -64,7 +65,7 @@ module QA
       let(:source_branches) { source_project.repository_branches(auto_paginate: true).map { |b| b[:name] } }
       let(:source_commits) { source_project.commits(auto_paginate: true).map { |c| c[:id] } }
       let(:source_labels) { source_project.labels(auto_paginate: true).map { |l| l.except(:id, :description_html) } }
-      let(:source_milestones) { source_project.milestones(auto_paginate: true).map { |ms| ms.except(:id, :web_url, :project_id) } }
+      let(:source_milestones) { fetch_milestones(source_project) }
       let(:source_mrs) { fetch_mrs(source_project, source_api_client, transform_urls: true) }
       let(:source_issues) { fetch_issues(source_project, source_api_client, transform_urls: true) }
       let(:source_pipelines) do
@@ -86,9 +87,9 @@ module QA
       let(:branches) { imported_project.repository_branches(auto_paginate: true, attempts: 3).map { |b| b[:name] } }
       let(:commits) { imported_project.commits(auto_paginate: true, attempts: 3).map { |c| c[:id] } }
       let(:labels) { imported_project.labels(auto_paginate: true, attempts: 3).map { |l| l.except(:id, :description_html) } }
-      let(:milestones) { imported_project.milestones(auto_paginate: true, attempts: 3).map { |ms| ms.except(:id, :web_url, :project_id) } }
-      let(:mrs) { fetch_mrs(imported_project, api_client) }
-      let(:issues) { fetch_issues(imported_project, api_client) }
+      let(:milestones) { fetch_milestones(imported_project) }
+      let(:mrs) { fetch_mrs(imported_project, api_client, transform_urls: true) }
+      let(:issues) { fetch_issues(imported_project, api_client, transform_urls: true) }
       let(:pipelines) do
         imported_project
           .pipelines(auto_paginate: true, attempts: 3)
@@ -174,6 +175,9 @@ module QA
 
       it "migrates large gitlab group via api", testcase: "https://gitlab.com/gitlab-org/gitlab/-/quality/test_cases/358842" do
         @start = Time.now
+
+        logger.info("== source_project_url: #{source_project_url}")
+        logger.info("== imported_project_url: #{imported_project_url}")
 
         # trigger import and log imported group path
         logger.info("== Importing group '#{gitlab_source_group}' in to '#{imported_group.full_path}' ==")
@@ -357,7 +361,7 @@ module QA
 
           [mr[:iid], {
             url: mr[:web_url],
-            title: mr[:title],
+            title: remove_backticks(mr[:title]),
             body: sanitize_description(mr[:description], transform_urls) || '',
             state: mr[:state],
             comments: resource
@@ -381,7 +385,7 @@ module QA
 
           [issue[:iid], {
             url: issue[:web_url],
-            title: issue[:title],
+            title: remove_backticks(issue[:title]),
             state: issue[:state],
             body: sanitize_description(issue[:description], transform_urls) || '',
             comments: resource
@@ -389,6 +393,11 @@ module QA
               .map { |c| sanitize_comment(c[:body], transform_urls) }
           }]
         end.to_h
+      end
+
+      def fetch_milestones(project)
+        project.milestones(auto_paginate: true).map { |ms| ms.except(:id, :web_url, :project_id) }
+          .each { |milestone| milestone[:description] = remove_backticks(milestone[:description]) }
       end
 
       # Remove added postfixes and transform urls
@@ -443,7 +452,7 @@ module QA
       #
       # @return [String]
       def source_project_url
-        @source_group_url ||= "#{source_gitlab_address}/#{source_project.full_path}"
+        @source_group_url ||= "#{source_gitlab_address.chomp('/')}/#{source_project.full_path}"
       end
 
       # Imported project url
@@ -452,7 +461,7 @@ module QA
       #
       # @return [String]
       def imported_project_url
-        @imported_group_url ||= "#{Runtime::Scenario.gitlab_address}/#{imported_group.full_path}/#{source_project.path}"
+        @imported_group_url ||= "#{Runtime::Scenario.gitlab_address.chomp('/')}/#{imported_group.full_path}/#{source_project.path}"
       end
 
       # Save json as file
