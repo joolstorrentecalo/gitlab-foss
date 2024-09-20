@@ -10,7 +10,7 @@ DETAILS:
 **Tier:** Free, Premium, Ultimate
 **Offering:** GitLab.com
 
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/141127) in GitLab 16.10 [with a flag](../administration/feature_flags.md) named `google_cloud_support_feature_flag`.
+> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/141127) in GitLab 16.10 [with a flag](../administration/feature_flags.md) named `google_cloud_support_feature_flag`. This feature is in [beta](../policy/experiment-beta-support.md).
 > - [Enabled on GitLab.com](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/150472) in GitLab 17.1. Feature flag `google_cloud_support_feature_flag` removed.
 
 To use Google Cloud integrations like the
@@ -276,7 +276,7 @@ artifacts to the Google Artifact Registry from the GitLab project `gitlab-org/my
    The Google attribute `my_project_maintainer` is mapped to the GitLab claims
    `maintainer_access==true` and the `project_path=="gitlab-org/my-project"`.
 
-1. In the Google Cloud Console, go to the [**IAM** page](https://console.cloud.google.com/iam-admin/iam?supportedpurview=project).
+1. In the Google Cloud Console, select [**IAM**](https://console.google.com/iam-admin/iam?supportedpurview=project).
 
 1. Select **Grant access**.
 1. In the **New principals** text box, enter the principal set including the

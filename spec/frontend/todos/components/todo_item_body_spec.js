@@ -33,7 +33,7 @@ describe('TodoItemBody', () => {
             avatarUrl: '/avatar.png',
           },
           action: TODO_ACTION_TYPE_ASSIGNED,
-          targetEntity: {
+          target: {
             title: 'Target title',
           },
           ...todoExtras,

@@ -27,10 +27,6 @@ module Resolvers
       required: false,
       description: 'Filter projects by archived status.'
 
-    argument :min_access_level, ::Types::AccessLevelEnum,
-      required: false,
-      description: 'Return only projects where current user has at least the specified access level.'
-
     def resolve_with_lookahead(**args)
       validate_args!(args)
 
@@ -73,8 +69,7 @@ module Resolvers
         with_issues_enabled: args[:with_issues_enabled],
         with_merge_requests_enabled: args[:with_merge_requests_enabled],
         full_paths: args[:full_paths],
-        archived: args[:archived],
-        min_access_level: args[:min_access_level]
+        archived: args[:archived]
       }
     end
 

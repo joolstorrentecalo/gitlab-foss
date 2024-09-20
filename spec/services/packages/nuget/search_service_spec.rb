@@ -172,6 +172,14 @@ RSpec.describe Packages::Nuget::SearchService, feature_category: :package_regist
           end
 
           it_behaves_like 'handling all the conditions'
+
+          context 'when feaure flag is disabled' do
+            before do
+              stub_feature_flags(allow_anyone_to_pull_public_nuget_packages_on_group_level: false)
+            end
+
+            it { expect_search_results 0, [] }
+          end
         end
       end
     end

@@ -102,6 +102,11 @@ msgid_plural "%d Approvals"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "%d Custom role"
+msgid_plural "%d Custom roles"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "%d Module"
 msgid_plural "%d Modules"
 msgstr[0] ""
@@ -30145,7 +30150,7 @@ msgstr ""
 msgid "Iterations|No closed iterations."
 msgstr ""
 
-msgid "Iterations|No iteration cadences to show"
+msgid "Iterations|No iteration cadences to show."
 msgstr ""
 
 msgid "Iterations|No iterations found"
@@ -32891,9 +32896,6 @@ msgstr ""
 msgid "Maximum allowed lifetime for SSH keys (days)"
 msgstr ""
 
-msgid "Maximum artifacts archive size (bytes)"
-msgstr ""
-
 msgid "Maximum artifacts size"
 msgstr ""
 
@@ -33176,16 +33178,7 @@ msgstr ""
 msgid "MemberRole|%{requirement} has to be enabled in order to enable %{permission}"
 msgstr ""
 
-msgid "MemberRole|%{rolesStart}Roles:%{rolesEnd} %{customCount} Custom %{defaultCount} Default"
-msgstr ""
-
 msgid "MemberRole|Access level"
-msgstr ""
-
-msgid "MemberRole|Access level copied to clipboard"
-msgstr ""
-
-msgid "MemberRole|Access level: %{id}"
 msgstr ""
 
 msgid "MemberRole|Actions"
@@ -33210,6 +33203,12 @@ msgid "MemberRole|Could not fetch available permissions."
 msgstr ""
 
 msgid "MemberRole|Could not update role."
+msgstr ""
+
+msgid "MemberRole|Create a custom role with specific abilities by starting with a base role and adding custom permissions. %{linkStart}Learn more about custom roles.%{linkEnd}"
+msgstr ""
+
+msgid "MemberRole|Create custom roles"
 msgstr ""
 
 msgid "MemberRole|Create role"
@@ -33240,9 +33239,6 @@ msgid "MemberRole|Delete role"
 msgstr ""
 
 msgid "MemberRole|Description"
-msgstr ""
-
-msgid "MemberRole|Direct users assigned"
 msgstr ""
 
 msgid "MemberRole|Edit role"
@@ -33278,13 +33274,16 @@ msgstr ""
 msgid "MemberRole|Failed to save role: %{error}"
 msgstr ""
 
+msgid "MemberRole|ID"
+msgstr ""
+
 msgid "MemberRole|Learn more about %{linkStart}available custom permissions%{linkEnd}."
 msgstr ""
 
 msgid "MemberRole|Manage roles"
 msgstr ""
 
-msgid "MemberRole|Manage which actions users can take with %{linkStart}roles and permissions%{linkEnd}."
+msgid "MemberRole|Member count"
 msgstr ""
 
 msgid "MemberRole|Name"
@@ -33311,12 +33310,6 @@ msgstr ""
 msgid "MemberRole|Role ID"
 msgstr ""
 
-msgid "MemberRole|Role ID copied to clipboard"
-msgstr ""
-
-msgid "MemberRole|Role ID: %{id}"
-msgstr ""
-
 msgid "MemberRole|Role details"
 msgstr ""
 
@@ -33327,9 +33320,6 @@ msgid "MemberRole|Role successfully deleted."
 msgstr ""
 
 msgid "MemberRole|Role type"
-msgstr ""
-
-msgid "MemberRole|Roles and permissions"
 msgstr ""
 
 msgid "MemberRole|Save role"
@@ -33384,6 +33374,9 @@ msgid "MemberRole|Use LDAP sync role"
 msgstr ""
 
 msgid "MemberRole|View permissions"
+msgstr ""
+
+msgid "MemberRole|You can create a custom role by adding specific %{linkStart}permissions to a base role.%{linkEnd}"
 msgstr ""
 
 msgid "MemberRole|You must fill out all required fields."
@@ -44197,9 +44190,6 @@ msgstr ""
 msgid "ProtectedEnvironments|Set which groups, access levels, or users can deploy to this environment. Groups and users must be members of the project."
 msgstr ""
 
-msgid "ProtectedEnvironments|This environment has no approval rules set up. %{linkStart}Learn more about deployment approvals.%{linkEnd}"
-msgstr ""
-
 msgid "ProtectedEnvironments|This rule already exists."
 msgstr ""
 
@@ -48834,33 +48824,6 @@ msgid "SecurityConfiguration|Vulnerability details and statistics in the merge r
 msgstr ""
 
 msgid "SecurityDescription|The linked group refers to the groups that are linked to security policy projects. Security policy projects store your organization's security policies. They are identified when policies are created, or when a project is linked as a security policy project. %{linkStart}Learn more%{linkEnd}."
-msgstr ""
-
-msgid "SecurityExclusions|Add exclusion"
-msgstr ""
-
-msgid "SecurityExclusions|Enforcement"
-msgstr ""
-
-msgid "SecurityExclusions|Modified"
-msgstr ""
-
-msgid "SecurityExclusions|Secret push protection"
-msgstr ""
-
-msgid "SecurityExclusions|Specify file paths, raw values, and regex that should be excluded by secret detection in this project."
-msgstr ""
-
-msgid "SecurityExclusions|Status"
-msgstr ""
-
-msgid "SecurityExclusions|Toggle exclusion"
-msgstr ""
-
-msgid "SecurityExclusions|Type"
-msgstr ""
-
-msgid "SecurityExclusions|Value"
 msgstr ""
 
 msgid "SecurityOrchestration| and "
@@ -54734,9 +54697,6 @@ msgid "The maximum compute minutes that jobs in a namespace can use on instance 
 msgstr ""
 
 msgid "The maximum file size allowed is %{size}."
-msgstr ""
-
-msgid "The maximum file size for job artifacts archive."
 msgstr ""
 
 msgid "The maximum file size for job artifacts."
@@ -62189,9 +62149,6 @@ msgid "WorkItem|Work items"
 msgstr ""
 
 msgid "WorkItem|Yes, close %{workItemType}"
-msgstr ""
-
-msgid "WorkItem|You cannot add another child %{workItemType}. You’ve reached the maximum number of nested levels."
 msgstr ""
 
 msgid "WorkItem|You don't have the necessary permission to view the ancestor."

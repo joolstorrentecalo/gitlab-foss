@@ -4,8 +4,6 @@ query getMergeRequestsCount(
   $assigneeUsernames: String
   $milestoneTitle: String
   $milestoneWildcardId: MilestoneWildcardId
-  $deployedBefore: Time
-  $deployedAfter: Time
   $not: MergeRequestsResolverNegatedParams
 ) {
   project(fullPath: $fullPath) {
@@ -16,8 +14,6 @@ query getMergeRequestsCount(
       assigneeWildcardId: $assigneeWildcardId
       milestoneTitle: $milestoneTitle
       milestoneWildcardId: $milestoneWildcardId
-      deployedBefore: $deployedBefore
-      deployedAfter: $deployedAfter
       not: $not
     ) {
       count
@@ -28,8 +24,6 @@ query getMergeRequestsCount(
       assigneeWildcardId: $assigneeWildcardId
       milestoneTitle: $milestoneTitle
       milestoneWildcardId: $milestoneWildcardId
-      deployedBefore: $deployedBefore
-      deployedAfter: $deployedAfter
       not: $not
     ) {
       count
@@ -40,8 +34,6 @@ query getMergeRequestsCount(
       assigneeWildcardId: $assigneeWildcardId
       milestoneTitle: $milestoneTitle
       milestoneWildcardId: $milestoneWildcardId
-      deployedBefore: $deployedBefore
-      deployedAfter: $deployedAfter
       not: $not
     ) {
       count
@@ -52,8 +44,6 @@ query getMergeRequestsCount(
       assigneeWildcardId: $assigneeWildcardId
       milestoneTitle: $milestoneTitle
       milestoneWildcardId: $milestoneWildcardId
-      deployedBefore: $deployedBefore
-      deployedAfter: $deployedAfter
       not: $not
     ) {
       count
