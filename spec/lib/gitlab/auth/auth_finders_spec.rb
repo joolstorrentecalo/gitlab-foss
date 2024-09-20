@@ -955,7 +955,7 @@ RSpec.describe Gitlab::Auth::AuthFinders, feature_category: :system_access do
     end
   end
 
-  describe '#validate_access_token!' do
+  describe '#validate_and_save_access_token!' do
     subject { validate_and_save_access_token! }
 
     context 'with a job token' do
@@ -978,8 +978,12 @@ RSpec.describe Gitlab::Auth::AuthFinders, feature_category: :system_access do
     context 'with a personal access token' do
       let_it_be_with_reload(:personal_access_token) { create(:personal_access_token, user: user) }
 
+      let(:request_method) { 'GET' }
+      let(:request_path) { '/valid_path' }
+
       before do
         allow_any_instance_of(described_class).to receive(:access_token).and_return(personal_access_token)
+        allow_any_instance_of(AccessTokenValidationService).to receive(:request).and_return(double(request_method: request_method, path: request_path))
       end
 
       it 'saves the token info in the environment' do
@@ -1012,6 +1016,28 @@ RSpec.describe Gitlab::Auth::AuthFinders, feature_category: :system_access do
           expect(request.env).not_to have_key(described_class::API_TOKEN_ENV)
           expect(Gitlab::ApplicationContext.current['meta.auth_fail_reason']).to eq('insufficient_scope')
           expect(Gitlab::ApplicationContext.current['meta.auth_fail_token_id']).to eq("PersonalAccessToken/#{personal_access_token.id}")
+        end
+      end
+
+      context 'when the method does not match the personal token advanced scopes http_methods' do
+        let(:request_method) { 'GET' }
+        let(:organization) { create(:organization) }
+
+        it 'returns Gitlab::Auth::InsufficientScopeError' do
+          personal_access_token.personal_access_token_advanced_scopes.create!(http_methods: ['POST'], path_string: '^/valid_path$', organization_id: organization.id)
+
+          expect { validate_and_save_access_token! }.to raise_error(Gitlab::Auth::InsufficientScopeError)
+        end
+      end
+
+      context 'when the path does not match the personal token advanced scopes regex' do
+        let(:request_path) { '/api/v4/some_invalid_path' }
+        let(:organization) { create(:organization) }
+
+        it 'returns Gitlab::Auth::InsufficientScopeError' do
+          personal_access_token.personal_access_token_advanced_scopes.create!(http_methods: ['GET'], path_string: '^/api/v4/issues$', organization_id: organization.id)
+
+          expect { validate_and_save_access_token! }.to raise_error(Gitlab::Auth::InsufficientScopeError)
         end
       end
     end

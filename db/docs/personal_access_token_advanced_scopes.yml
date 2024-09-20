@@ -1,0 +1,13 @@
+---
+table_name: personal_access_token_advanced_scopes
+classes:
+- Authz::PersonalAccessTokenAdvancedScope
+- PersonalAccessToken
+- PersonalAccessTokenAdvancedScopes
+feature_categories:
+- user_management
+description: Represents a token advanced scopes
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/158500
+milestone: '17.2'
+gitlab_schema: gitlab_main_cell
+sharding_key_issue_url: https://gitlab.com/gitlab-org/gitlab/-/issues/463786

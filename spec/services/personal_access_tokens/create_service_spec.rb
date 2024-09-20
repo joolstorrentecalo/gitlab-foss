@@ -70,7 +70,7 @@ RSpec.describe PersonalAccessTokens::CreateService, feature_category: :system_ac
     end
 
     context 'with no expires_at set', :freeze_time do
-      let(:params) { { name: 'Test token', impersonation: false, scopes: [:no_valid] } }
+      let(:params) { { name: 'Test token', impersonation: false, scopes: [:api] } }
       let(:service) { described_class.new(current_user: user, organization_id: organization.id, target_user: user, params: params) }
 
       it { expect(subject.payload[:personal_access_token].expires_at).to eq PersonalAccessToken::MAX_PERSONAL_ACCESS_TOKEN_LIFETIME_IN_DAYS.days.from_now.to_date }
@@ -99,6 +99,36 @@ RSpec.describe PersonalAccessTokens::CreateService, feature_category: :system_ac
         let(:service) { described_class.new(current_user: user, target_user: user, organization_id: organization.id, params: params, concatenate_errors: false) }
 
         it { expect(subject.message).to be_an_instance_of(Array) }
+      end
+    end
+
+    context 'when scopes are present' do
+      let(:valid_scopes) { %w[api read_user] }
+
+      subject { build(:personal_access_token, user: user, organization_id: organization.id) }
+
+      before do
+        subject.scopes = valid_scopes
+      end
+
+      it 'is valid when only scopes are present' do
+        expect(subject).to be_valid
+      end
+
+      it 'is not valid when both scopes and advanced scopes are present' do
+        create(:personal_access_token_advanced_scopes, personal_access_token: subject, organization_id: organization.id)
+        expect(subject).not_to be_valid
+        expect(subject.errors[:base]).to include("Cannot have both scopes and advanced scopes")
+      end
+    end
+
+    context 'when advanced scopes are present' do
+      before do
+        create(:personal_access_token_advanced_scopes, personal_access_token: subject)
+      end
+
+      it 'is valid when only advanced scopes are present' do
+        expect(subject).to be_valid
       end
     end
   end

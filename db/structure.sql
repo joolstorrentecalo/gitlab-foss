@@ -15621,6 +15621,26 @@ CREATE SEQUENCE path_locks_id_seq
 
 ALTER SEQUENCE path_locks_id_seq OWNED BY path_locks.id;
 
+CREATE TABLE personal_access_token_advanced_scopes (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    http_methods text[] DEFAULT '{}'::text[] NOT NULL,
+    path_string text NOT NULL,
+    organization_id bigint NOT NULL,
+    personal_access_token_id bigint NOT NULL,
+    CONSTRAINT check_47edbd4ad4 CHECK ((char_length(path_string) <= 4096))
+);
+
+CREATE SEQUENCE personal_access_token_advanced_scopes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE personal_access_token_advanced_scopes_id_seq OWNED BY personal_access_token_advanced_scopes.id;
+
 CREATE TABLE personal_access_tokens (
     id bigint NOT NULL,
     user_id bigint NOT NULL,
@@ -15637,12 +15657,10 @@ CREATE TABLE personal_access_tokens (
     last_used_at timestamp with time zone,
     after_expiry_notification_delivered boolean DEFAULT false NOT NULL,
     previous_personal_access_token_id bigint,
-    advanced_scopes text,
     organization_id bigint NOT NULL,
     seven_days_notification_sent_at timestamp with time zone,
     thirty_days_notification_sent_at timestamp with time zone,
-    sixty_days_notification_sent_at timestamp with time zone,
-    CONSTRAINT check_aa95773861 CHECK ((char_length(advanced_scopes) <= 4096))
+    sixty_days_notification_sent_at timestamp with time zone
 );
 
 CREATE SEQUENCE personal_access_tokens_id_seq
@@ -22307,6 +22325,8 @@ ALTER TABLE ONLY pages_domains ALTER COLUMN id SET DEFAULT nextval('pages_domain
 
 ALTER TABLE ONLY path_locks ALTER COLUMN id SET DEFAULT nextval('path_locks_id_seq'::regclass);
 
+ALTER TABLE ONLY personal_access_token_advanced_scopes ALTER COLUMN id SET DEFAULT nextval('personal_access_token_advanced_scopes_id_seq'::regclass);
+
 ALTER TABLE ONLY personal_access_tokens ALTER COLUMN id SET DEFAULT nextval('personal_access_tokens_id_seq'::regclass);
 
 ALTER TABLE ONLY plan_limits ALTER COLUMN id SET DEFAULT nextval('plan_limits_id_seq'::regclass);
@@ -24835,6 +24855,9 @@ ALTER TABLE ONLY pages_domains
 
 ALTER TABLE ONLY path_locks
     ADD CONSTRAINT path_locks_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY personal_access_token_advanced_scopes
+    ADD CONSTRAINT personal_access_token_advanced_scopes_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY personal_access_tokens
     ADD CONSTRAINT personal_access_tokens_pkey PRIMARY KEY (id);
@@ -29854,6 +29877,10 @@ CREATE INDEX p_ci_builds_user_id_name_idx ON ONLY p_ci_builds USING btree (user_
 
 CREATE INDEX index_partial_ci_builds_on_user_id_name_parser_features ON ci_builds USING btree (user_id, name) WHERE (((type)::text = 'Ci::Build'::text) AND ((name)::text = ANY (ARRAY[('container_scanning'::character varying)::text, ('dast'::character varying)::text, ('dependency_scanning'::character varying)::text, ('license_management'::character varying)::text, ('license_scanning'::character varying)::text, ('sast'::character varying)::text, ('coverage_fuzzing'::character varying)::text, ('secret_detection'::character varying)::text])));
 
+CREATE INDEX index_pat_advanced_scopes_on_organization_id ON personal_access_token_advanced_scopes USING btree (organization_id);
+
+CREATE INDEX index_pat_advanced_scopes_on_pat_id ON personal_access_token_advanced_scopes USING btree (personal_access_token_id);
+
 CREATE INDEX index_pat_on_user_id_and_expires_at ON personal_access_tokens USING btree (user_id, expires_at);
 
 CREATE INDEX index_path_locks_on_path ON path_locks USING btree (path);
@@ -34043,9 +34070,6 @@ ALTER TABLE ONLY subscription_user_add_on_assignments
 ALTER TABLE ONLY packages_conan_metadata
     ADD CONSTRAINT fk_7302a29cd9 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
-ALTER TABLE ONLY approval_merge_request_rules
-    ADD CONSTRAINT fk_73fec3d7e5 FOREIGN KEY (approval_policy_rule_id) REFERENCES approval_policy_rules(id) ON DELETE CASCADE;
-
 ALTER TABLE ONLY index_statuses
     ADD CONSTRAINT fk_74b2492545 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
@@ -34373,6 +34397,9 @@ ALTER TABLE ONLY boards
 ALTER TABLE ONLY audit_events_streaming_http_instance_namespace_filters
     ADD CONSTRAINT fk_abe44125bc FOREIGN KEY (audit_events_instance_external_audit_event_destination_id) REFERENCES audit_events_instance_external_audit_event_destinations(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY personal_access_token_advanced_scopes
+    ADD CONSTRAINT fk_ac17df9f6f FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE;
+
 ALTER TABLE ONLY audit_events_streaming_instance_namespace_filters
     ADD CONSTRAINT fk_ac20a85a68 FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
@@ -34393,6 +34420,9 @@ ALTER TABLE ONLY dast_profile_schedules
 
 ALTER TABLE ONLY analytics_cycle_analytics_group_stages
     ADD CONSTRAINT fk_analytics_cycle_analytics_group_stages_group_value_stream_id FOREIGN KEY (group_value_stream_id) REFERENCES analytics_cycle_analytics_group_value_streams(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY approval_merge_request_rules
+    ADD CONSTRAINT fk_approval_merge_request_rules_on_approval_policy_rule_id FOREIGN KEY (approval_policy_rule_id) REFERENCES approval_policy_rules(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY approval_merge_request_rules
     ADD CONSTRAINT fk_approval_merge_request_rules_on_scan_result_policy_id FOREIGN KEY (scan_result_policy_id) REFERENCES scan_result_policies(id) ON DELETE SET NULL;
@@ -35056,6 +35086,9 @@ ALTER TABLE ONLY issue_email_participants
 
 ALTER TABLE ONLY merge_request_context_commits
     ADD CONSTRAINT fk_rails_0fe0039f60 FOREIGN KEY (merge_request_id) REFERENCES merge_requests(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY personal_access_token_advanced_scopes
+    ADD CONSTRAINT fk_rails_10125cdea2 FOREIGN KEY (personal_access_token_id) REFERENCES personal_access_tokens(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY audit_events_streaming_headers
     ADD CONSTRAINT fk_rails_109fcf96e2 FOREIGN KEY (external_audit_event_destination_id) REFERENCES audit_events_external_audit_event_destinations(id) ON DELETE CASCADE;

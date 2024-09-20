@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PersonalAccessToken < ApplicationRecord
+  include IgnorableColumns
+  ignore_column :advanced_scopes, remove_with: '17.4', remove_after: '2024-07-17'
   include Expirable
   include TokenAuthenticatable
   include Sortable
@@ -28,7 +30,7 @@ class PersonalAccessToken < ApplicationRecord
   belongs_to :user
   belongs_to :organization, class_name: 'Organizations::Organization'
   belongs_to :previous_personal_access_token, class_name: 'PersonalAccessToken'
-
+  has_many :personal_access_token_advanced_scopes, class_name: 'Authz::PersonalAccessTokenAdvancedScope'
   after_initialize :set_default_scopes, if: :persisted?
   before_save :ensure_token
 
@@ -54,7 +56,7 @@ class PersonalAccessToken < ApplicationRecord
   scope :last_used_after, ->(date) { where("last_used_at >= ?", date) }
   scope :expiring_and_not_notified_without_impersonation, -> { where(["(revoked = false AND expire_notification_delivered = false AND expires_at >= CURRENT_DATE AND expires_at <= :date) and impersonation = false", { date: DAYS_TO_EXPIRE.days.from_now.to_date }]) }
 
-  validates :scopes, presence: true
+  validate :ensure_scopes_or_advanced_scopes_present
   validates :expires_at, presence: true, on: :create, unless: :allow_expires_at_to_be_empty?
 
   validate :validate_scopes
@@ -92,7 +94,9 @@ class PersonalAccessToken < ApplicationRecord
   protected
 
   def validate_scopes
-    unless revoked || scopes.all? { |scope| Gitlab::Auth.all_available_scopes.include?(scope.to_sym) }
+    return if revoked || scopes.blank?
+
+    unless scopes.all? { |scope| Gitlab::Auth.all_available_scopes.include?(scope.to_sym) }
       errors.add :scopes, "can only contain available scopes"
     end
   end
@@ -127,6 +131,17 @@ class PersonalAccessToken < ApplicationRecord
       :expires_at,
       format(_("must be before %{expiry_date}"), expiry_date: max_expiry_date)
     )
+  end
+
+  def ensure_scopes_or_advanced_scopes_present
+    scopes_present = scopes.present? && scopes.any?
+    advanced_scopes_present = personal_access_token_advanced_scopes.exists?
+
+    if scopes_present && advanced_scopes_present
+      errors.add(:base, _('Cannot have both scopes and advanced scopes'))
+    elsif !scopes_present && !advanced_scopes_present
+      errors.add(:base, _('Either scopes or advanced scopes must be present'))
+    end
   end
 end
 

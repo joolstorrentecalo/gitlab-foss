@@ -239,7 +239,7 @@ RSpec.describe PersonalAccessToken, feature_category: :system_access do
       personal_access_token.scopes = []
 
       expect(personal_access_token).not_to be_valid
-      expect(personal_access_token.errors[:scopes].first).to eq "can't be blank"
+      expect(personal_access_token.errors[:base].first).to eq "Either scopes or advanced scopes must be present"
     end
 
     it "allows creating a token with API scopes" do

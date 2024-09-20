@@ -1,0 +1,9 @@
+---
+name: advanced_token_scopes
+feature_issue_url: https://gitlab.com/gitlab-org/gitlab/-/issues/368904
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/158490
+rollout_issue_url: https://gitlab.com/gitlab-org/gitlab/-/issues/457013
+milestone: '17.2'
+group: group::authentication
+type: wip
+default_enabled: false

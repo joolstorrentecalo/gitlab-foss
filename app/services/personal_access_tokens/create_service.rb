@@ -14,16 +14,27 @@ module PersonalAccessTokens
     def execute
       return ServiceResponse.error(message: 'Not permitted to create') unless creation_permitted?
 
-      token = target_user.personal_access_tokens.create(personal_access_token_params)
+      token = nil
+      errors = []
 
-      if token.persisted?
+      ApplicationRecord.transaction do
+        token = target_user.personal_access_tokens.create!(personal_access_token_params)
+        if params[:personal_access_token_advanced_scopes].present?
+          create_advanced_scopes(token, params[:personal_access_token_advanced_scopes])
+        end
+      rescue ActiveRecord::RecordInvalid => e
+        errors.concat(e.record.errors.full_messages)
+        raise ActiveRecord::Rollback
+      end
+
+      if token&.persisted?
         log_event(token)
         notification_service.access_token_created(target_user, token.name)
         ServiceResponse.success(payload: { personal_access_token: token })
       else
-        message = token.errors.full_messages
-        message = message.to_sentence if @concatenate_errors
 
+        message = errors.presence || token.errors.full_messages
+        message = message.to_sentence if @concatenate_errors
         ServiceResponse.error(message: message, payload: { personal_access_token: token })
       end
     end
@@ -40,6 +51,19 @@ module PersonalAccessTokens
         expires_at: pat_expiration,
         organization_id: organization_id
       }
+    end
+
+    def create_advanced_scopes(token, advanced_scopes_params)
+      if advanced_scopes_params.each_line.count > Authz::PersonalAccessTokenAdvancedScope::ADVANCED_SCOPES_MAX_LINES
+        raise ArgumentError _('Too many advanced scopes')
+      end
+
+      advanced_scopes_params.each_line do |scope|
+        scope = scope.split
+        http_methods = scope[0].split(',')
+        path_string = scope[1]
+        token.personal_access_token_advanced_scopes.create!(http_methods: http_methods, path_string: path_string)
+      end
     end
 
     def pat_expiration

@@ -22,6 +22,9 @@ class AccessTokenValidationService
     elsif token.revoked?
       REVOKED
 
+    elsif token.is_a?(PersonalAccessToken) && token.personal_access_token_advanced_scopes.any?
+      validate_advanced_scopes!
+
     elsif !self.include_any_scope?(scopes)
       INSUFFICIENT_SCOPE
 
@@ -51,5 +54,13 @@ class AccessTokenValidationService
         scope.sufficient?(token_scopes, request)
       end
     end
+  end
+
+  def validate_advanced_scopes!
+    permitting_scope = token.personal_access_token_advanced_scopes.find do |scope|
+      scope.http_methods.include?(request.request_method) &&
+        scope.path_regex.match(request.path)
+    end
+    permitting_scope ? VALID : INSUFFICIENT_SCOPE
   end
 end

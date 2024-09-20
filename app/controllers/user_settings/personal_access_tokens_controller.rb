@@ -6,8 +6,10 @@ module UserSettings
     include FeedTokenHelper
 
     feature_category :system_access
-
     before_action :check_personal_access_tokens_enabled
+    before_action do
+      push_frontend_feature_flag :advanced_token_scopes, current_user
+    end
     prepend_before_action(only: [:index]) { authenticate_sessionless_user!(:ics) }
 
     def index
@@ -68,7 +70,11 @@ module UserSettings
     end
 
     def personal_access_token_params
-      params.require(:personal_access_token).permit(:name, :expires_at, scopes: [])
+      permitted_params = [:name, :expires_at, { scopes: [] }]
+      permitted_params << :personal_access_token_advanced_scopes if ::Feature.enabled?(:advanced_token_scopes,
+        current_user)
+
+      params.require(:personal_access_token).permit(*permitted_params)
     end
 
     def set_index_vars

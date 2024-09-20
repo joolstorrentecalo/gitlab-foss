@@ -10789,6 +10789,9 @@ msgstr ""
 msgid "Cannot delete the default organization"
 msgstr ""
 
+msgid "Cannot have both scopes and advanced scopes"
+msgstr ""
+
 msgid "Cannot have multiple Jira imports running at the same time"
 msgstr ""
 
@@ -20621,6 +20624,9 @@ msgid "Editing"
 msgstr ""
 
 msgid "Edits"
+msgstr ""
+
+msgid "Either scopes or advanced scopes must be present"
 msgstr ""
 
 msgid "Either the title or description must reference a Jira issue."
@@ -57174,6 +57180,9 @@ msgid "Tomorrow"
 msgstr ""
 
 msgid "Too long"
+msgstr ""
+
+msgid "Too many advanced scopes"
 msgstr ""
 
 msgid "Too many failed authentication attempts from this IP"

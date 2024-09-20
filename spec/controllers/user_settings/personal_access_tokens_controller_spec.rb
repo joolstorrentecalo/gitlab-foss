@@ -14,6 +14,34 @@ RSpec.describe UserSettings::PersonalAccessTokensController, feature_category: :
     def created_token
       PersonalAccessToken.order(:created_at).last
     end
+    let(:valid_params) { { name: 'My PAT', scopes: %w[api read_user], expires_at: 5.days.from_now.to_date } }
+
+    context 'with valid parameters' do
+      it 'permits the correct parameters' do
+        is_expected.to permit(:name, :expires_at, scopes: []).for(:create,
+          params: { personal_access_token: valid_params }).on(:personal_access_token)
+      end
+
+      it 'permits advanced_token_scopes parameter' do
+        valid_params_with_advanced_scopes = valid_params.merge(personal_access_token_advanced_scopes: %w[scope1
+          scope2])
+
+        is_expected.to permit(:name, :expires_at, { scopes: [] }, :personal_access_token_advanced_scopes)
+                         .for(:create, params: { personal_access_token: valid_params_with_advanced_scopes })
+                         .on(:personal_access_token)
+      end
+    end
+
+    context 'with disallowed parameters' do
+      it 'does not permit disallowed parameters' do
+        invalid_params = valid_params.merge(invalid_param: 'not_allowed')
+
+        post :create, params: { personal_access_token: invalid_params }
+
+        expect(created_token).not_to have_attribute(:invalid_param)
+        expect(response).to have_gitlab_http_status(:ok)
+      end
+    end
 
     it "allows creation of a token with scopes" do
       name = 'My PAT'
